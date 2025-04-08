@@ -466,7 +466,6 @@ class TodasEncuestasView(ListView):
     def get_queryset(self):
         return Encuesta.objects.all().order_by('-fecha_creacion')
 
-
 class ResultadosEncuestaView(DetailView):
     model = Encuesta
     template_name = 'Encuesta/resultados_encuesta.html'
@@ -475,6 +474,8 @@ class ResultadosEncuestaView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         encuesta = self.object
+
+        print(f"Encuesta: {encuesta}")
 
         preguntas = sorted(
             chain(
@@ -491,6 +492,8 @@ class ResultadosEncuestaView(DetailView):
             key=lambda x: x.orden
         )
 
+        print(f"Preguntas ordenadas: {[p.id for p in preguntas]}")
+
         context['preguntas'] = preguntas
         context['graficas'] = {}
 
@@ -498,20 +501,25 @@ class ResultadosEncuestaView(DetailView):
             tipo = pregunta.__class__.__name__
             key = f"pregunta_{pregunta.id}"
 
+            print(f"Procesando pregunta ID {pregunta.id}, tipo {tipo}")
+
             if tipo == 'PreguntaOpcionMultiple':
                 respuestas = RespuestaOpcionMultiple.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
                 context['graficas'][key] = dict(counter)
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaCasillasVerificacion':
                 respuestas = RespuestaCasillasVerificacion.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
                 context['graficas'][key] = dict(counter)
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaMenuDesplegable':
                 respuestas = RespuestaOpcionMenuDesplegable.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
                 context['graficas'][key] = dict(counter)
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaEstrellas':
                 respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta)
@@ -521,28 +529,33 @@ class ResultadosEncuestaView(DetailView):
                     'valores': valores,
                     'promedio': promedio
                 }
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaEscala':
                 respuestas = RespuestaEscala.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 counter = Counter(valores)
                 context['graficas'][key] = dict(counter)
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaTextoMultiple':
                 respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
                 textos = [r.valor for r in respuestas]
                 context['graficas'][key] = textos
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaTexto':
                 respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
                 textos = [r.valor for r in respuestas]
                 context['graficas'][key] = textos
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaFecha':
                 respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
                 fechas = [r.valor.isoformat() for r in respuestas]
                 counter = Counter(fechas)
                 context['graficas'][key] = dict(counter)
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
             elif tipo == 'PreguntaMatriz':
                 respuestas = RespuestaMatriz.objects.filter(pregunta=pregunta)
@@ -550,7 +563,9 @@ class ResultadosEncuestaView(DetailView):
                 for r in respuestas:
                     datos[r.item.texto][r.valor] += 1
                 context['graficas'][key] = {fila: dict(contador) for fila, contador in datos.items()}
+                print(f"Graficas para {key}: {context['graficas'][key]}")
 
+        print(f"Contexto final: {context}")
         return context
 
 
