@@ -3,29 +3,29 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-10 text-center">
-            <div class="mb-3">
-                <h1 class="display-4 fw-bold">Crear Nueva Encuesta</h1>
-                <p class="lead" style="color: gray;">Selecciona el método que mejor se adapte a tus necesidades</p>
-                <div class="divider mb-3"><span></span></div>
+            <div class="mb-5">
+                <h1 class="display-5 fw-bold mb-3">Crear Nueva Encuesta</h1>
+                <p class="lead mb-4" style="color: gray;">Selecciona el método que mejor se adapte a tus necesidades</p>
+                <div class="divider mb-4"><span></span></div>
             </div>
             
-            <div class="row">
+            <div class="row g-4">
                 <!-- Botón Crear desde cero -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 creation-card">
                         <div class="card-body d-flex flex-column">
-                            <div class="icon-wrapper mb-4">
+                            <div class="icon-wrapper mb-3">
                                 <div class="icon-circle bg-primary-soft">
                                     <i class="fas fa-plus"></i>
                                 </div>
                             </div>
-                            <h3 class="card-title">Crear desde cero</h3>
+                            <h3 class="card-title">Crear Desde Cero</h3>
                             <p class="card-text flex-grow-1">Empieza con una encuesta en blanco y diseña cada pregunta manualmente.</p>
-                            <a href="{% url 'crear_desde_cero' %}" class="btn btn-primary btn-lg mt-3">
-                                <span>Seleccionar</span>
+                            <a href="{% url 'crear_desde_cero' %}" class="btn btn-primary mt-3">
+                                <span class="btn-text">Seleccionar</span>
                                 <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
@@ -37,15 +37,15 @@
                     <div class="card h-100 creation-card featured">
                         <div class="recommended-badge">Recomendado</div>
                         <div class="card-body d-flex flex-column">
-                            <div class="icon-wrapper mb-4">
+                            <div class="icon-wrapper mb-3">
                                 <div class="icon-circle bg-success-soft">
                                     <i class="fas fa-robot"></i>
                                 </div>
                             </div>
-                            <h3 class="card-title">Crear con IA</h3>
+                            <h3 class="card-title">Crear Con IA</h3>
                             <p class="card-text flex-grow-1">Nuestra inteligencia artificial generará una encuesta personalizada basada en tus necesidades.</p>
-                            <a href="{% url 'crear_con_ia' %}" class="btn btn-success btn-lg mt-3">
-                                <span>Seleccionar</span>
+                            <a href="{% url 'crear_con_ia' %}" class="btn btn-success mt-3">
+                                <span class="btn-text">Seleccionar</span>
                                 <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
@@ -56,15 +56,15 @@
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="card h-100 creation-card">
                         <div class="card-body d-flex flex-column">
-                            <div class="icon-wrapper mb-4">
+                            <div class="icon-wrapper mb-3">
                                 <div class="icon-circle bg-info-soft">
                                     <i class="fas fa-copy"></i>
                                 </div>
                             </div>
                             <h3 class="card-title">Duplicar Encuesta</h3>
                             <p class="card-text flex-grow-1">Selecciona una encuesta existente para crear una copia editable.</p>
-                            <a href="{% url 'duplicar_encuesta' %}" class="btn btn-info btn-lg mt-3">
-                                <span>Seleccionar</span>
+                            <a href="{% url 'duplicar_encuesta' %}" class="btn btn-info mt-3">
+                                <span class="btn-text">Seleccionar</span>
                                 <i class="fas fa-arrow-right ms-2"></i>
                             </a>
                         </div>
@@ -72,9 +72,6 @@
                 </div>
             </div>
             
-            <div class="mt-5 pt-3 text-center">
-                <p class="text-muted small">¿Necesitas ayuda? <a href="#" class="text-decoration-none">Consulta nuestra guía</a> o <a href="#" class="text-decoration-none">contacta con soporte</a></p>
-            </div>
         </div>
     </div>
 </div>
@@ -88,10 +85,10 @@
         --success-light: #ecfdf5;
         --info-color: #3b82f6;
         --info-light: #eff6ff;
-        --card-border-radius: 16px;
-        --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
-        --shadow-md: 0 10px 15px rgba(0,0,0,0.07);
-        --shadow-lg: 0 15px 25px rgba(0,0,0,0.1);
+        --card-border-radius: 12px;
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+        --shadow-md: 0 6px 12px rgba(0,0,0,0.07);
+        --shadow-lg: 0 8px 16px rgba(0,0,0,0.1);
         --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     
@@ -114,8 +111,8 @@
     /* Separador decorativo */
     .divider {
         position: relative;
-        height: 1px;
-        max-width: 120px;
+        height: 1.3px;
+        max-width: 300px;
         margin-left: auto;
         margin-right: auto;
         background: #e9ecef;
@@ -138,47 +135,51 @@
         transition: var(--transition);
         overflow: hidden;
         height: 100%;
-        padding: 1.5rem 1rem;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
     }
     
     .creation-card:hover {
-        transform: translateY(-8px);
-        box-shadow: var(--shadow-lg);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
     }
     
-    /* Tarjeta destacada */
-    .creation-card.featured {
-        border: 2px solid var(--success-color);
-        position: relative;
-        transform: translateY(-10px);
+    .creation-card .card-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+        padding: 1rem;
+        height: 100%;
     }
     
-    .creation-card.featured:hover {
-        transform: translateY(-15px);
-    }
-    
-    .recommended-badge {
-        position: absolute;
-        top: 0;
-        right: 20px;
-        background: var(--success-color);
-        color: white;
-        padding: 5px 15px;
-        border-radius: 0 0 10px 10px;
-        font-size: 0.85rem;
+    .creation-card .card-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
         font-weight: 600;
-        z-index: 1;
     }
     
-    /* Estilos para los iconos */
+    .creation-card .card-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+    }
+    
     .icon-wrapper {
+        margin-bottom: 1rem;
         display: flex;
         justify-content: center;
     }
     
     .icon-circle {
-        width: 80px;
-        height: 80px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -186,76 +187,135 @@
     }
     
     .icon-circle i {
-        font-size: 2rem;
+        font-size: 1.4rem;
+    }
+    
+    /* Tarjeta destacada */
+    .creation-card.featured {
+        border: 2px solid var(--success-color);
+        position: relative;
+    }
+    
+    .recommended-badge {
+        position: absolute;
+        top: 0;
+        right: 50%;
+        transform: translateX(50%);
+        background: var(--success-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 0 0 8px 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        z-index: 1;
     }
     
     /* Estilos para los botones */
     .btn {
-        border-radius: 30px;
-        padding: 0.75rem 1.75rem;
+        border-radius: 25px;
+        padding: 0.6rem 1.25rem;
         font-weight: 600;
+        font-size: 0.9rem;
         transition: var(--transition);
-        letter-spacing: 0.5px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
+        white-space: nowrap;
+        min-width: 130px;
     }
     
-    .btn-primary {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
+    .btn-text {
+        display: inline-block;
     }
     
-    .btn-primary:hover {
-        background-color: #3a56d4;
-        border-color: #3a56d4;
-        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+    .btn i {
+        font-size: 0.9em;
+        transition: transform 0.2s;
     }
     
-    .btn-success {
-        background-color: var(--success-color);
-        border-color: var(--success-color);
+    .btn:hover i {
+        transform: translateX(3px);
+    }
+
+    .display-5 {
+        font-size: 2.5rem;
+
+        @media (max-width: 1200px) {
+            font-size: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            font-size: 1.8rem;
+        }
     }
     
-    .btn-success:hover {
-        background-color: #0ea06e;
-        border-color: #0ea06e;
-        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-    }
-    
-    .btn-info {
-        background-color: var(--info-color);
-        border-color: var(--info-color);
-    }
-    
-    .btn-info:hover {
-        background-color: #2d6fed;
-        border-color: #2d6fed;
-        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-    }
-    
-    /* Adaptación para móviles */
-    @media (max-width: 768px) {
-        .display-4 {
-            font-size: 2.2rem;
+    /* Adaptación para diferentes tamaños de pantalla */
+    @media (min-width: 992px) {
+        .creation-card {
+            padding: 1.25rem;
+        }
+        
+        .creation-card .card-body {
+            padding: 1.25rem;
+        }
+        
+        .creation-card .card-title {
+            font-size: 1.3rem;
         }
         
         .icon-circle {
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
         }
         
         .icon-circle i {
             font-size: 1.6rem;
         }
-        
-        .creation-card.featured {
-            transform: translateY(0);
+    }
+    
+    @media (max-width: 767px) {
+        .creation-card {
+            margin-bottom: 1.5rem;
         }
         
-        .creation-card.featured:hover {
-            transform: translateY(-8px);
+        .btn {
+            padding: 0.5rem 1.25rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .creation-card {
+            padding: 0.75rem;
+        }
+        
+        .creation-card .card-body {
+            padding: 0.75rem;
+        }
+        
+        .creation-card .card-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .creation-card .card-text {
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .icon-circle i {
+            font-size: 1.2rem;
+        }
+        
+        .btn {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            min-width: 120px;
         }
     }
 </style>
