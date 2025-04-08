@@ -298,6 +298,7 @@ def crear_desde_cero(request):
                     placeholder=pregunta.get('placeholder', '')
                 )
             elif tipo == 'RADIO':
+                print('PreguntaOpcionMultiple', pregunta)
                 PreguntaOpcionMultiple.objects.create(
                     encuesta=encuesta,
                     texto=texto,
@@ -305,7 +306,8 @@ def crear_desde_cero(request):
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
-                    seccion=seccion
+                    seccion=seccion,
+                    opciones=pregunta.get('opciones', [])
                 )
                 # Aquí podrías agregar las opciones si están disponibles
                 
