@@ -159,7 +159,8 @@ def crear_desde_cero(request):
                 'questions[1][text]': "¿Cuál es su opinión sobre esta encuesta?",
                 'questions[1][type]': 'TEXT',
                 'questions[1][required]': 'true',
-                'questions[1][order]': '1'
+                'questions[1][order]': '1',
+                'questions[1][section]': 'General'  # Asignar a la sección por defecto
             })
         
         # Procesar cada pregunta
@@ -170,7 +171,7 @@ def crear_desde_cero(request):
             requerida = request.POST.get(f'questions[{pregunta_id}][required]', 'true') == 'true'
             orden = int(request.POST.get(f'questions[{pregunta_id}][order]', pregunta_id))
             ayuda = request.POST.get(f'questions[{pregunta_id}][help]', '')
-            seccion = request.POST.get(f'questions[{pregunta_id}][section]', '')
+            seccion = request.POST.get(f'questions[{pregunta_id}][section]', 'General')  # Usar 'General' como valor por defecto
             
             # Crear el tipo específico de pregunta según el valor de 'tipo'
             if tipo == 'TEXT':

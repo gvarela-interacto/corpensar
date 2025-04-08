@@ -809,6 +809,10 @@
                 updateQuestionOptions($newQuestion, 'TEXT');
                 updateSectionSelects();
                 
+                // Asignar la sección por defecto a la nueva pregunta
+                const defaultSection = $('.section-divider').first().find('.section-title').val() || 'General';
+                $newQuestion.find('.question-section').val(defaultSection);
+                
                 // Establecer handlers para los eventos
                 setupQuestionEventHandlers($newQuestion);
                 console.log('Handlers configurados para pregunta:', questionCounter);
@@ -827,6 +831,12 @@
                 
                 // Configurar evento para eliminar sección
                 $(`.section-divider[data-section-id="${sectionCounter}"] .delete-section`).click(function() {
+                    // No permitir eliminar la sección por defecto
+                    if ($(this).closest('.section-divider').data('section-id') === 1) {
+                        alert('No se puede eliminar la sección por defecto.');
+                        return;
+                    }
+                    
                     $(this).closest('.section-divider').remove();
                     updateSectionSelects();
                 });
@@ -1034,6 +1044,18 @@
             $('#add-section').click(function() {
                 addNewSection();
             });
+            
+            // Crear sección por defecto al cargar la página
+            sectionCounter = 1;
+            const defaultSectionHtml = $('#section-template').html().replace(/{section_id}/g, sectionCounter);
+            $('#questions-container').append(defaultSectionHtml);
+            
+            // Configurar la sección por defecto
+            $('.section-divider[data-section-id="1"] .section-title').val('General');
+            $('.section-divider[data-section-id="1"] .delete-section').prop('disabled', true).addClass('disabled');
+            
+            // Actualizar los selectores de sección
+            updateSectionSelects();
         });
     </script>
 {% endblock %}
