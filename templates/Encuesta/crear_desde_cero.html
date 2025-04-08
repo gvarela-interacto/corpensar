@@ -6,7 +6,7 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-10 offset-md-1">
-                <h1 class="mb-4">Crear Nueva Encuesta</h1>
+                <h1 class="mb-4 text-center">Crear Nueva Encuesta</h1>
                 
                 <form id="survey-form" method="post">
                     {% csrf_token %}
@@ -48,18 +48,28 @@
                                 </div>
                             </div>
                             
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="activa" name="activa" checked>
-                                <label class="form-check-label" for="activa">
-                                    Encuesta activa
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="es_publica" name="es_publica">
-                                <label class="form-check-label" for="es_publica">
-                                    Encuesta pública (cualquiera puede responder sin iniciar sesión)
-                                </label>
+                            <!-- Switches centrados -->
+                            <div class="text-center mt-3 mb-2">
+                                <div class="d-inline-flex gap-5 justify-content-center">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="activa" name="activa" checked>
+                                        <label class="form-check-label" for="activa">
+                                            <i class="fas fa-toggle-on me-1"></i>
+                                            Encuesta activa
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="es_publica" name="es_publica">
+                                        <label class="form-check-label" for="es_publica">
+                                            <i class="fas fa-globe me-1"></i>
+                                            Encuesta pública
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-text text-muted small mt-1">
+                                    La encuesta pública permite que cualquiera pueda responder sin iniciar sesión
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -68,9 +78,7 @@
                     <div class="card mb-4">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">Preguntas</h5>
-                            <button type="button" class="btn btn-light btn-sm" id="add-section">
-                                <i class="fas fa-folder-plus"></i> Añadir Sección
-                            </button>
+                            
                         </div>
                         
                         <div class="card-body" id="questions-container">
@@ -84,6 +92,9 @@
                         <div class="card-footer">
                             <button type="button" class="btn btn-success" id="add-question">
                                 <i class="fas fa-plus-circle"></i> Añadir Pregunta
+                            </button>
+                            <button type="button" class="btn btn-sm" id="add-section">
+                                <i class="fas fa-folder-plus"></i> Añadir Sección
                             </button>
                         </div>
                     </div>
@@ -486,6 +497,26 @@
         .option-row {
             margin-bottom: 8px;
         }
+        /* Estilos para switches centrados */
+        .form-switch .form-check-input {
+            width: 3em;
+            height: 1.5em;
+        }
+        .form-check-label {
+            padding-top: 2px;
+        }
+        .gap-5 {
+            gap: 3rem!important;
+        }
+
+        #add-section {
+            background-color: #007bff;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -493,30 +524,39 @@
     
     <script>
         $(document).ready(function() {
+            console.log('Documento listo');
             let questionCounter = 0;
             let sectionCounter = 0;
             
-            // Inicializar sortable para las preguntas
-            new Sortable(document.getElementById('questions-container'), {
-                handle: '.drag-handle',
-                animation: 150,
-                onEnd: function() {
-                    renumberQuestions();
-                }
-            });
-            
-            // Añadir nueva pregunta
-            $('#add-question').click(function() {
-                addNewQuestion();
-            });
-            
-            // Añadir nueva sección
-            $('#add-section').click(function() {
-                addNewSection();
-            });
+            // Función para renumerar preguntas
+            function renumberQuestions() {
+                console.log('Iniciando renumeración de preguntas');
+                const questions = $('#questions-container .question-card');
+                
+                questions.each(function(index) {
+                    const number = index + 1;
+                    console.log(`Renumerando pregunta a: ${number}`);
+                    
+                    // Actualizar el número visible
+                    $(this).find('.question-number').text(`Pregunta ${number}`);
+                    
+                    // Actualizar el valor del orden
+                    $(this).find('.question-order').val(number);
+                    
+                    // Actualizar los nombres de los campos para mantener el índice correcto
+                    $(this).find('[name^="questions["]').each(function() {
+                        const oldName = $(this).attr('name');
+                        const newName = oldName.replace(/questions\[\d+\]/, `questions[${number}]`);
+                        $(this).attr('name', newName);
+                    });
+                });
+                
+                console.log('Renumeración completada');
+            }
             
             // Función para añadir nueva pregunta
             function addNewQuestion() {
+                console.log('Iniciando addNewQuestion');
                 questionCounter++;
                 const template = $('#question-template').html();
                 const questionHtml = template
@@ -527,13 +567,14 @@
                 
                 // Inicializar las opciones según el tipo seleccionado
                 const $newQuestion = $(`[data-question-id="${questionCounter}"]`);
-                updateQuestionOptions($newQuestion, 'TEXT');
+                console.log('Nueva pregunta creada con ID:', questionCounter);
                 
-                // Actualizar las secciones disponibles
+                updateQuestionOptions($newQuestion, 'TEXT');
                 updateSectionSelects();
                 
                 // Establecer handlers para los eventos
                 setupQuestionEventHandlers($newQuestion);
+                console.log('Handlers configurados para pregunta:', questionCounter);
             }
             
             // Función para añadir nueva sección
@@ -561,7 +602,34 @@
             
             // Función para configurar los manejadores de eventos de las preguntas
             function setupQuestionEventHandlers($question) {
+                console.log('Configurando eventos para pregunta');
                 const questionId = $question.data('question-id');
+                console.log('ID de la pregunta:', questionId);
+                
+                // Eliminar manejadores previos si existen
+                $(document).off('click', `[data-question-id="${questionId}"] .delete-question`);
+                
+                // Eliminar pregunta - Usando delegación de eventos
+                $(document).on('click', `[data-question-id="${questionId}"] .delete-question`, function(e) {
+                    console.log('Botón eliminar clickeado');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const $questionToRemove = $(`[data-question-id="${questionId}"]`);
+                    console.log('Pregunta a eliminar:', $questionToRemove.length ? 'encontrada' : 'no encontrada');
+                    
+                    if (confirm('¿Estás seguro de que deseas eliminar esta pregunta?')) {
+                        console.log('Eliminación confirmada');
+                        
+                        // Añadir clase de fade out
+                        $questionToRemove.fadeOut(300, function() {
+                            console.log('Animación completada');
+                            $(this).remove();
+                            renumberQuestions();
+                            console.log('Pregunta eliminada y numeración actualizada');
+                        });
+                    }
+                });
                 
                 // Cambiar tipo de pregunta
                 $question.find('.question-type').change(function() {
@@ -572,12 +640,6 @@
                 // Vista previa de la pregunta
                 $question.find('.preview-btn').click(function() {
                     previewQuestion($question);
-                });
-                
-                // Eliminar pregunta
-                $question.find('.delete-question').click(function() {
-                    $question.remove();
-                    renumberQuestions();
                 });
                 
                 // Opciones específicas para cada tipo
@@ -627,35 +689,32 @@
                             <button type="button" class="btn btn-outline-danger remove-item"><i class="fas fa-times"></i></button>
                         </div>
                     `;
-                    
                     itemsList.append(newItem);
                     
                     // Configurar evento para eliminar ítem
                     itemsList.find('.remove-item').last().click(function() {
                         if (itemsList.children().length > 1) {
                             $(this).closest('.option-row').remove();
-                            renumberOptionOrders(itemsList);
+                            renumberItemOrders(itemsList);
                         } else {
-                            alert('Debe haber al menos un ítem en la matriz.');
+                            alert('Debe haber al menos un ítem.');
                         }
                     });
                 });
-                
-                // Para opción "Otro"
-                $question.find('.include-other').change(function() {
-                    const otherTextContainer = $(this).closest('.mb-3').siblings('.other-text-container');
-                    $(this).is(':checked') ? otherTextContainer.removeClass('d-none') : otherTextContainer.addClass('d-none');
-                });
             }
-            
-            // Actualizar opciones específicas según el tipo de pregunta
+
+            // Función para actualizar las opciones según el tipo de pregunta
             function updateQuestionOptions($question, type) {
+                // Obtener el contenedor de opciones
+                const $optionsContainer = $question.find('.question-options-container');
                 const questionId = $question.data('question-id');
-                const optionsContainer = $question.find('.question-options-container');
-                optionsContainer.empty();
                 
-                let template;
-                switch (type) {
+                // Limpiar opciones anteriores
+                $optionsContainer.empty();
+                
+                // Obtener el template correspondiente según el tipo
+                let template = '';
+                switch(type) {
                     case 'TEXT':
                         template = $('#text-options-template').html();
                         break;
@@ -681,249 +740,80 @@
                         template = $('#matrix-options-template').html();
                         break;
                     case 'DATE':
-                    case 'DATETIME':
                         template = $('#date-options-template').html();
                         break;
+                    default:
+                        return; // Si no hay template, no hacemos nada
                 }
                 
+                // Reemplazar los placeholders en el template
                 if (template) {
-                    const optionsHtml = template.replace(/{id}/g, questionId);
-                    optionsContainer.html(optionsHtml);
-                    setupOptionTypeHandlers($question);
+                    template = template.replace(/{id}/g, questionId);
+                    $optionsContainer.html(template);
+                    
+                    // Configurar eventos específicos según el tipo
+                    switch(type) {
+                        case 'RADIO':
+                        case 'CHECK':
+                        case 'SELECT':
+                            // Inicializar con una opción
+                            $optionsContainer.find('.add-option').trigger('click');
+                            break;
+                        case 'MATRIX':
+                            // Inicializar con un ítem
+                            $optionsContainer.find('.add-item').trigger('click');
+                            break;
+                    }
                 }
             }
-            
-            // Renumerar preguntas
-            function renumberQuestions() {
-                $('.question-card').each(function(index) {
-                    $(this).find('.question-number').text(`Pregunta ${index + 1}`);
-                    $(this).find('.question-order').val(index + 1);
-                });
-            }
-            
-            // Renumerar opciones
-            function renumberOptionOrders($container) {
-                $container.find('.option-row').each(function(index) {
-                    $(this).find('input[name$="[order]"]').val(index + 1);
-                });
-            }
-            
-            // Actualizar select de secciones
+
+            // Función para actualizar los selectores de sección
             function updateSectionSelects() {
-                // Recopilar todas las secciones
+                // Obtener todas las secciones
                 const sections = [];
                 $('.section-divider').each(function() {
                     const sectionId = $(this).data('section-id');
-                    const sectionTitle = $(this).find('.section-title').val() || `Sección ${sectionId}`;
-                    sections.push({ id: sectionId, title: sectionTitle });
+                    const title = $(this).find('.section-title').val() || 'Sin título';
+                    sections.push({ id: sectionId, title: title });
                 });
                 
-                // Actualizar todos los selects de sección
+                // Actualizar todos los selectores de sección
                 $('.question-section').each(function() {
-                    const currentVal = $(this).val();
-                    $(this).find('option:not(:first)').remove();
+                    const currentValue = $(this).val();
+                    $(this).empty().append('<option value="">Sin sección</option>');
                     
                     sections.forEach(section => {
-                        $(this).append(`<option value="${section.id}" ${currentVal == section.id ? 'selected' : ''}>${section.title}</option>`);
+                        const option = $('<option></option>')
+                            .val(section.id)
+                            .text(section.title);
+                        $(this).append(option);
                     });
+                    
+                    // Mantener el valor seleccionado si existía
+                    if (currentValue) {
+                        $(this).val(currentValue);
+                    }
                 });
             }
-            
-            // Vista previa de pregunta
-            function previewQuestion($question) {
-                const questionType = $question.find('.question-type').val();
-                const questionText = $question.find('.question-text').val() || 'Texto de la pregunta';
-                const isRequired = $question.find('.question-required').is(':checked');
-                const helpText = $question.find('.question-help').val();
-                
-                let previewHTML = `
-                    <div class="preview-question mb-4">
-                        <label class="form-label fw-bold">${questionText} ${isRequired ? '<span class="text-danger">*</span>' : ''}</label>
-                        ${helpText ? `<p class="form-text text-muted mb-2">${helpText}</p>` : ''}
-                `;
-                
-                switch (questionType) {
-                    case 'TEXT':
-                        const textPlaceholder = $question.find('input[name$="[placeholder]"]').val() || '';
-                        previewHTML += `<input type="text" class="form-control" placeholder="${textPlaceholder}" ${isRequired ? 'required' : ''}>`;
-                        break;
-                    case 'MTEXT':
-                        const mtextPlaceholder = $question.find('input[name$="[placeholder]"]').val() || '';
-                        const rows = $question.find('input[name$="[rows]"]').val() || 4;
-                        previewHTML += `<textarea class="form-control" rows="${rows}" placeholder="${mtextPlaceholder}" ${isRequired ? 'required' : ''}></textarea>`;
-                        break;
-                    case 'RADIO':
-                        const radioOptions = [];
-                        $question.find('.options-list .option-row').each(function() {
-                            const optionText = $(this).find('input[type="text"]').val() || 'Opción';
-                            radioOptions.push(`
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="preview_radio_${$question.data('question-id')}" ${isRequired ? 'required' : ''}>
-                                    <label class="form-check-label">${optionText}</label>
-                                </div>
-                            `);
-                        });
-                        
-                        if ($question.find('.include-other').is(':checked')) {
-                            const otherText = $question.find('input[name$="[other_text]"]').val() || 'Otro';
-                            radioOptions.push(`
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="preview_radio_${$question.data('question-id')}">
-                                    <label class="form-check-label">${otherText}</label>
-                                    <input type="text" class="form-control mt-1" placeholder="Especifique">
-                                </div>
-                            `);
-                        }
-                        
-                        previewHTML += radioOptions.join('');
-                        break;
-                    case 'CHECK':
-                        const checkOptions = [];
-                        $question.find('.options-list .option-row').each(function() {
-                            const optionText = $(this).find('input[type="text"]').val() || 'Opción';
-                            checkOptions.push(`
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" ${isRequired ? 'required' : ''}>
-                                    <label class="form-check-label">${optionText}</label>
-                                </div>
-                            `);
-                        });
-                        
-                        if ($question.find('.include-other').is(':checked')) {
-                            const otherText = $question.find('input[name$="[other_text]"]').val() || 'Otro';
-                            checkOptions.push(`
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox">
-                                    <label class="form-check-label">${otherText}</label>
-                                    <input type="text" class="form-control mt-1" placeholder="Especifique">
-                                </div>
-                            `);
-                        }
-                        
-                        previewHTML += checkOptions.join('');
-                        break;
-                    case 'SELECT':
-                        const selectOptions = [];
-                        
-                        if ($question.find('input[name$="[empty_option]"]').is(':checked')) {
-                            const emptyText = $question.find('input[name$="[empty_text]"]').val() || 'Seleccione...';
-                            selectOptions.push(`<option value="">${emptyText}</option>`);
-                        }
-                        
-                        $question.find('.options-list .option-row').each(function() {
-                            const optionText = $(this).find('input[type="text"]').val() || 'Opción';
-                            selectOptions.push(`<option value="${optionText}">${optionText}</option>`);
-                        });
-                        
-                        previewHTML += `
-                            <select class="form-select" ${isRequired ? 'required' : ''}>
-                                ${selectOptions.join('')}
-                            </select>
-                        `;
-                        break;
-                    case 'STAR':
-                        const maxStars = $question.find('input[name$="[max_stars]"]').val() || 5;
-                        const startLabel = $question.find('input[name$="[label_start]"]').val();
-                        const endLabel = $question.find('input[name$="[label_end]"]').val();
-                        
-                        previewHTML += `
-                            <div class="mb-2">
-                                ${startLabel ? `<span class="me-2">${startLabel}</span>` : ''}
-                                ${Array(parseInt(maxStars)).fill(0).map(() => '<i class="far fa-star fa-lg text-warning me-1" style="cursor:pointer;"></i>').join('')}
-                                ${endLabel ? `<span class="ms-2">${endLabel}</span>` : ''}
-                            </div>
-                        `;
-                        break;
-                    case 'SCALE':
-                        const minValue = $question.find('input[name$="[min_value]"]').val() || 1;
-                        const maxValue = $question.find('input[name$="[max_value]"]').val() || 5;
-                        const step = $question.find('input[name$="[step]"]').val() || 1;
-                        const labelMin = $question.find('input[name$="[label_min]"]').val() || 'Mínimo';
-                        const labelMax = $question.find('input[name$="[label_max]"]').val() || 'Máximo';
-                        
-                        previewHTML += `
-                            <div class="mb-2">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small>${labelMin}</small>
-                                    <small>${labelMax}</small>
-                                </div>
-                                <input type="range" class="form-range" min="${minValue}" max="${maxValue}" step="${step}" ${isRequired ? 'required' : ''}>
-                            </div>
-                        `;
-                        break;
-                    case 'MATRIX':
-                        const matrixItems = [];
-                        $question.find('.items-list .option-row').each(function() {
-                            const itemText = $(this).find('input[type="text"]').val() || 'Ítem';
-                            matrixItems.push(itemText);
-                        });
-                        
-                        previewHTML += '<div class="table-responsive"><table class="table table-sm table-bordered">';
-                        previewHTML += '<thead><tr><th></th>';
-                        
-                        // valores de ejemplo 1-5
-                        for (let i = 1; i <= 5; i++) {
-                            previewHTML += `<th class="text-center">${i}</th>`;
-                        }
-                        previewHTML += '</tr></thead><tbody>';
-                        
-                        matrixItems.forEach(item => {
-                            previewHTML += `<tr><td>${item}</td>`;
-                            for (let i = 1; i <= 5; i++) {
-                                previewHTML += `
-                                    <td class="text-center">
-                                        <input class="form-check-input" type="radio" name="matrix_${item.replace(/\s/g, '_')}">
-                                    </td>
-                                `;
-                            }
-                            previewHTML += '</tr>';
-                        });
-                        
-                        previewHTML += '</tbody></table></div>';
-                        break;
-                    case 'DATE':
-                    case 'DATETIME':
-                        const includeTime = questionType === 'DATETIME' || $question.find('input[name$="[include_time]"]').is(':checked');
-                        previewHTML += `<input type="${includeTime ? 'datetime-local' : 'date'}" class="form-control" ${isRequired ? 'required' : ''}>`;
-                        break;
-                }
-                
-                previewHTML += '</div>';
-                
-                $('#question-preview').html(previewHTML);
-            }
-            
-            // Validación antes de enviar
-            $('#survey-form').submit(function(e) {
-                // Por ahora solo validamos que haya al menos una pregunta
-                if ($('.question-card').length === 0) {
-                    e.preventDefault();
-                    alert('Debe añadir al menos una pregunta a la encuesta.');
-                    return false;
-                }
-                
-                // Aquí podrían ir más validaciones específicas
-                return true;
-            });
-            
-            // Auto-generar slug a partir del título
-            $('#titulo').on('input', function() {
-                const titulo = $(this).val();
-                if (!$('#slug').data('manual-edit')) {
-                    const slug = titulo
-                        .toLowerCase()
-                        .replace(/[^\w ]+/g, '')
-                        .replace(/ +/g, '-');
-                    $('#slug').val(slug);
+
+            // Inicializar sortable para las preguntas
+            new Sortable(document.getElementById('questions-container'), {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function() {
+                    renumberQuestions();
                 }
             });
-            
-            $('#slug').on('focus', function() {
-                $(this).data('manual-edit', true);
+
+            // Event listeners
+            $('#add-question').click(function() {
+                addNewQuestion();
             });
-            
-            // Inicializar con una pregunta
-            addNewQuestion();
+
+            // Añadir nueva sección
+            $('#add-section').click(function() {
+                addNewSection();
+            });
         });
     </script>
 {% endblock %}
