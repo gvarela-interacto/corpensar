@@ -34,103 +34,168 @@ class ItemMatrizPreguntaInline(admin.TabularInline):
 class PreguntaTextoInline(admin.StackedInline):
     model = PreguntaTexto
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'max_longitud', 'placeholder')
-    readonly_fields = ('tipo',)
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'max_longitud', 'placeholder')
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'TEXT'
+        # Establecer el tipo directamente en el init del formulario
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'TEXT')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaTextoMultipleInline(admin.StackedInline):
     model = PreguntaTextoMultiple
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'max_longitud', 'filas', 'placeholder')
-    readonly_fields = ('tipo',)
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'max_longitud', 'filas', 'placeholder')
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'MTEXT'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'MTEXT')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaOpcionMultipleInline(admin.StackedInline):
     model = PreguntaOpcionMultiple
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_otro', 'texto_otro')
-    readonly_fields = ('tipo',)
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_otro', 'texto_otro')
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'RADIO'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'RADIO')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaCasillasVerificacionInline(admin.StackedInline):
     model = PreguntaCasillasVerificacion
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_otro', 'texto_otro', 
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_otro', 'texto_otro', 
               'min_selecciones', 'max_selecciones')
-    readonly_fields = ('tipo',)
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'CHECK'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'CHECK')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaMenuDesplegableInline(admin.StackedInline):
     model = PreguntaMenuDesplegable
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_vacia', 'texto_vacio')
-    readonly_fields = ('tipo',)
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_vacia', 'texto_vacio')
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'SELECT'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'SELECT')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaEstrellasInline(admin.StackedInline):
     model = PreguntaEstrellas
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'max_estrellas', 
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'max_estrellas', 
               'etiqueta_inicio', 'etiqueta_fin')
-    readonly_fields = ('tipo',)
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'STAR'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'STAR')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaEscalaInline(admin.StackedInline):
     model = PreguntaEscala
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'min_valor', 'max_valor', 
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'min_valor', 'max_valor', 
               'etiqueta_min', 'etiqueta_max', 'paso')
-    readonly_fields = ('tipo',)
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'SCALE'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'SCALE')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaMatrizInline(admin.StackedInline):
     model = PreguntaMatriz
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'escala')
-    readonly_fields = ('tipo',)
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'escala')
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'MATRIX'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            self.initial.setdefault('tipo', 'MATRIX')
+            
+        form.__init__ = new_init
         return formset
 
 class PreguntaFechaInline(admin.StackedInline):
     model = PreguntaFecha
     extra = 0
-    fields = ('texto', 'tipo', 'requerida', 'orden', 'seccion', 'ayuda', 'incluir_hora')
-    readonly_fields = ('tipo',)
+    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'incluir_hora')
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        formset.form.base_fields['tipo'].initial = 'DATE' if not obj or not obj.incluir_hora else 'DATETIME'
+        form = formset.form
+        
+        old_init = form.__init__
+        
+        def new_init(self, *args, **kwargs):
+            old_init(self, *args, **kwargs)
+            tipo_valor = 'DATETIME' if obj and obj.incluir_hora else 'DATE'
+            self.initial.setdefault('tipo', tipo_valor)
+            
+        form.__init__ = new_init
         return formset
 
 @admin.register(Encuesta)
