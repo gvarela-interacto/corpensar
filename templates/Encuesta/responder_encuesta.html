@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -249,15 +250,16 @@
                                     <span class="required-badge">Requerido</span>
                                 {% endif %}
                             </div>
+                            
+                            {% if pregunta.ayuda %}
+                                <div class="question-help">{{pregunta.ayuda}}</div>
+                            {% endif %}
+
                             {% if pregunta.tipo == 'TEXT' %}
-                                <div class="question-help">{{pregunta.ayuda}}</div>
                                 <input type="text" class="form-control" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}">
-                            {% endif %}
-                            {% if pregunta.tipo == 'MTEXT' %}
-                                <div class="question-help">{{pregunta.ayuda}}</div>
+                            {% elif pregunta.tipo == 'MTEXT' %}
                                 <textarea class="form-control" rows="{{pregunta.filas}}" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}"></textarea>
-                            {% endif %}
-                            {% if pregunta.tipo == 'RADIO' %}
+                            {% elif pregunta.tipo == 'RADIO' %}
                                 {% for opcion in pregunta.opciones.all %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
@@ -290,18 +292,8 @@
                                             name="pregunta_otro_{{ pregunta.id }}"
                                             placeholder="Especifique...">
                                     </div>
-                                    
-                                    <script>
-                                    // Mostrar campo de texto cuando seleccione "Otro"
-                                    document.getElementById('opcion_otro_{{ pregunta.id }}').addEventListener('change', function() {
-                                        const container = document.getElementById('otro_texto_container_{{ pregunta.id }}');
-                                        container.style.display = this.checked ? 'block' : 'none';
-                                    });
-                                    </script>
                                 {% endif %}
-                            {% endif %}
-                            {% if pregunta.tipo == 'CHECK' %}
-                                {# Mostrar todas las opciones configuradas #}
+                            {% elif pregunta.tipo == 'CHECK' %}
                                 {% for opcion in pregunta.opciones.all %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
@@ -317,7 +309,6 @@
                                     </div>
                                 {% endfor %}
                                 
-                                {# Opción "Otro" si está configurada #}
                                 {% if pregunta.opcion_otro %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
@@ -338,8 +329,74 @@
                                             placeholder="Especifique...">
                                     </div>
                                 {% endif %}
-                                
-                                {# Mensaje de validación #}
+                            {% elif pregunta.tipo == 'SELECT' %}
+                                <select class="form-select" {% if pregunta.requerida %}required{% endif %}>
+                                    {% if pregunta.opcion_vacia %}
+                                        <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
+                                    {% endif %}
+                                    {% for opcion in pregunta.opciones.all %}
+                                        <option value="{{ opcion.id }}">{{ opcion.texto }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% elif pregunta.tipo == 'STAR' %}
+                                <div class="star-rating">
+                                    {% for i in pregunta.max_estrellas|times %}
+                                        <input type="radio" id="star{{ i }}" name="rating_{{ pregunta.id }}" value="{{ i }}" {% if pregunta.requerida %}required{% endif %}>
+                                        <label for="star{{ i }}" class="fas fa-star"></label>
+                                    {% endfor %}
+                                </div>
+                                <div class="scale-labels">
+                                    <span>{{ pregunta.etiqueta_inicio|default:"Muy malo" }}</span>
+                                    <span>{{ pregunta.etiqueta_fin|default:"Excelente" }}</span>
+                                </div>
+                            {% elif pregunta.tipo == 'SCALE' %}
+                                <div class="range-container">
+                                    <input type="range" 
+                                        class="form-range" 
+                                        min="{{ pregunta.min_valor }}" 
+                                        max="{{ pregunta.max_valor }}" 
+                                        step="{{ pregunta.paso }}" 
+                                        id="scale_{{ pregunta.id }}"
+                                        {% if pregunta.requerida %}required{% endif %}>
+                                </div>
+                                <div class="scale-labels">
+                                    <span>{{ pregunta.etiqueta_min }}</span>
+                                    <span>{{ pregunta.etiqueta_max }}</span>
+                                </div>
+                            {% elif pregunta.tipo == 'MATRIX' %}
+                                <table class="table matrix-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            {% for i in pregunta.escala.max_valor|times %}
+                                                <th>{{ pregunta.escala.etiqueta_min }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in pregunta.items.all %}
+                                            <tr>
+                                                <td>{{ item.texto }}</td>
+                                                {% for i in pregunta.escala.max_valor|times %}
+                                                    <td>
+                                                        <input class="form-check-input" 
+                                                            type="radio" 
+                                                            name="matrix_{{ pregunta.id }}_{{ item.id }}" 
+                                                            value="{{ i }}"
+                                                            {% if pregunta.requerida %}required{% endif %}>
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% elif pregunta.tipo == 'DATE' %}
+                                <input type="date" class="form-control" {% if pregunta.requerida %}required{% endif %}>
+                            {% elif pregunta.tipo == 'DATETIME' %}
+                                <input type="datetime-local" class="form-control" {% if pregunta.requerida %}required{% endif %}>
+                            {% endif %}
+
+                            {% if pregunta.tipo == 'CHECK' %}
                                 <div class="text-muted small mt-2">
                                     {% if pregunta.min_selecciones > 0 and pregunta.max_selecciones %}
                                         Seleccione entre {{ pregunta.min_selecciones }} y {{ pregunta.max_selecciones }} opciones
@@ -349,271 +406,11 @@
                                         Seleccione hasta {{ pregunta.max_selecciones }} opciones
                                     {% endif %}
                                 </div>
-                                <script>
-                                    // Mostrar campo de texto cuando seleccione "Otro"
-                                    document.getElementById('check_otro_{{ pregunta.id }}')?.addEventListener('change', function() {
-                                        const container = document.getElementById('otro_texto_container_{{ pregunta.id }}');
-                                        if (container) container.style.display = this.checked ? 'block' : 'none';
-                                    });
-                                    
-                                    // Validar selecciones mínimas/máximas
-                                    function validarSelecciones(preguntaId) {
-                                        const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
-                                        const min = parseInt("{{ pregunta.min_selecciones|default:0 }}");
-                                        const max = parseInt("{{ pregunta.max_selecciones|default:0 }}") || null;
-                                        
-                                        if (max && checks.length > max) {
-                                            alert(`Debe seleccionar máximo ${max} opciones`);
-                                            event.target.checked = false;
-                                            return;
-                                        }
-                                        
-                                        if (min && checks.length < min) {
-                                            alert(`Debe seleccionar al menos ${min} opciones`);
-                                            event.target.checked = true;
-                                            return;
-                                        }
-                                    }
-                                    
-                                </script>
                             {% endif %}
                         </div>
                     {% endif %}
                 {% endfor %}
             {% endfor %}
-            <!-- Texto simple -->
-            
-            
-            <!-- Menú desplegable -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿En qué rango de edad se encuentra?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <select class="form-select">
-                    <option selected>Seleccione...</option>
-                    <option value="18-24">18-24 años</option>
-                    <option value="25-34">25-34 años</option>
-                    <option value="35-44">35-44 años</option>
-                    <option value="45-54">45-54 años</option>
-                    <option value="55-64">55-64 años</option>
-                    <option value="65+">65 años o más</option>
-                </select>
-            </div>
-            
-            <!-- Fecha -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cuál es su fecha de nacimiento?</span>
-                </div>
-                <input type="date" class="form-control">
-            </div>
-            
-            <!-- Fecha y hora -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cuándo realizó su última compra con nosotros?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <input type="datetime-local" class="form-control">
-            </div>
-            
-            
-            
-            <!-- Casillas de verificación -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Qué productos ha comprado en los últimos 6 meses?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="question-help">Seleccione todas las opciones que correspondan. Mínimo: 1, Máximo: 3</div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto1">
-                    <label class="form-check-label" for="producto1">
-                        Smartphone
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto2">
-                    <label class="form-check-label" for="producto2">
-                        Laptop
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto3">
-                    <label class="form-check-label" for="producto3">
-                        Tablet
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto4">
-                    <label class="form-check-label" for="producto4">
-                        Smart Watch
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto5">
-                    <label class="form-check-label" for="producto5">
-                        Auriculares
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto6">
-                    <label class="form-check-label" for="producto6">
-                        Otro
-                    </label>
-                </div>
-                <div class="mt-2">
-                    <input type="text" class="form-control" placeholder="Especifique...">
-                </div>
-            </div>
-            
-            <!-- Sección de valoración -->
-            <h3 class="section-title">Valoración del Servicio</h3>
-            
-            <!-- Valoración con estrellas -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cómo valoraría la calidad de nuestros productos?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="star-rating">
-                    <input type="radio" id="star5" name="rating" value="5">
-                    <label for="star5" class="fas fa-star"></label>
-                    <input type="radio" id="star4" name="rating" value="4">
-                    <label for="star4" class="fas fa-star"></label>
-                    <input type="radio" id="star3" name="rating" value="3">
-                    <label for="star3" class="fas fa-star"></label>
-                    <input type="radio" id="star2" name="rating" value="2">
-                    <label for="star2" class="fas fa-star"></label>
-                    <input type="radio" id="star1" name="rating" value="1">
-                    <label for="star1" class="fas fa-star"></label>
-                </div>
-                <div class="scale-labels">
-                    <span>Muy baja</span>
-                    <span>Excelente</span>
-                </div>
-            </div>
-            
-            <!-- Escala -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Qué tan satisfecho está con nuestro servicio de atención al cliente?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="range-container">
-                    <input type="range" class="form-range" min="1" max="5" step="1" id="satisfaccion">
-                </div>
-                <div class="scale-labels">
-                    <span>Muy insatisfecho</span>
-                    <span>Neutral</span>
-                    <span>Muy satisfecho</span>
-                </div>
-            </div>
-            
-            <!-- Matriz de valoración -->
-            <div class="question">
-                <div class="question-title">
-                    <span>Por favor, valore los siguientes aspectos de nuestro servicio:</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <table class="table matrix-table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Muy malo</th>
-                            <th>Malo</th>
-                            <th>Neutral</th>
-                            <th>Bueno</th>
-                            <th>Muy bueno</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Rapidez de envío</td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="5"></td>
-                        </tr>
-                        <tr>
-                            <td>Calidad del producto</td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="5"></td>
-                        </tr>
-                        <tr>
-                            <td>Relación calidad-precio</td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="5"></td>
-                        </tr>
-                        <tr>
-                            <td>Atención al cliente</td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="5"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Conclusión -->
-            <h3 class="section-title">Conclusión</h3>
-            
-            <!-- Opción múltiple final -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Recomendaría nuestros productos a amigos o familiares?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria1">
-                    <label class="form-check-label" for="recomendaria1">
-                        Definitivamente sí
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria2">
-                    <label class="form-check-label" for="recomendaria2">
-                        Probablemente sí
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria3">
-                    <label class="form-check-label" for="recomendaria3">
-                        No estoy seguro
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria4">
-                    <label class="form-check-label" for="recomendaria4">
-                        Probablemente no
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria5">
-                    <label class="form-check-label" for="recomendaria5">
-                        Definitivamente no
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Texto múltiple final -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Hay algo más que le gustaría compartir con nosotros?</span>
-                </div>
-                <textarea class="form-control" rows="4" placeholder="Sus comentarios adicionales son bienvenidos..."></textarea>
-            </div>
-            
         </form>
         
         <div class="survey-footer">
@@ -624,5 +421,33 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar campo de texto cuando seleccione "Otro"
+        document.querySelectorAll('input[type="radio"][value="otro"], input[type="checkbox"][value="otro"]').forEach(function(input) {
+            input.addEventListener('change', function() {
+                const container = document.getElementById('otro_texto_container_' + this.name.split('_')[1]);
+                if (container) container.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+        
+        // Validar selecciones mínimas/máximas
+        function validarSelecciones(preguntaId) {
+            const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
+            const min = parseInt(document.querySelector(`input[name="pregunta_${preguntaId}[]"]`).dataset.minSelecciones || 0);
+            const max = parseInt(document.querySelector(`input[name="pregunta_${preguntaId}[]"]`).dataset.maxSelecciones || 0) || null;
+            
+            if (max && checks.length > max) {
+                alert(`Debe seleccionar máximo ${max} opciones`);
+                event.target.checked = false;
+                return;
+            }
+            
+            if (min && checks.length < min) {
+                alert(`Debe seleccionar al menos ${min} opciones`);
+                event.target.checked = true;
+                return;
+            }
+        }
+    </script>
 </body>
 </html>

@@ -148,8 +148,52 @@ def crear_desde_cero(request):
                 pregunta['etiqueta_max'] = request.POST.get(f'questions[{pregunta_id}][label_max]', 'Muy de acuerdo')
             
             elif tipo == 'MATRIX':
-                # La escala se procesará después de crear la pregunta
-                pass
+                # Para matrices, primero necesitamos crear una escala por defecto
+                escala = PreguntaEscala.objects.create(
+                    encuesta=encuesta,
+                    texto="Escala para matriz",
+                    tipo='SCALE',
+                    requerida=True,
+                    orden=0,
+                    ayuda="Escala para matriz",
+                    seccion='',
+                    min_valor=1,
+                    max_valor=5,
+                    paso=1,
+                    etiqueta_min='Muy en desacuerdo',
+                    etiqueta_max='Muy de acuerdo'
+                )
+                
+                pregunta_obj = PreguntaMatriz.objects.create(
+                    encuesta=encuesta,
+                    texto=pregunta['texto'],
+                    tipo='MATRIX',
+                    requerida=pregunta['requerida'],
+                    orden=pregunta['orden'],
+                    ayuda=pregunta['ayuda'],
+                    seccion=pregunta['seccion'],
+                    escala=escala
+                )
+                
+                # Procesar los ítems de la matriz si están disponibles
+                items = []
+                for key in request.POST:
+                    if key.startswith(f'questions[{pregunta_id}][items][') and '][text]' in key:
+                        item_index = key.split('[')[3].split(']')[0]
+                        item_text = request.POST.get(f'questions[{pregunta_id}][items][{item_index}][text]', '')
+                        item_order = int(request.POST.get(f'questions[{pregunta_id}][items][{item_index}][order]', item_index))
+                        items.append({
+                            'texto': item_text,
+                            'orden': item_order
+                        })
+                
+                # Crear los ítems
+                for item in items:
+                    ItemMatrizPregunta.objects.create(
+                        pregunta=pregunta_obj,
+                        texto=item['texto'],
+                        orden=item['orden']
+                    )
             
             elif tipo in ['DATE', 'DATETIME']:
                 pregunta['incluir_hora'] = tipo == 'DATETIME' or request.POST.get(f'questions[{pregunta_id}][include_time]', 'false') == 'true'
