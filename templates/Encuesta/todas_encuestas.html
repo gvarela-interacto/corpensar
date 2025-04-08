@@ -33,7 +33,7 @@
                     <td>{{ encuesta.creador.username }}</td>
                     <td>{{ encuesta.slug }}</td>
                     <td>
-                        <a href="{{ encuesta.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <a href="{% url 'responder_encuesta' encuesta.slug %}"target="_blank" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-link"></i> Ver
                         </a>
                         <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">

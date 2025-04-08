@@ -681,7 +681,7 @@ def responder_encuesta(request, slug):
     # Ordenar las preguntas por sección y orden
     todas_preguntas.sort(key=lambda x: (x['seccion'] if x['seccion'] else '', x['pregunta'].orden))
     
-    return render(request, 'encuestas/responder_encuesta.html', {
+    return render(request, 'Encuesta/responder_encuesta.html', {
         'encuesta': encuesta,
         'todas_preguntas': todas_preguntas,
         'secciones': secciones
@@ -691,7 +691,7 @@ def responder_encuesta(request, slug):
 def encuesta_completada(request, slug):
     """Vista de agradecimiento después de completar una encuesta"""
     encuesta = get_object_or_404(Encuesta, slug=slug)
-    return render(request, 'encuestas/encuesta_completada.html', {
+    return render(request, 'Encuesta/encuesta_completada.html', {
         'encuesta': encuesta
     })
     
