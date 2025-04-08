@@ -26,7 +26,7 @@
                                 <label for="slug" class="form-label">URL personalizada <span class="required-asterisk">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">encuestas/</span>
-                                    <input type="text" class="form-control" id="slug" name="slug" required>
+                                    <input type="text" class="form-control" id="slug" name="slug" readonly>
                                 </div>
                                 <div class="form-text">Este será el identificador único en la URL de tu encuesta.</div>
                             </div>
@@ -527,6 +527,46 @@
             console.log('Documento listo');
             let questionCounter = 0;
             let sectionCounter = 0;
+            let slugModifiedManually = false;
+            
+            // Función para generar slug a partir del título
+            function generateSlug(text) {
+                return text
+                    .toString()
+                    .toLowerCase()
+                    .normalize('NFD') // Normalizar caracteres especiales
+                    .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
+                    .replace(/[^a-z0-9\s-]/g, '') // Eliminar caracteres especiales
+                    .replace(/\s+/g, '-') // Reemplazar espacios por guiones
+                    .replace(/-+/g, '-') // Eliminar guiones múltiples
+                    .trim() // Eliminar espacios al inicio y final
+                    .replace(/^-+/, '') // Eliminar guiones al inicio
+                    .replace(/-+$/, ''); // Eliminar guiones al final
+            }
+
+            // Event listener para el campo de título
+            $('#titulo').on('input', function() {
+                const titulo = $(this).val();
+                console.log('Título modificado:', titulo);
+                
+                // Solo actualizar el slug si no ha sido modificado manualmente
+                if (!slugModifiedManually) {
+                    const slug = generateSlug(titulo);
+                    $('#slug').val(slug);
+                    console.log('Slug generado:', slug);
+                }
+            });
+
+            // Event listener para el campo de slug
+            $('#slug').on('input', function() {
+                // Marcar que el slug ha sido modificado manualmente
+                slugModifiedManually = true;
+                console.log('Slug modificado manualmente');
+                
+                // Limpiar y formatear el slug ingresado
+                let slug = generateSlug($(this).val());
+                $(this).val(slug);
+            });
             
             // Función para renumerar preguntas
             function renumberQuestions() {
