@@ -165,18 +165,16 @@ class TodasEncuestasView(ListView):
     def get_queryset(self):
         return Encuesta.objects.all().order_by('-fecha_creacion')
 
+
 class ResultadosEncuestaView(DetailView):
     model = Encuesta
     template_name = 'Encuesta/resultados_encuesta.html'
     context_object_name = 'encuesta'
 
-    from itertools import chain
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         encuesta = self.object
 
-        # Recuperar todas las preguntas como antes
         preguntas = sorted(
             chain(
                 encuesta.preguntatexto_relacionadas.all(),
@@ -199,13 +197,23 @@ class ResultadosEncuestaView(DetailView):
             tipo = pregunta.__class__.__name__
             key = f"pregunta_{pregunta.id}"
 
-            if tipo in ['PreguntaOpcionMultiple', 'PreguntaCasillasVerificacion', 'PreguntaMenuDesplegable']:
-                respuestas = pregunta.respuestaopcion_set.all()
+            if tipo == 'PreguntaOpcionMultiple':
+                respuestas = RespuestaOpcionMultiple.objects.filter(pregunta=pregunta)
+                counter = Counter([r.opcion.texto for r in respuestas])
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaCasillasVerificacion':
+                respuestas = RespuestaCasillasVerificacion.objects.filter(pregunta=pregunta)
+                counter = Counter([r.opcion.texto for r in respuestas])
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaMenuDesplegable':
+                respuestas = RespuestaOpcionMenuDesplegable.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
                 context['graficas'][key] = dict(counter)
 
             elif tipo == 'PreguntaEstrellas':
-                respuestas = pregunta.respuestaestrellas_set.all()
+                respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 promedio = sum(valores) / len(valores) if valores else 0
                 context['graficas'][key] = {
@@ -214,37 +222,35 @@ class ResultadosEncuestaView(DetailView):
                 }
 
             elif tipo == 'PreguntaEscala':
-                respuestas = pregunta.respuestaescala_set.all()
+                respuestas = RespuestaEscala.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 counter = Counter(valores)
                 context['graficas'][key] = dict(counter)
 
             elif tipo == 'PreguntaTextoMultiple':
-                respuestas = pregunta.respuestatextomultiple_set.all()
-                textos = [r.texto for r in respuestas]
+                respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
+                textos = [r.valor for r in respuestas]
                 context['graficas'][key] = textos
 
             elif tipo == 'PreguntaTexto':
-                respuestas = pregunta.respuestatexto_set.all()
-                textos = [r.texto for r in respuestas]
+                respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
+                textos = [r.valor for r in respuestas]
                 context['graficas'][key] = textos
 
             elif tipo == 'PreguntaFecha':
-                respuestas = pregunta.respuestafecha_set.all()
-                fechas = [r.fecha.isoformat() for r in respuestas]
+                respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
+                fechas = [r.valor.isoformat() for r in respuestas]
                 counter = Counter(fechas)
                 context['graficas'][key] = dict(counter)
 
             elif tipo == 'PreguntaMatriz':
-                # Podrías tener algo como filas/columnas, necesitarías adaptar aquí
-                respuestas = pregunta.respuestamatriz_set.all()
+                respuestas = RespuestaMatriz.objects.filter(pregunta=pregunta)
                 datos = defaultdict(Counter)
                 for r in respuestas:
-                    datos[r.fila][r.columna] += 1
+                    datos[r.item.texto][r.valor] += 1
                 context['graficas'][key] = {fila: dict(contador) for fila, contador in datos.items()}
 
         return context
-
 
 
 def get_client_ip(request):
