@@ -820,7 +820,7 @@
                     
                     sections.forEach(section => {
                         const option = $('<option></option>')
-                            .val(section.id)
+                            .val(section.title)
                             .text(section.title);
                         $(this).append(option);
                     });
