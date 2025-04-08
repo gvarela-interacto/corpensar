@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -10,72 +11,85 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --accent-color: #e74c3c;
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
             --light-gray: #f8f9fa;
             --medium-gray: #e9ecef;
             --dark-gray: #343a40;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
         }
         
         body {
-            background-color: #f9f9f9;
+            background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
+            line-height: 1.6;
         }
         
         .survey-container {
-            max-width: 800px;
-            margin: 30px auto;
+            max-width: 850px;
+            margin: 40px auto;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .survey-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 30px;
+            padding: 35px;
             text-align: center;
             position: relative;
         }
         
         .survey-header h1 {
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 32px;
+            letter-spacing: -0.5px;
         }
         
         .survey-header p {
-            opacity: 0.9;
-            font-size: 16px;
-            max-width: 600px;
+            opacity: 0.95;
+            font-size: 17px;
+            max-width: 650px;
             margin: 0 auto;
+            line-height: 1.7;
         }
         
         .survey-progress {
             height: 8px;
             background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            border-radius: 20px;
             overflow: hidden;
-            margin-top: 20px;
+            margin-top: 25px;
         }
         
         .progress-bar {
             height: 100%;
-            background-color: var(--accent-color);
+            background: linear-gradient(90deg, var(--accent-color), var(--success-color));
             width: 40%;
+            border-radius: 20px;
+            transition: width 0.5s ease;
         }
         
         .survey-body {
-            padding: 30px;
+            padding: 40px;
         }
         
         .question {
-            margin-bottom: 35px;
-            padding-bottom: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
             border-bottom: 1px solid var(--medium-gray);
+            transition: all 0.3s ease;
+        }
+        
+        .question:hover {
+            transform: translateY(-3px);
         }
         
         .question:last-child {
@@ -84,43 +98,85 @@
         
         .question-title {
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             color: var(--dark-gray);
             display: flex;
             align-items: center;
+            font-size: 18px;
         }
         
         .required-badge {
             background-color: var(--accent-color);
             color: white;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 11px;
-            margin-left: 8px;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            margin-left: 10px;
             text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
         .question-help {
-            font-size: 14px;
+            font-size: 15px;
             color: #6c757d;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-style: italic;
+            background-color: rgba(77, 201, 240, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--success-color);
         }
         
-        .form-control:focus {
+        .form-control, .form-select {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--medium-gray);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+        }
+        
+        .form-check {
+            margin-bottom: 12px;
+            padding-left: 30px;
+        }
+        
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+            margin-left: -30px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-check-label {
+            font-size: 16px;
+            cursor: pointer;
+            padding-left: 5px;
+            user-select: none;
         }
         
         .form-check-input:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            transform: scale(1.1);
         }
         
         .star-rating {
             display: flex;
             flex-direction: row-reverse;
             justify-content: flex-end;
+            margin-top: 10px;
         }
         
         .star-rating input {
@@ -129,102 +185,188 @@
         
         .star-rating label {
             cursor: pointer;
-            font-size: 25px;
+            font-size: 30px;
             color: #ddd;
-            padding: 0 2px;
+            padding: 0 5px;
+            transition: all 0.2s ease;
         }
         
         .star-rating label:hover,
         .star-rating label:hover ~ label,
         .star-rating input:checked ~ label {
             color: #ffc107;
+            transform: scale(1.2);
         }
         
         .scale-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 5px;
+            margin-top: 8px;
         }
         
         .scale-labels span {
-            font-size: 12px;
+            font-size: 14px;
             color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .matrix-table {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--medium-gray);
         }
         
         .matrix-table th, .matrix-table td {
             text-align: center;
             vertical-align: middle;
+            padding: 12px;
         }
         
         .matrix-table th {
             font-weight: 600;
-            background-color: var(--light-gray);
+            background-color: rgba(67, 97, 238, 0.1);
+            border-bottom: 2px solid var(--primary-color);
         }
         
         .matrix-table th:first-child,
         .matrix-table td:first-child {
             text-align: left;
+            font-weight: 500;
+        }
+        
+        .form-range {
+            height: 10px;
+            padding: 0;
+            margin-top: 15px;
+        }
+        
+        .form-range::-webkit-slider-thumb {
+            background: var(--primary-color);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
         
         .survey-footer {
             background-color: var(--light-gray);
-            padding: 20px 30px;
+            padding: 25px 40px;
             text-align: right;
             border-top: 1px solid var(--medium-gray);
         }
         
+        .btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
         
         .btn-primary:hover {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(67, 97, 238, 0.4);
         }
         
         .btn-outline-secondary {
             color: var(--dark-gray);
-            border-color: var(--dark-gray);
+            border: 2px solid var(--dark-gray);
+            background-color: transparent;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: var(--dark-gray);
+            color: white;
+            transform: translateY(-2px);
         }
         
         .section-title {
-            background-color: var(--light-gray);
-            padding: 10px 15px;
-            margin: 25px -30px 30px;
-            border-left: 4px solid var(--primary-color);
-            font-weight: 600;
+            background: linear-gradient(to right, rgba(67, 97, 238, 0.1), transparent);
+            padding: 15px 20px;
+            margin: 35px -40px 40px;
+            border-left: 6px solid var(--primary-color);
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--secondary-color);
+            letter-spacing: -0.5px;
         }
         
         .section-title:first-child {
             margin-top: 0;
         }
         
+        .text-muted {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* Animaciones y efectos */
+        .form-check-input, .form-control, .form-select, .btn {
+            transition: all 0.3s ease;
+        }
+        
+        /* Mejoras para dispositivos móviles */
         @media (max-width: 768px) {
             .survey-container {
                 margin: 15px;
-                border-radius: 8px;
+                border-radius: 12px;
             }
             
             .survey-header {
-                padding: 20px;
+                padding: 25px 20px;
             }
             
             .survey-header h1 {
-                font-size: 22px;
+                font-size: 24px;
             }
             
             .survey-body {
-                padding: 20px;
+                padding: 25px 20px;
             }
             
             .section-title {
-                margin: 20px -20px 25px;
-                padding: 8px 15px;
+                margin: 25px -20px 30px;
+                padding: 12px 20px;
+                font-size: 18px;
+            }
+            
+            .question-title {
+                font-size: 16px;
+                flex-wrap: wrap;
+            }
+            
+            .required-badge {
+                margin-top: 5px;
+                margin-left: 0;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .survey-footer {
+                padding: 20px;
+                text-align: center;
             }
             
             .matrix-table {
                 font-size: 14px;
+            }
+            
+            .form-check-label {
+                font-size: 15px;
             }
         }
     </style>
@@ -235,10 +377,10 @@
             <h1>{{encuesta.titulo}}</h1>
             <p>{{encuesta.descripcion}}</p>
         </div>
-        
-        <form class="survey-body">
+    
+        <form method="POST" action="{% url 'guardar_respuesta' encuesta.id %}" class="survey-body">
+            {% csrf_token %}
             {% for seccion in secciones_unicas %}
-                <!-- Mostrar título de sección (excepto para 'General') -->
                 <h3 class="section-title">{{ seccion }}</h3>
                 {% for pregunta in preguntas %}
                     {% if pregunta.seccion == seccion %}
@@ -249,21 +391,34 @@
                                     <span class="required-badge">Requerido</span>
                                 {% endif %}
                             </div>
+                            
+                            {% if pregunta.ayuda %}
+                                <div class="question-help">{{pregunta.ayuda}}</div>
+                            {% endif %}
+        
                             {% if pregunta.tipo == 'TEXT' %}
-                                <div class="question-help">{{pregunta.ayuda}}</div>
-                                <input type="text" class="form-control" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}">
-                            {% endif %}
-                            {% if pregunta.tipo == 'MTEXT' %}
-                                <div class="question-help">{{pregunta.ayuda}}</div>
-                                <textarea class="form-control" rows="{{pregunta.filas}}" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}"></textarea>
-                            {% endif %}
-                            {% if pregunta.tipo == 'RADIO' %}
+                                <input type="text" 
+                                    class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  
+                                    placeholder="{{pregunta.placeholder}}" 
+                                    maxlength="{{pregunta.max_longitud}}"
+                                    {% if pregunta.requerida %}required{% endif %}>
+        
+                            {% elif pregunta.tipo == 'MTEXT' %}
+                                <textarea class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  
+                                    rows="{{pregunta.filas}}" 
+                                    placeholder="{{pregunta.placeholder}}" 
+                                    maxlength="{{pregunta.max_longitud}}"
+                                    {% if pregunta.requerida %}required{% endif %}></textarea>
+        
+                            {% elif pregunta.tipo == 'RADIO' %}
                                 {% for opcion in pregunta.opciones.all %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
                                             type="radio" 
                                             name="pregunta_{{ pregunta.id }}" 
-                                            id="opcion_{{ opcion.id }}"
+                                            id="opcion_{{ opcion.id}}"
                                             value="{{ opcion.id }}"
                                             {% if pregunta.requerida %}required{% endif %}>
                                         <label class="form-check-label" for="opcion_{{ opcion.id }}">
@@ -273,6 +428,7 @@
                                 {% endfor %}
                                 
                                 {% if pregunta.opcion_otro %}
+                                    <!-- Mantenemos la estructura existente del "Otro" -->
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
                                             type="radio" 
@@ -290,18 +446,9 @@
                                             name="pregunta_otro_{{ pregunta.id }}"
                                             placeholder="Especifique...">
                                     </div>
-                                    
-                                    <script>
-                                    // Mostrar campo de texto cuando seleccione "Otro"
-                                    document.getElementById('opcion_otro_{{ pregunta.id }}').addEventListener('change', function() {
-                                        const container = document.getElementById('otro_texto_container_{{ pregunta.id }}');
-                                        container.style.display = this.checked ? 'block' : 'none';
-                                    });
-                                    </script>
                                 {% endif %}
-                            {% endif %}
-                            {% if pregunta.tipo == 'CHECK' %}
-                                {# Mostrar todas las opciones configuradas #}
+        
+                            {% elif pregunta.tipo == 'CHECK' %}
                                 {% for opcion in pregunta.opciones.all %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
@@ -310,6 +457,8 @@
                                             id="check_{{ opcion.id }}"
                                             value="{{ opcion.id }}"
                                             data-pregunta-id="{{ pregunta.id }}"
+                                            data-min-selecciones="{{ pregunta.min_selecciones }}"
+                                            data-max-selecciones="{{ pregunta.max_selecciones|default:'' }}"
                                             onchange="validarSelecciones('{{ pregunta.id }}')">
                                         <label class="form-check-label" for="check_{{ opcion.id }}">
                                             {{ opcion.texto }}
@@ -317,7 +466,6 @@
                                     </div>
                                 {% endfor %}
                                 
-                                {# Opción "Otro" si está configurada #}
                                 {% if pregunta.opcion_otro %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
@@ -326,6 +474,8 @@
                                             id="check_otro_{{ pregunta.id }}"
                                             value="otro"
                                             data-pregunta-id="{{ pregunta.id }}"
+                                            data-min-selecciones="{{ pregunta.min_selecciones }}"
+                                            data-max-selecciones="{{ pregunta.max_selecciones|default:'' }}"
                                             onchange="validarSelecciones('{{ pregunta.id }}')">
                                         <label class="form-check-label" for="check_otro_{{ pregunta.id }}">
                                             {{ pregunta.texto_otro|default:"Otro" }}
@@ -338,8 +488,96 @@
                                             placeholder="Especifique...">
                                     </div>
                                 {% endif %}
-                                
-                                {# Mensaje de validación #}
+        
+                            {% elif pregunta.tipo == 'SELECT' %}
+                                <select class="form-select" 
+                                    name="pregunta_{{ pregunta.id }}" 
+                                    {% if pregunta.requerida %}required{% endif %}>
+                                    {% if pregunta.opcion_vacia %}
+                                        <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
+                                    {% endif %}
+                                    {% for opcion in pregunta.opciones.all %}
+                                        <option value="{{ opcion.id }}">{{ opcion.texto }}</option>
+                                    {% endfor %}
+                                </select>
+        
+                            {% elif pregunta.tipo == 'STAR' %}
+                                <div class="star-rating">
+                                    {% for i in pregunta.max_estrellas|times %}
+                                        <input type="radio" 
+                                            id="star{{ i }}" 
+                                            name="rating_{{ pregunta.id }}" 
+                                            value="{{ i }}" 
+                                            {% if pregunta.requerida %}required{% endif %}>
+                                        <label for="star{{ i }}" class="fas fa-star"></label>
+                                    {% endfor %}
+                                </div>
+                                <div class="scale-labels">
+                                    <span>{{ pregunta.etiqueta_inicio|default:"Muy malo" }}</span>
+                                    <span>{{ pregunta.etiqueta_fin|default:"Excelente" }}</span>
+                                </div>
+        
+                            {% elif pregunta.tipo == 'SCALE' %}
+                                <div class="range-container">
+                                    <input type="range" 
+                                        class="form-range" 
+                                        name="scale_{{ pregunta.id }}"  <!-- Añadido name -->
+                                        min="{{ pregunta.min_valor }}" 
+                                        max="{{ pregunta.max_valor }}" 
+                                        step="{{ pregunta.paso }}" 
+                                        {% if pregunta.requerida %}required{% endif %}>
+                                </div>
+                                <div class="scale-labels">
+                                    <span>{{ pregunta.etiqueta_min }}</span>
+                                    <span>{{ pregunta.etiqueta_max }}</span>
+                                </div>
+        
+                            {% elif pregunta.tipo == 'MATRIX' %}
+                                <table class="table matrix-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            {% for i in pregunta.escala.max_valor|times %}
+                                                <th>{{ i }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in pregunta.items.all %}
+                                            <tr>
+                                                <td>{{ item.texto }}</td>
+                                                {% for i in pregunta.escala.max_valor|times %}
+                                                    <td>
+                                                        <input class="form-check-input" 
+                                                            type="radio" 
+                                                            name="matrix_{{ pregunta.id }}_{{ item.id }}" 
+                                                            value="{{ i }}"
+                                                            {% if pregunta.requerida %}required{% endif %}>
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <div class="scale-labels mt-2">
+                                    <span>{{ pregunta.escala.etiqueta_min }}</span>
+                                    <span>{{ pregunta.escala.etiqueta_max }}</span>
+                                </div>
+        
+                            {% elif pregunta.tipo == 'DATE' %}
+                                <input type="date" 
+                                    class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    {% if pregunta.requerida %}required{% endif %}>
+        
+                            {% elif pregunta.tipo == 'DATETIME' %}
+                                <input type="datetime-local" 
+                                    class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    {% if pregunta.requerida %}required{% endif %}>
+                            {% endif %}
+        
+                            {% if pregunta.tipo == 'CHECK' %}
                                 <div class="text-muted small mt-2">
                                     {% if pregunta.min_selecciones > 0 and pregunta.max_selecciones %}
                                         Seleccione entre {{ pregunta.min_selecciones }} y {{ pregunta.max_selecciones }} opciones
@@ -349,272 +587,63 @@
                                         Seleccione hasta {{ pregunta.max_selecciones }} opciones
                                     {% endif %}
                                 </div>
-                                <script>
-                                    // Mostrar campo de texto cuando seleccione "Otro"
-                                    document.getElementById('check_otro_{{ pregunta.id }}')?.addEventListener('change', function() {
-                                        const container = document.getElementById('otro_texto_container_{{ pregunta.id }}');
-                                        if (container) container.style.display = this.checked ? 'block' : 'none';
-                                    });
-                                    
-                                    // Validar selecciones mínimas/máximas
-                                    function validarSelecciones(preguntaId) {
-                                        const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
-                                        const min = {{ pregunta.min_selecciones|default:0 }};
-                                        const max = {{ pregunta.max_selecciones|default:"null" }};
-                                        
-                                        if (max && checks.length > max) {
-                                            alert(`Debe seleccionar máximo ${max} opciones`);
-                                            event.target.checked = false;
-                                        }
-                                    }
-                                </script>
                             {% endif %}
                         </div>
                     {% endif %}
                 {% endfor %}
             {% endfor %}
-            <!-- Texto simple -->
-            
-            
-            <!-- Menú desplegable -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿En qué rango de edad se encuentra?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <select class="form-select">
-                    <option selected>Seleccione...</option>
-                    <option value="18-24">18-24 años</option>
-                    <option value="25-34">25-34 años</option>
-                    <option value="35-44">35-44 años</option>
-                    <option value="45-54">45-54 años</option>
-                    <option value="55-64">55-64 años</option>
-                    <option value="65+">65 años o más</option>
-                </select>
+            <div class="survey-footer">
+                <button type="submit" class="btn btn-primary">Enviar encuesta</button>
             </div>
-            
-            <!-- Fecha -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cuál es su fecha de nacimiento?</span>
-                </div>
-                <input type="date" class="form-control">
-            </div>
-            
-            <!-- Fecha y hora -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cuándo realizó su última compra con nosotros?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <input type="datetime-local" class="form-control">
-            </div>
-            
-            
-            
-            <!-- Casillas de verificación -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Qué productos ha comprado en los últimos 6 meses?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="question-help">Seleccione todas las opciones que correspondan. Mínimo: 1, Máximo: 3</div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto1">
-                    <label class="form-check-label" for="producto1">
-                        Smartphone
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto2">
-                    <label class="form-check-label" for="producto2">
-                        Laptop
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto3">
-                    <label class="form-check-label" for="producto3">
-                        Tablet
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto4">
-                    <label class="form-check-label" for="producto4">
-                        Smart Watch
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto5">
-                    <label class="form-check-label" for="producto5">
-                        Auriculares
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="producto6">
-                    <label class="form-check-label" for="producto6">
-                        Otro
-                    </label>
-                </div>
-                <div class="mt-2">
-                    <input type="text" class="form-control" placeholder="Especifique...">
-                </div>
-            </div>
-            
-            <!-- Sección de valoración -->
-            <h3 class="section-title">Valoración del Servicio</h3>
-            
-            <!-- Valoración con estrellas -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cómo valoraría la calidad de nuestros productos?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="star-rating">
-                    <input type="radio" id="star5" name="rating" value="5">
-                    <label for="star5" class="fas fa-star"></label>
-                    <input type="radio" id="star4" name="rating" value="4">
-                    <label for="star4" class="fas fa-star"></label>
-                    <input type="radio" id="star3" name="rating" value="3">
-                    <label for="star3" class="fas fa-star"></label>
-                    <input type="radio" id="star2" name="rating" value="2">
-                    <label for="star2" class="fas fa-star"></label>
-                    <input type="radio" id="star1" name="rating" value="1">
-                    <label for="star1" class="fas fa-star"></label>
-                </div>
-                <div class="scale-labels">
-                    <span>Muy baja</span>
-                    <span>Excelente</span>
-                </div>
-            </div>
-            
-            <!-- Escala -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Qué tan satisfecho está con nuestro servicio de atención al cliente?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="range-container">
-                    <input type="range" class="form-range" min="1" max="5" step="1" id="satisfaccion">
-                </div>
-                <div class="scale-labels">
-                    <span>Muy insatisfecho</span>
-                    <span>Neutral</span>
-                    <span>Muy satisfecho</span>
-                </div>
-            </div>
-            
-            <!-- Matriz de valoración -->
-            <div class="question">
-                <div class="question-title">
-                    <span>Por favor, valore los siguientes aspectos de nuestro servicio:</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <table class="table matrix-table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Muy malo</th>
-                            <th>Malo</th>
-                            <th>Neutral</th>
-                            <th>Bueno</th>
-                            <th>Muy bueno</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Rapidez de envío</td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="rapidez" value="5"></td>
-                        </tr>
-                        <tr>
-                            <td>Calidad del producto</td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="calidad" value="5"></td>
-                        </tr>
-                        <tr>
-                            <td>Relación calidad-precio</td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="relacion" value="5"></td>
-                        </tr>
-                        <tr>
-                            <td>Atención al cliente</td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="1"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="2"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="3"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="4"></td>
-                            <td><input class="form-check-input" type="radio" name="atencion" value="5"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Conclusión -->
-            <h3 class="section-title">Conclusión</h3>
-            
-            <!-- Opción múltiple final -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Recomendaría nuestros productos a amigos o familiares?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria1">
-                    <label class="form-check-label" for="recomendaria1">
-                        Definitivamente sí
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria2">
-                    <label class="form-check-label" for="recomendaria2">
-                        Probablemente sí
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria3">
-                    <label class="form-check-label" for="recomendaria3">
-                        No estoy seguro
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria4">
-                    <label class="form-check-label" for="recomendaria4">
-                        Probablemente no
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria5">
-                    <label class="form-check-label" for="recomendaria5">
-                        Definitivamente no
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Texto múltiple final -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Hay algo más que le gustaría compartir con nosotros?</span>
-                </div>
-                <textarea class="form-control" rows="4" placeholder="Sus comentarios adicionales son bienvenidos..."></textarea>
-            </div>
-            
         </form>
         
-        <div class="survey-footer">
-            <button type="button" class="btn btn-outline-secondary me-2">Guardar y continuar más tarde</button>
-            <button type="submit" class="btn btn-primary">Enviar encuesta</button>
-        </div>
-    </div>
+        <!-- Añadir este script para manejar campos "Otro" -->
+        <script>
+        document.querySelectorAll('input[type=radio][value="otro"], input[type=checkbox][value="otro"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const container = document.getElementById(`otro_texto_container_${this.dataset.preguntaId}`);
+                if (container) {
+                    container.style.display = this.checked ? 'block' : 'none';
+                    if (this.checked) container.querySelector('input').focus();
+                }
+            });
+        });
+        </script>
     
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        {% comment %} // Mostrar campo de texto cuando seleccione "Otro"
+        document.querySelectorAll('input[type="radio"][value="otro"], input[type="checkbox"][value="otro"]').forEach(function(input) {
+            input.addEventListener('change', function() {
+                const container = document.getElementById('otro_texto_container_' + this.name.split('_')[1]);
+                if (container) container.style.display = this.checked ? 'block' : 'none';
+            });
+        });
+         {% endcomment %}
+        // Validar selecciones mínimas/máximas
+        function validarSelecciones(preguntaId) {
+            const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
+            const firstCheck = document.querySelector(`input[name="pregunta_${preguntaId}[]"]`);
+            
+            if (!firstCheck) return;
+            
+            const min = parseInt(firstCheck.dataset.minSelecciones || 0);
+            const max = parseInt(firstCheck.dataset.maxSelecciones || 0) || null;
+            
+            if (max && checks.length > max) {
+                alert(`Debe seleccionar máximo ${max} opciones`);
+                event.target.checked = false;
+                return;
+            }
+            
+            if (min && checks.length < min) {
+                alert(`Debe seleccionar al menos ${min} opciones`);
+                event.target.checked = true;
+                return;
+            }
+        }
+    </script>
 </body>
+</html>
 </html>

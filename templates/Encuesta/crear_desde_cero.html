@@ -218,7 +218,7 @@
             </div>
         </div>
     </template>
-    
+
     <template id="mtext-options-template">
         <div class="mtext-options">
             <div class="row">
@@ -245,12 +245,14 @@
                 <div class="options-list mb-2">
                     <div class="option-row input-group">
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
-                        <input type="hidden" name="questions[{id}][options][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-option"><i class="fas fa-times"></i></button>
+                        <input type="text" class="form-control" name="questions[{id}][opciones][0][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[{id}][opciones][0][orden]" value="1">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm add-option">
+                <button type="button" class="btn btn-outline-secondary btn-sm add-option" onclick="agregarOpciones(this)">
                     <i class="fas fa-plus"></i> Añadir Opción
                 </button>
             </div>
@@ -276,12 +278,12 @@
                 <div class="options-list mb-2">
                     <div class="option-row input-group">
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
-                        <input type="hidden" name="questions[{id}][options][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-option"><i class="fas fa-times"></i></button>
+                        <input type="text" class="form-control" name="questions[{id}][opciones][0][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[{id}][opciones][0][orden]" value="1">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm add-option">
+                <button type="button" class="btn btn-outline-secondary btn-sm add-option" onclick="agregarOpciones(this)">
                     <i class="fas fa-plus"></i> Añadir Opción
                 </button>
             </div>
@@ -317,12 +319,14 @@
                 <div class="options-list mb-2">
                     <div class="option-row input-group">
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
-                        <input type="hidden" name="questions[{id}][options][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-option"><i class="fas fa-times"></i></button>
+                        <input type="text" class="form-control" name="questions[{id}][opciones][0][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[{id}][opciones][0][orden]" value="1">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm add-option">
+                <button type="button" class="btn btn-outline-secondary btn-sm add-option" onclick="agregarOpciones(this)">
                     <i class="fas fa-plus"></i> Añadir Opción
                 </button>
             </div>
@@ -408,28 +412,78 @@
         <div class="matrix-options">
             <div class="mb-3">
                 <label class="form-label">Escala a utilizar <span class="required-asterisk">*</span></label>
-                <select class="form-select" name="questions[{id}][scale_id]" required>
-                    <option value="">Seleccionar escala</option>
-                    <!-- Aquí se cargarían las escalas disponibles desde el backend -->
-                    <option value="new">Crear nueva escala</option>
-                </select>
+                <div class="scale-container">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Valor mínimo</label>
+                            <input type="number" class="form-control" name="questions[{id}][scale][min_valor]" value="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor máximo</label>
+                            <input type="number" class="form-control" name="questions[{id}][scale][max_valor]" value="5">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Paso</label>
+                            <input type="number" class="form-control" name="questions[{id}][scale][paso]" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Etiqueta para valor mínimo <span class="required-asterisk">*</span></label>
+                            <input type="text" class="form-control" name="questions[{id}][scale][etiqueta_min]" value="Muy en desacuerdo" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Etiqueta para valor máximo <span class="required-asterisk">*</span></label>
+                            <input type="text" class="form-control" name="questions[{id}][scale][etiqueta_max]" value="Muy de acuerdo" required>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mb-3 new-scale-container d-none">
-                <!-- Aquí irían las opciones para crear una nueva escala -->
-            </div>
+            
             <div class="mb-3">
                 <label class="form-label">Ítems de la matriz <span class="required-asterisk">*</span></label>
                 <div class="items-list mb-2">
                     <div class="option-row input-group">
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][items][0][text]" placeholder="Texto del ítem" required>
-                        <input type="hidden" name="questions[{id}][items][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-item"><i class="fas fa-times"></i></button>
+                        <input type="text" class="form-control" name="questions[{id}][items][0][texto]" placeholder="Texto del ítem" required>
+                        <input type="hidden" name="questions[{id}][items][0][orden]" value="1">
+                        <button type="button" class="btn btn-outline-danger remove-item" onclick="eliminarItem(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm add-item">
+                <button type="button" class="btn btn-outline-secondary btn-sm add-item" onclick="agregarItem(this)">
                     <i class="fas fa-plus"></i> Añadir Ítem
                 </button>
+            </div>
+
+            <!-- Vista previa de la matriz -->
+            <div class="matrix-preview mt-4">
+                <h6>Vista previa de la matriz</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>1</th>
+                                <th>2</th>
+                                <th>3</th>
+                                <th>4</th>
+                                <th>5</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ejemplo de ítem</td>
+                                <td><input type="radio" disabled></td>
+                                <td><input type="radio" disabled></td>
+                                <td><input type="radio" disabled></td>
+                                <td><input type="radio" disabled></td>
+                                <td><input type="radio" disabled></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </template>
@@ -460,58 +514,360 @@
         </div>
     </template>
     <style>
-        .question-card {
-            border-left: 4px solid #007bff;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #343a40;
         }
-        .section-divider {
-            background-color: #f8f9fa;
-            padding: 8px 15px;
-            margin: 20px 0;
-            border-left: 4px solid #28a745;
-            border-radius: 4px;
+        
+        .container {
+            max-width: 1100px;
         }
-        .delete-btn {
-            color: #dc3545;
+        
+        h1 {
+            color: var(--secondary-color);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 1.5rem;
         }
+        
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: none;
+        }
+        
+        .bg-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        }
+        
+        .bg-info {
+            background: linear-gradient(135deg, var(--success-color), var(--primary-color)) !important;
+        }
+        
+        .card-header h5 {
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            margin-bottom: 0;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-gray);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 2px solid var(--medium-gray);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .input-group-text {
+            border-radius: 10px 0 0 10px;
+            border: 2px solid var(--medium-gray);
+            border-right: none;
+            background-color: var(--light-gray);
+        }
+        
+        .input-group .form-control {
+            border-radius: 0 10px 10px 0;
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+        }
+        
         .required-asterisk {
-            color: #dc3545;
+            color: var(--accent-color);
+            font-weight: bold;
             margin-left: 4px;
         }
-        .drag-handle {
-            cursor: move;
+        
+        .form-text {
             color: #6c757d;
-            padding: 5px;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
         }
-        #question-preview {
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 20px;
-            margin-top: 20px;
+        
+        .form-check-input {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-top: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        .option-row {
-            margin-bottom: 8px;
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: scale(1.1);
         }
-        /* Estilos para switches centrados */
+        
         .form-switch .form-check-input {
             width: 3em;
             height: 1.5em;
+            margin-top: 0.15rem;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
         }
+        
+        .form-switch .form-check-input:focus {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
+        }
+        
         .form-check-label {
-            padding-top: 2px;
-        }
-        .gap-5 {
-            gap: 3rem!important;
-        }
-
-        #add-section {
-            background-color: #007bff;
-            color: white;
-            padding: 14px 24px;
-            border-radius: 5px;
-            border: none;
+            font-size: 1rem;
             cursor: pointer;
+            user-select: none;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #20c997, var(--success-color));
+            border: none;
+            box-shadow: 0 4px 15px rgba(32, 201, 151, 0.3);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, var(--success-color), #20c997);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(32, 201, 151, 0.4);
+        }
+        
+        .btn-outline-primary, .btn-outline-secondary {
+            border-width: 2px;
+            font-weight: 600;
+        }
+        
+        .btn-outline-primary:hover, .btn-outline-secondary:hover {
+            transform: translateY(-2px);
+        }
+        
+        #add-section {
+            background: linear-gradient(135deg, var(--success-color), var(--primary-color));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        #add-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(76, 201, 240, 0.4);
+        }
+        
+        .alert-info {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--success-color);
+            border-top: none;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 10px;
+            padding: 1.25rem;
+            color: var(--dark-gray);
+        }
+        
+        .question-card {
+            border-left: 5px solid var(--primary-color) !important;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .question-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .question-card .card-header {
+            background-color: rgba(67, 97, 238, 0.05);
+            padding: 1rem 1.5rem;
+        }
+        
+        .question-number {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .section-divider {
+            background: linear-gradient(to right, rgba(76, 201, 240, 0.1), transparent);
+            padding: 1rem 1.5rem;
+            margin: 2rem 0 1.5rem;
+            border-left: 5px solid var(--success-color);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .section-divider:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            border-radius: 8px;
+            border: 2px solid rgba(76, 201, 240, 0.3);
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .section-title:focus {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25);
+        }
+        
+        .drag-handle {
+            cursor: move;
+            color: #6c757d;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .drag-handle:hover {
+            color: var(--dark-gray);
+        }
+        
+        #question-preview {
+            border: 1px solid var(--medium-gray);
+            border-radius: 12px;
+            padding: 2rem;
+            background-color: #fff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .option-row {
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .option-row:hover {
+            transform: translateX(5px);
+        }
+        
+        .option-row .form-control {
+            border-radius: 0 !important;
+        }
+        
+        .option-row .input-group-text {
+            border-radius: 10px 0 0 10px !important;
+        }
+        
+        .option-row .btn {
+            border-radius: 0 10px 10px 0 !important;
+        }
+        
+        .matrix-preview {
+            background-color: var(--light-gray);
+            padding: 1.25rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+        }
+        
+        .matrix-preview h6 {
+            color: var(--secondary-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .matrix-preview table {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .matrix-preview th {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1.5rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .d-flex.justify-content-between div {
+                width: 100%;
+            }
+            
+            .d-flex.justify-content-between div .btn {
+                width: 100%;
+                margin-right: 0 !important;
+                margin-bottom: 0.5rem;
+            }
+            
+            .card-header {
+                padding: 1rem;
+            }
+            
+            .section-divider {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .section-title {
+                width: 100% !important;
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -519,6 +875,153 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     
     <script>
+        // Función global para agregar opciones
+        function agregarOpciones(button) {
+            console.log('Iniciando agregarOpciones');
+            const $button = $(button);
+            const optionsList = $button.closest('.mb-3').find('.options-list');
+            const optionsCount = optionsList.children().length;
+            const questionId = $button.closest('.question-card').data('question-id');
+            const questionType = $button.closest('.question-card').find('.question-type').val();
+            
+            let newOption;
+            if (questionType === 'CHECK') {
+                newOption = `
+                    <div class="option-row input-group">
+                        <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
+                        <input type="text" class="form-control" name="questions[${questionId}][opciones][${optionsCount}][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[${questionId}][opciones][${optionsCount}][orden]" value="${optionsCount + 1}">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                newOption = `
+                    <div class="option-row input-group">
+                        <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
+                        <input type="text" class="form-control" name="questions[${questionId}][opciones][${optionsCount}][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[${questionId}][opciones][${optionsCount}][orden]" value="${optionsCount + 1}">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
+            optionsList.append(newOption);
+        }
+
+        // Función global para eliminar opciones
+        function eliminarOpcion(button) {
+            const $button = $(button);
+            const optionsList = $button.closest('.options-list');
+            if (optionsList.children().length > 1) {
+                $button.closest('.option-row').remove();
+                renumberOptionOrders(optionsList);
+            } else {
+                alert('Debe haber al menos una opción.');
+            }
+        }
+
+        // Función global para renumerar las opciones
+        function renumberOptionOrders(optionsList) {
+            const $options = $(optionsList).find('.option-row');
+            $options.each(function(index) {
+                const order = index + 1;
+                $(this).find('input[name$="[orden]"]').val(order);
+                $(this).find('input[name$="[texto]"]').attr('name', function(i, oldName) {
+                    return oldName.replace(/\[\d+\]/, `[${order}]`);
+                });
+            });
+        }
+
+        // Función global para agregar ítems a la matriz
+        function agregarItem(button) {
+            console.log('Iniciando agregarItem');
+            const $button = $(button);
+            const itemsList = $button.closest('.mb-3').find('.items-list');
+            const itemsCount = itemsList.children().length;
+            const questionId = $button.closest('.question-card').data('question-id');
+            
+            const newItem = `
+                <div class="option-row input-group">
+                    <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
+                    <input type="text" class="form-control" name="questions[${questionId}][items][${itemsCount}][texto]" placeholder="Texto del ítem" required>
+                    <input type="hidden" name="questions[${questionId}][items][${itemsCount}][orden]" value="${itemsCount + 1}">
+                    <button type="button" class="btn btn-outline-danger remove-item" onclick="eliminarItem(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            itemsList.append(newItem);
+            actualizarVistaPrevia($button.closest('.matrix-options'));
+        }
+
+        // Función global para eliminar ítems de la matriz
+        function eliminarItem(button) {
+            const $button = $(button);
+            const itemsList = $button.closest('.items-list');
+            if (itemsList.children().length > 1) {
+                $button.closest('.option-row').remove();
+                renumberItemOrders(itemsList);
+                actualizarVistaPrevia($button.closest('.matrix-options'));
+            } else {
+                alert('Debe haber al menos un ítem.');
+            }
+        }
+
+        // Función para renumerar los ítems
+        function renumberItemOrders(itemsList) {
+            const $items = $(itemsList).find('.option-row');
+            $items.each(function(index) {
+                const order = index + 1;
+                $(this).find('input[name$="[orden]"]').val(order);
+                $(this).find('input[name$="[texto]"]').attr('name', function(i, oldName) {
+                    return oldName.replace(/\[\d+\]/, `[${order}]`);
+                });
+            });
+        }
+
+        // Función para actualizar la vista previa de la matriz
+        function actualizarVistaPrevia($container) {
+            const minValor = parseInt($container.find('input[name$="[scale][min_valor]"]').val()) || 1;
+            const maxValor = parseInt($container.find('input[name$="[scale][max_valor]"]').val()) || 5;
+            const paso = parseInt($container.find('input[name$="[scale][paso]"]').val()) || 1;
+            const items = $container.find('.items-list .option-row input[name$="[texto]"]').map(function() {
+                return $(this).val() || 'Ejemplo de ítem';
+            }).get();
+
+            // Construir la tabla de vista previa
+            let thead = '<tr><th></th>';
+            for (let i = minValor; i <= maxValor; i += paso) {
+                thead += `<th>${i}</th>`;
+            }
+            thead += '</tr>';
+
+            let tbody = '';
+            items.forEach(item => {
+                tbody += `<tr><td>${item}</td>`;
+                for (let i = minValor; i <= maxValor; i += paso) {
+                    tbody += '<td><input type="radio" disabled></td>';
+                }
+                tbody += '</tr>';
+            });
+
+            const $preview = $container.find('.matrix-preview table');
+            $preview.find('thead').html(thead);
+            $preview.find('tbody').html(tbody);
+        }
+
+        // Agregar listeners para actualizar la vista previa cuando cambien los valores de la escala
+        $(document).on('change', '.matrix-options input[name$="[scale][min_valor]"], .matrix-options input[name$="[scale][max_valor]"], .matrix-options input[name$="[scale][paso]"]', function() {
+            actualizarVistaPrevia($(this).closest('.matrix-options'));
+        });
+
+        // Agregar listeners para actualizar la vista previa cuando se escriba en los ítems
+        $(document).on('input', '.matrix-options .items-list input[name$="[texto]"]', function() {
+            actualizarVistaPrevia($(this).closest('.matrix-options'));
+        });
+
         $(document).ready(function() {
             console.log('Documento listo');
             let questionCounter = 0;
@@ -608,6 +1111,10 @@
                 updateQuestionOptions($newQuestion, 'TEXT');
                 updateSectionSelects();
                 
+                // Asignar la sección por defecto a la nueva pregunta
+                const defaultSection = $('.section-divider').first().find('.section-title').val() || 'General';
+                $newQuestion.find('.question-section').val(defaultSection);
+                
                 // Establecer handlers para los eventos
                 setupQuestionEventHandlers($newQuestion);
                 console.log('Handlers configurados para pregunta:', questionCounter);
@@ -626,6 +1133,12 @@
                 
                 // Configurar evento para eliminar sección
                 $(`.section-divider[data-section-id="${sectionCounter}"] .delete-section`).click(function() {
+                    // No permitir eliminar la sección por defecto
+                    if ($(this).closest('.section-divider').data('section-id') === 1) {
+                        alert('No se puede eliminar la sección por defecto.');
+                        return;
+                    }
+                    
                     $(this).closest('.section-divider').remove();
                     updateSectionSelects();
                 });
@@ -681,9 +1194,10 @@
                 // Opciones específicas para cada tipo
                 setupOptionTypeHandlers($question);
             }
-            
+
             // Configurar manejadores para tipos específicos de preguntas
             function setupOptionTypeHandlers($question) {
+                console.log('Configurando manejadores para tipos específicos de preguntas');
                 // Para preguntas con opciones (radio, check, select)
                 $question.find('.add-option').click(function() {
                     const optionsList = $(this).closest('.mb-3').find('.options-list');
@@ -693,22 +1207,14 @@
                     const newOption = `
                         <div class="option-row input-group">
                             <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                            <input type="text" class="form-control" name="questions[${questionId}][options][${optionsCount}][text]" placeholder="Texto de la opción" required>
-                            <input type="hidden" name="questions[${questionId}][options][${optionsCount}][order]" value="${optionsCount + 1}">
-                            <button type="button" class="btn btn-outline-danger remove-option"><i class="fas fa-times"></i></button>
+                            <input type="text" class="form-control" name="questions[${questionId}][opciones][${optionsCount}][texto]" placeholder="Texto de la opción" required>
+                            <input type="hidden" name="questions[${questionId}][opciones][${optionsCount}][orden]" value="${optionsCount + 1}">
+                            <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     `;
                     optionsList.append(newOption);
-                    
-                    // Configurar evento para eliminar opción
-                    optionsList.find('.remove-option').last().click(function() {
-                        if (optionsList.children().length > 1) {
-                            $(this).closest('.option-row').remove();
-                            renumberOptionOrders(optionsList);
-                        } else {
-                            alert('Debe haber al menos una opción.');
-                        }
-                    });
                 });
                 
                 // Para preguntas tipo matriz
@@ -720,22 +1226,12 @@
                     const newItem = `
                         <div class="option-row input-group">
                             <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                            <input type="text" class="form-control" name="questions[${questionId}][items][${itemsCount}][text]" placeholder="Texto del ítem" required>
-                            <input type="hidden" name="questions[${questionId}][items][${itemsCount}][order]" value="${itemsCount + 1}">
+                            <input type="text" class="form-control" name="questions[${questionId}][items][${itemsCount}][texto]" placeholder="Texto del ítem" required>
+                            <input type="hidden" name="questions[${questionId}][items][${itemsCount}][orden]" value="${itemsCount + 1}">
                             <button type="button" class="btn btn-outline-danger remove-item"><i class="fas fa-times"></i></button>
                         </div>
                     `;
                     itemsList.append(newItem);
-                    
-                    // Configurar evento para eliminar ítem
-                    itemsList.find('.remove-item').last().click(function() {
-                        if (itemsList.children().length > 1) {
-                            $(this).closest('.option-row').remove();
-                            renumberItemOrders(itemsList);
-                        } else {
-                            alert('Debe haber al menos un ítem.');
-                        }
-                    });
                 });
             }
 
@@ -820,7 +1316,7 @@
                     
                     sections.forEach(section => {
                         const option = $('<option></option>')
-                            .val(section.id)
+                            .val(section.title)
                             .text(section.title);
                         $(this).append(option);
                     });
@@ -850,6 +1346,18 @@
             $('#add-section').click(function() {
                 addNewSection();
             });
+            
+            // Crear sección por defecto al cargar la página
+            sectionCounter = 1;
+            const defaultSectionHtml = $('#section-template').html().replace(/{section_id}/g, sectionCounter);
+            $('#questions-container').append(defaultSectionHtml);
+            
+            // Configurar la sección por defecto
+            $('.section-divider[data-section-id="1"] .section-title').val('General');
+            $('.section-divider[data-section-id="1"] .delete-section').prop('disabled', true).addClass('disabled');
+            
+            // Actualizar los selectores de sección
+            updateSectionSelects();
         });
     </script>
 {% endblock %}
