@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Resultados de "{{ encuesta.titulo }}"</h2>
+    
+    {% for item in estadisticas %}
+        <div class="card my-3">
+            <div class="card-header">
+                {{ item.pregunta }}
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for opcion, total in item.datos %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ opcion }}</span>
+                        <span class="badge badge-info">{{ total }} votos</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% empty %}
+        <p>No hay preguntas o respuestas aún.</p>
+    {% endfor %}
+</div>
+{% endblock %}
