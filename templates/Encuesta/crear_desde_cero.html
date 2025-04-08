@@ -280,10 +280,10 @@
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
                         <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
                         <input type="hidden" name="questions[{id}][options][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-option"><i class="fas fa-times"></i></button>
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm add-option">
+                <button type="button" class="btn btn-outline-secondary btn-sm add-option" onclick="agregarOpciones(this)">
                     <i class="fas fa-plus"></i> Añadir Opción
                 </button>
             </div>
