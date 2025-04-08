@@ -2,23 +2,78 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Resultados de "{{ encuesta.titulo }}"</h2>
-    
-    {% for item in estadisticas %}
-        <div class="card my-3">
-            <div class="card-header">
-                {{ item.pregunta }}
-            </div>
-            <ul class="list-group list-group-flush">
-                {% for opcion, total in item.datos %}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span>{{ opcion }}</span>
-                        <span class="badge badge-info">{{ total }} votos</span>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+
+    {% for pregunta in preguntas %}
+        {% with key="pregunta_"|add:pregunta.id|stringformat:"s" %}
+            {% with data=graficas.key %}
+                <div class="card my-4">
+                    <div class="card-header font-weight-bold">
+                        {{ pregunta.texto }}
+                    </div>
+                    <div class="card-body">
+
+                        {% if data.promedio %}
+                            {# Pregunta de Estrellas #}
+                            <p><strong>Promedio:</strong> {{ data.promedio|floatformat:1 }}</p>
+                            <ul>
+                                {% for valor in data.valores %}
+                                    <li>{{ valor }} estrellas</li>
+                                {% endfor %}
+                            </ul>
+
+                        {% elif data.items %}
+                            {# Pregunta Cerrada (opciones o fechas o escala) #}
+                            <ul class="list-group list-group-flush">
+                                {% for opcion, total in data.items %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ opcion }}
+                                        <span class="badge badge-primary badge-pill">{{ total }} votos</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+
+                        {% elif data.0 %}
+                            {# Pregunta Abierta (textos) #}
+                            <ul class="list-group list-group-flush">
+                                {% for texto in data %}
+                                    <li class="list-group-item">{{ texto }}</li>
+                                {% endfor %}
+                            </ul>
+
+                        {% elif data %}
+                            {# Pregunta de Matriz #}
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Fila / Columna</th>
+                                            {% for col in data.values.0.keys %}
+                                                <th>{{ col }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for fila, cols in data.items %}
+                                            <tr>
+                                                <th>{{ fila }}</th>
+                                                {% for col, valor in cols.items %}
+                                                    <td>{{ valor }}</td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Sin datos para esta pregunta.</p>
+                        {% endif %}
+
+                    </div>
+                </div>
+            {% endwith %}
+        {% endwith %}
     {% empty %}
-        <p>No hay preguntas o respuestas aún.</p>
+        <p>No hay preguntas ni respuestas disponibles.</p>
     {% endfor %}
 </div>
 {% endblock %}

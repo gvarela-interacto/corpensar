@@ -1,478 +1,584 @@
-{% extends 'base.html' %}
-{% load i18n %}
-{% load static %}
-
-{% block title %}{{ encuesta.titulo }}{% endblock %}
-
-{% block content %}
-<div class="container my-5">
-    <div class="row">
-        <div class="col-md-10 mx-auto">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">{{ encuesta.titulo }}</h2>
-                </div>
-                <div class="card-body">
-                    {% if encuesta.descripcion %}
-                    <div class="alert alert-info">
-                        {{ encuesta.descripcion }}
-                    </div>
-                    {% endif %}
-                    
-                    <form method="post" id="encuestaForm">
-                        {% csrf_token %}
-                        
-                        {% if messages %}
-                        <div class="messages">
-                            {% for message in messages %}
-                            <div{% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>
-                                {{ message }}
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                        
-                        {% for seccion in secciones %}
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h4 class="mb-0">{{ seccion }}</h4>
-                            </div>
-                            <div class="card-body">
-                                {% for item in todas_preguntas %}
-                                {% if item.seccion == seccion %}
-                                <div class="pregunta mb-4 p-3 {% if item.pregunta.requerida %}border-left border-danger{% endif %}">
-                                    <div class="pregunta-texto">
-                                        <h5>
-                                            {{ item.pregunta.texto }}
-                                            {% if item.pregunta.requerida %}
-                                            <span class="text-danger">*</span>
-                                            {% endif %}
-                                        </h5>
-                                        {% if item.pregunta.ayuda %}
-                                        <small class="text-muted">{{ item.pregunta.ayuda }}</small>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <div class="pregunta-formulario mt-3">
-                                        {% if item.tipo == 'texto' %}
-                                            {{ item.formulario.respuesta }}
-                                            {% if item.formulario.respuesta.errors %}
-                                            <div class="text-danger">{{ item.formulario.respuesta.errors }}</div>
-                                            {% endif %}
-                                        
-                                        {% elif item.tipo == 'texto_multiple' %}
-                                            {{ item.formulario.respuesta }}
-                                            {% if item.formulario.respuesta.errors %}
-                                            <div class="text-danger">{{ item.formulario.respuesta.errors }}</div>
-                                            {% endif %}
-                                        
-                                        {% elif item.tipo == 'opcion_multiple' %}
-                                            <div class="opciones">
-                                                {% for radio in item.formulario.opcion %}
-                                                <div class="form-check">
-                                                    {{ radio.tag }}
-                                                    <label class="form-check-label" for="{{ radio.id_for_label }}">
-                                                        {{ radio.choice_label }}
-                                                    </label>
-                                                </div>
-                                                {% endfor %}
-                                                
-                                                {% if item.formulario.opcion_otro %}
-                                                <div class="form-check">
-                                                    <input type="radio" name="{{ item.formulario.prefix }}-opcion" 
-                                                           id="{{ item.formulario.prefix }}-opcion-otro" value="otro" 
-                                                           class="form-check-input opcion-otro-radio">
-                                                    <label class="form-check-label" for="{{ item.formulario.prefix }}-opcion-otro">
-                                                        Otro:
-                                                    </label>
-                                                    {{ item.formulario.texto_otro }}
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                            
-                                            {% if item.formulario.opcion.errors %}
-                                            <div class="text-danger">{{ item.formulario.opcion.errors }}</div>
-                                            {% endif %}
-                                        
-                                        {% elif item.tipo == 'casillas' %}
-                                            <div class="opciones">
-                                                {% for checkbox in item.formulario.opciones %}
-                                                <div class="form-check">
-                                                    {{ checkbox.tag }}
-                                                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-                                                        {{ checkbox.choice_label }}
-                                                    </label>
-                                                </div>
-                                                {% endfor %}
-                                                
-                                                {% if item.formulario.opcion_otro %}
-                                                <div class="form-check">
-                                                    <input type="checkbox" name="{{ item.formulario.prefix }}-opcion_otro" 
-                                                           id="{{ item.formulario.prefix }}-opcion_otro" 
-                                                           class="form-check-input opcion-otro-checkbox">
-                                                    <label class="form-check-label" for="{{ item.formulario.prefix }}-opcion_otro">
-                                                        Otro:
-                                                    </label>
-                                                    {{ item.formulario.texto_otro }}
-                                                </div>
-                                                {% endif %}
-                                            </div>
-                                            
-                                            {% if item.formulario.opciones.errors %}
-                                            <div class="text-danger">{{ item.formulario.opciones.errors }}</div>
-                                            {% endif %}
-                                        
-                                        {% elif item.tipo == 'menu' %}
-                                            {{ item.formulario.opcion }}
-                                            {% if item.formulario.opcion.errors %}
-                                            <div class="text-danger">{{ item.formulario.opcion.errors }}</div>
-                                            {% endif %}
-                                        
-                                        {% elif item.tipo == 'estrellas' %}
-                                            <div class="estrellas-container">
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span class="etiqueta-inicio">{{ item.formulario.etiqueta_inicio }}</span>
-                                                    <span class="etiqueta-fin">{{ item.formulario.etiqueta_fin }}</span>
-                                                </div>
-                                                <div class="stars-rating">
-                                                    <input type="range" name="{{ item.formulario.prefix }}-valor" 
-                                                           min="1" max="{{ item.formulario.max_estrellas }}" value="0" 
-                                                           class="form-control-range star-rating-input">
-                                                    <div class="star-rating-display">
-                                                        {% for i in "12345" %}
-                                                        {% if forloop.counter <= item.formulario.max_estrellas %}
-                                                        <span class="star" data-value="{{ forloop.counter }}">★</span>
-                                                        {% endif %}
-                                                        {% endfor %}
-                                                    </div>
-                                                </div>
-                                                {% if item.formulario.valor.errors %}
-                                                <div class="text-danger">{{ item.formulario.valor.errors }}</div>
-                                                {% endif %}
-                                            </div>
-                                        
-                                        {% elif item.tipo == 'escala' %}
-                                            <div class="escala-container">
-                                                <div class="d-flex justify-content-between mb-2">
-                                                    <span class="etiqueta-min">{{ item.formulario.etiqueta_min }}</span>
-                                                    <span class="etiqueta-max">{{ item.formulario.etiqueta_max }}</span>
-                                                </div>
-                                                {{ item.formulario.valor }}
-                                                <div class="escala-valores d-flex justify-content-between mt-1">
-                                                    {% with min=item.formulario.min_valor max=item.formulario.max_valor %}
-                                                    {% for i in "0123456789" %}
-                                                    {% if forloop.counter0|add:min <= max %}
-                                                    <span class="escala-valor">{{ forloop.counter0|add:min }}</span>
-                                                    {% endif %}
-                                                    {% endfor %}
-                                                    {% endwith %}
-                                                </div>
-                                                {% if item.formulario.valor.errors %}
-                                                <div class="text-danger">{{ item.formulario.valor.errors }}</div>
-                                                {% endif %}
-                                            </div>
-                                        
-                                        {% elif item.tipo == 'matriz' %}
-                                            <div class="matriz-container table-responsive">
-                                                <table class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th></th>
-                                                            <th colspan="{{ item.formulario.escala.max_valor|add:1|sub:item.formulario.escala.min_valor }}" 
-                                                                class="text-center">
-                                                                {{ item.formulario.escala.etiqueta_min }} - {{ item.formulario.escala.etiqueta_max }}
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th></th>
-                                                            {% with min=item.formulario.escala.min_valor max=item.formulario.escala.max_valor %}
-                                                            {% for i in "0123456789" %}
-                                                            {% if forloop.counter0|add:min <= max %}
-                                                            <th class="text-center">{{ forloop.counter0|add:min }}</th>
-                                                            {% endif %}
-                                                            {% endfor %}
-                                                            {% endwith %}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for item_matriz in item.formulario.items %}
-                                                        <tr>
-                                                            <td>{{ item_matriz.texto }}</td>
-                                                            {% with min=item.formulario.escala.min_valor max=item.formulario.escala.max_valor %}
-                                                            {% for i in "0123456789" %}
-                                                            {% if forloop.counter0|add:min <= max %}
-                                                            <td class="text-center">
-                                                                <input type="radio" 
-                                                                       name="{{ item.formulario.prefix }}-item_{{ item_matriz.id }}" 
-                                                                       value="{{ forloop.counter0|add:min }}">
-                                                            </td>
-                                                            {% endif %}
-                                                            {% endfor %}
-                                                            {% endwith %}
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                                {% for field_name, errors in item.formulario.errors.items %}
-                                                {% if errors %}
-                                                <div class="text-danger">{{ errors }}</div>
-                                                {% endif %}
-                                                {% endfor %}
-                                            </div>
-                                        
-                                        {% elif item.tipo == 'fecha' %}
-                                            {{ item.formulario.valor }}
-                                            {% if item.formulario.valor.errors %}
-                                            <div class="text-danger">{{ item.formulario.valor.errors }}</div>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div>
-                                </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta de Satisfacción del Cliente</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #343a40;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .survey-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .survey-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .survey-header h1 {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .survey-header p {
+            opacity: 0.9;
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .survey-progress {
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 40%;
+        }
+        
+        .survey-body {
+            padding: 30px;
+        }
+        
+        .question {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .question:last-child {
+            border-bottom: none;
+        }
+        
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+        }
+        
+        .required-badge {
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-left: 8px;
+            text-transform: uppercase;
+        }
+        
+        .question-help {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        
+        .star-rating input {
+            display: none;
+        }
+        
+        .star-rating label {
+            cursor: pointer;
+            font-size: 25px;
+            color: #ddd;
+            padding: 0 2px;
+        }
+        
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #ffc107;
+        }
+        
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        
+        .scale-labels span {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .matrix-table th, .matrix-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .matrix-table th {
+            font-weight: 600;
+            background-color: var(--light-gray);
+        }
+        
+        .matrix-table th:first-child,
+        .matrix-table td:first-child {
+            text-align: left;
+        }
+        
+        .survey-footer {
+            background-color: var(--light-gray);
+            padding: 20px 30px;
+            text-align: right;
+            border-top: 1px solid var(--medium-gray);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-outline-secondary {
+            color: var(--dark-gray);
+            border-color: var(--dark-gray);
+        }
+        
+        .section-title {
+            background-color: var(--light-gray);
+            padding: 10px 15px;
+            margin: 25px -30px 30px;
+            border-left: 4px solid var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .section-title:first-child {
+            margin-top: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .survey-container {
+                margin: 15px;
+                border-radius: 8px;
+            }
+            
+            .survey-header {
+                padding: 20px;
+            }
+            
+            .survey-header h1 {
+                font-size: 22px;
+            }
+            
+            .survey-body {
+                padding: 20px;
+            }
+            
+            .section-title {
+                margin: 20px -20px 25px;
+                padding: 8px 15px;
+            }
+            
+            .matrix-table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="survey-container">
+        <div class="survey-header">
+            <h1>{{encuesta.titulo}}</h1>
+            <p>{{encuesta.descripcion}}</p>
+        </div>
+        
+        <form class="survey-body">
+            {% for seccion in secciones_unicas %}
+                <!-- Mostrar título de sección (excepto para 'General') -->
+                <h3 class="section-title">{{ seccion }}</h3>
+                {% for pregunta in preguntas %}
+                    {% if pregunta.seccion == seccion %}
+                        <div class="question">
+                            <div class="question-title">
+                                <span>{{pregunta.orden}}. {{ pregunta.texto }}</span>
+                                {% if pregunta.requerida %}
+                                    <span class="required-badge">Requerido</span>
                                 {% endif %}
-                                {% endfor %}
                             </div>
-                        </div>
-                        {% endfor %}
-                        
-                        <!-- Preguntas sin sección -->
-                        <div class="mb-4">
-                            {% for item in todas_preguntas %}
-                            {% if not item.seccion %}
-                            <div class="pregunta mb-4 p-3 {% if item.pregunta.requerida %}border-left border-danger{% endif %}">
-                                <div class="pregunta-texto">
-                                    <h5>
-                                        {{ item.pregunta.texto }}
-                                        {% if item.pregunta.requerida %}
-                                        <span class="text-danger">*</span>
-                                        {% endif %}
-                                    </h5>
-                                    {% if item.pregunta.ayuda %}
-                                    <small class="text-muted">{{ item.pregunta.ayuda }}</small>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="pregunta-formulario mt-3">
-                                    <!-- Mismo contenido que arriba para cada tipo de pregunta -->
-                                    {% if item.tipo == 'texto' %}
-                                        {{ item.formulario.respuesta }}
-                                        {% if item.formulario.respuesta.errors %}
-                                        <div class="text-danger">{{ item.formulario.respuesta.errors }}</div>
-                                        {% endif %}
-                                    {% elif item.tipo == 'texto_multiple' %}
-                                        {{ item.formulario.respuesta }}
-                                        {% if item.formulario.respuesta.errors %}
-                                        <div class="text-danger">{{ item.formulario.respuesta.errors }}</div>
-                                        {% endif %}
-                                    <!-- Repetir el mismo patrón para los demás tipos -->
-                                    <!-- ... -->
-                                    {% endif %}
-                                </div>
-                            </div>
+                            {% if pregunta.tipo == 'TEXT' %}
+                                <div class="question-help">{{pregunta.ayuda}}</div>
+                                <input type="text" class="form-control" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}">
                             {% endif %}
-                            {% endfor %}
+                            {% if pregunta.tipo == 'MTEXT' %}
+                                <div class="question-help">{{pregunta.ayuda}}</div>
+                                <textarea class="form-control" rows="{{pregunta.filas}}" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}"></textarea>
+                            {% endif %}
+                            {% if pregunta.tipo == 'RADIO' %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio1">
+                                    <label class="form-check-label" for="conocio1">
+                                        Redes sociales
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio2">
+                                    <label class="form-check-label" for="conocio2">
+                                        Recomendación de un amigo
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio3">
+                                    <label class="form-check-label" for="conocio3">
+                                        Publicidad en línea
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio4">
+                                    <label class="form-check-label" for="conocio4">
+                                        Búsqueda en Google
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio5">
+                                    <label class="form-check-label" for="conocio5">
+                                        Otro
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <input type="text" class="form-control" placeholder="Especifique...">
+                                </div>
+                            {% endif %}
                         </div>
-                        
-                        <div class="text-center mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Enviar Respuestas</button>
-                        </div>
-                    </form>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            <!-- Texto simple -->
+            
+            
+            <!-- Menú desplegable -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿En qué rango de edad se encuentra?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <select class="form-select">
+                    <option selected>Seleccione...</option>
+                    <option value="18-24">18-24 años</option>
+                    <option value="25-34">25-34 años</option>
+                    <option value="35-44">35-44 años</option>
+                    <option value="45-54">45-54 años</option>
+                    <option value="55-64">55-64 años</option>
+                    <option value="65+">65 años o más</option>
+                </select>
+            </div>
+            
+            <!-- Fecha -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cuál es su fecha de nacimiento?</span>
+                </div>
+                <input type="date" class="form-control">
+            </div>
+            
+            <!-- Fecha y hora -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cuándo realizó su última compra con nosotros?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <input type="datetime-local" class="form-control">
+            </div>
+            
+            
+            
+            <!-- Opción múltiple (Radio) -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cómo conoció nuestra empresa?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio1">
+                    <label class="form-check-label" for="conocio1">
+                        Redes sociales
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio2">
+                    <label class="form-check-label" for="conocio2">
+                        Recomendación de un amigo
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio3">
+                    <label class="form-check-label" for="conocio3">
+                        Publicidad en línea
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio4">
+                    <label class="form-check-label" for="conocio4">
+                        Búsqueda en Google
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio5">
+                    <label class="form-check-label" for="conocio5">
+                        Otro
+                    </label>
+                </div>
+                <div class="mt-2">
+                    <input type="text" class="form-control" placeholder="Especifique...">
                 </div>
             </div>
+            
+            <!-- Casillas de verificación -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Qué productos ha comprado en los últimos 6 meses?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="question-help">Seleccione todas las opciones que correspondan. Mínimo: 1, Máximo: 3</div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto1">
+                    <label class="form-check-label" for="producto1">
+                        Smartphone
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto2">
+                    <label class="form-check-label" for="producto2">
+                        Laptop
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto3">
+                    <label class="form-check-label" for="producto3">
+                        Tablet
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto4">
+                    <label class="form-check-label" for="producto4">
+                        Smart Watch
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto5">
+                    <label class="form-check-label" for="producto5">
+                        Auriculares
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto6">
+                    <label class="form-check-label" for="producto6">
+                        Otro
+                    </label>
+                </div>
+                <div class="mt-2">
+                    <input type="text" class="form-control" placeholder="Especifique...">
+                </div>
+            </div>
+            
+            <!-- Sección de valoración -->
+            <h3 class="section-title">Valoración del Servicio</h3>
+            
+            <!-- Valoración con estrellas -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cómo valoraría la calidad de nuestros productos?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5">
+                    <label for="star5" class="fas fa-star"></label>
+                    <input type="radio" id="star4" name="rating" value="4">
+                    <label for="star4" class="fas fa-star"></label>
+                    <input type="radio" id="star3" name="rating" value="3">
+                    <label for="star3" class="fas fa-star"></label>
+                    <input type="radio" id="star2" name="rating" value="2">
+                    <label for="star2" class="fas fa-star"></label>
+                    <input type="radio" id="star1" name="rating" value="1">
+                    <label for="star1" class="fas fa-star"></label>
+                </div>
+                <div class="scale-labels">
+                    <span>Muy baja</span>
+                    <span>Excelente</span>
+                </div>
+            </div>
+            
+            <!-- Escala -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Qué tan satisfecho está con nuestro servicio de atención al cliente?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="range-container">
+                    <input type="range" class="form-range" min="1" max="5" step="1" id="satisfaccion">
+                </div>
+                <div class="scale-labels">
+                    <span>Muy insatisfecho</span>
+                    <span>Neutral</span>
+                    <span>Muy satisfecho</span>
+                </div>
+            </div>
+            
+            <!-- Matriz de valoración -->
+            <div class="question">
+                <div class="question-title">
+                    <span>Por favor, valore los siguientes aspectos de nuestro servicio:</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <table class="table matrix-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Muy malo</th>
+                            <th>Malo</th>
+                            <th>Neutral</th>
+                            <th>Bueno</th>
+                            <th>Muy bueno</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rapidez de envío</td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>Calidad del producto</td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>Relación calidad-precio</td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>Atención al cliente</td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="5"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Conclusión -->
+            <h3 class="section-title">Conclusión</h3>
+            
+            <!-- Opción múltiple final -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Recomendaría nuestros productos a amigos o familiares?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria1">
+                    <label class="form-check-label" for="recomendaria1">
+                        Definitivamente sí
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria2">
+                    <label class="form-check-label" for="recomendaria2">
+                        Probablemente sí
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria3">
+                    <label class="form-check-label" for="recomendaria3">
+                        No estoy seguro
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria4">
+                    <label class="form-check-label" for="recomendaria4">
+                        Probablemente no
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria5">
+                    <label class="form-check-label" for="recomendaria5">
+                        Definitivamente no
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Texto múltiple final -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Hay algo más que le gustaría compartir con nosotros?</span>
+                </div>
+                <textarea class="form-control" rows="4" placeholder="Sus comentarios adicionales son bienvenidos..."></textarea>
+            </div>
+            
+        </form>
+        
+        <div class="survey-footer">
+            <button type="button" class="btn btn-outline-secondary me-2">Guardar y continuar más tarde</button>
+            <button type="submit" class="btn btn-primary">Enviar encuesta</button>
         </div>
     </div>
-</div>
-
-<!-- Template para la página de encuesta completada -->
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Script para manejar estrellas y control de opciones "Otro"
-    document.addEventListener('DOMContentLoaded', function() {
-        // Manejo de valoración con estrellas
-        const starRatingInputs = document.querySelectorAll('.star-rating-input');
-        starRatingInputs.forEach(input => {
-            const starsContainer = input.nextElementSibling;
-            const stars = starsContainer.querySelectorAll('.star');
-            
-            // Actualizar estrellas al cambiar el valor
-            input.addEventListener('input', function() {
-                const value = parseInt(this.value);
-                stars.forEach(star => {
-                    const starValue = parseInt(star.dataset.value);
-                    if (starValue <= value) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-            });
-            
-            // Permitir hacer clic en las estrellas
-            stars.forEach(star => {
-                star.addEventListener('click', function() {
-                    const value = parseInt(this.dataset.value);
-                    input.value = value;
-                    input.dispatchEvent(new Event('input'));
-                });
-            });
-        });
-        
-        // Manejar opción "Otro" en radio buttons
-        const otroRadios = document.querySelectorAll('.opcion-otro-radio');
-        otroRadios.forEach(radio => {
-            const textoOtro = radio.parentNode.querySelector('input[type="text"]');
-            
-            radio.addEventListener('change', function() {
-                if (this.checked) {
-                    textoOtro.focus();
-                }
-            });
-            
-            textoOtro.addEventListener('focus', function() {
-                radio.checked = true;
-            });
-        });
-        
-        // Manejar opción "Otro" en checkboxes
-        const otroCheckboxes = document.querySelectorAll('.opcion-otro-checkbox');
-        otroCheckboxes.forEach(checkbox => {
-            const textoOtro = checkbox.parentNode.querySelector('input[type="text"]');
-            
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    textoOtro.focus();
-                } else {
-                    textoOtro.value = '';
-                }
-            });
-            
-            textoOtro.addEventListener('focus', function() {
-                checkbox.checked = true;
-            });
-            
-            textoOtro.addEventListener('blur', function() {
-                if (!this.value) {
-                    checkbox.checked = false;
-                }
-            });
-        });
-    });
-</script>
-<style>
-    /* Estilos para las encuestas */
-
-/* Estilo general para preguntas */
-.pregunta {
-    position: relative;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.pregunta:hover {
-    background-color: #f0f0f0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.pregunta.border-left {
-    border-left: 4px solid #dc3545 !important;
-}
-
-/* Estrellas de valoración */
-.stars-rating {
-    position: relative;
-}
-
-.star-rating-input {
-    position: absolute;
-    width: 100%;
-    height: 30px;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 10;
-}
-
-.star-rating-display {
-    display: flex;
-    justify-content: space-between;
-    font-size: 2rem;
-    padding: 0 10px;
-}
-
-.star {
-    color: #ccc;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.star:hover, .star.active {
-    color: #ffc107;
-}
-
-/* Estilos para escalas */
-.escala-container {
-    padding: 10px 0;
-}
-
-.escala-valores {
-    margin-top: 5px;
-    font-size: 0.8rem;
-    color: #666;
-}
-
-input[type="range"] {
-    width: 100%;
-    cursor: pointer;
-}
-
-/* Matriz de preguntas */
-.matriz-container th {
-    background-color: #f8f9fa;
-}
-
-.matriz-container td {
-    vertical-align: middle;
-}
-
-/* Estilos para campos requeridos */
-.text-danger {
-    font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-/* Campos "otro" */
-.form-check input[type="text"] {
-    margin-left: 5px;
-    display: inline-block;
-    width: auto;
-}
-
-/* Mensaje de ayuda */
-.pregunta small.text-muted {
-    display: block;
-    margin-top: 5px;
-    font-style: italic;
-}
-
-/* Estilos para secciones */
-.card-header h4 {
-    font-weight: 500;
-}
-
-/* Estilos responsive */
-@media (max-width: 768px) {
-    .matriz-container {
-        font-size: 0.85rem;
-    }
     
-    .star-rating-display {
-        font-size: 1.5rem;
-    }
-    
-    .escala-valores {
-        font-size: 0.7rem;
-    }
-}
-</style>
-{% endblock %}
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
