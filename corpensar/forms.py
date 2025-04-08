@@ -1,5 +1,5 @@
 from django import forms
-from .models import Encuesta
+from .models import *
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
@@ -53,3 +53,109 @@ class EncuestaForm(forms.ModelForm):
         # Estilos específicos para checkboxes
         self.fields['activa'].widget.attrs.update({'class': 'form-check-input'})
         self.fields['es_publica'].widget.attrs.update({'class': 'form-check-input'})
+
+class RespuestaForm(forms.Form):
+    def __init__(self, encuesta, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.encuesta = encuesta
+        for pregunta in self.encuesta.preguntaopcionmultiple_relacionadas.all():
+            choices = [(opcion.id, opcion.texto) for opcion in pregunta.opciones.all()]
+            if pregunta.opcion_otro:
+                choices.append(('otro', pregunta.texto_otro))
+            self.fields[f'pregunta_{pregunta.id}'] = forms.ChoiceField(
+                label=pregunta.texto,
+                choices=choices,
+                widget=forms.RadioSelect,
+                required=pregunta.requerida
+            )
+            if pregunta.opcion_otro:
+                self.fields[f'otro_{pregunta.id}'] = forms.CharField(
+                    label=pregunta.texto_otro,
+                    required=False,
+                    widget=forms.TextInput(attrs={'style': 'display: none;'}),
+                )
+
+        for pregunta in self.encuesta.preguntacasillasverificacion_relacionadas.all():
+            choices = [(opcion.id, opcion.texto) for opcion in pregunta.opciones.all()]
+            if pregunta.opcion_otro:
+                choices.append(('otro', pregunta.texto_otro))
+            self.fields[f'pregunta_{pregunta.id}'] = forms.MultipleChoiceField(
+                label=pregunta.texto,
+                choices=choices,
+                widget=forms.CheckboxSelectMultiple,
+                required=pregunta.requerida
+            )
+            if pregunta.opcion_otro:
+                self.fields[f'otro_{pregunta.id}'] = forms.CharField(
+                    label=pregunta.texto_otro,
+                    required=False,
+                    widget=forms.TextInput(attrs={'style': 'display: none;'}),
+                )
+
+        for pregunta in PreguntaMenuDesplegable.objects.filter(encuesta=self.encuesta):
+            choices = [(opcion.id, opcion.texto) for opcion in pregunta.opciones.all()]
+            if pregunta.opcion_vacia:
+                choices = [('', pregunta.texto_vacio)] + choices
+            self.fields[f'pregunta_{pregunta.id}'] = forms.ChoiceField(
+                label=pregunta.texto,
+                choices=choices,
+                widget=forms.Select,
+                required=pregunta.requerida
+            )
+
+        for pregunta in self.encuesta.preguntatexto_relacionadas.all():
+            self.fields[f'pregunta_{pregunta.id}'] = forms.CharField(
+                label=pregunta.texto,
+                max_length=pregunta.max_longitud,
+                widget=forms.TextInput(attrs={'placeholder': pregunta.placeholder}),
+                required=pregunta.requerida
+            )
+
+        for pregunta in self.encuesta.preguntatextomultiple_relacionadas.all():
+            self.fields[f'pregunta_{pregunta.id}'] = forms.CharField(
+                label=pregunta.texto,
+                widget=forms.Textarea(attrs={'rows': pregunta.filas, 'placeholder': pregunta.placeholder}),
+                required=pregunta.requerida
+            )
+
+        for pregunta in self.encuesta.preguntaestrellas_relacionadas.all():
+            choices = [(i, str(i)) for i in range(1, pregunta.max_estrellas + 1)]
+            self.fields[f'pregunta_{pregunta.id}'] = forms.ChoiceField(
+                label=pregunta.texto,
+                choices=choices,
+                widget=forms.RadioSelect,
+                required=pregunta.requerida
+            )
+
+        for pregunta in self.encuesta.preguntaescala_relacionadas.all():
+            choices = [(i, str(i)) for i in range(pregunta.min_valor, pregunta.max_valor + 1, pregunta.paso)]
+            self.fields[f'pregunta_{pregunta.id}'] = forms.ChoiceField(
+                label=pregunta.texto,
+                choices=choices,
+                widget=forms.RadioSelect,
+                required=pregunta.requerida
+            )
+
+        for pregunta in self.encuesta.preguntamatriz_relacionadas.all():
+            for item in pregunta.items.all():
+                choices = [(i, str(i)) for i in range(pregunta.escala.min_valor, pregunta.escala.max_valor + 1, pregunta.escala.paso)]
+                self.fields[f'pregunta_{pregunta.id}_item_{item.id}'] = forms.ChoiceField(
+                    label=item.texto,
+                    choices=choices,
+                    widget=forms.RadioSelect,
+                    required=pregunta.requerida
+                )
+
+        for pregunta in self.encuesta.preguntafecha_relacionadas.all():
+            if pregunta.incluir_hora:
+                self.fields[f'pregunta_{pregunta.id}'] = forms.DateTimeField(
+                    label=pregunta.texto,
+                    widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+                    required=pregunta.requerida
+                )
+            else:
+                self.fields[f'pregunta_{pregunta.id}'] = forms.DateField(
+                    label=pregunta.texto,
+                    widget=forms.DateInput(attrs={'type': 'date'}),
+                    required=pregunta.requerida
+                    )
