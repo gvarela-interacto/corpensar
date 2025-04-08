@@ -63,17 +63,32 @@ def seleccionar_metodo_creacion(request):
     return render(request, 'Encuesta/seleccionar_metodo.html')
 
 # Vista para crear encuesta desde cero
+@login_required
 def crear_desde_cero(request):
+    # Inicializar el formulario fuera del bloque if/else
+    form = EncuestaForm()
+
     if request.method == 'POST':
-        form = EncuestaForm(request.POST)
-        if form.is_valid():
-            encuesta = form.save(commit=False)
-            encuesta.creador = request.user
-            encuesta.save()
-            messages.success(request, 'Encuesta creada exitosamente! Ahora puedes agregar preguntas.')
-            return redirect('editar_encuesta', encuesta_id=encuesta.id)
-    else:
-        form = EncuestaForm()
+        titulo = request.POST.get('titulo')
+        slug = request.POST.get('slug')
+        descripcion = request.POST.get('descripcion')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
+        activa = bool(request.POST.get('activa'))
+        es_publica = bool(request.POST.get('es_publica'))
+
+        Encuesta.objects.create(
+            titulo=titulo,
+            slug=slug,
+            descripcion=descripcion,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            activa=activa,
+            es_publica=es_publica,
+            creador=request.user
+        )
+        # Redirigir a alguna vista después de crear la encuesta
+        return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {'form': form})
 
