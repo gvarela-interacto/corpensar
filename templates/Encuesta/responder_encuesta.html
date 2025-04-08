@@ -359,14 +359,22 @@
                                     // Validar selecciones mínimas/máximas
                                     function validarSelecciones(preguntaId) {
                                         const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
-                                        const min = {{ pregunta.min_selecciones|default:0 }};
-                                        const max = {{ pregunta.max_selecciones|default:"null" }};
+                                        const min = parseInt("{{ pregunta.min_selecciones|default:0 }}");
+                                        const max = parseInt("{{ pregunta.max_selecciones|default:0 }}") || null;
                                         
                                         if (max && checks.length > max) {
                                             alert(`Debe seleccionar máximo ${max} opciones`);
                                             event.target.checked = false;
+                                            return;
+                                        }
+                                        
+                                        if (min && checks.length < min) {
+                                            alert(`Debe seleccionar al menos ${min} opciones`);
+                                            event.target.checked = true;
+                                            return;
                                         }
                                     }
+                                    
                                 </script>
                             {% endif %}
                         </div>
