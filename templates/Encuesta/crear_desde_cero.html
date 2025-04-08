@@ -319,9 +319,11 @@
                 <div class="options-list mb-2">
                     <div class="option-row input-group">
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
-                        <input type="hidden" name="questions[{id}][options][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)"><i class="fas fa-times"></i></button>
+                        <input type="text" class="form-control" name="questions[{id}][opciones][0][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[{id}][opciones][0][orden]" value="1">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
                 <button type="button" class="btn btn-outline-secondary btn-sm add-option" onclick="agregarOpciones(this)">

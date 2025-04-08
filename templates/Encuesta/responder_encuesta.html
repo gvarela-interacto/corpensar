@@ -334,7 +334,7 @@
                                     </div>
                                 {% endif %}
                             {% elif pregunta.tipo == 'SELECT' %}
-                                <select class="form-select" {% if pregunta.requerida %}required{% endif %}>
+                                <select class="form-select" name="pregunta_{{ pregunta.id }}" {% if pregunta.requerida %}required{% endif %}>
                                     {% if pregunta.opcion_vacia %}
                                         <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
                                     {% endif %}

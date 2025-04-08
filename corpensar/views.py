@@ -258,10 +258,10 @@ def crear_desde_cero(request):
                 )
                 # Procesar opciones si están disponibles
                 for key in request.POST:
-                    if key.startswith(f'questions[{pregunta_id}][options][') and '][text]' in key:
+                    if key.startswith(f'questions[{pregunta_id}][opciones][') and '][texto]' in key:
                         opcion_index = key.split('[')[3].split(']')[0]
-                        opcion_texto = request.POST.get(f'questions[{pregunta_id}][options][{opcion_index}][text]', '')
-                        opcion_orden = int(request.POST.get(f'questions[{pregunta_id}][options][{opcion_index}][order]', opcion_index))
+                        opcion_texto = request.POST.get(f'questions[{pregunta_id}][opciones][{opcion_index}][texto]', '')
+                        opcion_orden = int(request.POST.get(f'questions[{pregunta_id}][opciones][{opcion_index}][orden]', opcion_index))
                         OpcionMenuDesplegable.objects.create(
                             pregunta=pregunta_obj,
                             texto=opcion_texto,
