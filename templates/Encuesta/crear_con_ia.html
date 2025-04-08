@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Crear Encuesta con Inteligencia Artificial</h2>
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="tema">Tema principal de la encuesta:</label>
+            <input type="text" class="form-control" id="tema" name="tema" required>
+        </div>
+        <div class="form-group">
+            <label for="tipo_encuesta">Tipo de encuesta:</label>
+            <select class="form-control" id="tipo_encuesta" name="tipo_encuesta" required>
+                <option value="">Seleccione un tipo...</option>
+                <option value="satisfaccion">Satisfacción de clientes</option>
+                <option value="evento">Evaluación de evento</option>
+                <option value="producto">Feedback de producto</option>
+                <option value="empleados">Encuesta de empleados</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Generar con IA</button>
+        <a href="{% url 'seleccionar_metodo' %}" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

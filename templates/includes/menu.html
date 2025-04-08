@@ -4,11 +4,11 @@
     <ul class="nav">
 
         {% if user|in_group:'Es_Super' or user|in_group:'Es_Funcionario' %}
-            <li class="nav-item nav-category">Tiquetera Virtual</li>
+            <li class="nav-item nav-category">Encuestas</li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
                     <i class="menu-icon mdi mdi-ticket-confirmation"></i> <!-- Icono de ticket -->
-                    <span class="menu-title">Tiquetera</span>
+                    <span class="menu-title">Nueva Encuesta</span>
                 </a>
             </li>
             {% if user|in_group:'Es_Super' or user|in_group:'Es_Secretario' %}

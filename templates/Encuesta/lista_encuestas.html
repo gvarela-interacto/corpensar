@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Mis Encuestas</h2>
+    <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary mb-3">
+        <i class="fas fa-plus"></i> Nueva Encuesta
+    </a>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th>Título</th>
+                    <th>Estado</th>
+                    <th>Fecha Creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for encuesta in encuestas %}
+                <tr>
+                    <td>{{ encuesta.titulo }}</td>
+                    <td>
+                        <span class="badge badge-{% if encuesta.activa %}success{% else %}secondary{% endif %}">
+                            {% if encuesta.activa %}Activa{% else %}Inactiva{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
+                    <td>
+                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No tienes encuestas creadas aún.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if is_paginated %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

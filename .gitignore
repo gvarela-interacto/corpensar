@@ -34,9 +34,6 @@ pip-delete-this-directory.txt
 *.pyc
 *.pyo
 *.pyd
-staticfiles/
-static/
-media/
 node_modules/
 npm-debug.log
 yarn-error.log

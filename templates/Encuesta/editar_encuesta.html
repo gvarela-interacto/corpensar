@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Encuesta: {{ encuesta.titulo }}</h2>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#configuracion" data-toggle="tab">Configuración</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#preguntas" data-toggle="tab">Preguntas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#diseno" data-toggle="tab">Diseño</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <div class="tab-pane active" id="configuracion">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+                <div class="tab-pane" id="preguntas">
+                    <p>Aquí irá el editor de preguntas (a implementar)</p>
+                </div>
+                <div class="tab-pane" id="diseno">
+                    <p>Aquí irán las opciones de diseño (a implementar)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

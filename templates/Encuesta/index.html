@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="mb-4">Crear Nueva Encuesta</h1>
+            <p class="lead mb-5">Selecciona el método de creación que prefieras</p>
+            
+            <div class="row">
+                <!-- Botón Crear desde cero -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="icon-circle bg-primary text-white mb-3 mx-auto">
+                                <i class="fas fa-plus fa-2x"></i>
+                            </div>
+                            <h3 class="h5">Crear desde cero</h3>
+                            <p class="text-muted small">Empieza con una encuesta en blanco y diseña cada pregunta manualmente.</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{% url 'crear_encuesta_desde_cero' %}" class="btn btn-primary btn-block">Seleccionar</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botón Crear con IA -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="icon-circle bg-success text-white mb-3 mx-auto">
+                                <i class="fas fa-robot fa-2x"></i>
+                            </div>
+                            <h3 class="h5">Crear con IA</h3>
+                            <p class="text-muted small">Nuestra inteligencia artificial generará una encuesta basada en tus necesidades.</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{% url 'crear_encuesta_con_ia' %}" class="btn btn-success btn-block">Seleccionar</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botón Duplicar Encuesta -->
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="icon-circle bg-info text-white mb-3 mx-auto">
+                                <i class="fas fa-copy fa-2x"></i>
+                            </div>
+                            <h3 class="h5">Duplicar Encuesta</h3>
+                            <p class="text-muted small">Selecciona una encuesta existente para crear una copia editable.</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{% url 'duplicar_encuesta' %}" class="btn btn-info btn-block">Seleccionar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-5">
+                <a href="{% url 'lista_encuestas' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver a mis encuestas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .btn-block {
+        border-radius: 20px;
+        padding: 8px 0;
+    }
+</style>
+
+{% endblock %}
