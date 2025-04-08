@@ -1,4 +1,6 @@
 from decimal import Decimal
+from itertools import chain
+from collections import Counter, defaultdict
 import json
 import locale
 from django.contrib.auth.decorators import login_required
@@ -123,6 +125,7 @@ def duplicar_encuesta(request):
     return render(request, 'Encuesta/seleccionar_para_duplicar.html', {'encuestas': encuestas})
 
 # Vista para editar encuesta (común para todos los métodos)
+@login_required
 def editar_encuesta(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
     
@@ -162,6 +165,7 @@ class TodasEncuestasView(ListView):
     def get_queryset(self):
         return Encuesta.objects.all().order_by('-fecha_creacion')
 
+
 class ResultadosEncuestaView(DetailView):
     model = Encuesta
     template_name = 'Encuesta/resultados_encuesta.html'
@@ -169,19 +173,83 @@ class ResultadosEncuestaView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        preguntas = self.object.pregunta_set.all()
-        estadisticas = []
+        encuesta = self.object
+
+        preguntas = sorted(
+            chain(
+                encuesta.preguntatexto_relacionadas.all(),
+                encuesta.preguntatextomultiple_relacionadas.all(),
+                encuesta.preguntaopcionmultiple_relacionadas.all(),
+                encuesta.preguntacasillasverificacion_relacionadas.all(),
+                encuesta.preguntamenudesplegable_relacionadas.all(),
+                encuesta.preguntaestrellas_relacionadas.all(),
+                encuesta.preguntaescala_relacionadas.all(),
+                encuesta.preguntamatriz_relacionadas.all(),
+                encuesta.preguntafecha_relacionadas.all(),
+            ),
+            key=lambda x: x.orden
+        )
+
+        context['preguntas'] = preguntas
+        context['graficas'] = {}
+
         for pregunta in preguntas:
-            opciones = pregunta.opcion_set.all()
-            datos = []
-            for opcion in opciones:
-                total = opcion.respuesta_set.count()
-                datos.append((opcion.texto, total))
-            estadisticas.append({
-                'pregunta': pregunta.texto,
-                'datos': datos
-            })
-        context['estadisticas'] = estadisticas
+            tipo = pregunta.__class__.__name__
+            key = f"pregunta_{pregunta.id}"
+
+            if tipo == 'PreguntaOpcionMultiple':
+                respuestas = RespuestaOpcionMultiple.objects.filter(pregunta=pregunta)
+                counter = Counter([r.opcion.texto for r in respuestas])
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaCasillasVerificacion':
+                respuestas = RespuestaCasillasVerificacion.objects.filter(pregunta=pregunta)
+                counter = Counter([r.opcion.texto for r in respuestas])
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaMenuDesplegable':
+                respuestas = RespuestaOpcionMenuDesplegable.objects.filter(pregunta=pregunta)
+                counter = Counter([r.opcion.texto for r in respuestas])
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaEstrellas':
+                respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta)
+                valores = [r.valor for r in respuestas]
+                promedio = sum(valores) / len(valores) if valores else 0
+                context['graficas'][key] = {
+                    'valores': valores,
+                    'promedio': promedio
+                }
+
+            elif tipo == 'PreguntaEscala':
+                respuestas = RespuestaEscala.objects.filter(pregunta=pregunta)
+                valores = [r.valor for r in respuestas]
+                counter = Counter(valores)
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaTextoMultiple':
+                respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
+                textos = [r.valor for r in respuestas]
+                context['graficas'][key] = textos
+
+            elif tipo == 'PreguntaTexto':
+                respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
+                textos = [r.valor for r in respuestas]
+                context['graficas'][key] = textos
+
+            elif tipo == 'PreguntaFecha':
+                respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
+                fechas = [r.valor.isoformat() for r in respuestas]
+                counter = Counter(fechas)
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaMatriz':
+                respuestas = RespuestaMatriz.objects.filter(pregunta=pregunta)
+                datos = defaultdict(Counter)
+                for r in respuestas:
+                    datos[r.item.texto][r.valor] += 1
+                context['graficas'][key] = {fila: dict(contador) for fila, contador in datos.items()}
+
         return context
 
 
@@ -422,7 +490,7 @@ def responder_encuesta(request, slug):
 def encuesta_completada(request, slug):
     """Vista de agradecimiento después de completar una encuesta"""
     encuesta = get_object_or_404(Encuesta, slug=slug)
-    return render(request, 'encuestas/encuesta_completada.html', {
+    return render(request, 'Encuesta/encuesta_completada.html', {
         'encuesta': encuesta
     })
     

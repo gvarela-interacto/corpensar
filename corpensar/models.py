@@ -314,3 +314,19 @@ class RespuestaFecha(RespuestaBase):
     class Meta:
         verbose_name = _("Respuesta de fecha/hora")
         verbose_name_plural = _("Respuestas de fecha/hora")
+        
+class RespuestaTextoMultiple(RespuestaBase):
+    pregunta = models.ForeignKey(PreguntaTextoMultiple, on_delete=models.CASCADE)
+    valor = models.TextField()
+
+    class Meta:
+        verbose_name = _("Respuesta de texto múltiple")
+        verbose_name_plural = _("Respuestas de texto múltiple")
+
+class RespuestaOpcionMenuDesplegable(RespuestaBase):
+    pregunta = models.ForeignKey(PreguntaMenuDesplegable, related_name="respuestas", on_delete=models.CASCADE)
+    opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE)
+    
+    class Meta:
+        verbose_name = _("Respuesta a menú desplegable")
+        verbose_name_plural = _("Respuestas a menú desplegable")
