@@ -36,11 +36,14 @@
                         <a href="{{ encuesta.url }}" target="_blank" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-link"></i> Ver
                         </a>
-                    <td>
                         <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-chart-bar"></i> Resultados
+                        </a>
                     </td>
+                  
                 </tr>
                 {% empty %}
                 <tr>

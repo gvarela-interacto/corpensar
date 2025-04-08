@@ -1,25 +1,33 @@
 from decimal import Decimal
 import json
 import locale
-from django.contrib import messages  
-from django.shortcuts import get_object_or_404, render, redirect
-from django.http import JsonResponse, HttpResponseForbidden,HttpResponse
-from django.views.decorators.http import require_POST
-from django.db import transaction
-from django.contrib.auth.hashers import make_password
-from .models import *
 from django.contrib.auth.decorators import login_required
-locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth import logout
-from django import forms
 from django.core.exceptions import ValidationError
-import re
+from django.db import transaction
+from django.forms import modelform_factory, formset_factory, Form
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
+from django.shortcuts import get_object_or_404, render, redirect
+from django.utils import timezone
+from django.views.decorators.http import require_POST, require_http_methods
+from django import forms
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from .models import *
 from .decorators import *
+import locale
+import re
 import csv
 from datetime import datetime
-from django.contrib.auth.mixins import LoginRequiredMixin
+
+locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
+
+
 
 def registro_view(request):
     if request.method == 'POST':
@@ -46,7 +54,7 @@ def index_view(request):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from .models import *
 from .forms import *
 
@@ -154,17 +162,27 @@ class TodasEncuestasView(ListView):
     def get_queryset(self):
         return Encuesta.objects.all().order_by('-fecha_creacion')
 
+class ResultadosEncuestaView(DetailView):
+    model = Encuesta
+    template_name = 'Encuesta/resultados_encuesta.html'
+    context_object_name = 'encuesta'
 
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
-from django.utils import timezone
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
-from django.core.exceptions import ValidationError
-from django.forms import modelform_factory, formset_factory, Form
-from django import forms
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        preguntas = self.object.pregunta_set.all()
+        estadisticas = []
+        for pregunta in preguntas:
+            opciones = pregunta.opcion_set.all()
+            datos = []
+            for opcion in opciones:
+                total = opcion.respuesta_set.count()
+                datos.append((opcion.texto, total))
+            estadisticas.append({
+                'pregunta': pregunta.texto,
+                'datos': datos
+            })
+        context['estadisticas'] = estadisticas
+        return context
 
 
 def get_client_ip(request):
@@ -608,3 +626,4 @@ def encuesta_completada(request, slug):
     return render(request, 'encuestas/encuesta_completada.html', {
         'encuesta': encuesta
     })
+    
