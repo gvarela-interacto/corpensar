@@ -170,7 +170,7 @@ def crear_desde_cero(request):
         for pregunta in preguntas:
             # Extraer atributos comunes
             texto = pregunta.get('texto', '')
-            tipo = pregunta.get('tipo', 'TEXT')
+            tipo = pregunta.get('tipo', '')
             requerida = pregunta.get('requerida', True)
             orden = pregunta.get('orden', 0)
             ayuda = pregunta.get('ayuda', '')
@@ -181,6 +181,7 @@ def crear_desde_cero(request):
                 PreguntaTexto.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -192,6 +193,7 @@ def crear_desde_cero(request):
                 PreguntaTextoMultiple.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -201,9 +203,10 @@ def crear_desde_cero(request):
                     placeholder=pregunta.get('placeholder', '')
                 )
             elif tipo == 'RADIO':
-                pregunta_obj = PreguntaOpcionMultiple.objects.create(
+                PreguntaOpcionMultiple.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -212,9 +215,10 @@ def crear_desde_cero(request):
                 # Aquí podrías agregar las opciones si están disponibles
                 
             elif tipo == 'CHECK':
-                pregunta_obj = PreguntaCasillasVerificacion.objects.create(
+                PreguntaCasillasVerificacion.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -225,9 +229,10 @@ def crear_desde_cero(request):
                 # Aquí podrías agregar las opciones si están disponibles
                 
             elif tipo == 'SELECT':
-                pregunta_obj = PreguntaMenuDesplegable.objects.create(
+                PreguntaMenuDesplegable.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -241,6 +246,7 @@ def crear_desde_cero(request):
                 PreguntaEstrellas.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -254,6 +260,7 @@ def crear_desde_cero(request):
                 PreguntaEscala.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -268,9 +275,10 @@ def crear_desde_cero(request):
             elif tipo == 'MATRIX':
                 # Para matrices, primero necesitarías crear o seleccionar una escala
                 escala = None  # Aquí deberías obtener o crear la escala
-                pregunta_obj = PreguntaMatriz.objects.create(
+                PreguntaMatriz.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -283,6 +291,7 @@ def crear_desde_cero(request):
                 PreguntaFecha.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
@@ -294,6 +303,7 @@ def crear_desde_cero(request):
                 PreguntaFecha.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     requerida=requerida,
                     orden=orden,
                     ayuda=ayuda,
