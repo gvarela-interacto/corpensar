@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Mensajes de alerta mejorados -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3 shadow-sm">
+      <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<div class="container py-4">
+  <!-- Título principal con estilo mejorado -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold text-dark"><i class="bi bi-ticket-perforated-fill me-2"></i>Mis Tiquetes</h1>
+  </div>
+
+  <!-- Pestañas para organizar las secciones -->
+  <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="disponibles-tab" data-bs-toggle="tab" data-bs-target="#disponibles" type="button" role="tab" aria-controls="disponibles" aria-selected="true">
+        <i class="bi bi-ticket me-1"></i>Disponibles
+        <span class="badge rounded-pill bg-dark ms-1">{{ tiquetes_no_usados|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="proceso-tab" data-bs-toggle="tab" data-bs-target="#proceso" type="button" role="tab" aria-controls="proceso" aria-selected="false">
+        <i class="bi bi-hourglass-split me-1"></i>En Proceso
+        <span class="badge rounded-pill bg-warning text-dark ms-1">{{ solicitudes_en_proceso|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="utilizados-tab" data-bs-toggle="tab" data-bs-target="#utilizados" type="button" role="tab" aria-controls="utilizados" aria-selected="false">
+        <i class="bi bi-check-circle me-1"></i>Utilizados
+        <span class="badge rounded-pill bg-dark ms-1">{{ solicitudes_utilizadas|length }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="myTabContent">
+    <!-- Tiquetes Disponibles -->
+    <div class="tab-pane fade show active" id="disponibles" role="tabpanel" aria-labelledby="disponibles-tab">
+      {% if tiquetes_no_usados %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          {% for tiquete in tiquetes_no_usados %}
+            <div class="col">
+              <div class="card h-100 shadow-sm hover-card border-dark border-top border-5">
+                <div class="position-absolute top-0 end-0 p-2">
+                  <span class="badge bg-dark"><i class="bi bi-star-fill me-1"></i>Disponible</span>
+                </div>
+                <div id="carouselNoUsado{{ forloop.counter }}" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-inner rounded-top">
+                    <div class="carousel-item active">
+                      <div class="ticket-image-container">
+                        <img src="{{ tiquete.imagen_frontal.url }}" class="d-block w-100 ticket-image" alt="Frontal">
+                        <div class="ticket-overlay">
+                          <small class="text-white">Frontal</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="carousel-item">
+                      <div class="ticket-image-container">
+                        <img src="{{ tiquete.imagen_trasera.url }}" class="d-block w-100 ticket-image" alt="Trasera">
+                        <div class="ticket-overlay">
+                          <small class="text-white">Trasera</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carouselNoUsado{{ forloop.counter }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#carouselNoUsado{{ forloop.counter }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <i class="bi bi-ticket-perforated me-2 text-dark"></i>{{ tiquete.nombre }}
+                  </h5>
+                  <button type="button" 
+                          class="btn btn-dark w-100 mt-3" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#solicitudModal"
+                          data-tiquete-id="{{ tiquete.id }}">
+                    <i class="bi bi-calendar-check me-2"></i>Solicitar
+                  </button>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>No tienes tiquetes disponibles para usar.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Solicitudes en Proceso -->
+    <div class="tab-pane fade" id="proceso" role="tabpanel" aria-labelledby="proceso-tab">
+      {% if solicitudes_en_proceso %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          {% for solicitud in solicitudes_en_proceso %}
+            <div class="col">
+              <div class="card h-100 shadow-sm hover-card border-warning border-top border-5">
+                <div class="position-absolute top-0 end-0 p-2">
+                  <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En Proceso</span>
+                </div>
+                <div id="carouselProceso{{ forloop.counter }}" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-inner rounded-top">
+                    <div class="carousel-item active">
+                      <div class="ticket-image-container">
+                        <img src="{{ solicitud.tiquete.imagen_frontal.url }}" class="d-block w-100 ticket-image" alt="Frontal">
+                        <div class="ticket-overlay">
+                          <small class="text-white">Frontal</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="carousel-item">
+                      <div class="ticket-image-container">
+                        <img src="{{ solicitud.tiquete.imagen_trasera.url }}" class="d-block w-100 ticket-image" alt="Trasera">
+                        <div class="ticket-overlay">
+                          <small class="text-white">Trasera</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carouselProceso{{ forloop.counter }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#carouselProceso{{ forloop.counter }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title text-warning">
+                    <i class="bi bi-ticket-perforated me-2"></i>{{ solicitud.tiquete.nombre }}
+                  </h5>
+                  <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-calendar-date me-2"></i>Fecha redención:</span>
+                      <span>{{ solicitud.fecha_redencion|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <div class="approval-timeline mt-3">
+                      <div class="d-flex align-items-center mb-2">
+                        <div class="approval-status me-2">
+                          {% if solicitud.aprobacion_secretario == "si" %}
+                            <i class="bi bi-check-circle-fill text-dark fs-5"></i>
+                          {% elif solicitud.aprobacion_secretario == "no" %}
+                            <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                          {% else %}
+                            <i class="bi bi-clock-history text-warning fs-5"></i>
+                          {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Secretario:</span>
+                            {% if solicitud.aprobacion_secretario == "si" %}
+                              <span class="badge bg-dark">Aprobado</span>
+                            {% elif solicitud.aprobacion_secretario == "no" %}
+                              <span class="badge bg-danger">Rechazado</span>
+                            {% else %}
+                              <span class="badge bg-warning text-dark">En espera</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="d-flex align-items-center">
+                        <div class="approval-status me-2">
+                          {% if solicitud.aprobacion_servicios == "si" %}
+                            <i class="bi bi-check-circle-fill text-dark fs-5"></i>
+                          {% elif solicitud.aprobacion_servicios == "no" %}
+                            <i class="bi bi-x-circle-fill text-danger fs-5"></i>
+                          {% else %}
+                            <i class="bi bi-clock-history text-warning fs-5"></i>
+                          {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Servicios:</span>
+                            {% if solicitud.aprobacion_servicios == "si" %}
+                              <span class="badge bg-dark">Aprobado</span>
+                            {% elif solicitud.aprobacion_servicios == "no" %}
+                              <span class="badge bg-danger">Rechazado</span>
+                            {% else %}
+                              <span class="badge bg-warning text-dark">En espera</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>No tienes solicitudes en proceso.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Tiquetes Utilizados -->
+    <div class="tab-pane fade" id="utilizados" role="tabpanel" aria-labelledby="utilizados-tab">
+      {% if solicitudes_utilizadas %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          {% for solicitud in solicitudes_utilizadas %}
+            <div class="col">
+              <div class="card h-100 shadow-sm hover-card border-dark border-top border-5">
+                <div class="position-absolute top-0 end-0 p-2">
+                  <span class="badge bg-dark"><i class="bi bi-check-circle me-1"></i>Utilizado</span>
+                </div>
+                <div id="carouselUtilizada{{ forloop.counter }}" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-inner rounded-top">
+                    <div class="carousel-item active">
+                      <div class="ticket-image-container ticket-used">
+                        <img src="{{ solicitud.tiquete.imagen_frontal.url }}" class="d-block w-100 ticket-image" alt="Frontal">
+                        <div class="ticket-overlay">
+                          <small class="text-white">Frontal</small>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="carousel-item">
+                      <div class="ticket-image-container ticket-used">
+                        <img src="{{ solicitud.tiquete.imagen_trasera.url }}" class="d-block w-100 ticket-image" alt="Trasera">
+                        <div class="ticket-overlay">
+                          <small class="text-white">Trasera</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carouselUtilizada{{ forloop.counter }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#carouselUtilizada{{ forloop.counter }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title text-dark">
+                    <i class="bi bi-ticket-perforated me-2"></i>{{ solicitud.tiquete.nombre }}
+                  </h5>
+                  <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-calendar-check-fill me-2 text-dark"></i>Redimido el:</span>
+                      <span>{{ solicitud.fecha_redencion|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="text-center mt-3">
+                      <span class="badge bg-dark p-2"><i class="bi bi-check-all me-1"></i>Utilizado exitosamente</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>No tienes tiquetes utilizados.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Solicitud Mejorado -->
+<div class="modal fade" id="solicitudModal" tabindex="-1" aria-labelledby="solicitudModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'crear_solicitud_tiquete' %}">
+        {% csrf_token %}
+        <input type="hidden" name="tiquete_id" id="tiquete_id">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title" id="solicitudModalLabel">
+            <i class="bi bi-ticket-perforated-fill me-2"></i>Solicitar Tiquete
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="fecha_redencion" class="form-label">
+              <i class="bi bi-calendar-event me-2"></i>Fecha de Redención
+            </label>
+            <input type="date" 
+                   class="form-control" 
+                   id="fecha_redencion" 
+                   name="fecha_redencion" 
+                   min="{% now 'Y-m-d' %}" 
+                   required>
+            <div class="form-text">Seleccione la fecha en que desea utilizar el tiquete</div>
+          </div>
+          <div class="mb-3">
+            <label for="observaciones" class="form-label">
+              <i class="bi bi-chat-left-text me-2"></i>Observaciones
+            </label>
+            <textarea class="form-control" 
+                      id="observaciones" 
+                      name="observaciones" 
+                      rows="3"
+                      placeholder="Agregue cualquier detalle o información adicional sobre su solicitud"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-2"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-dark">
+            <i class="bi bi-send me-2"></i>Enviar Solicitud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+  
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var solicitudModal = document.getElementById('solicitudModal');
+  
+  solicitudModal.addEventListener('show.bs.modal', function(event) {
+    var button = event.relatedTarget;
+    var tiqueteId = button.getAttribute('data-tiquete-id');
+    document.getElementById('tiquete_id').value = tiqueteId;
+  });
+});
+</script>
+
+<style>
+/* Estilos adicionales para mejorar la apariencia */
+.hover-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Asegurando que todas las imágenes tengan el mismo formato */
+.ticket-image-container {
+  position: relative;
+  overflow: hidden;
+  height: 200px; /* Altura fija para todas las imágenes */
+}
+
+.ticket-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el contenedor sin distorsionarse */
+}
+
+.ticket-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.carousel-inner.rounded-top {
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.ticket-used img {
+  filter: grayscale(30%);
+}
+
+.approval-timeline {
+  border-left: 3px dashed #dee2e6;
+  padding-left: 15px;
+  margin-left: 10px;
+}
+
+.approval-status {
+  margin-left: -22px;
+  background-color: white;
+  width: 25px;
+  height: 25px;
+  text-align: center;
+  border-radius: 50%;
+}
+
+.badge {
+  font-weight: 500;
+}
+
+/* Añadir efecto de marca de agua "UTILIZADO" para tickets usados */
+.ticket-used {
+  position: relative;
+}
+
+.ticket-used::after {
+  content: "UTILIZADO";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(40, 167, 69, 0.5);
+  padding: 5px 20px;
+  border-radius: 5px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  pointer-events: none;
+}
+</style>
+{% endblock %}

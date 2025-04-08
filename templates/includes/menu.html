@@ -1,0 +1,121 @@
+{% load grupo_tags %}
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+    <ul class="nav">
+
+        {% if user|in_group:'Es_Super' or user|in_group:'Es_Funcionario' %}
+            <li class="nav-item nav-category">Tiquetera Virtual</li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="menu-icon mdi mdi-ticket-confirmation"></i> <!-- Icono de ticket -->
+                    <span class="menu-title">Tiquetera</span>
+                </a>
+            </li>
+            {% if user|in_group:'Es_Super' or user|in_group:'Es_Secretario' %}
+                <li class="nav-item">
+                    <a class="nav-link"  href="#">
+                        <i class="menu-icon mdi mdi-file-document"></i> <!-- Icono de documentos/solicitudes -->
+                        <span class="menu-title">Solicitudes</span>
+                    </a>
+                </li>
+            {% endif %}
+            {% if user|in_group:'Es_Super' or user|in_group:'Secretario_Servicios' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="menu-icon mdi mdi-checkbox-marked-circle-outline"></i> <!-- Icono de completar -->
+                        <span class="menu-title">Completar Solicitudes</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="menu-icon mdi mdi-history"></i> <!-- Icono de histórico -->
+                        <span class="menu-title">Histórico</span>
+                    </a>
+                </li>
+            {% endif %}
+        {% endif %}
+        
+        
+        {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Comunicaciones' or user|in_group:'Enlace_Comunicaciones' %}
+        <li class="nav-item nav-category">Comunicaciones</li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="menu-icon mdi mdi-message-alert"></i>
+                    <span class="menu-title">Hacer Requerimiento</span>
+                </a>
+            </li>
+            
+            {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Comunicaciones' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="menu-icon mdi mdi-format-list-checks"></i>
+                        <span class="menu-title">Lista de Requerimientos</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="menu-icon mdi mdi-calendar-plus"></i>
+                        <span class="menu-title">Crear Evento</span>
+                    </a>
+                </li>
+                
+                {% if user|in_group:'Es_Super' or user|in_group:'Completar_Eventos' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#" target="_blank">
+                        <i class="menu-icon mdi mdi-calendar-check"></i>
+                        <span class="menu-title">Asignar Evento</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="menu-icon mdi mdi-calendar-text"></i>
+                        <span class="menu-title">Lista Eventos</span>
+                    </a>
+                </li>
+                
+                {% if user|in_group:'Es_Super' or user|in_group:'Cargar_Comunicado_Interno' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#" target="_blank">
+                        <i class="menu-icon mdi mdi-newspaper"></i>
+                        <span class="menu-title">Comunicados Internos</span>
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Ti' %}
+        <li class="nav-item nav-category">TI</li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="menu-icon mdi mdi-account"></i>
+                <span class="menu-title">Usuarios</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'admin:index' %}">
+                <i class="menu-icon mdi mdi-database-settings"></i>
+                <span class="menu-title">Datos Generales</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="http://bootstrapdash.com/demo/star-admin2-free/docs/documentation.html" target="_blank">
+                <i class="menu-icon mdi mdi-file-document"></i>
+                <span class="menu-title">Documentación</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="nav-item nav-category">Asistencia</li>
+        
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">
+                <i class="menu-icon mdi mdi-logout"></i>
+                <span class="menu-title">Cerrar sesión</span>
+            </a>
+        </li>
+    </ul>
+</nav>

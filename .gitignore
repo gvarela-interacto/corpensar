@@ -1,0 +1,46 @@
+# Archivos y carpetas de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+
+# Archivos de entorno virtual
+venv/
+env/
+*.env
+.env.local
+.env.development
+.env.production
+env.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+
+
+# Archivos de migraciones de Django (opcional)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Configuración de editores de código
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de caché de Django y otros temporales
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+staticfiles/
+static/
+media/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Archivos de Docker y contenedores (si usas Docker)
+docker-compose.override.yml
+__docker_compose_cache/

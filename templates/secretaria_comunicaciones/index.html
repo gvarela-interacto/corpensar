@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Contenido principal -->
+<main class="container">
+    <h5 style="text-align: left;">Herramientas Disponibles</h5>
+    <div class="gradient-line"></div>
+    
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        <!-- Botón de TI -->
+        <div class="col">
+            <a href="/ti/" class="card h-100 text-decoration-none hover-shadow">
+                <div class="card-body text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <h5 class="card-title">Tecnologías de la Información</h5>
+                    <p class="card-text">Herramientas y utilidades para el equipo de TI</p>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Botón de Comunicaciones -->
+        <div class="col">
+            <a href="/comunicaciones/" class="card h-100 text-decoration-none hover-shadow">
+                <div class="card-body text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h5 class="card-title">Comunicaciones</h5>
+                    <p class="card-text">Herramientas para el equipo de comunicaciones</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</main>
+
+
+
+{% endblock %}

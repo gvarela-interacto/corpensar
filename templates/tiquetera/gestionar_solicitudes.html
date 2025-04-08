@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Mensajes de alerta mejorados -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-3 shadow-sm">
+      <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<div class="container py-4">
+  <!-- Título principal con estilo mejorado -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold text-dark"><i class="bi bi-ticket-perforated-fill me-2"></i>Solicitudes de Tiquetes</h1>
+  </div>
+
+  <!-- Pestañas para organizar las secciones -->
+  <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab" aria-controls="pendientes" aria-selected="true">
+        <i class="bi bi-hourglass-split me-1"></i>Pendientes
+        <span class="badge rounded-pill bg-warning text-dark ms-1">{{ solicitudes_pendientes|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="aprobadas-tab" data-bs-toggle="tab" data-bs-target="#aprobadas" type="button" role="tab" aria-controls="aprobadas" aria-selected="false">
+        <i class="bi bi-check-circle me-1"></i>Aprobadas
+        <span class="badge rounded-pill bg-dark ms-1">{{ solicitudes_aprobadas|length }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="myTabContent">
+    <!-- Solicitudes Pendientes -->
+    <div class="tab-pane fade show active" id="pendientes" role="tabpanel" aria-labelledby="pendientes-tab">
+      {% if solicitudes_pendientes %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          {% for solicitud in solicitudes_pendientes %}
+            <div class="col">
+              <div class="card h-100 shadow-sm hover-card border-warning border-top border-5">
+                <div class="position-absolute top-0 end-0 p-2">
+                  <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pendiente</span>
+                </div>
+                
+                <div class="card-body">
+                  <h5 class="card-title text-warning">
+                    <i class="bi bi-ticket-perforated me-2"></i>{{ solicitud.tiquete.nombre }}
+                  </h5>
+                  <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-person me-2"></i>Usuario:</span>
+                      <span>{{ solicitud.usuario.get_full_name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-calendar-date me-2"></i>Fecha redención:</span>
+                      <span>{{ solicitud.fecha_redencion|date:"d/m/Y" }}</span>
+                    </div>
+                    {% if solicitud.observaciones %}
+                    <div class="mb-3">
+                      <span class="fw-bold"><i class="bi bi-chat-left-text me-2"></i>Observaciones:</span>
+                      <p class="mt-1 small">{{ solicitud.observaciones }}</p>
+                    </div>
+                    {% endif %}
+                    <form method="post" action="{% url 'aprobar_solicitud' solicitud.id %}" class="mb-2">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-dark w-100">
+                        <i class="bi bi-check-circle me-2"></i>Aprobar Solicitud
+                      </button>
+                    </form>
+                    <form method="post" action="{% url 'rechazar_solicitud' solicitud.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-x-circle me-2"></i>Rechazar Solicitud
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>No hay solicitudes pendientes por aprobar.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Solicitudes Aprobadas -->
+    <div class="tab-pane fade" id="aprobadas" role="tabpanel" aria-labelledby="aprobadas-tab">
+      {% if solicitudes_aprobadas %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          {% for solicitud in solicitudes_aprobadas %}
+            <div class="col">
+              <div class="card h-100 shadow-sm hover-card border-dark border-top border-5">
+                <div class="position-absolute top-0 end-0 p-2">
+                  <span class="badge bg-dark"><i class="bi bi-check-circle me-1"></i>Aprobado</span>
+                </div>
+                
+                <div class="card-body">
+                  <h5 class="card-title text-dark">
+                    <i class="bi bi-ticket-perforated me-2"></i>{{ solicitud.tiquete.nombre }}
+                  </h5>
+                  <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-person me-2"></i>Usuario:</span>
+                      <span>{{ solicitud.usuario.get_full_name }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-calendar-check-fill me-2"></i>Fecha creación:</span>
+                      <span>{{ solicitud.fecha_creacion|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-bold"><i class="bi bi-calendar-check me-2"></i>Fecha redención:</span>
+                      <span>{{ solicitud.fecha_redencion|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="text-center mt-3">
+                      <span class="badge bg-dark p-2"><i class="bi bi-check-all me-1"></i>Solicitud aprobada</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>No hay solicitudes aprobadas.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+/* Estilos adicionales para mejorar la apariencia */
+.hover-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Asegurando que todas las imágenes tengan el mismo formato */
+.ticket-image-container {
+  position: relative;
+  overflow: hidden;
+  height: 200px; /* Altura fija para todas las imágenes */
+}
+
+.ticket-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Asegura que la imagen cubra el contenedor sin distorsionarse */
+}
+
+.ticket-overlay {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.carousel-inner.rounded-top {
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.badge {
+  font-weight: 500;
+}
+</style>
+{% endblock %}
