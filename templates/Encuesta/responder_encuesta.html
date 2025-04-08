@@ -258,39 +258,116 @@
                                 <textarea class="form-control" rows="{{pregunta.filas}}" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}"></textarea>
                             {% endif %}
                             {% if pregunta.tipo == 'RADIO' %}
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="conocio" id="conocio1">
-                                    <label class="form-check-label" for="conocio1">
-                                        Redes sociales
-                                    </label>
+                                {% for opcion in pregunta.opciones.all %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" 
+                                            type="radio" 
+                                            name="pregunta_{{ pregunta.id }}" 
+                                            id="opcion_{{ opcion.id }}"
+                                            value="{{ opcion.id }}"
+                                            {% if pregunta.requerida %}required{% endif %}>
+                                        <label class="form-check-label" for="opcion_{{ opcion.id }}">
+                                            {{ opcion.texto }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                                
+                                {% if pregunta.opcion_otro %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" 
+                                            type="radio" 
+                                            name="pregunta_{{ pregunta.id }}" 
+                                            id="opcion_otro_{{ pregunta.id }}"
+                                            value="otro"
+                                            {% if pregunta.requerida %}required{% endif %}>
+                                        <label class="form-check-label" for="opcion_otro_{{ pregunta.id }}">
+                                            {{ pregunta.texto_otro|default:"Otro" }}
+                                        </label>
+                                    </div>
+                                    <div class="mt-2 ms-4" id="otro_texto_container_{{ pregunta.id }}" style="display:none;">
+                                        <input type="text" 
+                                            class="form-control" 
+                                            name="pregunta_otro_{{ pregunta.id }}"
+                                            placeholder="Especifique...">
+                                    </div>
+                                    
+                                    <script>
+                                    // Mostrar campo de texto cuando seleccione "Otro"
+                                    document.getElementById('opcion_otro_{{ pregunta.id }}').addEventListener('change', function() {
+                                        const container = document.getElementById('otro_texto_container_{{ pregunta.id }}');
+                                        container.style.display = this.checked ? 'block' : 'none';
+                                    });
+                                    </script>
+                                {% endif %}
+                            {% endif %}
+                            {% if pregunta.tipo == 'CHECK' %}
+                                {# Mostrar todas las opciones configuradas #}
+                                {% for opcion in pregunta.opciones.all %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" 
+                                            type="checkbox" 
+                                            name="pregunta_{{ pregunta.id }}[]" 
+                                            id="check_{{ opcion.id }}"
+                                            value="{{ opcion.id }}"
+                                            data-pregunta-id="{{ pregunta.id }}"
+                                            onchange="validarSelecciones('{{ pregunta.id }}')">
+                                        <label class="form-check-label" for="check_{{ opcion.id }}">
+                                            {{ opcion.texto }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                                
+                                {# Opción "Otro" si está configurada #}
+                                {% if pregunta.opcion_otro %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" 
+                                            type="checkbox" 
+                                            name="pregunta_{{ pregunta.id }}[]" 
+                                            id="check_otro_{{ pregunta.id }}"
+                                            value="otro"
+                                            data-pregunta-id="{{ pregunta.id }}"
+                                            onchange="validarSelecciones('{{ pregunta.id }}')">
+                                        <label class="form-check-label" for="check_otro_{{ pregunta.id }}">
+                                            {{ pregunta.texto_otro|default:"Otro" }}
+                                        </label>
+                                    </div>
+                                    <div class="mt-2 ms-4" id="otro_texto_container_{{ pregunta.id }}" style="display:none;">
+                                        <input type="text" 
+                                            class="form-control" 
+                                            name="pregunta_otro_{{ pregunta.id }}"
+                                            placeholder="Especifique...">
+                                    </div>
+                                {% endif %}
+                                
+                                {# Mensaje de validación #}
+                                <div class="text-muted small mt-2">
+                                    {% if pregunta.min_selecciones > 0 and pregunta.max_selecciones %}
+                                        Seleccione entre {{ pregunta.min_selecciones }} y {{ pregunta.max_selecciones }} opciones
+                                    {% elif pregunta.min_selecciones > 0 %}
+                                        Seleccione al menos {{ pregunta.min_selecciones }} opciones
+                                    {% elif pregunta.max_selecciones %}
+                                        Seleccione hasta {{ pregunta.max_selecciones }} opciones
+                                    {% endif %}
                                 </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="conocio" id="conocio2">
-                                    <label class="form-check-label" for="conocio2">
-                                        Recomendación de un amigo
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="conocio" id="conocio3">
-                                    <label class="form-check-label" for="conocio3">
-                                        Publicidad en línea
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="conocio" id="conocio4">
-                                    <label class="form-check-label" for="conocio4">
-                                        Búsqueda en Google
-                                    </label>
-                                </div>
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="conocio" id="conocio5">
-                                    <label class="form-check-label" for="conocio5">
-                                        Otro
-                                    </label>
-                                </div>
-                                <div class="mt-2">
-                                    <input type="text" class="form-control" placeholder="Especifique...">
-                                </div>
+                                <script>
+                                    // Mostrar campo de texto cuando seleccione "Otro"
+                                    document.getElementById('check_otro_{{ pregunta.id }}')?.addEventListener('change', function() {
+                                        const container = document.getElementById('otro_texto_container_{{ pregunta.id }}');
+                                        if (container) container.style.display = this.checked ? 'block' : 'none';
+                                    });
+                                    
+                                    // Validar selecciones mínimas/máximas
+                                    function validarSelecciones(preguntaId) {
+                                        const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
+                                        const min = {{ pregunta.min_selecciones|default:0 }};
+                                        const max = {{ pregunta.max_selecciones|default:"null" }};
+                                        
+                                        if (max && checks.length > max) {
+                                            alert(`Debe seleccionar máximo ${max} opciones`);
+                                            event.target.checked = false;
+                                        }
+                                    }
+                                </script>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -334,47 +411,6 @@
             </div>
             
             
-            
-            <!-- Opción múltiple (Radio) -->
-            <div class="question">
-                <div class="question-title">
-                    <span>¿Cómo conoció nuestra empresa?</span>
-                    <span class="required-badge">Requerido</span>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="conocio" id="conocio1">
-                    <label class="form-check-label" for="conocio1">
-                        Redes sociales
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="conocio" id="conocio2">
-                    <label class="form-check-label" for="conocio2">
-                        Recomendación de un amigo
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="conocio" id="conocio3">
-                    <label class="form-check-label" for="conocio3">
-                        Publicidad en línea
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="conocio" id="conocio4">
-                    <label class="form-check-label" for="conocio4">
-                        Búsqueda en Google
-                    </label>
-                </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" name="conocio" id="conocio5">
-                    <label class="form-check-label" for="conocio5">
-                        Otro
-                    </label>
-                </div>
-                <div class="mt-2">
-                    <input type="text" class="form-control" placeholder="Especifique...">
-                </div>
-            </div>
             
             <!-- Casillas de verificación -->
             <div class="question">
