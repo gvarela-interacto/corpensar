@@ -143,61 +143,161 @@ def crear_desde_cero(request):
         )
 
         # Obtener preguntas del formulario
-        preguntas = []
         preguntas_ids = set()
         
-        # Primero, identificar todos los IDs de preguntas
+        # Identificar todos los IDs de preguntas
         for key in request.POST:
             if key.startswith('questions[') and '][text]' in key:
                 pregunta_id = key.split('[')[1].split(']')[0]
                 preguntas_ids.add(pregunta_id)
         
-        # Luego, construir el diccionario para cada pregunta
+        # Si no hay preguntas, crear una por defecto
+        if not preguntas_ids:
+            preguntas_ids = {'1'}
+            request.POST = request.POST.copy()
+            request.POST.update({
+                'questions[1][text]': "¿Cuál es su opinión sobre esta encuesta?",
+                'questions[1][type]': 'TEXT',
+                'questions[1][required]': 'true',
+                'questions[1][order]': '1'
+            })
+        
+        # Procesar cada pregunta
         for pregunta_id in preguntas_ids:
-            pregunta = {
-                'texto': request.POST.get(f'questions[{pregunta_id}][text]', ''),
-                'tipo': request.POST.get(f'questions[{pregunta_id}][type]', 'TEXT'),
-                'requerida': request.POST.get(f'questions[{pregunta_id}][required]', 'true') == 'true',
-                'orden': int(request.POST.get(f'questions[{pregunta_id}][order]', pregunta_id)),
-                'ayuda': request.POST.get(f'questions[{pregunta_id}][help]', ''),
-                'seccion': request.POST.get(f'questions[{pregunta_id}][section]', '')
-            }
+            # Extraer atributos comunes
+            texto = request.POST.get(f'questions[{pregunta_id}][text]', '')
+            tipo = request.POST.get(f'questions[{pregunta_id}][type]', 'TEXT')
+            requerida = request.POST.get(f'questions[{pregunta_id}][required]', 'true') == 'true'
+            orden = int(request.POST.get(f'questions[{pregunta_id}][order]', pregunta_id))
+            ayuda = request.POST.get(f'questions[{pregunta_id}][help]', '')
+            seccion = request.POST.get(f'questions[{pregunta_id}][section]', '')
             
-            # Agregar atributos específicos según el tipo
-            tipo = pregunta['tipo']
-            
-            if tipo in ['TEXT', 'MTEXT']:
-                pregunta['max_longitud'] = request.POST.get(f'questions[{pregunta_id}][max_length]', '250')
-                pregunta['placeholder'] = request.POST.get(f'questions[{pregunta_id}][placeholder]', '')
-                
-                if tipo == 'MTEXT':
-                    pregunta['filas'] = int(request.POST.get(f'questions[{pregunta_id}][rows]', '4'))
-            
+            # Crear el tipo específico de pregunta según el valor de 'tipo'
+            if tipo == 'TEXT':
+                PreguntaTexto.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
+                    max_longitud=request.POST.get(f'questions[{pregunta_id}][max_length]', '250'),
+                    placeholder=request.POST.get(f'questions[{pregunta_id}][placeholder]', '')
+                )
+            elif tipo == 'MTEXT':
+                PreguntaTextoMultiple.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
+                    max_longitud=request.POST.get(f'questions[{pregunta_id}][max_length]', '1000'),
+                    filas=int(request.POST.get(f'questions[{pregunta_id}][rows]', '4')),
+                    placeholder=request.POST.get(f'questions[{pregunta_id}][placeholder]', '')
+                )
             elif tipo == 'RADIO':
-                # Las opciones se procesarán después de crear la pregunta
-                pass
-            
+                pregunta_obj = PreguntaOpcionMultiple.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion
+                )
+                # Procesar opciones si están disponibles
+                for key in request.POST:
+                    if key.startswith(f'questions[{pregunta_id}][opciones][') and '][texto]' in key:
+                        opcion_index = key.split('[')[3].split(']')[0]
+                        opcion_texto = request.POST.get(f'questions[{pregunta_id}][opciones][{opcion_index}][texto]', '')
+                        opcion_orden = int(request.POST.get(f'questions[{pregunta_id}][opciones][{opcion_index}][orden]', opcion_index))
+                        OpcionMultiple.objects.create(
+                            pregunta=pregunta_obj,
+                            texto=opcion_texto,
+                            orden=opcion_orden
+                        )
+                
             elif tipo == 'CHECK':
-                pregunta['min_selecciones'] = int(request.POST.get(f'questions[{pregunta_id}][min_selections]', '1'))
-                max_selections = request.POST.get(f'questions[{pregunta_id}][max_selections]', '')
-                pregunta['max_selecciones'] = int(max_selections) if max_selections else None
-            
+                pregunta_obj = PreguntaCasillasVerificacion.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
+                    min_selecciones=int(request.POST.get(f'questions[{pregunta_id}][min_selections]', '1')),
+                    max_selecciones=request.POST.get(f'questions[{pregunta_id}][max_selections]', '') or None
+                )
+                # Procesar opciones si están disponibles
+                for key in request.POST:
+                    if key.startswith(f'questions[{pregunta_id}][options][') and '][text]' in key:
+                        opcion_index = key.split('[')[3].split(']')[0]
+                        opcion_texto = request.POST.get(f'questions[{pregunta_id}][options][{opcion_index}][text]', '')
+                        opcion_orden = int(request.POST.get(f'questions[{pregunta_id}][options][{opcion_index}][order]', opcion_index))
+                        OpcionCasillaVerificacion.objects.create(
+                            pregunta=pregunta_obj,
+                            texto=opcion_texto,
+                            orden=opcion_orden
+                        )
+                
             elif tipo == 'SELECT':
-                pregunta['opcion_vacia'] = request.POST.get(f'questions[{pregunta_id}][empty_option]', 'true') == 'true'
-                pregunta['texto_vacio'] = request.POST.get(f'questions[{pregunta_id}][empty_text]', 'Seleccione...')
-            
+                pregunta_obj = PreguntaMenuDesplegable.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
+                    opcion_vacia=request.POST.get(f'questions[{pregunta_id}][empty_option]', 'true') == 'true',
+                    texto_vacio=request.POST.get(f'questions[{pregunta_id}][empty_text]', 'Seleccione...')
+                )
+                # Procesar opciones si están disponibles
+                for key in request.POST:
+                    if key.startswith(f'questions[{pregunta_id}][options][') and '][text]' in key:
+                        opcion_index = key.split('[')[3].split(']')[0]
+                        opcion_texto = request.POST.get(f'questions[{pregunta_id}][options][{opcion_index}][text]', '')
+                        opcion_orden = int(request.POST.get(f'questions[{pregunta_id}][options][{opcion_index}][order]', opcion_index))
+                        OpcionMenuDesplegable.objects.create(
+                            pregunta=pregunta_obj,
+                            texto=opcion_texto,
+                            orden=opcion_orden
+                        )
+                
             elif tipo == 'STAR':
-                pregunta['max_estrellas'] = int(request.POST.get(f'questions[{pregunta_id}][max_stars]', '5'))
-                pregunta['etiqueta_inicio'] = request.POST.get(f'questions[{pregunta_id}][label_start]', 'Muy malo')
-                pregunta['etiqueta_fin'] = request.POST.get(f'questions[{pregunta_id}][label_end]', 'Excelente')
-            
+                PreguntaEstrellas.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
+                    max_estrellas=int(request.POST.get(f'questions[{pregunta_id}][max_stars]', '5')),
+                    etiqueta_inicio=request.POST.get(f'questions[{pregunta_id}][label_start]', 'Muy malo'),
+                    etiqueta_fin=request.POST.get(f'questions[{pregunta_id}][label_end]', 'Excelente')
+                )
+                
             elif tipo == 'SCALE':
-                pregunta['min_valor'] = int(request.POST.get(f'questions[{pregunta_id}][min_value]', '1'))
-                pregunta['max_valor'] = int(request.POST.get(f'questions[{pregunta_id}][max_value]', '5'))
-                pregunta['paso'] = int(request.POST.get(f'questions[{pregunta_id}][step]', '1'))
-                pregunta['etiqueta_min'] = request.POST.get(f'questions[{pregunta_id}][label_min]', 'Muy en desacuerdo')
-                pregunta['etiqueta_max'] = request.POST.get(f'questions[{pregunta_id}][label_max]', 'Muy de acuerdo')
-            
+                PreguntaEscala.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
+                    min_valor=int(request.POST.get(f'questions[{pregunta_id}][min_value]', '1')),
+                    max_valor=int(request.POST.get(f'questions[{pregunta_id}][max_value]', '5')),
+                    paso=int(request.POST.get(f'questions[{pregunta_id}][step]', '1')),
+                    etiqueta_min=request.POST.get(f'questions[{pregunta_id}][label_min]', 'Muy en desacuerdo'),
+                    etiqueta_max=request.POST.get(f'questions[{pregunta_id}][label_max]', 'Muy de acuerdo')
+                )
+                
             elif tipo == 'MATRIX':
                 # Para matrices, primero necesitamos crear una escala por defecto
                 escala = PreguntaEscala.objects.create(
@@ -217,172 +317,26 @@ def crear_desde_cero(request):
                 
                 pregunta_obj = PreguntaMatriz.objects.create(
                     encuesta=encuesta,
-                    texto=pregunta['texto'],
-                    tipo='MATRIX',
-                    requerida=pregunta['requerida'],
-                    orden=pregunta['orden'],
-                    ayuda=pregunta['ayuda'],
-                    seccion=pregunta['seccion'],
+                    texto=texto,
+                    tipo=tipo,
+                    requerida=requerida,
+                    orden=orden,
+                    ayuda=ayuda,
+                    seccion=seccion,
                     escala=escala
                 )
                 
                 # Procesar los ítems de la matriz si están disponibles
-                items = []
                 for key in request.POST:
                     if key.startswith(f'questions[{pregunta_id}][items][') and '][text]' in key:
                         item_index = key.split('[')[3].split(']')[0]
                         item_text = request.POST.get(f'questions[{pregunta_id}][items][{item_index}][text]', '')
                         item_order = int(request.POST.get(f'questions[{pregunta_id}][items][{item_index}][order]', item_index))
-                        items.append({
-                            'texto': item_text,
-                            'orden': item_order
-                        })
-                
-                # Crear los ítems
-                for item in items:
-                    ItemMatrizPregunta.objects.create(
-                        pregunta=pregunta_obj,
-                        texto=item['texto'],
-                        orden=item['orden']
-                    )
-            
-            elif tipo in ['DATE', 'DATETIME']:
-                pregunta['incluir_hora'] = tipo == 'DATETIME' or request.POST.get(f'questions[{pregunta_id}][include_time]', 'false') == 'true'
-            
-            preguntas.append(pregunta)
-        
-        # Si no hay preguntas, crear una por defecto
-        if not preguntas:
-            preguntas = [{
-                'texto': "¿Cuál es su opinión sobre esta encuesta?",
-                'tipo': 'TEXT',
-                'requerida': True,
-                'orden': 1,
-                'ayuda': '',
-                'seccion': ''
-            }]
-            
-        for pregunta in preguntas:
-            # Extraer atributos comunes
-            texto = pregunta.get('texto', '')
-            tipo = pregunta.get('tipo', '')
-            requerida = pregunta.get('requerida', True)
-            orden = pregunta.get('orden', 0)
-            ayuda = pregunta.get('ayuda', '')
-            seccion = pregunta.get('seccion', '')
-            
-            # Crear el tipo específico de pregunta según el valor de 'tipo'
-            if tipo == 'TEXT':
-                PreguntaTexto.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    max_longitud=pregunta.get('max_longitud', 250),
-                    placeholder=pregunta.get('placeholder', '')
-                )
-            elif tipo == 'MTEXT':
-                PreguntaTextoMultiple.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    max_longitud=pregunta.get('max_longitud', 1000),
-                    filas=pregunta.get('filas', 4),
-                    placeholder=pregunta.get('placeholder', '')
-                )
-            elif tipo == 'RADIO':
-                print('PreguntaOpcionMultiple', pregunta)
-                PreguntaOpcionMultiple.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    opciones=pregunta.get('opciones', [])
-                )
-                # Aquí podrías agregar las opciones si están disponibles
-                
-            elif tipo == 'CHECK':
-                PreguntaCasillasVerificacion.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    min_selecciones=pregunta.get('min_selecciones', 1),
-                    max_selecciones=pregunta.get('max_selecciones', None)
-                )
-                # Aquí podrías agregar las opciones si están disponibles
-                
-            elif tipo == 'SELECT':
-                PreguntaMenuDesplegable.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    opcion_vacia=pregunta.get('opcion_vacia', True),
-                    texto_vacio=pregunta.get('texto_vacio', 'Seleccione...')
-                )
-                # Aquí podrías agregar las opciones si están disponibles
-                
-            elif tipo == 'STAR':
-                PreguntaEstrellas.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    max_estrellas=pregunta.get('max_estrellas', 5),
-                    etiqueta_inicio=pregunta.get('etiqueta_inicio', 'Muy malo'),
-                    etiqueta_fin=pregunta.get('etiqueta_fin', 'Excelente')
-                )
-                
-            elif tipo == 'SCALE':
-                PreguntaEscala.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    min_valor=pregunta.get('min_valor', 1),
-                    max_valor=pregunta.get('max_valor', 5),
-                    paso=pregunta.get('paso', 1),
-                    etiqueta_min=pregunta.get('etiqueta_min', 'Muy en desacuerdo'),
-                    etiqueta_max=pregunta.get('etiqueta_max', 'Muy de acuerdo')
-                )
-                
-            elif tipo == 'MATRIX':
-                # Para matrices, primero necesitarías crear o seleccionar una escala
-                escala = None  # Aquí deberías obtener o crear la escala
-                PreguntaMatriz.objects.create(
-                    encuesta=encuesta,
-                    texto=texto,
-                    tipo=tipo,
-                    requerida=requerida,
-                    orden=orden,
-                    ayuda=ayuda,
-                    seccion=seccion,
-                    escala=escala
-                )
-                # Aquí podrías agregar los ítems si están disponibles
+                        ItemMatrizPregunta.objects.create(
+                            pregunta=pregunta_obj,
+                            texto=item_text,
+                            orden=item_order
+                        )
                 
             elif tipo == 'DATE':
                 PreguntaFecha.objects.create(
@@ -393,7 +347,7 @@ def crear_desde_cero(request):
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
-                    incluir_hora=pregunta.get('incluir_hora', False)
+                    incluir_hora=False
                 )
                 
             elif tipo == 'DATETIME':
@@ -424,8 +378,7 @@ def crear_desde_cero(request):
         return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
-        'form': form,
-        'preguntas': preguntas if 'preguntas' in locals() else []
+        'form': form
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
