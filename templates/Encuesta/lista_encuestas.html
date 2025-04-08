@@ -31,17 +31,21 @@
                     <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
                     <td>{{ encuesta.slug }}</td>
                     <td>
-                        <td>
-                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
-                                <i class="fas fa-link"></i> Ver
-                            </a>
-                            <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
-                            <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success">
-                                <i class="fas fa-chart-bar"></i> Resultados
-                            </a>
-                        </td>
+                        {% if encuesta.slug %}
+                        <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-link"></i> Ver
+                        </a>
+                        {% else %}
+                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                            <i class="fas fa-link"></i> Sin URL
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-chart-bar"></i> Resultados
+                        </a>
                     </td>
                 </tr>
                 {% empty %}
