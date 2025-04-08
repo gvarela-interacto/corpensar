@@ -11,72 +11,85 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --accent-color: #e74c3c;
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
             --light-gray: #f8f9fa;
             --medium-gray: #e9ecef;
             --dark-gray: #343a40;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
         }
         
         body {
-            background-color: #f9f9f9;
+            background-color: #f0f2f5;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
+            line-height: 1.6;
         }
         
         .survey-container {
-            max-width: 800px;
-            margin: 30px auto;
+            max-width: 850px;
+            margin: 40px auto;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
+            transition: all 0.3s ease;
         }
         
         .survey-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 30px;
+            padding: 35px;
             text-align: center;
             position: relative;
         }
         
         .survey-header h1 {
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 32px;
+            letter-spacing: -0.5px;
         }
         
         .survey-header p {
-            opacity: 0.9;
-            font-size: 16px;
-            max-width: 600px;
+            opacity: 0.95;
+            font-size: 17px;
+            max-width: 650px;
             margin: 0 auto;
+            line-height: 1.7;
         }
         
         .survey-progress {
             height: 8px;
             background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            border-radius: 20px;
             overflow: hidden;
-            margin-top: 20px;
+            margin-top: 25px;
         }
         
         .progress-bar {
             height: 100%;
-            background-color: var(--accent-color);
+            background: linear-gradient(90deg, var(--accent-color), var(--success-color));
             width: 40%;
+            border-radius: 20px;
+            transition: width 0.5s ease;
         }
         
         .survey-body {
-            padding: 30px;
+            padding: 40px;
         }
         
         .question {
-            margin-bottom: 35px;
-            padding-bottom: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
             border-bottom: 1px solid var(--medium-gray);
+            transition: all 0.3s ease;
+        }
+        
+        .question:hover {
+            transform: translateY(-3px);
         }
         
         .question:last-child {
@@ -85,43 +98,85 @@
         
         .question-title {
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             color: var(--dark-gray);
             display: flex;
             align-items: center;
+            font-size: 18px;
         }
         
         .required-badge {
             background-color: var(--accent-color);
             color: white;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-size: 11px;
-            margin-left: 8px;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 12px;
+            margin-left: 10px;
             text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
         .question-help {
-            font-size: 14px;
+            font-size: 15px;
             color: #6c757d;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-style: italic;
+            background-color: rgba(77, 201, 240, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--success-color);
         }
         
-        .form-control:focus {
+        .form-control, .form-select {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid var(--medium-gray);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+        }
+        
+        .form-check {
+            margin-bottom: 12px;
+            padding-left: 30px;
+        }
+        
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+            margin-left: -30px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-check-label {
+            font-size: 16px;
+            cursor: pointer;
+            padding-left: 5px;
+            user-select: none;
         }
         
         .form-check-input:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            transform: scale(1.1);
         }
         
         .star-rating {
             display: flex;
             flex-direction: row-reverse;
             justify-content: flex-end;
+            margin-top: 10px;
         }
         
         .star-rating input {
@@ -130,102 +185,188 @@
         
         .star-rating label {
             cursor: pointer;
-            font-size: 25px;
+            font-size: 30px;
             color: #ddd;
-            padding: 0 2px;
+            padding: 0 5px;
+            transition: all 0.2s ease;
         }
         
         .star-rating label:hover,
         .star-rating label:hover ~ label,
         .star-rating input:checked ~ label {
             color: #ffc107;
+            transform: scale(1.2);
         }
         
         .scale-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 5px;
+            margin-top: 8px;
         }
         
         .scale-labels span {
-            font-size: 12px;
+            font-size: 14px;
             color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .matrix-table {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--medium-gray);
         }
         
         .matrix-table th, .matrix-table td {
             text-align: center;
             vertical-align: middle;
+            padding: 12px;
         }
         
         .matrix-table th {
             font-weight: 600;
-            background-color: var(--light-gray);
+            background-color: rgba(67, 97, 238, 0.1);
+            border-bottom: 2px solid var(--primary-color);
         }
         
         .matrix-table th:first-child,
         .matrix-table td:first-child {
             text-align: left;
+            font-weight: 500;
+        }
+        
+        .form-range {
+            height: 10px;
+            padding: 0;
+            margin-top: 15px;
+        }
+        
+        .form-range::-webkit-slider-thumb {
+            background: var(--primary-color);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
         
         .survey-footer {
             background-color: var(--light-gray);
-            padding: 20px 30px;
+            padding: 25px 40px;
             text-align: right;
             border-top: 1px solid var(--medium-gray);
         }
         
+        .btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
         
         .btn-primary:hover {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(67, 97, 238, 0.4);
         }
         
         .btn-outline-secondary {
             color: var(--dark-gray);
-            border-color: var(--dark-gray);
+            border: 2px solid var(--dark-gray);
+            background-color: transparent;
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: var(--dark-gray);
+            color: white;
+            transform: translateY(-2px);
         }
         
         .section-title {
-            background-color: var(--light-gray);
-            padding: 10px 15px;
-            margin: 25px -30px 30px;
-            border-left: 4px solid var(--primary-color);
-            font-weight: 600;
+            background: linear-gradient(to right, rgba(67, 97, 238, 0.1), transparent);
+            padding: 15px 20px;
+            margin: 35px -40px 40px;
+            border-left: 6px solid var(--primary-color);
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--secondary-color);
+            letter-spacing: -0.5px;
         }
         
         .section-title:first-child {
             margin-top: 0;
         }
         
+        .text-muted {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* Animaciones y efectos */
+        .form-check-input, .form-control, .form-select, .btn {
+            transition: all 0.3s ease;
+        }
+        
+        /* Mejoras para dispositivos móviles */
         @media (max-width: 768px) {
             .survey-container {
                 margin: 15px;
-                border-radius: 8px;
+                border-radius: 12px;
             }
             
             .survey-header {
-                padding: 20px;
+                padding: 25px 20px;
             }
             
             .survey-header h1 {
-                font-size: 22px;
+                font-size: 24px;
             }
             
             .survey-body {
-                padding: 20px;
+                padding: 25px 20px;
             }
             
             .section-title {
-                margin: 20px -20px 25px;
-                padding: 8px 15px;
+                margin: 25px -20px 30px;
+                padding: 12px 20px;
+                font-size: 18px;
+            }
+            
+            .question-title {
+                font-size: 16px;
+                flex-wrap: wrap;
+            }
+            
+            .required-badge {
+                margin-top: 5px;
+                margin-left: 0;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .survey-footer {
+                padding: 20px;
+                text-align: center;
             }
             
             .matrix-table {
                 font-size: 14px;
+            }
+            
+            .form-check-label {
+                font-size: 15px;
             }
         }
     </style>
@@ -462,4 +603,5 @@
         }
     </script>
 </body>
+</html>
 </html>
