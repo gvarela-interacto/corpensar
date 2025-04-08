@@ -383,242 +383,41 @@ class FechaForm(BaseEncuestaForm):
 
 def responder_encuesta(request, slug):
     """Vista para responder una encuesta"""
-    # Obtener la encuesta o devolver 404
     encuesta = get_object_or_404(Encuesta, slug=slug)
     
-    # Verificar si la encuesta está activa y en su periodo de validez
-    ahora = timezone.now()
-    if not encuesta.activa or encuesta.fecha_inicio > ahora or encuesta.fecha_fin < ahora:
-        messages.error(request, "Esta encuesta no está disponible en este momento.")
-        return redirect('inicio')  # Redirigir a la página de inicio o a un listado de encuestas
+    # Obtener todos los tipos de preguntas hijos
+    tipos_preguntas = [cls.__name__.lower() for cls in PreguntaBase.__subclasses__()]
     
-    # Si no es pública, verificar que el usuario esté autenticado
-    if not encuesta.es_publica and not request.user.is_authenticated:
-        messages.error(request, "Debes iniciar sesión para acceder a esta encuesta.")
-        return redirect('login')  # Redirigir a la página de login
+    # Recoger todas las preguntas de todos los tipos
+    preguntas = []
+    for tipo in tipos_preguntas:
+        preguntas.extend(getattr(encuesta, f'{tipo}_relacionadas').all())
     
-    # Obtener todas las preguntas organizadas por tipo y ordenadas
-    preguntas = {}
+    # Ordenar las preguntas según el campo 'orden'
+    preguntas_ordenadas = sorted(preguntas, key=lambda x: x.orden)
     
-    preguntas['texto'] = PreguntaTexto.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['texto_multiple'] = PreguntaTextoMultiple.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['opcion_multiple'] = PreguntaOpcionMultiple.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['casillas'] = PreguntaCasillasVerificacion.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['menu'] = PreguntaMenuDesplegable.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['estrellas'] = PreguntaEstrellas.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['escala'] = PreguntaEscala.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['matriz'] = PreguntaMatriz.objects.filter(encuesta=encuesta).order_by('orden')
-    preguntas['fecha'] = PreguntaFecha.objects.filter(encuesta=encuesta).order_by('orden')
+    # 1. Crear lista de secciones en el orden de aparición (incluyendo duplicados)
+    secciones_con_duplicados = [p.seccion or 'General' for p in preguntas_ordenadas]
     
-    # Crear diccionario para almacenar los formularios
-    formularios = {}
+    # 2. Eliminar duplicados manteniendo el orden
+    secciones_unicas = []
+    seen = set()
+    for seccion in secciones_con_duplicados:
+        if seccion not in seen:
+            seen.add(seccion)
+            secciones_unicas.append(seccion)
     
-    # Manejar envío del formulario
-    if request.method == 'POST':
-        formularios_validos = True
-        
-        # Validar todos los formularios
-        for tipo, lista_preguntas in preguntas.items():
-            formularios[tipo] = {}
-            for pregunta in lista_preguntas:
-                if tipo == 'texto':
-                    form = TextoForm(request.POST, prefix=f'texto_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'texto_multiple':
-                    form = TextoMultipleForm(request.POST, prefix=f'texto_multiple_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'opcion_multiple':
-                    form = OpcionMultipleForm(request.POST, prefix=f'opcion_multiple_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'casillas':
-                    form = CasillasVerificacionForm(request.POST, prefix=f'casillas_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'menu':
-                    form = MenuDesplegableForm(request.POST, prefix=f'menu_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'estrellas':
-                    form = EstrellasForm(request.POST, prefix=f'estrellas_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'escala':
-                    form = EscalaForm(request.POST, prefix=f'escala_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'matriz':
-                    form = MatrizForm(request.POST, prefix=f'matriz_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'fecha':
-                    form = FechaForm(request.POST, prefix=f'fecha_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                
-                formularios[tipo][pregunta.id] = form
-                
-                if not form.is_valid():
-                    formularios_validos = False
-        
-        # Si todos los formularios son válidos, guardar la respuesta
-        if formularios_validos:
-            # Crear registro de respuesta de encuesta
-            respuesta_encuesta = RespuestaEncuesta.objects.create(
-                encuesta=encuesta,
-                usuario=request.user if request.user.is_authenticated else None,
-                ip_address=get_client_ip(request),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                completada=True
-            )
-            
-            # Guardar respuestas individuales
-            for tipo, dict_formularios in formularios.items():
-                for pregunta_id, form in dict_formularios.items():
-                    if tipo == 'texto':
-                        pregunta = PreguntaTexto.objects.get(id=pregunta_id)
-                        if form.cleaned_data['respuesta']:
-                            RespuestaTexto.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                valor=form.cleaned_data['respuesta']
-                            )
-                    
-                    elif tipo == 'texto_multiple':
-                        pregunta = PreguntaTextoMultiple.objects.get(id=pregunta_id)
-                        if form.cleaned_data['respuesta']:
-                            RespuestaTexto.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                valor=form.cleaned_data['respuesta']
-                            )
-                    
-                    elif tipo == 'opcion_multiple':
-                        pregunta = PreguntaOpcionMultiple.objects.get(id=pregunta_id)
-                        if form.cleaned_data['opcion']:
-                            RespuestaOpcionMultiple.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                opcion=form.cleaned_data['opcion'],
-                                texto_otro=form.cleaned_data.get('texto_otro', '')
-                            )
-                    
-                    elif tipo == 'casillas':
-                        pregunta = PreguntaCasillasVerificacion.objects.get(id=pregunta_id)
-                        for opcion in form.cleaned_data['opciones']:
-                            RespuestaCasillasVerificacion.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                opcion=opcion,
-                                texto_otro=form.cleaned_data.get('texto_otro', '')
-                            )
-                    
-                    elif tipo == 'menu':
-                        pregunta = PreguntaMenuDesplegable.objects.get(id=pregunta_id)
-                        if form.cleaned_data['opcion']:
-                            RespuestaOpcionMultiple.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                opcion=form.cleaned_data['opcion']
-                            )
-                    
-                    elif tipo == 'estrellas':
-                        pregunta = PreguntaEstrellas.objects.get(id=pregunta_id)
-                        if form.cleaned_data['valor']:
-                            RespuestaEstrellas.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                valor=form.cleaned_data['valor']
-                            )
-                    
-                    elif tipo == 'escala':
-                        pregunta = PreguntaEscala.objects.get(id=pregunta_id)
-                        if form.cleaned_data['valor']:
-                            RespuestaEscala.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                valor=form.cleaned_data['valor']
-                            )
-                    
-                    elif tipo == 'matriz':
-                        pregunta = PreguntaMatriz.objects.get(id=pregunta_id)
-                        for item in pregunta.items.all():
-                            field_name = f"item_{item.id}"
-                            if field_name in form.cleaned_data and form.cleaned_data[field_name]:
-                                RespuestaMatriz.objects.create(
-                                    respuesta_encuesta=respuesta_encuesta,
-                                    pregunta=pregunta,
-                                    item=item,
-                                    valor=form.cleaned_data[field_name]
-                                )
-                    
-                    elif tipo == 'fecha':
-                        pregunta = PreguntaFecha.objects.get(id=pregunta_id)
-                        if form.cleaned_data['valor']:
-                            RespuestaFecha.objects.create(
-                                respuesta_encuesta=respuesta_encuesta,
-                                pregunta=pregunta,
-                                valor=form.cleaned_data['valor']
-                            )
-            
-            messages.success(request, "¡Gracias por completar la encuesta!")
-            return redirect('encuesta_completada', slug=encuesta.slug)
+    # 3. Agrupar preguntas por sección (opcional, según lo que necesites)
+    preguntas_por_seccion = {}
+    for seccion in secciones_unicas:
+        preguntas_por_seccion[seccion] = [p for p in preguntas_ordenadas if (p.seccion or 'General') == seccion]
     
-    else:
-        # Inicializar formularios vacíos
-        for tipo, lista_preguntas in preguntas.items():
-            formularios[tipo] = {}
-            for pregunta in lista_preguntas:
-                if tipo == 'texto':
-                    form = TextoForm(prefix=f'texto_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'texto_multiple':
-                    form = TextoMultipleForm(prefix=f'texto_multiple_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'opcion_multiple':
-                    form = OpcionMultipleForm(prefix=f'opcion_multiple_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'casillas':
-                    form = CasillasVerificacionForm(prefix=f'casillas_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'menu':
-                    form = MenuDesplegableForm(prefix=f'menu_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'estrellas':
-                    form = EstrellasForm(prefix=f'estrellas_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'escala':
-                    form = EscalaForm(prefix=f'escala_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'matriz':
-                    form = MatrizForm(prefix=f'matriz_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                elif tipo == 'fecha':
-                    form = FechaForm(prefix=f'fecha_{pregunta.id}', pregunta=pregunta, requerida=pregunta.requerida)
-                
-                formularios[tipo][pregunta.id] = form
-    
-    # Crear una lista unificada de secciones para ordenar las preguntas
-    secciones = []
-    todas_preguntas = []
-    
-    # Recopilar todas las preguntas con sus formularios
-    for tipo, dict_formularios in formularios.items():
-        for pregunta_id, form in dict_formularios.items():
-            if tipo == 'texto':
-                pregunta = PreguntaTexto.objects.get(id=pregunta_id)
-            elif tipo == 'texto_multiple':
-                pregunta = PreguntaTextoMultiple.objects.get(id=pregunta_id)
-            elif tipo == 'opcion_multiple':
-                pregunta = PreguntaOpcionMultiple.objects.get(id=pregunta_id)
-            elif tipo == 'casillas':
-                pregunta = PreguntaCasillasVerificacion.objects.get(id=pregunta_id)
-            elif tipo == 'menu':
-                pregunta = PreguntaMenuDesplegable.objects.get(id=pregunta_id)
-            elif tipo == 'estrellas':
-                pregunta = PreguntaEstrellas.objects.get(id=pregunta_id)
-            elif tipo == 'escala':
-                pregunta = PreguntaEscala.objects.get(id=pregunta_id)
-            elif tipo == 'matriz':
-                pregunta = PreguntaMatriz.objects.get(id=pregunta_id)
-            elif tipo == 'fecha':
-                pregunta = PreguntaFecha.objects.get(id=pregunta_id)
-            
-            todas_preguntas.append({
-                'pregunta': pregunta,
-                'formulario': form,
-                'tipo': tipo,
-                'seccion': pregunta.seccion
-            })
-            
-            if pregunta.seccion and pregunta.seccion not in secciones:
-                secciones.append(pregunta.seccion)
-    
-    # Ordenar las preguntas por sección y orden
-    todas_preguntas.sort(key=lambda x: (x['seccion'] if x['seccion'] else '', x['pregunta'].orden))
-    
-    return render(request, 'encuestas/responder_encuesta.html', {
+    return render(request, 'encuesta/responder_encuesta.html', {
         'encuesta': encuesta,
-        'todas_preguntas': todas_preguntas,
-        'secciones': secciones
+        'preguntas': preguntas_ordenadas,
+        'secciones_unicas': secciones_unicas,  # Lista de secciones en orden de aparición sin duplicados
+        'preguntas_por_seccion': preguntas_por_seccion  # Diccionario opcional con preguntas agrupadas
     })
-
 
 def encuesta_completada(request, slug):
     """Vista de agradecimiento después de completar una encuesta"""

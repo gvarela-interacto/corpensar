@@ -1,98 +1,584 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responder Encuesta: {{ encuesta.titulo }}</title>
+    <title>Encuesta de Satisfacción del Cliente</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #343a40;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .survey-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .survey-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .survey-header h1 {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .survey-header p {
+            opacity: 0.9;
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .survey-progress {
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-color);
+            width: 40%;
+        }
+        
+        .survey-body {
+            padding: 30px;
+        }
+        
+        .question {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .question:last-child {
+            border-bottom: none;
+        }
+        
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+        }
+        
+        .required-badge {
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-left: 8px;
+            text-transform: uppercase;
+        }
+        
+        .question-help {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        
+        .star-rating input {
+            display: none;
+        }
+        
+        .star-rating label {
+            cursor: pointer;
+            font-size: 25px;
+            color: #ddd;
+            padding: 0 2px;
+        }
+        
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #ffc107;
+        }
+        
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        
+        .scale-labels span {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .matrix-table th, .matrix-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .matrix-table th {
+            font-weight: 600;
+            background-color: var(--light-gray);
+        }
+        
+        .matrix-table th:first-child,
+        .matrix-table td:first-child {
+            text-align: left;
+        }
+        
+        .survey-footer {
+            background-color: var(--light-gray);
+            padding: 20px 30px;
+            text-align: right;
+            border-top: 1px solid var(--medium-gray);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-outline-secondary {
+            color: var(--dark-gray);
+            border-color: var(--dark-gray);
+        }
+        
+        .section-title {
+            background-color: var(--light-gray);
+            padding: 10px 15px;
+            margin: 25px -30px 30px;
+            border-left: 4px solid var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .section-title:first-child {
+            margin-top: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .survey-container {
+                margin: 15px;
+                border-radius: 8px;
+            }
+            
+            .survey-header {
+                padding: 20px;
+            }
+            
+            .survey-header h1 {
+                font-size: 22px;
+            }
+            
+            .survey-body {
+                padding: 20px;
+            }
+            
+            .section-title {
+                margin: 20px -20px 25px;
+                padding: 8px 15px;
+            }
+            
+            .matrix-table {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ encuesta.titulo }}</h1>
-    <p>{{ encuesta.descripcion }}</p>
-
-    <form method="post">
-        {% csrf_token %}
-        {% for field in form %}
-            <div style="margin-bottom: 15px;">
-                {{ field.label_tag }}
-                {% if field.help_text %}
-                    <br><small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {{ field }}
-                {% if field.errors %}
-                    <ul style="color: red;">
-                        {% for error in field.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-                {% if field.name|slice:":5" == "otro_" %}
-                    <div id="{{ field.id_for_label }}_container" style="display: none; margin-top: 5px;">
-                        {{ field.label_tag }} {{ field }}
-                        {% if field.errors %}
-                            <ul style="color: red;">
-                                {% for error in field.errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </div>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const radioButtons = document.querySelectorAll('input[type="radio"][name^="pregunta_"][value="otro"]');
-                            radioButtons.forEach(radio => {
-                                radio.addEventListener('change', function() {
-                                    const otroFieldId = 'id_' + this.name.replace('pregunta', 'otro');
-                                    const otroContainer = document.getElementById(otroFieldId + '_container');
-                                    if (this.checked) {
-                                        otroContainer.style.display = 'block';
-                                    } else {
-                                        otroContainer.style.display = 'none';
-                                        const otroInput = otroContainer.querySelector('input[type="text"]');
-                                        if (otroInput) {
-                                            otroInput.value = ''; // Clear the 'otro' text if unchecked
-                                        }
-                                    }
-                                });
-                            });
-
-                            const checkBoxes = document.querySelectorAll('input[type="checkbox"][name^="pregunta_"][value="otro"]');
-                            checkBoxes.forEach(checkbox => {
-                                checkbox.addEventListener('change', function() {
-                                    const otroFieldId = 'id_' + this.name.replace('pregunta', 'otro');
-                                    const otroContainer = document.getElementById(otroFieldId + '_container');
-                                    if (this.checked) {
-                                        otroContainer.style.display = 'block';
-                                    } else {
-                                        otroContainer.style.display = 'none';
-                                        const otroInput = otroContainer.querySelector('input[type="text"]');
-                                        if (otroInput) {
-                                            otroInput.value = ''; // Clear the 'otro' text if unchecked
-                                        }
-                                    }
-                                });
-                            });
-                        });
-                    </script>
-                {% endif %}
-                {% if field.name|slice:":9" == "pregunta_" and '_item_' in field.name %}
-                    <div style="margin-left: 20px;">
-                        {{ field.label_tag }} {{ field }}
-                        {% if field.errors %}
-                            <ul style="color: red;">
-                                {% for error in field.errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </div>
-                {% elif 'checkbox' in field.widget_type %}
-                    <br>
-                {% elif 'radio' in field.widget_type %}
-                    <br>
-                {% endif %}
+    <div class="survey-container">
+        <div class="survey-header">
+            <h1>{{encuesta.titulo}}</h1>
+            <p>{{encuesta.descripcion}}</p>
+        </div>
+        
+        <form class="survey-body">
+            {% for seccion in secciones_unicas %}
+                <!-- Mostrar título de sección (excepto para 'General') -->
+                <h3 class="section-title">{{ seccion }}</h3>
+                {% for pregunta in preguntas %}
+                    {% if pregunta.seccion == seccion %}
+                        <div class="question">
+                            <div class="question-title">
+                                <span>{{pregunta.orden}}. {{ pregunta.texto }}</span>
+                                {% if pregunta.requerida %}
+                                    <span class="required-badge">Requerido</span>
+                                {% endif %}
+                            </div>
+                            {% if pregunta.tipo == 'TEXT' %}
+                                <div class="question-help">{{pregunta.ayuda}}</div>
+                                <input type="text" class="form-control" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}">
+                            {% endif %}
+                            {% if pregunta.tipo == 'MTEXT' %}
+                                <div class="question-help">{{pregunta.ayuda}}</div>
+                                <textarea class="form-control" rows="{{pregunta.filas}}" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}"></textarea>
+                            {% endif %}
+                            {% if pregunta.tipo == 'RADIO' %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio1">
+                                    <label class="form-check-label" for="conocio1">
+                                        Redes sociales
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio2">
+                                    <label class="form-check-label" for="conocio2">
+                                        Recomendación de un amigo
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio3">
+                                    <label class="form-check-label" for="conocio3">
+                                        Publicidad en línea
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio4">
+                                    <label class="form-check-label" for="conocio4">
+                                        Búsqueda en Google
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="conocio" id="conocio5">
+                                    <label class="form-check-label" for="conocio5">
+                                        Otro
+                                    </label>
+                                </div>
+                                <div class="mt-2">
+                                    <input type="text" class="form-control" placeholder="Especifique...">
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            <!-- Texto simple -->
+            
+            
+            <!-- Menú desplegable -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿En qué rango de edad se encuentra?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <select class="form-select">
+                    <option selected>Seleccione...</option>
+                    <option value="18-24">18-24 años</option>
+                    <option value="25-34">25-34 años</option>
+                    <option value="35-44">35-44 años</option>
+                    <option value="45-54">45-54 años</option>
+                    <option value="55-64">55-64 años</option>
+                    <option value="65+">65 años o más</option>
+                </select>
             </div>
-        {% endfor %}
-        <button type="submit">Enviar respuestas</button>
-    </form>
+            
+            <!-- Fecha -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cuál es su fecha de nacimiento?</span>
+                </div>
+                <input type="date" class="form-control">
+            </div>
+            
+            <!-- Fecha y hora -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cuándo realizó su última compra con nosotros?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <input type="datetime-local" class="form-control">
+            </div>
+            
+            
+            
+            <!-- Opción múltiple (Radio) -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cómo conoció nuestra empresa?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio1">
+                    <label class="form-check-label" for="conocio1">
+                        Redes sociales
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio2">
+                    <label class="form-check-label" for="conocio2">
+                        Recomendación de un amigo
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio3">
+                    <label class="form-check-label" for="conocio3">
+                        Publicidad en línea
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio4">
+                    <label class="form-check-label" for="conocio4">
+                        Búsqueda en Google
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="conocio" id="conocio5">
+                    <label class="form-check-label" for="conocio5">
+                        Otro
+                    </label>
+                </div>
+                <div class="mt-2">
+                    <input type="text" class="form-control" placeholder="Especifique...">
+                </div>
+            </div>
+            
+            <!-- Casillas de verificación -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Qué productos ha comprado en los últimos 6 meses?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="question-help">Seleccione todas las opciones que correspondan. Mínimo: 1, Máximo: 3</div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto1">
+                    <label class="form-check-label" for="producto1">
+                        Smartphone
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto2">
+                    <label class="form-check-label" for="producto2">
+                        Laptop
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto3">
+                    <label class="form-check-label" for="producto3">
+                        Tablet
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto4">
+                    <label class="form-check-label" for="producto4">
+                        Smart Watch
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto5">
+                    <label class="form-check-label" for="producto5">
+                        Auriculares
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="producto6">
+                    <label class="form-check-label" for="producto6">
+                        Otro
+                    </label>
+                </div>
+                <div class="mt-2">
+                    <input type="text" class="form-control" placeholder="Especifique...">
+                </div>
+            </div>
+            
+            <!-- Sección de valoración -->
+            <h3 class="section-title">Valoración del Servicio</h3>
+            
+            <!-- Valoración con estrellas -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Cómo valoraría la calidad de nuestros productos?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5">
+                    <label for="star5" class="fas fa-star"></label>
+                    <input type="radio" id="star4" name="rating" value="4">
+                    <label for="star4" class="fas fa-star"></label>
+                    <input type="radio" id="star3" name="rating" value="3">
+                    <label for="star3" class="fas fa-star"></label>
+                    <input type="radio" id="star2" name="rating" value="2">
+                    <label for="star2" class="fas fa-star"></label>
+                    <input type="radio" id="star1" name="rating" value="1">
+                    <label for="star1" class="fas fa-star"></label>
+                </div>
+                <div class="scale-labels">
+                    <span>Muy baja</span>
+                    <span>Excelente</span>
+                </div>
+            </div>
+            
+            <!-- Escala -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Qué tan satisfecho está con nuestro servicio de atención al cliente?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="range-container">
+                    <input type="range" class="form-range" min="1" max="5" step="1" id="satisfaccion">
+                </div>
+                <div class="scale-labels">
+                    <span>Muy insatisfecho</span>
+                    <span>Neutral</span>
+                    <span>Muy satisfecho</span>
+                </div>
+            </div>
+            
+            <!-- Matriz de valoración -->
+            <div class="question">
+                <div class="question-title">
+                    <span>Por favor, valore los siguientes aspectos de nuestro servicio:</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <table class="table matrix-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Muy malo</th>
+                            <th>Malo</th>
+                            <th>Neutral</th>
+                            <th>Bueno</th>
+                            <th>Muy bueno</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Rapidez de envío</td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="rapidez" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>Calidad del producto</td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="calidad" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>Relación calidad-precio</td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="relacion" value="5"></td>
+                        </tr>
+                        <tr>
+                            <td>Atención al cliente</td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="1"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="2"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="3"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="4"></td>
+                            <td><input class="form-check-input" type="radio" name="atencion" value="5"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Conclusión -->
+            <h3 class="section-title">Conclusión</h3>
+            
+            <!-- Opción múltiple final -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Recomendaría nuestros productos a amigos o familiares?</span>
+                    <span class="required-badge">Requerido</span>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria1">
+                    <label class="form-check-label" for="recomendaria1">
+                        Definitivamente sí
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria2">
+                    <label class="form-check-label" for="recomendaria2">
+                        Probablemente sí
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria3">
+                    <label class="form-check-label" for="recomendaria3">
+                        No estoy seguro
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria4">
+                    <label class="form-check-label" for="recomendaria4">
+                        Probablemente no
+                    </label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="recomendaria" id="recomendaria5">
+                    <label class="form-check-label" for="recomendaria5">
+                        Definitivamente no
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Texto múltiple final -->
+            <div class="question">
+                <div class="question-title">
+                    <span>¿Hay algo más que le gustaría compartir con nosotros?</span>
+                </div>
+                <textarea class="form-control" rows="4" placeholder="Sus comentarios adicionales son bienvenidos..."></textarea>
+            </div>
+            
+        </form>
+        
+        <div class="survey-footer">
+            <button type="button" class="btn btn-outline-secondary me-2">Guardar y continuar más tarde</button>
+            <button type="submit" class="btn btn-primary">Enviar encuesta</button>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
