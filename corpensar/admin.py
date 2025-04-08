@@ -1,222 +1,302 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
-
+from django.contrib.admin import TabularInline, StackedInline
+from django import forms
 from .models import (
-    Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
-    OpcionMultiple, PreguntaCasillasVerificacion, OpcionCasillaVerificacion, 
-    PreguntaMenuDesplegable, OpcionMenuDesplegable, PreguntaEstrellas, 
-    PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha, 
-    RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple, 
-    RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala, 
+    Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
+    OpcionMultiple, PreguntaCasillasVerificacion, OpcionCasillaVerificacion,
+    PreguntaMenuDesplegable, OpcionMenuDesplegable, PreguntaEstrellas,
+    PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
+    RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
+    RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
     RespuestaMatriz, RespuestaFecha
 )
 
-class OpcionMultipleInline(admin.TabularInline):
+# Inlines para las opciones de preguntas
+class OpcionMultipleInline(TabularInline):
     model = OpcionMultiple
-    extra = 3
-    fields = ('texto', 'valor', 'orden')
+    extra = 1
+    min_num = 2
+    fields = ['texto', 'valor', 'orden']
 
-class OpcionCasillaVerificacionInline(admin.TabularInline):
+class OpcionCasillaVerificacionInline(TabularInline):
     model = OpcionCasillaVerificacion
-    extra = 3
-    fields = ('texto', 'valor', 'orden')
+    extra = 1
+    min_num = 2
+    fields = ['texto', 'valor', 'orden']
 
-class OpcionMenuDesplegableInline(admin.TabularInline):
+class OpcionMenuDesplegableInline(TabularInline):
     model = OpcionMenuDesplegable
-    extra = 3
-    fields = ('texto', 'valor', 'orden')
+    extra = 1
+    min_num = 2
+    fields = ['texto', 'valor', 'orden']
 
-class ItemMatrizPreguntaInline(admin.TabularInline):
+class ItemMatrizPreguntaInline(TabularInline):
     model = ItemMatrizPregunta
-    extra = 3
-    fields = ('texto', 'orden')
+    extra = 1
+    min_num = 1
+    fields = ['texto', 'orden']
 
-class PreguntaTextoInline(admin.StackedInline):
+# Formularios personalizados para preguntas
+class PreguntaOpcionMultipleForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaOpcionMultiple
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
+
+class PreguntaCasillasVerificacionForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaCasillasVerificacion
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
+
+class PreguntaMenuDesplegableForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaMenuDesplegable
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
+
+class PreguntaMatrizForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaMatriz
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
+
+# ModelAdmins para los diferentes tipos de preguntas
+class PreguntaTextoAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'max_longitud', 'placeholder')
+        }),
+    )
+
+class PreguntaTextoMultipleAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'max_longitud', 'filas', 'placeholder')
+        }),
+    )
+
+class PreguntaOpcionMultipleAdmin(admin.ModelAdmin):
+    form = PreguntaOpcionMultipleForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [OpcionMultipleInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'opcion_otro', 'texto_otro')
+        }),
+    )
+
+class PreguntaCasillasVerificacionAdmin(admin.ModelAdmin):
+    form = PreguntaCasillasVerificacionForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [OpcionCasillaVerificacionInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'opcion_otro', 'texto_otro', 
+                      'min_selecciones', 'max_selecciones')
+        }),
+    )
+
+class PreguntaMenuDesplegableAdmin(admin.ModelAdmin):
+    form = PreguntaMenuDesplegableForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [OpcionMenuDesplegableInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'opcion_vacia', 'texto_vacio')
+        }),
+    )
+
+class PreguntaEstrellasAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'max_estrellas']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'max_estrellas', 'etiqueta_inicio', 'etiqueta_fin')
+        }),
+    )
+
+class PreguntaEscalaAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'min_valor', 'max_valor', 
+                      'etiqueta_min', 'etiqueta_max', 'paso')
+        }),
+    )
+
+class PreguntaMatrizAdmin(admin.ModelAdmin):
+    form = PreguntaMatrizForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [ItemMatrizPreguntaInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'escala')
+        }),
+    )
+
+class PreguntaFechaAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'incluir_hora']
+    list_filter = ['encuesta', 'incluir_hora']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'incluir_hora')
+        }),
+    )
+
+# Inline para mostrar todas las preguntas relacionadas en la encuesta
+class PreguntaTextoInline(StackedInline):
     model = PreguntaTexto
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'max_longitud', 'placeholder')
+    fields = ['orden', 'texto', 'requerida', 'max_longitud', 'placeholder']
+    verbose_name = "Pregunta de Texto"
+    verbose_name_plural = "Preguntas de Texto"
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        # Establecer el tipo directamente en el init del formulario
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'TEXT')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaTextoMultipleInline(admin.StackedInline):
+class PreguntaTextoMultipleInline(StackedInline):
     model = PreguntaTextoMultiple
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'max_longitud', 'filas', 'placeholder')
+    fields = ['orden', 'texto', 'requerida', 'max_longitud', 'filas', 'placeholder']
+    verbose_name = "Pregunta de Texto Múltiple"
+    verbose_name_plural = "Preguntas de Texto Múltiple"
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'MTEXT')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaOpcionMultipleInline(admin.StackedInline):
+class PreguntaOpcionMultipleInline(StackedInline):
     model = PreguntaOpcionMultiple
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_otro', 'texto_otro')
+    fields = ['orden', 'texto', 'requerida', 'opcion_otro', 'texto_otro']
+    verbose_name = "Pregunta de Opción Múltiple"
+    verbose_name_plural = "Preguntas de Opción Múltiple"
+    inlines = [OpcionMultipleInline]
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'RADIO')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaCasillasVerificacionInline(admin.StackedInline):
+class PreguntaCasillasVerificacionInline(StackedInline):
     model = PreguntaCasillasVerificacion
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_otro', 'texto_otro', 
-              'min_selecciones', 'max_selecciones')
+    fields = ['orden', 'texto', 'requerida', 'opcion_otro', 'texto_otro', 
+              'min_selecciones', 'max_selecciones']
+    verbose_name = "Pregunta de Casillas de Verificación"
+    verbose_name_plural = "Preguntas de Casillas de Verificación"
+    inlines = [OpcionCasillaVerificacionInline]
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'CHECK')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaMenuDesplegableInline(admin.StackedInline):
+class PreguntaMenuDesplegableInline(StackedInline):
     model = PreguntaMenuDesplegable
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'opcion_vacia', 'texto_vacio')
+    fields = ['orden', 'texto', 'requerida', 'opcion_vacia', 'texto_vacio']
+    verbose_name = "Pregunta de Menú Desplegable"
+    verbose_name_plural = "Preguntas de Menú Desplegable"
+    inlines = [OpcionMenuDesplegableInline]
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'SELECT')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaEstrellasInline(admin.StackedInline):
+class PreguntaEstrellasInline(StackedInline):
     model = PreguntaEstrellas
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'max_estrellas', 
-              'etiqueta_inicio', 'etiqueta_fin')
+    fields = ['orden', 'texto', 'requerida', 'max_estrellas', 'etiqueta_inicio', 'etiqueta_fin']
+    verbose_name = "Pregunta de Estrellas"
+    verbose_name_plural = "Preguntas de Estrellas"
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'STAR')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaEscalaInline(admin.StackedInline):
+class PreguntaEscalaInline(StackedInline):
     model = PreguntaEscala
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'min_valor', 'max_valor', 
-              'etiqueta_min', 'etiqueta_max', 'paso')
+    fields = ['orden', 'texto', 'requerida', 'min_valor', 'max_valor', 
+              'etiqueta_min', 'etiqueta_max', 'paso']
+    verbose_name = "Pregunta de Escala"
+    verbose_name_plural = "Preguntas de Escala"
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'SCALE')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaMatrizInline(admin.StackedInline):
+class PreguntaMatrizInline(StackedInline):
     model = PreguntaMatriz
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'escala')
+    fields = ['orden', 'texto', 'requerida', 'escala']
+    verbose_name = "Pregunta de Matriz"
+    verbose_name_plural = "Preguntas de Matriz"
+    inlines = [ItemMatrizPreguntaInline]
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            self.initial.setdefault('tipo', 'MATRIX')
-            
-        form.__init__ = new_init
-        return formset
-
-class PreguntaFechaInline(admin.StackedInline):
+class PreguntaFechaInline(StackedInline):
     model = PreguntaFecha
     extra = 0
-    fields = ('texto', 'requerida', 'orden', 'seccion', 'ayuda', 'incluir_hora')
+    fields = ['orden', 'texto', 'requerida', 'incluir_hora']
+    verbose_name = "Pregunta de Fecha/Hora"
+    verbose_name_plural = "Preguntas de Fecha/Hora"
 
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        
-        old_init = form.__init__
-        
-        def new_init(self, *args, **kwargs):
-            old_init(self, *args, **kwargs)
-            tipo_valor = 'DATETIME' if obj and obj.incluir_hora else 'DATE'
-            self.initial.setdefault('tipo', tipo_valor)
-            
-        form.__init__ = new_init
-        return formset
-
-@admin.register(Encuesta)
+# Admin principal para Encuesta
 class EncuestaAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'slug', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica')
-    list_filter = ('activa', 'es_publica', 'fecha_creacion')
-    search_fields = ('titulo', 'descripcion')
+    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica']
+    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion']
+    search_fields = ['titulo', 'descripcion']
     prepopulated_fields = {'slug': ('titulo',)}
-    date_hierarchy = 'fecha_creacion'
+    filter_horizontal = []
+    readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
+    
     fieldsets = (
         (None, {
             'fields': ('titulo', 'slug', 'descripcion', 'creador')
         }),
-        (_('Configuración'), {
-            'fields': ('fecha_inicio', 'fecha_fin', 'activa', 'es_publica')
+        ('Fechas', {
+            'fields': ('fecha_inicio', 'fecha_fin', 'fecha_creacion', 'fecha_actualizacion')
+        }),
+        ('Configuración', {
+            'fields': ('activa', 'es_publica')
         }),
     )
+    
+    # Todos los inlines de preguntas
     inlines = [
-        PreguntaTextoInline, 
+        PreguntaTextoInline,
         PreguntaTextoMultipleInline,
-        PreguntaOpcionMultipleInline, 
+        PreguntaOpcionMultipleInline,
         PreguntaCasillasVerificacionInline,
         PreguntaMenuDesplegableInline,
         PreguntaEstrellasInline,
@@ -224,134 +304,56 @@ class EncuestaAdmin(admin.ModelAdmin):
         PreguntaMatrizInline,
         PreguntaFechaInline,
     ]
+    
+    def get_inline_instances(self, request, obj=None):
+        """Mostrar solo inlines cuando se edita una encuesta existente"""
+        if obj:
+            return super().get_inline_instances(request, obj)
+        return []
 
-    def save_model(self, request, obj, form, change):
-        if not obj.pk:
-            obj.creador = request.user
-        super().save_model(request, obj, form, change)
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing an existing object
-            return ('creador',) + self.readonly_fields
-        return self.readonly_fields
-
-
-@admin.register(PreguntaOpcionMultiple)
-class PreguntaOpcionMultipleAdmin(admin.ModelAdmin):
-    list_display = ('texto', 'encuesta', 'requerida', 'orden')
-    list_filter = ('encuesta', 'requerida')
-    search_fields = ('texto', 'encuesta__titulo')
-    inlines = [OpcionMultipleInline]
-
-
-@admin.register(PreguntaCasillasVerificacion)
-class PreguntaCasillasVerificacionAdmin(admin.ModelAdmin):
-    list_display = ('texto', 'encuesta', 'requerida', 'orden', 'min_selecciones', 'max_selecciones')
-    list_filter = ('encuesta', 'requerida')
-    search_fields = ('texto', 'encuesta__titulo')
-    inlines = [OpcionCasillaVerificacionInline]
-
-
-@admin.register(PreguntaMenuDesplegable)
-class PreguntaMenuDesplegableAdmin(admin.ModelAdmin):
-    list_display = ('texto', 'encuesta', 'requerida', 'orden')
-    list_filter = ('encuesta', 'requerida')
-    search_fields = ('texto', 'encuesta__titulo')
-    inlines = [OpcionMenuDesplegableInline]
-
-
-@admin.register(PreguntaMatriz)
-class PreguntaMatrizAdmin(admin.ModelAdmin):
-    list_display = ('texto', 'encuesta', 'requerida', 'orden', 'escala')
-    list_filter = ('encuesta', 'requerida')
-    search_fields = ('texto', 'encuesta__titulo')
-    inlines = [ItemMatrizPreguntaInline]
-
-
-@admin.register(PreguntaEscala)
-class PreguntaEscalaAdmin(admin.ModelAdmin):
-    list_display = ('texto', 'encuesta', 'requerida', 'orden', 'min_valor', 'max_valor')
-    list_filter = ('encuesta', 'requerida')
-    search_fields = ('texto', 'encuesta__titulo')
-
-
-class RespuestaTextoInline(admin.TabularInline):
+# Admins para respuestas
+class RespuestaTextoInline(TabularInline):
     model = RespuestaTexto
     extra = 0
-    readonly_fields = ('pregunta', 'valor')
-    can_delete = False
+    readonly_fields = ['pregunta', 'valor']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class RespuestaOpcionMultipleInline(admin.TabularInline):
+class RespuestaOpcionMultipleInline(TabularInline):
     model = RespuestaOpcionMultiple
     extra = 0
-    readonly_fields = ('pregunta', 'opcion', 'texto_otro')
-    can_delete = False
+    readonly_fields = ['pregunta', 'opcion', 'texto_otro']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class RespuestaCasillasVerificacionInline(admin.TabularInline):
+class RespuestaCasillasVerificacionInline(TabularInline):
     model = RespuestaCasillasVerificacion
     extra = 0
-    readonly_fields = ('pregunta', 'opcion', 'texto_otro')
-    can_delete = False
+    readonly_fields = ['pregunta', 'opcion', 'texto_otro']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class RespuestaEstrellasInline(admin.TabularInline):
+class RespuestaEstrellasInline(TabularInline):
     model = RespuestaEstrellas
     extra = 0
-    readonly_fields = ('pregunta', 'valor')
-    can_delete = False
+    readonly_fields = ['pregunta', 'valor']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class RespuestaEscalaInline(admin.TabularInline):
+class RespuestaEscalaInline(TabularInline):
     model = RespuestaEscala
     extra = 0
-    readonly_fields = ('pregunta', 'valor')
-    can_delete = False
+    readonly_fields = ['pregunta', 'valor']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class RespuestaMatrizInline(admin.TabularInline):
+class RespuestaMatrizInline(TabularInline):
     model = RespuestaMatriz
     extra = 0
-    readonly_fields = ('pregunta', 'item', 'valor')
-    can_delete = False
+    readonly_fields = ['pregunta', 'item', 'valor']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class RespuestaFechaInline(admin.TabularInline):
+class RespuestaFechaInline(TabularInline):
     model = RespuestaFecha
     extra = 0
-    readonly_fields = ('pregunta', 'valor')
-    can_delete = False
+    readonly_fields = ['pregunta', 'valor']
 
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-@admin.register(RespuestaEncuesta)
 class RespuestaEncuestaAdmin(admin.ModelAdmin):
-    list_display = ('encuesta', 'usuario', 'fecha_respuesta', 'completada', 'ip_address')
-    list_filter = ('encuesta', 'completada', 'fecha_respuesta')
-    search_fields = ('encuesta__titulo', 'usuario__username', 'usuario__email', 'ip_address')
-    readonly_fields = ('encuesta', 'usuario', 'fecha_respuesta', 'ip_address', 'user_agent', 'completada')
+    list_display = ['encuesta', 'usuario', 'fecha_respuesta', 'completada']
+    list_filter = ['encuesta', 'completada', 'fecha_respuesta']
+    search_fields = ['encuesta__titulo', 'usuario__username']
+    readonly_fields = ['fecha_respuesta', 'ip_address', 'user_agent']
     
+    # Todos los inlines de respuestas
     inlines = [
         RespuestaTextoInline,
         RespuestaOpcionMultipleInline,
@@ -361,13 +363,19 @@ class RespuestaEncuestaAdmin(admin.ModelAdmin):
         RespuestaMatrizInline,
         RespuestaFechaInline,
     ]
-
+    
     def has_add_permission(self, request):
-        return False
+        return False  # No permitir añadir respuestas manualmente
 
-
-# Registrar el resto de modelos
-admin.site.register(PreguntaTexto)
-admin.site.register(PreguntaTextoMultiple)
-admin.site.register(PreguntaEstrellas)
-admin.site.register(PreguntaFecha)
+# Registro de todos los modelos en el admin
+admin.site.register(Encuesta, EncuestaAdmin)
+admin.site.register(PreguntaTexto, PreguntaTextoAdmin)
+admin.site.register(PreguntaTextoMultiple, PreguntaTextoMultipleAdmin)
+admin.site.register(PreguntaOpcionMultiple, PreguntaOpcionMultipleAdmin)
+admin.site.register(PreguntaCasillasVerificacion, PreguntaCasillasVerificacionAdmin)
+admin.site.register(PreguntaMenuDesplegable, PreguntaMenuDesplegableAdmin)
+admin.site.register(PreguntaEstrellas, PreguntaEstrellasAdmin)
+admin.site.register(PreguntaEscala, PreguntaEscalaAdmin)
+admin.site.register(PreguntaMatriz, PreguntaMatrizAdmin)
+admin.site.register(PreguntaFecha, PreguntaFechaAdmin)
+admin.site.register(RespuestaEncuesta, RespuestaEncuestaAdmin)
