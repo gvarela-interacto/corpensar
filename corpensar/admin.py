@@ -1,273 +1,298 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.contrib.admin import TabularInline, StackedInline
+from django import forms
 from .models import (
-    Encuesta,
-    PreguntaTexto, PreguntaTextoMultiple,
-    PreguntaOpcionMultiple, OpcionMultiple,
-    PreguntaCasillasVerificacion, OpcionCasillaVerificacion,
-    PreguntaMenuDesplegable, OpcionMenuDesplegable,
-    PreguntaEstrellas, PreguntaEscala,
-    PreguntaMatriz, ItemMatrizPregunta,
-    PreguntaFecha,
-    RespuestaEncuesta,
-    RespuestaTexto, RespuestaOpcionMultiple,
-    RespuestaCasillasVerificacion, RespuestaEstrellas,
-    RespuestaEscala, RespuestaMatriz, RespuestaFecha
+    Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
+    OpcionMultiple, PreguntaCasillasVerificacion, OpcionCasillaVerificacion,
+    PreguntaMenuDesplegable, OpcionMenuDesplegable, PreguntaEstrellas,
+    PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
+    RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
+    RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
+    RespuestaMatriz, RespuestaFecha
 )
 
-# Clases inline para opciones de preguntas
-class OpcionMultipleInline(admin.TabularInline):
+# Inlines para las opciones de preguntas
+class OpcionMultipleInline(TabularInline):
     model = OpcionMultiple
     extra = 1
+    min_num = 2
     fields = ['texto', 'valor', 'orden']
-    ordering = ['orden']
 
-class OpcionCasillaVerificacionInline(admin.TabularInline):
+class OpcionCasillaVerificacionInline(TabularInline):
     model = OpcionCasillaVerificacion
     extra = 1
+    min_num = 2
     fields = ['texto', 'valor', 'orden']
-    ordering = ['orden']
 
-class OpcionMenuDesplegableInline(admin.TabularInline):
+class OpcionMenuDesplegableInline(TabularInline):
     model = OpcionMenuDesplegable
     extra = 1
+    min_num = 2
     fields = ['texto', 'valor', 'orden']
-    ordering = ['orden']
 
-class ItemMatrizInline(admin.TabularInline):
+class ItemMatrizPreguntaInline(TabularInline):
     model = ItemMatrizPregunta
     extra = 1
+    min_num = 1
     fields = ['texto', 'orden']
-    ordering = ['orden']
 
-# Clases inline para respuestas
-class RespuestaTextoInline(admin.TabularInline):
-    model = RespuestaTexto
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'valor', 'fecha_creacion']
-    can_delete = False
+# Formularios personalizados para preguntas
+class PreguntaOpcionMultipleForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaOpcionMultiple
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
 
-class RespuestaOpcionMultipleInline(admin.TabularInline):
-    model = RespuestaOpcionMultiple
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'opcion', 'texto_otro', 'fecha_creacion']
-    can_delete = False
+class PreguntaCasillasVerificacionForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaCasillasVerificacion
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
 
-class RespuestaCasillasVerificacionInline(admin.TabularInline):
-    model = RespuestaCasillasVerificacion
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'opcion', 'texto_otro', 'fecha_creacion']
-    can_delete = False
+class PreguntaMenuDesplegableForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaMenuDesplegable
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
 
-class RespuestaEstrellasInline(admin.TabularInline):
-    model = RespuestaEstrellas
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'valor', 'fecha_creacion']
-    can_delete = False
+class PreguntaMatrizForm(forms.ModelForm):
+    class Meta:
+        model = PreguntaMatriz
+        fields = '__all__'
+        widgets = {
+            'texto': forms.Textarea(attrs={'rows': 2}),
+            'ayuda': forms.TextInput(),
+        }
 
-class RespuestaEscalaInline(admin.TabularInline):
-    model = RespuestaEscala
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'valor', 'fecha_creacion']
-    can_delete = False
-
-class RespuestaMatrizInline(admin.TabularInline):
-    model = RespuestaMatriz
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'item', 'valor', 'fecha_creacion']
-    can_delete = False
-
-class RespuestaFechaInline(admin.TabularInline):
-    model = RespuestaFecha
-    extra = 0
-    readonly_fields = ['fecha_creacion']
-    fields = ['pregunta', 'valor', 'fecha_creacion']
-    can_delete = False
-
-# Clases Admin para preguntas
-@admin.register(PreguntaTexto)
+# ModelAdmins para los diferentes tipos de preguntas
 class PreguntaTextoAdmin(admin.ModelAdmin):
     list_display = ['texto', 'encuesta', 'orden', 'requerida']
-    list_filter = ['encuesta', 'requerida']
+    list_filter = ['encuesta']
     search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'max_longitud', 'placeholder']
-    readonly_fields = ['tipo']
-
-@admin.register(PreguntaTextoMultiple)
-class PreguntaTextoMultipleAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida']
-    list_filter = ['encuesta', 'requerida']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'max_longitud', 'filas', 'placeholder']
-    readonly_fields = ['tipo']
-
-@admin.register(PreguntaOpcionMultiple)
-class PreguntaOpcionMultipleAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'opcion_otro']
-    list_filter = ['encuesta', 'requerida', 'opcion_otro']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'opcion_otro', 'texto_otro']
-    readonly_fields = ['tipo']
-    inlines = [OpcionMultipleInline]
-
-@admin.register(PreguntaCasillasVerificacion)
-class PreguntaCasillasVerificacionAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'opcion_otro', 'min_selecciones', 'max_selecciones']
-    list_filter = ['encuesta', 'requerida', 'opcion_otro']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'opcion_otro', 'texto_otro', 'min_selecciones', 'max_selecciones']
-    readonly_fields = ['tipo']
-    inlines = [OpcionCasillaVerificacionInline]
-
-@admin.register(PreguntaMenuDesplegable)
-class PreguntaMenuDesplegableAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'opcion_vacia']
-    list_filter = ['encuesta', 'requerida', 'opcion_vacia']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'opcion_vacia', 'texto_vacio']
-    readonly_fields = ['tipo']
-    inlines = [OpcionMenuDesplegableInline]
-
-@admin.register(PreguntaEstrellas)
-class PreguntaEstrellasAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'max_estrellas']
-    list_filter = ['encuesta', 'requerida']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'max_estrellas', 'etiqueta_inicio', 'etiqueta_fin']
-    readonly_fields = ['tipo']
-
-@admin.register(PreguntaEscala)
-class PreguntaEscalaAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'min_valor', 'max_valor']
-    list_filter = ['encuesta', 'requerida']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'min_valor', 'max_valor', 'etiqueta_min', 'etiqueta_max', 'paso']
-    readonly_fields = ['tipo']
-
-@admin.register(PreguntaMatriz)
-class PreguntaMatrizAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'escala']
-    list_filter = ['encuesta', 'requerida', 'escala']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion', 'escala']
-    readonly_fields = ['tipo']
-    inlines = [ItemMatrizInline]
-
-@admin.register(PreguntaFecha)
-class PreguntaFechaAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'incluir_hora']
-    list_filter = ['encuesta', 'requerida', 'incluir_hora']
-    search_fields = ['texto']
-    ordering = ['encuesta', 'orden']
-    fields = ['encuesta', 'texto', 'tipo', 'requerida', 'orden', 'ayuda', 'seccion',
-              'incluir_hora']
-    readonly_fields = ['tipo']
-
-# Clase Admin para Encuesta con todas las preguntas relacionadas
-class PreguntaTextoInline(admin.StackedInline):
-    model = PreguntaTexto
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'max_longitud']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaTextoMultipleInline(admin.StackedInline):
-    model = PreguntaTextoMultiple
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'max_longitud', 'filas']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaOpcionMultipleInline(admin.StackedInline):
-    model = PreguntaOpcionMultiple
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'opcion_otro']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaCasillasVerificacionInline(admin.StackedInline):
-    model = PreguntaCasillasVerificacion
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'opcion_otro', 'min_selecciones', 'max_selecciones']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaMenuDesplegableInline(admin.StackedInline):
-    model = PreguntaMenuDesplegable
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'opcion_vacia']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaEstrellasInline(admin.StackedInline):
-    model = PreguntaEstrellas
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'max_estrellas']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaEscalaInline(admin.StackedInline):
-    model = PreguntaEscala
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'min_valor', 'max_valor']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaMatrizInline(admin.StackedInline):
-    model = PreguntaMatriz
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'escala']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-class PreguntaFechaInline(admin.StackedInline):
-    model = PreguntaFecha
-    extra = 0
-    fields = ['texto', 'orden', 'requerida', 'ayuda', 'incluir_hora']
-    readonly_fields = ['tipo']
-    show_change_link = True
-
-@admin.register(Encuesta)
-class EncuestaAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'creador', 'fecha_creacion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'total_preguntas']
-    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion']
-    search_fields = ['titulo', 'descripcion']
-    ordering = ['-fecha_creacion']
     fieldsets = (
         (None, {
-            'fields': ('titulo', 'descripcion', 'creador', 'slug')
-        }),
-        ('Fechas', {
-            'fields': ('fecha_inicio', 'fecha_fin'),
-            'classes': ('collapse',)
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
         }),
         ('Configuración', {
-            'fields': ('activa', 'es_publica'),
-            'classes': ('collapse',)
+            'fields': ('tipo', 'requerida', 'max_longitud', 'placeholder')
         }),
     )
-    readonly_fields = ['slug', 'fecha_creacion', 'fecha_actualizacion']
+
+class PreguntaTextoMultipleAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'max_longitud', 'filas', 'placeholder')
+        }),
+    )
+
+class PreguntaOpcionMultipleAdmin(admin.ModelAdmin):
+    form = PreguntaOpcionMultipleForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [OpcionMultipleInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'opcion_otro', 'texto_otro')
+        }),
+    )
+
+class PreguntaCasillasVerificacionAdmin(admin.ModelAdmin):
+    form = PreguntaCasillasVerificacionForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [OpcionCasillaVerificacionInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'opcion_otro', 'texto_otro', 
+                      'min_selecciones', 'max_selecciones')
+        }),
+    )
+
+class PreguntaMenuDesplegableAdmin(admin.ModelAdmin):
+    form = PreguntaMenuDesplegableForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [OpcionMenuDesplegableInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'opcion_vacia', 'texto_vacio')
+        }),
+    )
+
+class PreguntaEstrellasAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'max_estrellas']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'max_estrellas', 'etiqueta_inicio', 'etiqueta_fin')
+        }),
+    )
+
+class PreguntaEscalaAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'min_valor', 'max_valor', 
+                      'etiqueta_min', 'etiqueta_max', 'paso')
+        }),
+    )
+
+class PreguntaMatrizAdmin(admin.ModelAdmin):
+    form = PreguntaMatrizForm
+    list_display = ['texto', 'encuesta', 'orden', 'requerida']
+    list_filter = ['encuesta']
+    search_fields = ['texto']
+    inlines = [ItemMatrizPreguntaInline]
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'escala')
+        }),
+    )
+
+class PreguntaFechaAdmin(admin.ModelAdmin):
+    list_display = ['texto', 'encuesta', 'orden', 'requerida', 'incluir_hora']
+    list_filter = ['encuesta', 'incluir_hora']
+    search_fields = ['texto']
+    fieldsets = (
+        (None, {
+            'fields': ('encuesta', 'orden', 'texto', 'ayuda', 'seccion')
+        }),
+        ('Configuración', {
+            'fields': ('tipo', 'requerida', 'incluir_hora')
+        }),
+    )
+
+# Inline para mostrar todas las preguntas relacionadas en la encuesta
+class PreguntaTextoInline(StackedInline):
+    model = PreguntaTexto
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'max_longitud', 'placeholder']
+    verbose_name = "Pregunta de Texto"
+    verbose_name_plural = "Preguntas de Texto"
+
+class PreguntaTextoMultipleInline(StackedInline):
+    model = PreguntaTextoMultiple
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'max_longitud', 'filas', 'placeholder']
+    verbose_name = "Pregunta de Texto Múltiple"
+    verbose_name_plural = "Preguntas de Texto Múltiple"
+
+class PreguntaOpcionMultipleInline(StackedInline):
+    model = PreguntaOpcionMultiple
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'opcion_otro', 'texto_otro']
+    verbose_name = "Pregunta de Opción Múltiple"
+    verbose_name_plural = "Preguntas de Opción Múltiple"
+    inlines = [OpcionMultipleInline]
+
+class PreguntaCasillasVerificacionInline(StackedInline):
+    model = PreguntaCasillasVerificacion
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'opcion_otro', 'texto_otro', 
+              'min_selecciones', 'max_selecciones']
+    verbose_name = "Pregunta de Casillas de Verificación"
+    verbose_name_plural = "Preguntas de Casillas de Verificación"
+    inlines = [OpcionCasillaVerificacionInline]
+
+class PreguntaMenuDesplegableInline(StackedInline):
+    model = PreguntaMenuDesplegable
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'opcion_vacia', 'texto_vacio']
+    verbose_name = "Pregunta de Menú Desplegable"
+    verbose_name_plural = "Preguntas de Menú Desplegable"
+    inlines = [OpcionMenuDesplegableInline]
+
+class PreguntaEstrellasInline(StackedInline):
+    model = PreguntaEstrellas
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'max_estrellas', 'etiqueta_inicio', 'etiqueta_fin']
+    verbose_name = "Pregunta de Estrellas"
+    verbose_name_plural = "Preguntas de Estrellas"
+
+class PreguntaEscalaInline(StackedInline):
+    model = PreguntaEscala
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'min_valor', 'max_valor', 
+              'etiqueta_min', 'etiqueta_max', 'paso']
+    verbose_name = "Pregunta de Escala"
+    verbose_name_plural = "Preguntas de Escala"
+
+class PreguntaMatrizInline(StackedInline):
+    model = PreguntaMatriz
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'escala']
+    verbose_name = "Pregunta de Matriz"
+    verbose_name_plural = "Preguntas de Matriz"
+    inlines = [ItemMatrizPreguntaInline]
+
+class PreguntaFechaInline(StackedInline):
+    model = PreguntaFecha
+    extra = 0
+    fields = ['orden', 'texto', 'requerida', 'incluir_hora']
+    verbose_name = "Pregunta de Fecha/Hora"
+    verbose_name_plural = "Preguntas de Fecha/Hora"
+
+# Admin principal para Encuesta
+class EncuestaAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica']
+    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion']
+    search_fields = ['titulo', 'descripcion']
+    prepopulated_fields = {'slug': ('titulo',)}
+    filter_horizontal = []
+    readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('titulo', 'slug', 'descripcion', 'creador')
+        }),
+        ('Fechas', {
+            'fields': ('fecha_inicio', 'fecha_fin', 'fecha_creacion', 'fecha_actualizacion')
+        }),
+        ('Configuración', {
+            'fields': ('activa', 'es_publica')
+        }),
+    )
+    
+    # Todos los inlines de preguntas
     inlines = [
         PreguntaTextoInline,
         PreguntaTextoMultipleInline,
@@ -280,28 +305,55 @@ class EncuestaAdmin(admin.ModelAdmin):
         PreguntaFechaInline,
     ]
     
-    def total_preguntas(self, obj):
-        total = 0
-        total += obj.preguntatexto_relacionadas.count()
-        total += obj.preguntatextomultiple_relacionadas.count()
-        total += obj.preguntaopcionmultiple_relacionadas.count()
-        total += obj.preguntacasillasverificacion_relacionadas.count()
-        total += obj.preguntamenudesplegable_relacionadas.count()
-        total += obj.preguntaestrellas_relacionadas.count()
-        total += obj.preguntaescala_relacionadas.count()
-        total += obj.preguntamatriz_relacionadas.count()
-        total += obj.preguntafecha_relacionadas.count()
-        return total
-    total_preguntas.short_description = 'Total Preguntas'
+    def get_inline_instances(self, request, obj=None):
+        """Mostrar solo inlines cuando se edita una encuesta existente"""
+        if obj:
+            return super().get_inline_instances(request, obj)
+        return []
 
-# Clase Admin para RespuestaEncuesta con todas las respuestas
-@admin.register(RespuestaEncuesta)
+# Admins para respuestas
+class RespuestaTextoInline(TabularInline):
+    model = RespuestaTexto
+    extra = 0
+    readonly_fields = ['pregunta', 'valor']
+
+class RespuestaOpcionMultipleInline(TabularInline):
+    model = RespuestaOpcionMultiple
+    extra = 0
+    readonly_fields = ['pregunta', 'opcion', 'texto_otro']
+
+class RespuestaCasillasVerificacionInline(TabularInline):
+    model = RespuestaCasillasVerificacion
+    extra = 0
+    readonly_fields = ['pregunta', 'opcion', 'texto_otro']
+
+class RespuestaEstrellasInline(TabularInline):
+    model = RespuestaEstrellas
+    extra = 0
+    readonly_fields = ['pregunta', 'valor']
+
+class RespuestaEscalaInline(TabularInline):
+    model = RespuestaEscala
+    extra = 0
+    readonly_fields = ['pregunta', 'valor']
+
+class RespuestaMatrizInline(TabularInline):
+    model = RespuestaMatriz
+    extra = 0
+    readonly_fields = ['pregunta', 'item', 'valor']
+
+class RespuestaFechaInline(TabularInline):
+    model = RespuestaFecha
+    extra = 0
+    readonly_fields = ['pregunta', 'valor']
+
 class RespuestaEncuestaAdmin(admin.ModelAdmin):
-    list_display = ['encuesta', 'usuario', 'fecha_respuesta', 'completada', 'ip_address']
+    list_display = ['encuesta', 'usuario', 'fecha_respuesta', 'completada']
     list_filter = ['encuesta', 'completada', 'fecha_respuesta']
     search_fields = ['encuesta__titulo', 'usuario__username']
-    ordering = ['-fecha_respuesta']
     readonly_fields = ['fecha_respuesta', 'ip_address', 'user_agent']
+    
+    # Todos los inlines de respuestas
     inlines = [
         RespuestaTextoInline,
         RespuestaOpcionMultipleInline,
@@ -312,45 +364,18 @@ class RespuestaEncuestaAdmin(admin.ModelAdmin):
         RespuestaFechaInline,
     ]
     
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing an existing object
-            return self.readonly_fields + ['encuesta', 'usuario']
-        return self.readonly_fields
+    def has_add_permission(self, request):
+        return False  # No permitir añadir respuestas manualmente
 
-# Admin para modelos de opciones (solo lectura)
-@admin.register(OpcionMultiple)
-class OpcionMultipleAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'valor', 'orden', 'pregunta']
-    list_filter = ['pregunta__encuesta']
-    search_fields = ['texto', 'valor']
-    ordering = ['pregunta', 'orden']
-    readonly_fields = ['pregunta']
-
-@admin.register(OpcionCasillaVerificacion)
-class OpcionCasillaVerificacionAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'valor', 'orden', 'pregunta']
-    list_filter = ['pregunta__encuesta']
-    search_fields = ['texto', 'valor']
-    ordering = ['pregunta', 'orden']
-    readonly_fields = ['pregunta']
-
-@admin.register(OpcionMenuDesplegable)
-class OpcionMenuDesplegableAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'valor', 'orden', 'pregunta']
-    list_filter = ['pregunta__encuesta']
-    search_fields = ['texto', 'valor']
-    ordering = ['pregunta', 'orden']
-    readonly_fields = ['pregunta']
-
-@admin.register(ItemMatrizPregunta)
-class ItemMatrizPreguntaAdmin(admin.ModelAdmin):
-    list_display = ['texto', 'orden', 'pregunta']
-    list_filter = ['pregunta__encuesta']
-    search_fields = ['texto']
-    ordering = ['pregunta', 'orden']
-    readonly_fields = ['pregunta']
-
-# Personalización del sitio admin
-admin.site.site_header = "Administración de Encuestas"
-admin.site.site_title = "Sistema de Encuestas"
-admin.site.index_title = "Bienvenido al panel de administración"
+# Registro de todos los modelos en el admin
+admin.site.register(Encuesta, EncuestaAdmin)
+admin.site.register(PreguntaTexto, PreguntaTextoAdmin)
+admin.site.register(PreguntaTextoMultiple, PreguntaTextoMultipleAdmin)
+admin.site.register(PreguntaOpcionMultiple, PreguntaOpcionMultipleAdmin)
+admin.site.register(PreguntaCasillasVerificacion, PreguntaCasillasVerificacionAdmin)
+admin.site.register(PreguntaMenuDesplegable, PreguntaMenuDesplegableAdmin)
+admin.site.register(PreguntaEstrellas, PreguntaEstrellasAdmin)
+admin.site.register(PreguntaEscala, PreguntaEscalaAdmin)
+admin.site.register(PreguntaMatriz, PreguntaMatrizAdmin)
+admin.site.register(PreguntaFecha, PreguntaFechaAdmin)
+admin.site.register(RespuestaEncuesta, RespuestaEncuestaAdmin)

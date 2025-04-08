@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Encuesta Completada" %} - {{ encuesta.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+            <div class="card shadow">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-3">{% trans "¡Gracias por completar la encuesta!" %}</h2>
+                    <h4 class="text-muted mb-4">{{ encuesta.titulo }}</h4>
+                    <p class="lead">
+                        {% trans "Tu respuesta ha sido registrada correctamente." %}
+                    </p>
+                    
+                    <div class="mt-5">
+                        <a href="{% url 'home' %}" class="btn btn-primary">
+                            {% trans "Volver al inicio" %}
+                        </a>
+                        
+                        {% if user.is_authenticated and encuesta.creador == user %}
+                        <a href="{% url 'encuesta_resultados' encuesta.slug %}" class="btn btn-outline-primary ml-2">
+                            {% trans "Ver resultados" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
