@@ -19,6 +19,7 @@ import re
 from .decorators import *
 import csv
 from datetime import datetime
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 def registro_view(request):
     if request.method == 'POST':
@@ -132,11 +133,24 @@ def editar_encuesta(request, encuesta_id):
     })
 
 # Vista para listar encuestas del usuario
-class ListaEncuestasView(ListView):
+
+
+class ListaEncuestasView(LoginRequiredMixin, ListView):
     model = Encuesta
     template_name = 'Encuesta/lista_encuestas.html'
     context_object_name = 'encuestas'
     paginate_by = 10
-    
+
     def get_queryset(self):
         return Encuesta.objects.filter(creador=self.request.user).order_by('-fecha_creacion')
+
+    
+class TodasEncuestasView(ListView):
+    model = Encuesta
+    template_name = 'Encuesta/todas_encuestas.html'
+    context_object_name = 'encuestas'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Encuesta.objects.all().order_by('-fecha_creacion')
+
