@@ -154,3 +154,104 @@ class TodasEncuestasView(ListView):
     def get_queryset(self):
         return Encuesta.objects.all().order_by('-fecha_creacion')
 
+def responder_encuesta(request, slug):
+    encuesta = get_object_or_404(Encuesta, slug=slug)
+
+    if not encuesta.activa or encuesta.fecha_inicio > timezone.now() or encuesta.fecha_fin < timezone.now():
+        return render(request, 'encuestas/encuesta_no_disponible.html', {'encuesta': encuesta})
+
+    if request.method == 'POST':
+        form = RespuestaForm(encuesta, request.POST)
+        if form.is_valid():
+            respuesta_encuesta = RespuestaEncuesta.objects.create(
+                encuesta=encuesta,
+                usuario=request.user if request.user.is_authenticated else None,
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT'),
+                completada=True
+            )
+            for name, value in form.cleaned_data.items():
+                if name.startswith('pregunta_'):
+                    pregunta_id = int(name.split('_')[1])
+                    try:
+                        pregunta_texto = PreguntaTexto.objects.get(id=pregunta_id, encuesta=encuesta)
+                        RespuestaTexto.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_texto, valor=value)
+                    except PreguntaTexto.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_mtexto = PreguntaTextoMultiple.objects.get(id=pregunta_id, encuesta=encuesta)
+                        RespuestaTexto.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_mtexto, valor=value)
+                    except PreguntaTextoMultiple.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_radio = PreguntaOpcionMultiple.objects.get(id=pregunta_id, encuesta=encuesta)
+                        if value == 'otro':
+                            otro_valor = form.cleaned_data.get(f'otro_{pregunta_id}', '')
+                            RespuestaOpcionMultiple.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_radio, texto_otro=otro_valor)
+                        else:
+                            opcion = OpcionMultiple.objects.get(id=value, pregunta=pregunta_radio)
+                            RespuestaOpcionMultiple.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_radio, opcion=opcion)
+                    except PreguntaOpcionMultiple.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_check = PreguntaCasillasVerificacion.objects.get(id=pregunta_id, encuesta=encuesta)
+                        if isinstance(value, list):
+                            for opcion_id in value:
+                                if opcion_id == 'otro':
+                                    otro_valor = form.cleaned_data.get(f'otro_{pregunta_id}', '')
+                                    RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_check, texto_otro=otro_valor)
+                                else:
+                                    opcion = OpcionCasillaVerificacion.objects.get(id=opcion_id, pregunta=pregunta_check)
+                                    RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_check, opcion=opcion)
+                        elif value == 'otro':
+                            otro_valor = form.cleaned_data.get(f'otro_{pregunta_id}', '')
+                            RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_check, texto_otro=otro_valor)
+                        else:
+                            opcion = OpcionCasillaVerificacion.objects.get(id=value, pregunta=pregunta_check)
+                            RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_check, opcion=opcion)
+                    except PreguntaCasillasVerificacion.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_select = PreguntaMenuDesplegable.objects.get(id=pregunta_id, encuesta=encuesta)
+                        if value:
+                            opcion = OpcionMenuDesplegable.objects.get(id=value, pregunta=pregunta_select)
+                            # You might need a RespuestaMenuDesplegable model if you want to store the selected option
+                            # For now, we'll assume storing the OpcionMenuDesplegable directly
+                            # If you need the raw value, you might adjust this.
+                            class RespuestaMenuDesplegable(RespuestaBase):
+                                pregunta = models.ForeignKey(PreguntaMenuDesplegable, on_delete=models.CASCADE)
+                                opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE)
+                            RespuestaMenuDesplegable.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_select, opcion=opcion)
+                    except PreguntaMenuDesplegable.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_star = PreguntaEstrellas.objects.get(id=pregunta_id, encuesta=encuesta)
+                        RespuestaEstrellas.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_star, valor=int(value))
+                    except PreguntaEstrellas.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_scale = PreguntaEscala.objects.get(id=pregunta_id, encuesta=encuesta)
+                        RespuestaEscala.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_scale, valor=int(value))
+                    except PreguntaEscala.DoesNotExist:
+                        pass
+                    try:
+                        pregunta_fecha = PreguntaFecha.objects.get(id=pregunta_id, encuesta=encuesta)
+                        RespuestaFecha.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_fecha, valor=value)
+                    except PreguntaFecha.DoesNotExist:
+                        pass
+                elif name.startswith(f'pregunta_') and '_item_' in name:
+                    parts = name.split('_')
+                    pregunta_id = int(parts[1])
+                    item_id = int(parts[3])
+                    try:
+                        pregunta_matriz = PreguntaMatriz.objects.get(id=pregunta_id, encuesta=encuesta)
+                        item_matriz = ItemMatrizPregunta.objects.get(id=item_id, pregunta=pregunta_matriz)
+                        RespuestaMatriz.objects.create(respuesta_encuesta=respuesta_encuesta, pregunta=pregunta_matriz, item=item_matriz, valor=int(value))
+                    except (PreguntaMatriz.DoesNotExist, ItemMatrizPregunta.DoesNotExist):
+                        pass
+
+            return redirect('encuestas_lista') # Replace 'encuestas_lista' with your actual success URL
+    else:
+        form = RespuestaForm(encuesta)
+
+    return render(request, 'encuesta/responder_encuesta.html', {'form': form, 'encuesta': encuesta})
