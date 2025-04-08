@@ -302,6 +302,8 @@
                                             id="check_{{ opcion.id }}"
                                             value="{{ opcion.id }}"
                                             data-pregunta-id="{{ pregunta.id }}"
+                                            data-min-selecciones="{{ pregunta.min_selecciones }}"
+                                            data-max-selecciones="{{ pregunta.max_selecciones|default:'' }}"
                                             onchange="validarSelecciones('{{ pregunta.id }}')">
                                         <label class="form-check-label" for="check_{{ opcion.id }}">
                                             {{ opcion.texto }}
@@ -317,6 +319,8 @@
                                             id="check_otro_{{ pregunta.id }}"
                                             value="otro"
                                             data-pregunta-id="{{ pregunta.id }}"
+                                            data-min-selecciones="{{ pregunta.min_selecciones }}"
+                                            data-max-selecciones="{{ pregunta.max_selecciones|default:'' }}"
                                             onchange="validarSelecciones('{{ pregunta.id }}')">
                                         <label class="form-check-label" for="check_otro_{{ pregunta.id }}">
                                             {{ pregunta.texto_otro|default:"Otro" }}
@@ -433,8 +437,12 @@
         // Validar selecciones mínimas/máximas
         function validarSelecciones(preguntaId) {
             const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
-            const min = parseInt(document.querySelector(`input[name="pregunta_${preguntaId}[]"]`).dataset.minSelecciones || 0);
-            const max = parseInt(document.querySelector(`input[name="pregunta_${preguntaId}[]"]`).dataset.maxSelecciones || 0) || null;
+            const firstCheck = document.querySelector(`input[name="pregunta_${preguntaId}[]"]`);
+            
+            if (!firstCheck) return;
+            
+            const min = parseInt(firstCheck.dataset.minSelecciones || 0);
+            const max = parseInt(firstCheck.dataset.maxSelecciones || 0) || null;
             
             if (max && checks.length > max) {
                 alert(`Debe seleccionar máximo ${max} opciones`);

@@ -278,8 +278,8 @@
                 <div class="options-list mb-2">
                     <div class="option-row input-group">
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
-                        <input type="hidden" name="questions[{id}][options][0][order]" value="1">
+                        <input type="text" class="form-control" name="questions[{id}][opciones][0][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[{id}][opciones][0][orden]" value="1">
                         <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
@@ -321,10 +321,10 @@
                         <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
                         <input type="text" class="form-control" name="questions[{id}][options][0][text]" placeholder="Texto de la opción" required>
                         <input type="hidden" name="questions[{id}][options][0][order]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-option"><i class="fas fa-times"></i></button>
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm add-option">
+                <button type="button" class="btn btn-outline-secondary btn-sm add-option" onclick="agregarOpciones(this)">
                     <i class="fas fa-plus"></i> Añadir Opción
                 </button>
             </div>
@@ -528,17 +528,32 @@
             const optionsList = $button.closest('.mb-3').find('.options-list');
             const optionsCount = optionsList.children().length;
             const questionId = $button.closest('.question-card').data('question-id');
+            const questionType = $button.closest('.question-card').find('.question-type').val();
             
-            const newOption = `
-                <div class="option-row input-group">
-                    <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                    <input type="text" class="form-control" name="questions[${questionId}][opciones][${optionsCount}][texto]" placeholder="Texto de la opción" required>
-                    <input type="hidden" name="questions[${questionId}][opciones][${optionsCount}][orden]" value="${optionsCount + 1}">
-                    <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
+            let newOption;
+            if (questionType === 'CHECK') {
+                newOption = `
+                    <div class="option-row input-group">
+                        <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
+                        <input type="text" class="form-control" name="questions[${questionId}][opciones][${optionsCount}][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[${questionId}][opciones][${optionsCount}][orden]" value="${optionsCount + 1}">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                newOption = `
+                    <div class="option-row input-group">
+                        <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
+                        <input type="text" class="form-control" name="questions[${questionId}][opciones][${optionsCount}][texto]" placeholder="Texto de la opción" required>
+                        <input type="hidden" name="questions[${questionId}][opciones][${optionsCount}][orden]" value="${optionsCount + 1}">
+                        <button type="button" class="btn btn-outline-danger remove-option" onclick="eliminarOpcion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }
             optionsList.append(newOption);
         }
 
