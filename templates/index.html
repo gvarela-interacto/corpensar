@@ -85,8 +85,8 @@
       <div class="card h-100 border-0">
         <div class="position-absolute w-100" style="height: 6px; background-color: #0d6efd; top: 0; left: 0;"></div>
         <div class="card-body bg-light">
-          <h5 class="card-title">Total tiquetera</h5>
-          <h2 class="display-4">{{ total_tiquetera }}</h2>
+          <h5 class="card-title">Total Encuestas</h5>
+          <h2 class="display-4">{{ total_encuestas }}</h2>
         </div>
       </div>
     </div>
@@ -95,8 +95,8 @@
       <div class="card h-100 border-0">
         <div class="position-absolute w-100" style="height: 6px; background-color: #198754; top: 0; left: 0;"></div>
         <div class="card-body bg-light">
-          <h5 class="card-title">tiquetera Activos</h5>
-          <h2 class="display-4">{{ tiquetera_activos }}</h2>
+          <h5 class="card-title">Encuestas Activas</h5>
+          <h2 class="display-4">{{ encuestas_activas }}</h2>
         </div>
       </div>
     </div>
@@ -105,18 +105,18 @@
       <div class="card h-100 border-0">
         <div class="position-absolute w-100" style="height: 6px; background-color: #ffc107; top: 0; left: 0;"></div>
         <div class="card-body bg-light">
-          <h5 class="card-title">Necesitan Reorden</h5>
-          <h2 class="display-4">{{ tiquetera_reorden }}</h2>
+          <h5 class="card-title">Respuestas Totales</h5>
+          <h2 class="display-4">{{ total_respuestas|intcomma }}</h2>
         </div>
       </div>
     </div>
     
-    <div class="col-md-3 col-sm-6 mb-3">
+    <div class="col-md-3 col-sm-6 mb-2">
       <div class="card h-100 border-0">
         <div class="position-absolute w-100" style="height: 6px; background-color: #dc3545; top: 0; left: 0;"></div>
         <div class="card-body bg-light">
-          <h5 class="card-title">Descontinuados</h5>
-          <h2 class="display-4">{{ tiquetera_descontinuados }}</h2>
+          <h5 class="card-title">Promedio Resp.</h5>
+          <h2 class="display-4">{{ avg_respuestas }}</h2>
         </div>
       </div>
     </div>
@@ -134,16 +134,17 @@
           <div class="col-md-6 mb-3">
             <div class="alert alert-warning alert-clickable" data-target="reorden-products">
               <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              <strong>{{ tiquetera_reorden }}</strong> tiquetera por debajo del stock mínimo
+              <strong>{{ encuestas_proximo_fin }}</strong> Encuestas por finalizar en 3 días
             </div>
+            
             <div id="reorden-products" class="product-list-container" style="display: none;">
               <ul class="list-group">
-                {% for producto in tiquetera_bajo_stock %}
+                {% for respuesta in ultimas_respuestas %}
                   <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{% url 'tiquetera-detalle' producto.id_producto %}" class="text-decoration-none text-dark flex-grow-1">
-                      {{ producto.nombre }}
+                    <a href="{% url 'responder_encuesta' respuesta.encuesta.slug %}" class="text-decoration-none text-dark flex-grow-1">
+                      {{ respuesta.encuesta.titulo|truncatechars:30 }}
                     </a>
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar-producto' producto.id_producto %}" title="Editar">
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_encuesta' respuesta.encuesta.id %}" title="Editar">
                       <i class="mdi mdi-pencil-outline"></i>
                     </a>
                   </li>
@@ -157,7 +158,7 @@
           <div class="col-md-6 mb-3">
             <div class="alert alert-clickable" style="background-color: #fd7373e9; color: #920101;" data-target="no-image-products">
               <i class="bi bi-image me-2"></i>
-              <strong>{{ tiquetera_sin_imagenes }}</strong> tiquetera sin imágenes
+              <strong>{{ encuestas_poca_participacion }}</strong> Encuestas con menos de 5 respuestas
             </div>
             <div id="no-image-products" class="product-list-container" style="display: none;">
               <ul class="list-group">
@@ -176,176 +177,121 @@
               </ul>
             </div>
           </div>
-          
-          <!-- Segunda fila -->
-          <div class="col-md-6 mb-3">
-            <div class="alert alert-clickable" style="background-color: #ffcca2e9; color: #924901;" data-target="no-category-products">
-              <i class="bi bi-tag-fill me-2"></i>
-              <strong>{{ tiquetera_sin_categoria|default:"0" }}</strong> tiquetera sin categoría
-            </div>
-            <div id="no-category-products" class="product-list-container" style="display: none;">
-              <ul class="list-group">
-                {% for producto in tiquetera_sin_categoria_lista %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{% url 'tiquetera-detalle' producto.id_producto %}" class="text-decoration-none text-dark flex-grow-1">
-                      {{ producto.nombre }}
-                    </a>
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar-producto' producto.id_producto %}" title="Editar">
-                      <i class="mdi mdi-pencil-outline"></i>
-                    </a>
-                  </li>
-                {% empty %}
-                  <li class="list-group-item text-muted">No hay tiquetera en esta categoría</li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-    
-          <div class="col-md-6 mb-3">
-            <div class="alert alert-danger alert-clickable" data-target="no-supplier-products">
-              <i class="bi bi-truck me-2"></i>
-              <strong>{{ tiquetera_sin_proveedores_alt }}</strong> tiquetera sin proveedores alternativos
-            </div>
-            <div id="no-supplier-products" class="product-list-container" style="display: none;">
-              <ul class="list-group">
-                {% for producto in tiquetera_sin_proveedores %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{% url 'tiquetera-detalle' producto.id_producto %}" class="text-decoration-none text-dark flex-grow-1">
-                      {{ producto.nombre }}
-                    </a>
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar-producto' producto.id_producto %}" title="Editar">
-                      <i class="mdi mdi-pencil-outline"></i>
-                    </a>
-                  </li>
-                {% empty %}
-                  <li class="list-group-item text-muted">No hay tiquetera en esta categoría</li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
-  
-  <!-- Gráficos-->
+<!-- Contenedor principal -->
+<div class="container">
+  <!-- Fila para los gráficos y/o tablas -->
   <div class="row mb-4">
-    <!-- Gráfico de Categorías -->
-    <div class="col-lg-4 mb-4">
-      <div class="card h-100">
+    <!-- Columna para el gráfico: ocupa 12 columnas en pantallas pequeñas y 6 en pantallas grandes -->
+    <div class="col-12 col-lg-6 mb-4">
+      <div class="card">
         <div class="card-header">
-          <h5 class="card-title">Top 5 Categorías</h5>
+          <h5 class="mb-0">Distribución de Tipos de Preguntas</h5>
         </div>
         <div class="card-body">
-          <canvas id="categoriaChart"></canvas>
+          <!-- Chart Container con altura relativa (ajústala según necesidad) -->
+          <div class="chart-container" style="position: relative; height:40vh; width:100%;">
+            <canvas id="tipoPreguntasChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
     
-    <!-- Gráfico de Marcas -->
-    <div class="col-lg-4 mb-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="card-title">Top 5 Marcas</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="marcaChart"></canvas>
-        </div>
-      </div>
-    </div>
     
-    <!-- Gráfico de Estado -->
-    <div class="col-lg-4 mb-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="card-title">Estado de tiquetera</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="estadoChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="row mb-4">
-    <!-- Valor del inventario por proveedor -->
+    <!-- Últimas Respuestas -->
     <div class="col-lg-6 mb-4">
       <div class="card h-100">
         <div class="card-header">
-          <h5 class="card-title">Top 5 Proveedores</h5>
+          <h5 class="card-title">Últimas Respuestas</h5>
         </div>
-        <div class="card-body">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>Proveedor</th>
-                <th>tiquetera</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for proveedor in proveedores_top %}
-              <tr>
-                <td>{{ proveedor.nombre }}</td>
-                <td>{{ proveedor.num_tiquetera }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6 mb-4">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="card-title">Precio Promedio por Categoría</h5>
-        </div>
-        <div class="card-body">
-          <table class="table table-sm table-hover">
-            <thead>
-              <tr>
-                <th>Categoría</th>
-                <th>Precio Promedio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for categoria in precios_categoria %}
-              <tr>
-                <td>{{ categoria.nombre }}</td>
-                <td>${{ categoria.precio_promedio|floatformat:2|intcomma }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th>Encuesta</th>
+                  <th>Usuario</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for respuesta in ultimas_respuestas %}
+                <tr>
+                  <td>
+                    <a href="#" class="text-dark">
+                      {{ respuesta.encuesta.titulo|truncatechars:30 }}
+                    </a>
+                  </td>
+                  <td>
+                    {% if respuesta.usuario %}
+                      {{ respuesta.usuario.username|truncatechars:15 }}
+                    {% else %}
+                      <span class="text-muted">Anónimo</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ respuesta.fecha_respuesta|date:"d M H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-muted">
+                    No hay respuestas recientes
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Resumen financiero -->
+
+  <!-- Detalle de Encuestas -->
   <div class="row">
     <div class="col-12">
       <div class="card">
         <div class="card-header">
-          <h5 class="card-title">Resumen Financiero</h5>
+          <h5 class="card-title">Resumen por Encuesta</h5>
         </div>
         <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h6 class="card-title">Valor Total del Inventario</h6>
-                  <h2 class="text-primary">${{ valor_inventario|floatformat:2|intcomma }}</h2>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h6 class="card-title">Total tiquetera Activos</h6>
-                  <h2 class="text-success">{{ tiquetera_activos }}</h2>
-                </div>
-              </div>
-            </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Encuesta</th>
+                  <th>Estado</th>
+                  <th>Respuestas</th>
+                  <th>Promedio</th>
+                  <th>Fecha Fin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for encuesta in encuestas_detalle %}
+                <tr>
+                  <td>{{ encuesta.titulo }}</td>
+                  <td>
+                    {% if encuesta.activa %}
+                      <span class="badge bg-success">Activa</span>
+                    {% else %}
+                      <span class="badge bg-secondary">Inactiva</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ encuesta.cantidad_respuestas }}</td>
+                  <td>{{ encuesta.promedio_respuestas|default:0|floatformat:1 }}</td>
+                  <td>{{ encuesta.fecha_fin|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center py-4 text-muted">
+                    No hay encuestas disponibles
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -353,161 +299,48 @@
   </div>
 </div>
 
-<!-- Preparar datos para JavaScript -->
-<script type="text/javascript">
-  // Variable para almacenar todos los datos necesarios para los gráficos
-  var dashboardData = {
-    categorias: [
-      {% for categoria in categorias_top %}
-        {
-          nombre: "{{ categoria.nombre }}",
-          num_tiquetera: {{ categoria.num_tiquetera|default:0 }}
-        }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ],
-    marcas: [
-      {% for marca in marcas_top %}
-        {
-          nombre: "{{ marca.nombre }}",
-          num_tiquetera: {{ marca.num_tiquetera|default:0 }}
-        }{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    ],
-    estadotiquetera: {
-      activos: {{ tiquetera_activos|default:0 }},
-      descontinuados: {{ tiquetera_descontinuados|default:0 }},
-      temporales: {{ tiquetera_temporales|default:0 }}
-    }
-  };
-</script>
-{% endblock %}
-
-{% block javascript %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  
   document.addEventListener('DOMContentLoaded', function() {
-    const alerts = document.querySelectorAll('.alert-clickable');
-    
-    alerts.forEach(alert => {
-      alert.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const productList = document.getElementById(targetId);
-        
-        // Cierra todas las demás listas primero
-        document.querySelectorAll('.product-list-container').forEach(container => {
-          if (container.id !== targetId) {
-            container.style.display = 'none';
-          }
-        });
-        
-        // Alterna la lista actual
-        if (productList.style.display === 'none') {
-          productList.style.display = 'block';
-        } else {
-          productList.style.display = 'none';
-        }
-      });
-    });
-  });
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    // Extraer los datos de las variables preformateadas
-    const categoriasNombres = dashboardData.categorias.map(cat => cat.nombre);
-    const categoriasData = dashboardData.categorias.map(cat => cat.num_tiquetera);
-    
-    const marcasNombres = dashboardData.marcas.map(marca => marca.nombre);
-    const marcasData = dashboardData.marcas.map(marca => marca.num_tiquetera);
-    
-    // Configuración de datos para el gráfico de categorías
-    const categoriasCtx = document.getElementById('categoriaChart').getContext('2d');
-    const categoriasChart = new Chart(categoriasCtx, {
-      type: 'bar',
-      data: {
-        labels: categoriasNombres,
-        datasets: [{
-          label: 'Número de tiquetera',
-          data: categoriasData,
-          backgroundColor: [
-            'rgba(54, 162, 235, 0.7)',
-            'rgba(75, 192, 192, 0.7)',
-            'rgba(153, 102, 255, 0.7)',
-            'rgba(255, 159, 64, 0.7)',
-            'rgba(255, 99, 132, 0.7)'
-          ],
-          borderWidth: 1
-        }]
-      },
+    // Datos para el gráfico
+    const tipoPreguntasData = {
+      labels: [
+        {% for tipo in tipos_preguntas %}
+          "{{ tipo.get_tipo_display }}"{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ],
+      datasets: [{
+        data: [
+          {% for tipo in tipos_preguntas %}
+            {{ tipo.total }}{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ],
+        backgroundColor: [
+          '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+          '#e74a3b', '#858796', '#5a5c69'
+        ],
+        hoverOffset: 10
+      }]
+    };
+
+    // Configuración del gráfico
+    const ctx = document.getElementById('tipoPreguntasChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: tipoPreguntasData,
       options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              precision: 0
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 15,
+              padding: 20
             }
           }
         }
       }
     });
-    
-    // Configuración de datos para el gráfico de marcas
-    const marcasCtx = document.getElementById('marcaChart').getContext('2d');
-    const marcasChart = new Chart(marcasCtx, {
-      type: 'doughnut',
-      data: {
-        labels: marcasNombres,
-        datasets: [{
-          data: marcasData,
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.7)',
-            'rgba(54, 162, 235, 0.7)',
-            'rgba(255, 206, 86, 0.7)',
-            'rgba(75, 192, 192, 0.7)',
-            'rgba(153, 102, 255, 0.7)'
-          ],
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'right'
-          }
-        }
-      }
-    });
-    
-    // Configuración de datos para el gráfico de estado
-    const estadoCtx = document.getElementById('estadoChart').getContext('2d');
-    const estadoChart = new Chart(estadoCtx, {
-      type: 'pie',
-      data: {
-        labels: ['Activos', 'Descontinuados', 'Temporalmente no disponibles'],
-        datasets: [{
-          data: [
-            dashboardData.estadotiquetera.activos, 
-            dashboardData.estadotiquetera.descontinuados, 
-            dashboardData.estadotiquetera.temporales
-          ],
-          backgroundColor: [
-            'rgba(40, 167, 69, 0.7)',  // verde para activos
-            'rgba(220, 53, 69, 0.7)',  // rojo para descontinuados
-            'rgba(255, 193, 7, 0.7)'   // amarillo para temporales
-          ],
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
-      }
-    });
   });
 </script>
-{% endblock %}
+{% endblock %} 

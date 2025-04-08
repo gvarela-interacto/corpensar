@@ -12,6 +12,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import modelform_factory, formset_factory, Form
+from django.db.models import Count, Avg
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
@@ -46,10 +47,60 @@ def custom_logout(request):
     logout(request)
     return redirect('login')
 
+
+
 @login_required
 def index_view(request):
-    
-    return render(request, 'index.html')
+    now = timezone.now()
+
+    total_encuestas = Encuesta.objects.count()
+    encuestas_activas = Encuesta.objects.filter(
+        activa=True,
+        fecha_inicio__lte=now,
+        fecha_fin__gte=now
+    ).count()
+
+    total_respuestas = RespuestaEncuesta.objects.count()
+    avg_respuestas = Encuesta.objects.annotate(
+        num_respuestas=Count('respuestas')
+    ).aggregate(avg=Avg('num_respuestas'))['avg'] or 0
+
+    encuestas_proximo_fin = Encuesta.objects.filter(
+        fecha_fin__gte=now,
+        fecha_fin__lte=now + timezone.timedelta(days=3)
+    ).count()
+
+    encuestas_poca_participacion = Encuesta.objects.annotate(
+        num_respuestas=Count('respuestas')
+    ).filter(num_respuestas__lt=5).count()
+
+    tipos_preguntas = PreguntaTexto.objects.values('tipo').annotate(
+        total=Count('tipo')
+    ).order_by('-total')
+
+    ultimas_respuestas = RespuestaEncuesta.objects.select_related(
+        'encuesta', 'usuario'
+    ).order_by('-fecha_respuesta')[:10]
+
+    # Encuestas con detalle por nombre, cantidad de respuestas y promedio
+    encuestas_detalle = Encuesta.objects.annotate(
+        cantidad_respuestas=Count('respuestas'),
+        promedio_respuestas=Avg('respuestas__id')  # O puedes usar otra métrica más significativa
+    ).order_by('-fecha_creacion')
+
+    context = {
+        'total_encuestas': total_encuestas,
+        'encuestas_activas': encuestas_activas,
+        'total_respuestas': total_respuestas,
+        'avg_respuestas': round(avg_respuestas, 1),
+        'encuestas_proximo_fin': encuestas_proximo_fin,
+        'encuestas_poca_participacion': encuestas_poca_participacion,
+        'tipos_preguntas': tipos_preguntas,
+        'ultimas_respuestas': ultimas_respuestas,
+        'encuestas_detalle': encuestas_detalle, 
+    }
+
+    return render(request, 'index.html', context)
 
 #views del programa
 
