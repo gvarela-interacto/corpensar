@@ -19,6 +19,8 @@ urlpatterns = [
   path('encuestas/todas-encuestas/', views.TodasEncuestasView.as_view(), name='todas_encuestas'),
   path('encuestas/<int:pk>/resultados/', views.ResultadosEncuestaView.as_view(), name='resultados_encuesta'),
 
+  
+
 
   
 
