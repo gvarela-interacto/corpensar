@@ -16,6 +16,9 @@ urlpatterns = [
   path('encuestas/duplicar/', views.duplicar_encuesta, name='duplicar_encuesta'),
   path('encuestas/editar/<int:encuesta_id>/', views.editar_encuesta, name='editar_encuesta'),
   path('encuestas/mis-encuestas/', views.ListaEncuestasView.as_view(), name='lista_encuestas'),
+  path('encuestas/todas-encuestas/', views.TodasEncuestasView.as_view(), name='todas_encuestas'),
+
+  
 
   #Inicio Sesion y Registro
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),

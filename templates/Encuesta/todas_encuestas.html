@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Mis Encuestas</h2>
+    <h2>Todas las Encuestas</h2>
     <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary mb-3">
         <i class="fas fa-plus"></i> Nueva Encuesta
     </a>
@@ -15,6 +15,7 @@
                     <th>Título</th>
                     <th>Estado</th>
                     <th>Fecha Creación</th>
+                    <th>Creador</th>
                     <th>Url</th>
                     <th>Acciones</th>
                 </tr>
@@ -29,7 +30,12 @@
                         </span>
                     </td>
                     <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
+                    <td>{{ encuesta.creador.username }}</td>
                     <td>{{ encuesta.slug }}</td>
+                    <td>
+                        <a href="{{ encuesta.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-link"></i> Ver
+                        </a>
                     <td>
                         <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit"></i> Editar
@@ -38,7 +44,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center">No tienes encuestas creadas aún.</td>
+                    <td colspan="5" class="text-center">No hay encuestas disponibles.</td>
                 </tr>
                 {% endfor %}
             </tbody>
