@@ -1,4 +1,6 @@
 from decimal import Decimal
+from itertools import chain
+from collections import Counter, defaultdict
 import json
 import locale
 from django.contrib.auth.decorators import login_required
@@ -123,6 +125,7 @@ def duplicar_encuesta(request):
     return render(request, 'Encuesta/seleccionar_para_duplicar.html', {'encuestas': encuestas})
 
 # Vista para editar encuesta (común para todos los métodos)
+@login_required
 def editar_encuesta(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
     
@@ -167,22 +170,81 @@ class ResultadosEncuestaView(DetailView):
     template_name = 'Encuesta/resultados_encuesta.html'
     context_object_name = 'encuesta'
 
+    from itertools import chain
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        preguntas = self.object.pregunta_set.all()
-        estadisticas = []
+        encuesta = self.object
+
+        # Recuperar todas las preguntas como antes
+        preguntas = sorted(
+            chain(
+                encuesta.preguntatexto_relacionadas.all(),
+                encuesta.preguntatextomultiple_relacionadas.all(),
+                encuesta.preguntaopcionmultiple_relacionadas.all(),
+                encuesta.preguntacasillasverificacion_relacionadas.all(),
+                encuesta.preguntamenudesplegable_relacionadas.all(),
+                encuesta.preguntaestrellas_relacionadas.all(),
+                encuesta.preguntaescala_relacionadas.all(),
+                encuesta.preguntamatriz_relacionadas.all(),
+                encuesta.preguntafecha_relacionadas.all(),
+            ),
+            key=lambda x: x.orden
+        )
+
+        context['preguntas'] = preguntas
+        context['graficas'] = {}
+
         for pregunta in preguntas:
-            opciones = pregunta.opcion_set.all()
-            datos = []
-            for opcion in opciones:
-                total = opcion.respuesta_set.count()
-                datos.append((opcion.texto, total))
-            estadisticas.append({
-                'pregunta': pregunta.texto,
-                'datos': datos
-            })
-        context['estadisticas'] = estadisticas
+            tipo = pregunta.__class__.__name__
+            key = f"pregunta_{pregunta.id}"
+
+            if tipo in ['PreguntaOpcionMultiple', 'PreguntaCasillasVerificacion', 'PreguntaMenuDesplegable']:
+                respuestas = pregunta.respuestaopcion_set.all()
+                counter = Counter([r.opcion.texto for r in respuestas])
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaEstrellas':
+                respuestas = pregunta.respuestaestrellas_set.all()
+                valores = [r.valor for r in respuestas]
+                promedio = sum(valores) / len(valores) if valores else 0
+                context['graficas'][key] = {
+                    'valores': valores,
+                    'promedio': promedio
+                }
+
+            elif tipo == 'PreguntaEscala':
+                respuestas = pregunta.respuestaescala_set.all()
+                valores = [r.valor for r in respuestas]
+                counter = Counter(valores)
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaTextoMultiple':
+                respuestas = pregunta.respuestatextomultiple_set.all()
+                textos = [r.texto for r in respuestas]
+                context['graficas'][key] = textos
+
+            elif tipo == 'PreguntaTexto':
+                respuestas = pregunta.respuestatexto_set.all()
+                textos = [r.texto for r in respuestas]
+                context['graficas'][key] = textos
+
+            elif tipo == 'PreguntaFecha':
+                respuestas = pregunta.respuestafecha_set.all()
+                fechas = [r.fecha.isoformat() for r in respuestas]
+                counter = Counter(fechas)
+                context['graficas'][key] = dict(counter)
+
+            elif tipo == 'PreguntaMatriz':
+                # Podrías tener algo como filas/columnas, necesitarías adaptar aquí
+                respuestas = pregunta.respuestamatriz_set.all()
+                datos = defaultdict(Counter)
+                for r in respuestas:
+                    datos[r.fila][r.columna] += 1
+                context['graficas'][key] = {fila: dict(contador) for fila, contador in datos.items()}
+
         return context
+
 
 
 def get_client_ip(request):
