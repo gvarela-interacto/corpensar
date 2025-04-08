@@ -373,7 +373,7 @@
                                         <tr>
                                             <th></th>
                                             {% for i in pregunta.escala.max_valor|times %}
-                                                <th>{{ pregunta.escala.etiqueta_min }}</th>
+                                                <th>{{ i }}</th>
                                             {% endfor %}
                                         </tr>
                                     </thead>
@@ -394,6 +394,10 @@
                                         {% endfor %}
                                     </tbody>
                                 </table>
+                                <div class="scale-labels mt-2">
+                                    <span>{{ pregunta.escala.etiqueta_min }}</span>
+                                    <span>{{ pregunta.escala.etiqueta_max }}</span>
+                                </div>
                             {% elif pregunta.tipo == 'DATE' %}
                                 <input type="date" class="form-control" {% if pregunta.requerida %}required{% endif %}>
                             {% elif pregunta.tipo == 'DATETIME' %}

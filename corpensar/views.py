@@ -299,20 +299,18 @@ def crear_desde_cero(request):
                 )
                 
             elif tipo == 'MATRIX':
-                # Para matrices, primero necesitamos crear una escala por defecto
+                # Crear la escala para la matriz
                 escala = PreguntaEscala.objects.create(
                     encuesta=encuesta,
                     texto="Escala para matriz",
                     tipo='SCALE',
                     requerida=True,
                     orden=0,
-                    ayuda="Escala para matriz",
-                    seccion='',
-                    min_valor=1,
-                    max_valor=5,
-                    paso=1,
-                    etiqueta_min='Muy en desacuerdo',
-                    etiqueta_max='Muy de acuerdo'
+                    min_valor=int(request.POST.get(f'questions[{pregunta_id}][scale][min_valor]', '1')),
+                    max_valor=int(request.POST.get(f'questions[{pregunta_id}][scale][max_valor]', '5')),
+                    paso=int(request.POST.get(f'questions[{pregunta_id}][scale][paso]', '1')),
+                    etiqueta_min=request.POST.get(f'questions[{pregunta_id}][scale][etiqueta_min]', 'Muy en desacuerdo'),
+                    etiqueta_max=request.POST.get(f'questions[{pregunta_id}][scale][etiqueta_max]', 'Muy de acuerdo')
                 )
                 
                 pregunta_obj = PreguntaMatriz.objects.create(
@@ -326,16 +324,16 @@ def crear_desde_cero(request):
                     escala=escala
                 )
                 
-                # Procesar los ítems de la matriz si están disponibles
+                # Procesar los ítems de la matriz
                 for key in request.POST:
-                    if key.startswith(f'questions[{pregunta_id}][items][') and '][text]' in key:
+                    if key.startswith(f'questions[{pregunta_id}][items][') and '][texto]' in key:
                         item_index = key.split('[')[3].split(']')[0]
-                        item_text = request.POST.get(f'questions[{pregunta_id}][items][{item_index}][text]', '')
-                        item_order = int(request.POST.get(f'questions[{pregunta_id}][items][{item_index}][order]', item_index))
+                        item_texto = request.POST.get(f'questions[{pregunta_id}][items][{item_index}][texto]', '')
+                        item_orden = int(request.POST.get(f'questions[{pregunta_id}][items][{item_index}][orden]', item_index))
                         ItemMatrizPregunta.objects.create(
                             pregunta=pregunta_obj,
-                            texto=item_text,
-                            orden=item_order
+                            texto=item_texto,
+                            orden=item_orden
                         )
                 
             elif tipo == 'DATE':
