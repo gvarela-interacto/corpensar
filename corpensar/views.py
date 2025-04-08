@@ -795,3 +795,162 @@ def encuesta_completada(request, slug):
         'encuesta': encuesta
     })
     
+@login_required
+def guardar_respuesta(request, encuesta_id):
+    print("Entering guardar_respuesta function")
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+    print(f"Encuesta retrieved: {encuesta}")
+
+    if request.method == 'POST':
+        print("Processing POST request")
+        respuesta = RespuestaEncuesta.objects.create(
+            encuesta=encuesta,
+            usuario=request.user,
+            ip_address=get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            completada=True
+        )
+        print(f"RespuestaEncuesta created: {respuesta}")
+
+        print("Processing text questions")
+        procesar_preguntas_texto(request, respuesta)
+        print("Processing multiple choice questions")
+        procesar_preguntas_opcion_multiple(request, respuesta)
+        print("Processing checkbox questions")
+        procesar_preguntas_casillas(request, respuesta)
+        print("Processing dropdown questions")
+        procesar_preguntas_desplegable(request, respuesta)
+        print("Processing scale questions")
+        procesar_preguntas_escala(request, respuesta)
+        print("Processing matrix questions")
+        procesar_preguntas_matriz(request, respuesta)
+        print("Processing date questions")
+        procesar_preguntas_fecha(request, respuesta)
+        print("Processing star rating questions")
+        procesar_preguntas_estrellas(request, respuesta)
+
+        print("Redirecting to index")
+        return redirect('index')
+
+    print("Redirecting to todas_encuestas")
+    return redirect('todas_encuestas')
+
+def procesar_preguntas_texto(request, respuesta):
+    for pregunta in PreguntaTexto.objects.filter(encuesta=respuesta.encuesta):
+        valor = request.POST.get(f'pregunta_{pregunta.id}')
+        if valor:
+            RespuestaTexto.objects.create(
+                respuesta_encuesta=respuesta,
+                pregunta=pregunta,
+                valor=valor
+            )
+    
+    for pregunta in PreguntaTextoMultiple.objects.filter(encuesta=respuesta.encuesta):
+        valor = request.POST.get(f'pregunta_{pregunta.id}')
+        if valor:
+            RespuestaTextoMultiple.objects.create(
+                respuesta_encuesta=respuesta,
+                pregunta=pregunta,
+                valor=valor
+            )
+
+def procesar_preguntas_opcion_multiple(request, respuesta):
+    for pregunta in PreguntaOpcionMultiple.objects.filter(encuesta=respuesta.encuesta):
+        opcion_id = request.POST.get(f'pregunta_{pregunta.id}')
+        if opcion_id:
+            if opcion_id == 'otro':
+                texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
+                opcion = OpcionMultiple.objects.filter(pregunta=pregunta, texto='Otro').first()
+                if opcion:
+                    RespuestaOpcionMultiple.objects.create(
+                        respuesta_encuesta=respuesta,
+                        pregunta=pregunta,
+                        opcion=opcion,
+                        texto_otro=texto_otro
+                    )
+            else:
+                opcion = OpcionMultiple.objects.get(id=opcion_id)
+                RespuestaOpcionMultiple.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    opcion=opcion
+                )
+
+def procesar_preguntas_casillas(request, respuesta):
+    for pregunta in PreguntaCasillasVerificacion.objects.filter(encuesta=respuesta.encuesta):
+        opciones = request.POST.getlist(f'pregunta_{pregunta.id}[]')
+        for opcion_id in opciones:
+            if opcion_id == 'otro':
+                texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
+                opcion = OpcionCasillaVerificacion.objects.filter(pregunta=pregunta, texto='Otro').first()
+                if opcion:
+                    RespuestaCasillasVerificacion.objects.create(
+                        respuesta_encuesta=respuesta,
+                        pregunta=pregunta,
+                        opcion=opcion,
+                        texto_otro=texto_otro
+                    )
+            else:
+                opcion = OpcionCasillaVerificacion.objects.get(id=opcion_id)
+                RespuestaCasillasVerificacion.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    opcion=opcion
+                )
+
+def procesar_preguntas_desplegable(request, respuesta):
+    for pregunta in PreguntaMenuDesplegable.objects.filter(encuesta=respuesta.encuesta):
+        opcion_id = request.POST.get(f'pregunta_{pregunta.id}')
+        if opcion_id:
+            opcion = OpcionMenuDesplegable.objects.get(id=opcion_id)
+            RespuestaOpcionMenuDesplegable.objects.create(
+                respuesta_encuesta=respuesta,
+                pregunta=pregunta,
+                opcion=opcion
+            )
+
+def procesar_preguntas_escala(request, respuesta):
+    for pregunta in PreguntaEscala.objects.filter(encuesta=respuesta.encuesta):
+        valor = request.POST.get(f'scale_{pregunta.id}')
+        if valor:
+            RespuestaEscala.objects.create(
+                respuesta_encuesta=respuesta,
+                pregunta=pregunta,
+                valor=int(valor)
+            )
+
+def procesar_preguntas_matriz(request, respuesta):
+    for pregunta in PreguntaMatriz.objects.filter(encuesta=respuesta.encuesta):
+        for item in pregunta.items.all():
+            valor = request.POST.get(f'matrix_{pregunta.id}_{item.id}')
+            if valor:
+                RespuestaMatriz.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    item=item,
+                    valor=int(valor)
+                )
+
+def procesar_preguntas_fecha(request, respuesta):
+    for pregunta in PreguntaFecha.objects.filter(encuesta=respuesta.encuesta):
+        valor = request.POST.get(f'pregunta_{pregunta.id}')
+        if valor:
+            if pregunta.tipo == 'DATE':
+                valor = timezone.datetime.strptime(valor, '%Y-%m-%d').date()
+            else:
+                valor = timezone.datetime.strptime(valor, '%Y-%m-%dT%H:%M')
+            RespuestaFecha.objects.create(
+                respuesta_encuesta=respuesta,
+                pregunta=pregunta,
+                valor=valor
+            )
+
+def procesar_preguntas_estrellas(request, respuesta):
+    for pregunta in PreguntaEstrellas.objects.filter(encuesta=respuesta.encuesta):
+        valor = request.POST.get(f'rating_{pregunta.id}')
+        if valor:
+            RespuestaEstrellas.objects.create(
+                respuesta_encuesta=respuesta,
+                pregunta=pregunta,
+                valor=int(valor)
+            )

@@ -236,10 +236,10 @@
             <h1>{{encuesta.titulo}}</h1>
             <p>{{encuesta.descripcion}}</p>
         </div>
-        
-        <form class="survey-body">
+    
+        <form method="POST" action="{% url 'guardar_respuesta' encuesta.id %}" class="survey-body">
+            {% csrf_token %}
             {% for seccion in secciones_unicas %}
-                <!-- Mostrar título de sección (excepto para 'General') -->
                 <h3 class="section-title">{{ seccion }}</h3>
                 {% for pregunta in preguntas %}
                     {% if pregunta.seccion == seccion %}
@@ -254,18 +254,30 @@
                             {% if pregunta.ayuda %}
                                 <div class="question-help">{{pregunta.ayuda}}</div>
                             {% endif %}
-
+        
                             {% if pregunta.tipo == 'TEXT' %}
-                                <input type="text" class="form-control" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}">
+                                <input type="text" 
+                                    class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  
+                                    placeholder="{{pregunta.placeholder}}" 
+                                    maxlength="{{pregunta.max_longitud}}"
+                                    {% if pregunta.requerida %}required{% endif %}>
+        
                             {% elif pregunta.tipo == 'MTEXT' %}
-                                <textarea class="form-control" rows="{{pregunta.filas}}" placeholder="{{pregunta.placeholder}}" maxlength="{{pregunta.max_longitud}}"></textarea>
+                                <textarea class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  
+                                    rows="{{pregunta.filas}}" 
+                                    placeholder="{{pregunta.placeholder}}" 
+                                    maxlength="{{pregunta.max_longitud}}"
+                                    {% if pregunta.requerida %}required{% endif %}></textarea>
+        
                             {% elif pregunta.tipo == 'RADIO' %}
                                 {% for opcion in pregunta.opciones.all %}
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
                                             type="radio" 
                                             name="pregunta_{{ pregunta.id }}" 
-                                            id="opcion_{{ opcion.id }}"
+                                            id="opcion_{{ opcion.id}}"
                                             value="{{ opcion.id }}"
                                             {% if pregunta.requerida %}required{% endif %}>
                                         <label class="form-check-label" for="opcion_{{ opcion.id }}">
@@ -275,6 +287,7 @@
                                 {% endfor %}
                                 
                                 {% if pregunta.opcion_otro %}
+                                    <!-- Mantenemos la estructura existente del "Otro" -->
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" 
                                             type="radio" 
@@ -293,6 +306,7 @@
                                             placeholder="Especifique...">
                                     </div>
                                 {% endif %}
+        
                             {% elif pregunta.tipo == 'CHECK' %}
                                 {% for opcion in pregunta.opciones.all %}
                                     <div class="form-check mb-2">
@@ -333,8 +347,11 @@
                                             placeholder="Especifique...">
                                     </div>
                                 {% endif %}
+        
                             {% elif pregunta.tipo == 'SELECT' %}
-                                <select class="form-select" name="pregunta_{{ pregunta.id }}" {% if pregunta.requerida %}required{% endif %}>
+                                <select class="form-select" 
+                                    name="pregunta_{{ pregunta.id }}" 
+                                    {% if pregunta.requerida %}required{% endif %}>
                                     {% if pregunta.opcion_vacia %}
                                         <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
                                     {% endif %}
@@ -342,10 +359,15 @@
                                         <option value="{{ opcion.id }}">{{ opcion.texto }}</option>
                                     {% endfor %}
                                 </select>
+        
                             {% elif pregunta.tipo == 'STAR' %}
                                 <div class="star-rating">
                                     {% for i in pregunta.max_estrellas|times %}
-                                        <input type="radio" id="star{{ i }}" name="rating_{{ pregunta.id }}" value="{{ i }}" {% if pregunta.requerida %}required{% endif %}>
+                                        <input type="radio" 
+                                            id="star{{ i }}" 
+                                            name="rating_{{ pregunta.id }}" 
+                                            value="{{ i }}" 
+                                            {% if pregunta.requerida %}required{% endif %}>
                                         <label for="star{{ i }}" class="fas fa-star"></label>
                                     {% endfor %}
                                 </div>
@@ -353,20 +375,22 @@
                                     <span>{{ pregunta.etiqueta_inicio|default:"Muy malo" }}</span>
                                     <span>{{ pregunta.etiqueta_fin|default:"Excelente" }}</span>
                                 </div>
+        
                             {% elif pregunta.tipo == 'SCALE' %}
                                 <div class="range-container">
                                     <input type="range" 
                                         class="form-range" 
+                                        name="scale_{{ pregunta.id }}"  <!-- Añadido name -->
                                         min="{{ pregunta.min_valor }}" 
                                         max="{{ pregunta.max_valor }}" 
                                         step="{{ pregunta.paso }}" 
-                                        id="scale_{{ pregunta.id }}"
                                         {% if pregunta.requerida %}required{% endif %}>
                                 </div>
                                 <div class="scale-labels">
                                     <span>{{ pregunta.etiqueta_min }}</span>
                                     <span>{{ pregunta.etiqueta_max }}</span>
                                 </div>
+        
                             {% elif pregunta.tipo == 'MATRIX' %}
                                 <table class="table matrix-table">
                                     <thead>
@@ -398,12 +422,20 @@
                                     <span>{{ pregunta.escala.etiqueta_min }}</span>
                                     <span>{{ pregunta.escala.etiqueta_max }}</span>
                                 </div>
+        
                             {% elif pregunta.tipo == 'DATE' %}
-                                <input type="date" class="form-control" {% if pregunta.requerida %}required{% endif %}>
+                                <input type="date" 
+                                    class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    {% if pregunta.requerida %}required{% endif %}>
+        
                             {% elif pregunta.tipo == 'DATETIME' %}
-                                <input type="datetime-local" class="form-control" {% if pregunta.requerida %}required{% endif %}>
+                                <input type="datetime-local" 
+                                    class="form-control" 
+                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    {% if pregunta.requerida %}required{% endif %}>
                             {% endif %}
-
+        
                             {% if pregunta.tipo == 'CHECK' %}
                                 <div class="text-muted small mt-2">
                                     {% if pregunta.min_selecciones > 0 and pregunta.max_selecciones %}
@@ -419,25 +451,35 @@
                     {% endif %}
                 {% endfor %}
             {% endfor %}
+            <div class="survey-footer">
+                <button type="submit" class="btn btn-primary">Enviar encuesta</button>
+            </div>
         </form>
         
-        <div class="survey-footer">
-            <button type="button" class="btn btn-outline-secondary me-2">Guardar y continuar más tarde</button>
-            <button type="submit" class="btn btn-primary">Enviar encuesta</button>
-        </div>
-    </div>
+        <!-- Añadir este script para manejar campos "Otro" -->
+        <script>
+        document.querySelectorAll('input[type=radio][value="otro"], input[type=checkbox][value="otro"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const container = document.getElementById(`otro_texto_container_${this.dataset.preguntaId}`);
+                if (container) {
+                    container.style.display = this.checked ? 'block' : 'none';
+                    if (this.checked) container.querySelector('input').focus();
+                }
+            });
+        });
+        </script>
     
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Mostrar campo de texto cuando seleccione "Otro"
+        {% comment %} // Mostrar campo de texto cuando seleccione "Otro"
         document.querySelectorAll('input[type="radio"][value="otro"], input[type="checkbox"][value="otro"]').forEach(function(input) {
             input.addEventListener('change', function() {
                 const container = document.getElementById('otro_texto_container_' + this.name.split('_')[1]);
                 if (container) container.style.display = this.checked ? 'block' : 'none';
             });
         });
-        
+         {% endcomment %}
         // Validar selecciones mínimas/máximas
         function validarSelecciones(preguntaId) {
             const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
