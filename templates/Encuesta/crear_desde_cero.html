@@ -190,16 +190,12 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Orden</label>
-                        <input type="number" class="form-control question-order" name="questions[{id}][order]" min="1" value="{number}">
+                        <div class="mb-3">
+                            <label class="form-label">Texto de ayuda</label>
+                            <input type="text" class="form-control question-help" name="questions[{id}][help]" placeholder="Instrucciones o aclaraciones para el encuestado">
+                        </div>
                     </div>
                 </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Texto de ayuda</label>
-                    <input type="text" class="form-control question-help" name="questions[{id}][help]" placeholder="Instrucciones o aclaraciones para el encuestado">
-                </div>
-                
                 <div class="question-options-container">
                     <!-- Opciones específicas según el tipo de pregunta aparecerán aquí -->
                 </div>
