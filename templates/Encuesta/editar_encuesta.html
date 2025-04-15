@@ -159,7 +159,255 @@
                     {% endif %}
                 </div>
                 <div class="tab-pane" id="diseno">
-                    <p>Aquí irán las opciones de diseño (a implementar)</p>
+                    <h4 class="mb-4">Personalización de Diseño</h4>
+                    <form method="post" id="formDiseno" enctype="multipart/form-data" action="{% url 'actualizar_diseno' encuesta.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Tema de colores</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="tema" class="form-label">Selecciona un tema</label>
+                                            <select class="form-select" id="tema" name="tema">
+                                                <option value="default" {% if encuesta.tema == 'default' %}selected{% endif %}>Tema por defecto</option>
+                                                <option value="azul" {% if encuesta.tema == 'azul' %}selected{% endif %}>Tema Azul</option>
+                                                <option value="verde" {% if encuesta.tema == 'verde' %}selected{% endif %}>Tema Verde</option>
+                                                <option value="rojo" {% if encuesta.tema == 'rojo' %}selected{% endif %}>Tema Rojo</option>
+                                                <option value="morado" {% if encuesta.tema == 'morado' %}selected{% endif %}>Tema Morado</option>
+                                                <option value="naranja" {% if encuesta.tema == 'naranja' %}selected{% endif %}>Tema Naranja</option>
+                                                <option value="turquesa" {% if encuesta.tema == 'turquesa' %}selected{% endif %}>Tema Turquesa</option>
+                                                <option value="rosa" {% if encuesta.tema == 'rosa' %}selected{% endif %}>Tema Rosa</option>
+                                                <option value="esmeralda" {% if encuesta.tema == 'esmeralda' %}selected{% endif %}>Tema Esmeralda</option>
+                                                <option value="indigo" {% if encuesta.tema == 'indigo' %}selected{% endif %}>Tema Índigo</option>
+                                                <option value="cielo" {% if encuesta.tema == 'cielo' %}selected{% endif %}>Tema Cielo</option>
+                                                <option value="coral" {% if encuesta.tema == 'coral' %}selected{% endif %}>Tema Coral</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <div class="tema-preview" id="tema-preview">
+                                                <div class="preview-header"></div>
+                                                <div class="preview-body">
+                                                    <div class="preview-text"></div>
+                                                    <div class="preview-button"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Imagen de encabezado</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label class="form-label">Imagen actual</label>
+                                            <div id="header-image-preview" class="mb-3">
+                                                {% if encuesta.imagen_encabezado %}
+                                                    <img src="{{ encuesta.imagen_encabezado.url }}" alt="Imagen de encabezado" class="img-fluid img-thumbnail">
+                                                {% else %}
+                                                    <div class="alert alert-light text-center py-5">
+                                                        <i class="fas fa-image fa-3x mb-3 text-muted"></i>
+                                                        <p class="mb-0">No hay imagen de encabezado</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="imagen_encabezado" class="form-label">Subir nueva imagen</label>
+                                                <input type="file" class="form-control" id="imagen_encabezado" name="imagen_encabezado" accept="image/*">
+                                                <div class="form-text">Recomendado: 1200x300 píxeles (JPG, PNG o GIF)</div>
+                                            </div>
+                                            
+                                            {% if encuesta.imagen_encabezado %}
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="eliminar_imagen" name="eliminar_imagen">
+                                                <label class="form-check-label" for="eliminar_imagen">Eliminar imagen actual</label>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Logotipo</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label class="form-label">Logotipo actual</label>
+                                            <div id="logo-preview" class="mb-3">
+                                                {% if encuesta.logotipo %}
+                                                    <img src="{{ encuesta.logotipo.url }}" alt="Logotipo" class="img-fluid img-thumbnail" style="max-height: 100px;">
+                                                {% else %}
+                                                    <div class="alert alert-light text-center py-4">
+                                                        <i class="fas fa-image fa-2x mb-2 text-muted"></i>
+                                                        <p class="mb-0">No hay logotipo</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="logotipo" class="form-label">Subir nuevo logotipo</label>
+                                                <input type="file" class="form-control" id="logotipo" name="logotipo" accept="image/*">
+                                                <div class="form-text">Recomendado: formato cuadrado o rectangular (JPG, PNG o GIF)</div>
+                                            </div>
+                                            
+                                            {% if encuesta.logotipo %}
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="eliminar_logo" name="eliminar_logo">
+                                                <label class="form-check-label" for="eliminar_logo">Eliminar logotipo actual</label>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <div class="form-check mt-3">
+                                                <input type="checkbox" class="form-check-input" id="mostrar_logo" name="mostrar_logo" {% if encuesta.mostrar_logo %}checked{% endif %}>
+                                                <label class="form-check-label" for="mostrar_logo">Mostrar logotipo en la encuesta</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Estilo y fuentes</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label for="estilo_fuente" class="form-label">Estilo de fuente</label>
+                                            <select class="form-select" id="estilo_fuente" name="estilo_fuente">
+                                                <option value="default" {% if encuesta.estilo_fuente == 'default' %}selected{% endif %}>Por defecto</option>
+                                                <option value="serif" {% if encuesta.estilo_fuente == 'serif' %}selected{% endif %}>Serif</option>
+                                                <option value="sans-serif" {% if encuesta.estilo_fuente == 'sans-serif' %}selected{% endif %}>Sans-serif</option>
+                                                <option value="monospace" {% if encuesta.estilo_fuente == 'monospace' %}selected{% endif %}>Monospace</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group mb-3">
+                                            <label for="tamano_fuente" class="form-label">Tamaño de fuente</label>
+                                            <select class="form-select" id="tamano_fuente" name="tamano_fuente">
+                                                <option value="normal" {% if encuesta.tamano_fuente == 'normal' %}selected{% endif %}>Normal</option>
+                                                <option value="grande" {% if encuesta.tamano_fuente == 'grande' %}selected{% endif %}>Grande</option>
+                                                <option value="pequeno" {% if encuesta.tamano_fuente == 'pequeno' %}selected{% endif %}>Pequeño</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="estilo_bordes" class="form-label">Estilo de bordes</label>
+                                            <select class="form-select" id="estilo_bordes" name="estilo_bordes">
+                                                <option value="redondeado" {% if encuesta.estilo_bordes == 'redondeado' %}selected{% endif %}>Redondeado</option>
+                                                <option value="cuadrado" {% if encuesta.estilo_bordes == 'cuadrado' %}selected{% endif %}>Cuadrado</option>
+                                                <option value="suave" {% if encuesta.estilo_bordes == 'suave' %}selected{% endif %}>Suave</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Fondo de la encuesta</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="tipo_fondo" class="form-label">Tipo de fondo</label>
+                                            <select class="form-select" id="tipo_fondo" name="tipo_fondo">
+                                                <option value="color" {% if encuesta.tipo_fondo == 'color' %}selected{% endif %}>Color sólido</option>
+                                                <option value="gradiente" {% if encuesta.tipo_fondo == 'gradiente' %}selected{% endif %}>Gradiente</option>
+                                                <option value="imagen" {% if encuesta.tipo_fondo == 'imagen' %}selected{% endif %}>Imagen</option>
+                                                <option value="patron" {% if encuesta.tipo_fondo == 'patron' %}selected{% endif %}>Patrón</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div id="opcion-color" class="mb-3 fondo-opcion">
+                                            <label for="color_fondo" class="form-label">Color de fondo</label>
+                                            <input type="color" class="form-control form-control-color" id="color_fondo" name="color_fondo" value="{{ encuesta.color_fondo|default:'#f0f2f5' }}">
+                                        </div>
+                                        
+                                        <div id="opcion-gradiente" class="mb-3 fondo-opcion" style="display:none;">
+                                            <label class="form-label">Colores del gradiente</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="color" class="form-control form-control-color" id="color_gradiente_1" name="color_gradiente_1" value="{{ encuesta.color_gradiente_1|default:'#4361ee' }}">
+                                                <input type="color" class="form-control form-control-color" id="color_gradiente_2" name="color_gradiente_2" value="{{ encuesta.color_gradiente_2|default:'#3a0ca3' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div id="opcion-imagen" class="mb-3 fondo-opcion" style="display:none;">
+                                            <label for="imagen_fondo" class="form-label">Imagen de fondo</label>
+                                            <input type="file" class="form-control" id="imagen_fondo" name="imagen_fondo" accept="image/*">
+                                            
+                                            {% if encuesta.imagen_fondo %}
+                                            <div class="mt-2">
+                                                <img src="{{ encuesta.imagen_fondo.url }}" alt="Imagen de fondo" class="img-fluid img-thumbnail" style="max-height: 100px;">
+                                                <div class="form-check mt-2">
+                                                    <input type="checkbox" class="form-check-input" id="eliminar_imagen_fondo" name="eliminar_imagen_fondo">
+                                                    <label class="form-check-label" for="eliminar_imagen_fondo">Eliminar imagen</label>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div id="opcion-patron" class="mb-3 fondo-opcion" style="display:none;">
+                                            <label class="form-label">Selecciona un patrón</label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <div class="form-check patron-option">
+                                                    <input class="form-check-input" type="radio" name="patron_fondo" id="patron1" value="patron1" {% if encuesta.patron_fondo == 'patron1' %}checked{% endif %}>
+                                                    <label class="form-check-label" for="patron1">
+                                                        <div class="patron-preview patron1"></div>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check patron-option">
+                                                    <input class="form-check-input" type="radio" name="patron_fondo" id="patron2" value="patron2" {% if encuesta.patron_fondo == 'patron2' %}checked{% endif %}>
+                                                    <label class="form-check-label" for="patron2">
+                                                        <div class="patron-preview patron2"></div>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check patron-option">
+                                                    <input class="form-check-input" type="radio" name="patron_fondo" id="patron3" value="patron3" {% if encuesta.patron_fondo == 'patron3' %}checked{% endif %}>
+                                                    <label class="form-check-label" for="patron3">
+                                                        <div class="patron-preview patron3"></div>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check patron-option">
+                                                    <input class="form-check-input" type="radio" name="patron_fondo" id="patron4" value="patron4" {% if encuesta.patron_fondo == 'patron4' %}checked{% endif %}>
+                                                    <label class="form-check-label" for="patron4">
+                                                        <div class="patron-preview patron4"></div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-secondary" id="previsualizar-diseno">
+                                <i class="fas fa-eye"></i> Previsualizar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Diseño
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -214,6 +462,116 @@
     </div>
 </div>
 
+<!-- Modales para editar preguntas -->
+{% for pregunta in preguntas %}
+<div class="modal fade" id="modalEditarPregunta{{ pregunta.id }}" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Pregunta</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'editar_pregunta' pregunta.id %}" class="form-editar-pregunta">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="texto_{{ pregunta.id }}">Texto de la pregunta</label>
+                        <input type="text" class="form-control" id="texto_{{ pregunta.id }}" 
+                               name="texto" value="{{ pregunta.texto }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="orden_{{ pregunta.id }}">Orden</label>
+                        <input type="number" class="form-control" id="orden_{{ pregunta.id }}" 
+                               name="orden" value="{{ pregunta.orden }}" required>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="requerida_{{ pregunta.id }}" 
+                               name="requerida" {% if pregunta.requerida %}checked{% endif %}>
+                        <label class="form-check-label" for="requerida_{{ pregunta.id }}">
+                            Pregunta requerida
+                        </label>
+                    </div>
+
+                    {% if pregunta.tipo == 'TEXT' or pregunta.tipo == 'MTEXT' %}
+                    <div class="form-group">
+                        <label for="placeholder_{{ pregunta.id }}">Texto de ayuda (placeholder)</label>
+                        <input type="text" class="form-control" id="placeholder_{{ pregunta.id }}" 
+                               name="placeholder" value="{{ pregunta.placeholder }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="max_longitud_{{ pregunta.id }}">Longitud máxima</label>
+                        <input type="number" class="form-control" id="max_longitud_{{ pregunta.id }}" 
+                               name="max_longitud" value="{{ pregunta.max_longitud }}">
+                    </div>
+                    {% endif %}
+
+                    {% if pregunta.tipo == 'RADIO' or pregunta.tipo == 'CHECK' or pregunta.tipo == 'SELECT' %}
+                    <div class="opciones-container">
+                        <h6>Opciones</h6>
+                        {% for opcion in pregunta.opciones.all %}
+                        <div class="form-group opcion-item">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="opciones[]" 
+                                       value="{{ opcion.texto }}" required>
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-danger eliminar-opcion">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <button type="button" class="btn btn-secondary agregar-opcion">
+                            <i class="fas fa-plus"></i> Agregar Opción
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para eliminar pregunta -->
+<div class="modal fade" id="modalEliminarPregunta{{ pregunta.id }}" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar Pregunta</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la pregunta "{{ pregunta.texto }}"?</p>
+                <p class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Esta acción no se puede deshacer y eliminará todas las respuestas asociadas.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <form method="post" action="{% url 'eliminar_pregunta' pregunta.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sí, Eliminar Pregunta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 {% block extra_js %}
 <script>
     // Inicializar los campos de fecha y hora
@@ -249,6 +607,271 @@
             }
         });
     });
+
+    // Funcionalidad para agregar/eliminar opciones en preguntas de opción múltiple
+    document.addEventListener('DOMContentLoaded', function() {
+        // Agregar opción
+        document.querySelectorAll('.agregar-opcion').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const container = this.closest('.opciones-container');
+                const opcionTemplate = `
+                    <div class="form-group opcion-item">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="opciones[]" required>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-danger eliminar-opcion">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', opcionTemplate);
+            });
+        });
+
+        // Eliminar opción
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.eliminar-opcion')) {
+                e.target.closest('.opcion-item').remove();
+            }
+        });
+        
+        // Funcionalidad para la pestaña de diseño
+        if (document.getElementById('tipo_fondo')) {
+            // Control de visibilidad de las opciones de fondo
+            const tipoFondo = document.getElementById('tipo_fondo');
+            const opcionesVisibles = {
+                'color': document.getElementById('opcion-color'),
+                'gradiente': document.getElementById('opcion-gradiente'),
+                'imagen': document.getElementById('opcion-imagen'),
+                'patron': document.getElementById('opcion-patron')
+            };
+            
+            function actualizarOpcionesFondo() {
+                const seleccionado = tipoFondo.value;
+                
+                // Ocultar todas las opciones
+                Object.values(opcionesVisibles).forEach(function(opcion) {
+                    if (opcion) opcion.style.display = 'none';
+                });
+                
+                // Mostrar la opción seleccionada
+                if (opcionesVisibles[seleccionado]) {
+                    opcionesVisibles[seleccionado].style.display = 'block';
+                }
+            }
+            
+            tipoFondo.addEventListener('change', actualizarOpcionesFondo);
+            
+            // Inicializar el estado de la opción de fondo
+            actualizarOpcionesFondo();
+            
+            // Actualización de la vista previa del tema
+            const temaSelect = document.getElementById('tema');
+            const temaPreview = document.getElementById('tema-preview');
+            
+            function actualizarTemaPreview() {
+                const temaSeleccionado = temaSelect.value;
+                // Remover clases de temas anteriores
+                temaPreview.className = temaPreview.className.replace(/tema-\w+/g, '');
+                // Agregar la clase del tema seleccionado
+                temaPreview.classList.add('tema-' + temaSeleccionado);
+            }
+            
+            temaSelect.addEventListener('change', actualizarTemaPreview);
+            
+            // Inicializar la vista previa
+            actualizarTemaPreview();
+            
+            // Previsualización de la encuesta
+            const btnPrevisualizar = document.getElementById('previsualizar-diseno');
+            if (btnPrevisualizar) {
+                btnPrevisualizar.addEventListener('click', function() {
+                    // Abrir una ventana de previsualización
+                    const encuestaId = {{ encuesta.id }};
+                    const url = '/encuestas/' + encuestaId + '/preview-diseno/?tema=' + temaSelect.value;
+                    window.open(url, '_blank', 'width=800,height=800');
+                });
+            }
+            
+            // Vista previa de archivos
+            const inputImagenEncabezado = document.getElementById('imagen_encabezado');
+            const previewImagenEncabezado = document.getElementById('header-image-preview');
+            
+            if (inputImagenEncabezado && previewImagenEncabezado) {
+                inputImagenEncabezado.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImagenEncabezado.innerHTML = '<img src="' + e.target.result + '" alt="Vista previa" class="img-fluid img-thumbnail">';
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+            
+            const inputLogotipo = document.getElementById('logotipo');
+            const previewLogotipo = document.getElementById('logo-preview');
+            
+            if (inputLogotipo && previewLogotipo) {
+                inputLogotipo.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewLogotipo.innerHTML = '<img src="' + e.target.result + '" alt="Vista previa" class="img-fluid img-thumbnail" style="max-height: 100px;">';
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+        }
+    });
 </script>
+
+<style>
+    /* Estilos para la pestaña de diseño */
+    .tema-preview {
+        width: 100%;
+        height: 150px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .preview-header {
+        height: 40px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    .preview-body {
+        height: 110px;
+        background: #fff;
+        padding: 15px;
+    }
+    
+    .preview-text {
+        height: 15px;
+        width: 80%;
+        background-color: #e9ecef;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+    
+    .preview-button {
+        height: 30px;
+        width: 100px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 6px;
+    }
+    
+    /* Clases para cada tema */
+    .tema-default {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+        --accent-color: #f72585;
+    }
+    
+    .tema-azul {
+        --primary-color: #4361ee;
+        --secondary-color: #3a0ca3;
+        --accent-color: #4cc9f0;
+    }
+    
+    .tema-verde {
+        --primary-color: #2ecc71;
+        --secondary-color: #27ae60;
+        --accent-color: #1abc9c;
+    }
+    
+    .tema-rojo {
+        --primary-color: #e74c3c;
+        --secondary-color: #c0392b;
+        --accent-color: #f39c12;
+    }
+    
+    .tema-morado {
+        --primary-color: #9b59b6;
+        --secondary-color: #8e44ad;
+        --accent-color: #3498db;
+    }
+    
+    .tema-naranja {
+        --primary-color: #f39c12;
+        --secondary-color: #d35400;
+        --accent-color: #e67e22;
+    }
+    
+    .tema-turquesa {
+        --primary-color: #1abc9c;
+        --secondary-color: #16a085;
+        --accent-color: #2ecc71;
+    }
+    
+    .tema-rosa {
+        --primary-color: #e84393;
+        --secondary-color: #fd79a8;
+        --accent-color: #ff6b81;
+    }
+    
+    .tema-esmeralda {
+        --primary-color: #2ecc71;
+        --secondary-color: #27ae60;
+        --accent-color: #1abc9c;
+    }
+    
+    .tema-indigo {
+        --primary-color: #4834d4;
+        --secondary-color: #686de0;
+        --accent-color: #7ed6df;
+    }
+    
+    .tema-cielo {
+        --primary-color: #3498db;
+        --secondary-color: #2980b9;
+        --accent-color: #74b9ff;
+    }
+    
+    .tema-coral {
+        --primary-color: #ff7f50;
+        --secondary-color: #ff6347;
+        --accent-color: #ff8c00;
+    }
+    
+    /* Estilos para patrones */
+    .patron-preview {
+        width: 50px;
+        height: 50px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .patron1 {
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .patron2 {
+        background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.2'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .patron3 {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%239C92AC' fill-opacity='0.2' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+    }
+    
+    .patron4 {
+        background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.2' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    
+    .patron-option {
+        margin-right: 10px;
+    }
+    
+    .patron-option input:checked + label .patron-preview {
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.3);
+    }
+</style>
 {% endblock %}
 {% endblock %}

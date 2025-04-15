@@ -1119,3 +1119,209 @@ def eliminar_encuesta(request, encuesta_id):
         return redirect('lista_encuestas')
     
     return redirect('editar_encuesta', encuesta_id=encuesta_id)
+
+@login_required
+@require_http_methods(["POST"])
+def editar_pregunta(request, pregunta_id):
+    # Buscar la pregunta específica basada en el tipo
+    pregunta = None
+    for modelo in [PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
+                  PreguntaCasillasVerificacion, PreguntaMenuDesplegable, 
+                  PreguntaEstrellas, PreguntaEscala, PreguntaMatriz, PreguntaFecha]:
+        try:
+            pregunta = modelo.objects.get(id=pregunta_id)
+            break
+        except modelo.DoesNotExist:
+            continue
+    
+    if not pregunta:
+        messages.error(request, "Pregunta no encontrada.")
+        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+    
+    # Verificar que el usuario es el creador de la encuesta
+    if pregunta.encuesta.creador != request.user:
+        messages.error(request, "No tienes permiso para editar esta pregunta.")
+        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+    
+    try:
+        with transaction.atomic():
+            # Actualizar campos comunes
+            pregunta.texto = request.POST.get('texto')
+            pregunta.orden = int(request.POST.get('orden'))
+            pregunta.requerida = request.POST.get('requerida') == 'on'
+            
+            # Actualizar campos específicos según el tipo de pregunta
+            if isinstance(pregunta, (PreguntaTexto, PreguntaTextoMultiple)):
+                pregunta.placeholder = request.POST.get('placeholder', '')
+                pregunta.max_longitud = int(request.POST.get('max_longitud', 250))
+            
+            elif isinstance(pregunta, (PreguntaOpcionMultiple, PreguntaCasillasVerificacion, PreguntaMenuDesplegable)):
+                # Obtener las opciones actualizadas
+                nuevas_opciones = request.POST.getlist('opciones[]')
+                
+                # Eliminar opciones existentes
+                if isinstance(pregunta, PreguntaOpcionMultiple):
+                    pregunta.opciones.all().delete()
+                    OpcionModel = OpcionMultiple
+                elif isinstance(pregunta, PreguntaCasillasVerificacion):
+                    pregunta.opciones.all().delete()
+                    OpcionModel = OpcionCasillaVerificacion
+                else:
+                    pregunta.opciones.all().delete()
+                    OpcionModel = OpcionMenuDesplegable
+                
+                # Crear nuevas opciones
+                for i, texto in enumerate(nuevas_opciones):
+                    OpcionModel.objects.create(
+                        pregunta=pregunta,
+                        texto=texto,
+                        orden=i + 1
+                    )
+            
+            pregunta.save()
+            messages.success(request, "Pregunta actualizada exitosamente.")
+            
+    except Exception as e:
+        messages.error(request, f"Error al actualizar la pregunta: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+
+@login_required
+@require_http_methods(["POST"])
+def eliminar_pregunta(request, pregunta_id):
+    # Buscar la pregunta específica basada en el tipo
+    pregunta = None
+    for modelo in [PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
+                  PreguntaCasillasVerificacion, PreguntaMenuDesplegable, 
+                  PreguntaEstrellas, PreguntaEscala, PreguntaMatriz, PreguntaFecha]:
+        try:
+            pregunta = modelo.objects.get(id=pregunta_id)
+            break
+        except modelo.DoesNotExist:
+            continue
+    
+    if not pregunta:
+        messages.error(request, "Pregunta no encontrada.")
+        return redirect('lista_encuestas')
+    
+    # Verificar que el usuario es el creador de la encuesta
+    if pregunta.encuesta.creador != request.user:
+        messages.error(request, "No tienes permiso para eliminar esta pregunta.")
+        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+    
+    try:
+        encuesta_id = pregunta.encuesta.id
+        pregunta.delete()
+        messages.success(request, "Pregunta eliminada exitosamente.")
+    except Exception as e:
+        messages.error(request, f"Error al eliminar la pregunta: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta_id)
+
+@login_required
+def actualizar_diseno(request, encuesta_id):
+    # Buscar la encuesta
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+    
+    # Verificar que el usuario es el creador de la encuesta
+    if encuesta.creador != request.user:
+        messages.error(request, "No tienes permiso para editar esta encuesta.")
+        return redirect('editar_encuesta', encuesta_id=encuesta.id)
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Actualizar el tema
+                encuesta.tema = request.POST.get('tema', 'default')
+                
+                # Procesar la imagen de encabezado
+                if 'eliminar_imagen' in request.POST:
+                    # Si se marca la casilla de eliminar, eliminar la imagen
+                    if encuesta.imagen_encabezado:
+                        encuesta.imagen_encabezado.delete()
+                    encuesta.imagen_encabezado = None
+                elif 'imagen_encabezado' in request.FILES:
+                    # Si se sube una nueva imagen, actualizar
+                    encuesta.imagen_encabezado = request.FILES['imagen_encabezado']
+                
+                # Procesar el logotipo
+                if 'eliminar_logo' in request.POST:
+                    if encuesta.logotipo:
+                        encuesta.logotipo.delete()
+                    encuesta.logotipo = None
+                elif 'logotipo' in request.FILES:
+                    encuesta.logotipo = request.FILES['logotipo']
+                
+                # Actualizar opciones de logotipo
+                encuesta.mostrar_logo = 'mostrar_logo' in request.POST
+                
+                # Actualizar estilos de texto y bordes
+                encuesta.estilo_fuente = request.POST.get('estilo_fuente', 'default')
+                encuesta.tamano_fuente = request.POST.get('tamano_fuente', 'normal')
+                encuesta.estilo_bordes = request.POST.get('estilo_bordes', 'redondeado')
+                
+                # Actualizar opciones de fondo
+                encuesta.tipo_fondo = request.POST.get('tipo_fondo', 'color')
+                encuesta.color_fondo = request.POST.get('color_fondo', '#f0f2f5')
+                encuesta.color_gradiente_1 = request.POST.get('color_gradiente_1', '#4361ee')
+                encuesta.color_gradiente_2 = request.POST.get('color_gradiente_2', '#3a0ca3')
+                
+                # Procesar imagen de fondo
+                if 'eliminar_imagen_fondo' in request.POST:
+                    if encuesta.imagen_fondo:
+                        encuesta.imagen_fondo.delete()
+                    encuesta.imagen_fondo = None
+                elif 'imagen_fondo' in request.FILES:
+                    encuesta.imagen_fondo = request.FILES['imagen_fondo']
+                
+                # Actualizar patrón de fondo
+                if encuesta.tipo_fondo == 'patron':
+                    encuesta.patron_fondo = request.POST.get('patron_fondo', 'patron1')
+                
+                # Guardar los cambios
+                encuesta.save()
+                
+                messages.success(request, "Diseño actualizado exitosamente.")
+        except Exception as e:
+            messages.error(request, f"Error al actualizar el diseño: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta.id)
+
+@login_required
+def preview_diseno(request, encuesta_id):
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
+    
+    # Obtener la primera pregunta de cada tipo para mostrar en la vista previa
+    preguntas_ejemplo = []
+    
+    # Obtener una pregunta de texto
+    pregunta_texto = PreguntaTexto.objects.filter(encuesta=encuesta).first()
+    if pregunta_texto:
+        preguntas_ejemplo.append(pregunta_texto)
+    
+    # Obtener una pregunta de opción múltiple
+    pregunta_opciones = PreguntaOpcionMultiple.objects.filter(encuesta=encuesta).first()
+    if pregunta_opciones:
+        preguntas_ejemplo.append(pregunta_opciones)
+    
+    # Si no hay suficientes preguntas, crear una pregunta de ejemplo
+    if not preguntas_ejemplo:
+        pregunta_ejemplo = {
+            'texto': 'Esta es una pregunta de ejemplo para mostrar el diseño',
+            'tipo': 'TEXT',
+            'requerida': True,
+            'ayuda': 'Este texto es solo para mostrar cómo se verá la encuesta con el diseño seleccionado.'
+        }
+        preguntas_ejemplo.append(pregunta_ejemplo)
+    
+    # Si se proporciona un tema en la URL, usarlo para la vista previa
+    tema_preview = request.GET.get('tema', encuesta.tema)
+    
+    context = {
+        'encuesta': encuesta,
+        'preguntas': preguntas_ejemplo,
+        'tema_preview': tema_preview,
+        'es_preview': True
+    }
+    
+    return render(request, 'Encuesta/preview_diseno.html', context)

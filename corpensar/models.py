@@ -44,6 +44,32 @@ class Encuesta(models.Model):
         ('coral', _('Tema Coral')),
     )
     
+    TIPOS_FONDO = (
+        ('color', _('Color sólido')),
+        ('gradiente', _('Gradiente')),
+        ('imagen', _('Imagen')),
+        ('patron', _('Patrón')),
+    )
+    
+    ESTILOS_FUENTE = (
+        ('default', _('Por defecto')),
+        ('serif', _('Serif')),
+        ('sans-serif', _('Sans-serif')),
+        ('monospace', _('Monospace')),
+    )
+    
+    TAMANOS_FUENTE = (
+        ('normal', _('Normal')),
+        ('grande', _('Grande')),
+        ('pequeno', _('Pequeño')),
+    )
+    
+    ESTILOS_BORDE = (
+        ('redondeado', _('Redondeado')),
+        ('cuadrado', _('Cuadrado')),
+        ('suave', _('Suave')),
+    )
+    
     titulo = models.CharField(max_length=200, verbose_name=_("Título"))
     descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
     slug = models.SlugField(max_length=250, unique=True)
@@ -64,8 +90,23 @@ class Encuesta(models.Model):
         blank=True, 
         verbose_name="Municipio"
     )
-
     
+    # Campos para personalización del diseño
+    imagen_encabezado = models.ImageField(upload_to='encuestas/encabezados/', null=True, blank=True, verbose_name=_("Imagen de encabezado"))
+    logotipo = models.ImageField(upload_to='encuestas/logos/', null=True, blank=True, verbose_name=_("Logotipo"))
+    mostrar_logo = models.BooleanField(default=True, verbose_name=_("Mostrar logotipo"))
+    
+    tipo_fondo = models.CharField(max_length=20, choices=TIPOS_FONDO, default='color', verbose_name=_("Tipo de fondo"))
+    color_fondo = models.CharField(max_length=20, default='#f0f2f5', verbose_name=_("Color de fondo"))
+    color_gradiente_1 = models.CharField(max_length=20, default='#4361ee', verbose_name=_("Color 1 del gradiente"))
+    color_gradiente_2 = models.CharField(max_length=20, default='#3a0ca3', verbose_name=_("Color 2 del gradiente"))
+    imagen_fondo = models.ImageField(upload_to='encuestas/fondos/', null=True, blank=True, verbose_name=_("Imagen de fondo"))
+    patron_fondo = models.CharField(max_length=20, default='patron1', verbose_name=_("Patrón de fondo"))
+    
+    estilo_fuente = models.CharField(max_length=20, choices=ESTILOS_FUENTE, default='default', verbose_name=_("Estilo de fuente"))
+    tamano_fuente = models.CharField(max_length=20, choices=TAMANOS_FUENTE, default='normal', verbose_name=_("Tamaño de fuente"))
+    estilo_bordes = models.CharField(max_length=20, choices=ESTILOS_BORDE, default='redondeado', verbose_name=_("Estilo de bordes"))
+
     class Meta:
         verbose_name = _("Encuesta")
         verbose_name_plural = _("Encuestas")

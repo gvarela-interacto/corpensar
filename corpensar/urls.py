@@ -25,17 +25,16 @@ urlpatterns = [
   path('region/crear/', views.crear_region, name='crear_region'),
   path('municipio/crear/', views.crear_municipio, name='crear_municipio'),
   path('api/municipios/', views.municipios_por_region, name='municipios_por_region'),
-
-
-
-
-
-  
+  path('encuestas/<int:encuesta_id>/diseno/', views.actualizar_diseno, name='actualizar_diseno'),
+  path('encuestas/<int:encuesta_id>/preview-diseno/', views.preview_diseno, name='preview_diseno'),
 
   #Inicio Sesion y Registro
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
   path('accounts/logout/', views.custom_logout, name='logout'),
   path('accounts/registro/', views.registro_view, name='registro'),
+
+  path('pregunta/<int:pregunta_id>/editar/', views.editar_pregunta, name='editar_pregunta'),
+  path('pregunta/<int:pregunta_id>/eliminar/', views.eliminar_pregunta, name='eliminar_pregunta'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
