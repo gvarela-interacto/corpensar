@@ -622,7 +622,7 @@
                                 <div class="range-container">
                                     <input type="range" 
                                         class="form-range" 
-                                        name="scale_{{ pregunta.id }}"  <!-- Añadido name -->
+                                        name="scale_{{ pregunta.id }}"
                                         min="{{ pregunta.min_valor }}" 
                                         max="{{ pregunta.max_valor }}" 
                                         step="{{ pregunta.paso }}" 
@@ -668,13 +668,13 @@
                             {% elif pregunta.tipo == 'DATE' %}
                                 <input type="date" 
                                     class="form-control" 
-                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    name="pregunta_{{ pregunta.id }}"
                                     {% if pregunta.requerida %}required{% endif %}>
         
                             {% elif pregunta.tipo == 'DATETIME' %}
                                 <input type="datetime-local" 
                                     class="form-control" 
-                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    name="pregunta_{{ pregunta.id }}" 
                                     {% if pregunta.requerida %}required{% endif %}>
                             {% endif %}
         

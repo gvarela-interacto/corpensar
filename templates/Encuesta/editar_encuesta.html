@@ -24,137 +24,226 @@
                 <div class="tab-pane active" id="configuracion">
                     <form method="post" id="formConfiguracion">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="id_titulo">{{ form.titulo.label }}</label>
-                                    <input type="text" name="titulo" id="id_titulo" class="form-control" value="{{ form.titulo.value|default:'' }}" maxlength="200" required>
-                                    {% if form.titulo.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.titulo.errors }}
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light py-3">
+                                <h5 class="mb-0"><i class="fas fa-cog me-2 text-primary"></i>Información básica</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="id_titulo" class="form-label fw-bold">{{ form.titulo.label }}</label>
+                                            <input type="text" name="titulo" id="id_titulo" class="form-control rounded-3" value="{{ form.titulo.value|default:'' }}" maxlength="200" required>
+                                            {% if form.titulo.errors %}
+                                                <div class="invalid-feedback d-block">
+                                                    {{ form.titulo.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">Elige un título claro y conciso para tu encuesta.</div>
                                         </div>
-                                    {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="id_tema" class="form-label fw-bold">{{ form.tema.label }}</label>
+                                            <select name="tema" id="id_tema" class="form-select rounded-3">
+                                                {% for value, text in form.tema.field.choices %}
+                                                    <option value="{{ value }}" {% if form.tema.value == value %}selected{% endif %}>{{ text }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="form-text">El tema determina los colores principales de tu encuesta.</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="id_tema">{{ form.tema.label }}</label>
-                                    <select name="tema" id="id_tema" class="form-control">
-                                        {% for value, text in form.tema.field.choices %}
-                                            <option value="{{ value }}" {% if form.tema.value == value %}selected{% endif %}>{{ text }}</option>
-                                        {% endfor %}
-                                    </select>
+
+                                <div class="form-group mb-3">
+                                    <label for="id_descripcion" class="form-label fw-bold">{{ form.descripcion.label }}</label>
+                                    <textarea name="descripcion" id="id_descripcion" class="form-control rounded-3" rows="3">{{ form.descripcion.value|default:'' }}</textarea>
+                                    <div class="form-text">Añade detalles sobre el propósito de la encuesta y otra información relevante.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="id_descripcion">{{ form.descripcion.label }}</label>
-                            <textarea name="descripcion" id="id_descripcion" class="form-control" rows="3">{{ form.descripcion.value|default:'' }}</textarea>
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light py-3">
+                                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Duración</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="id_fecha_inicio" class="form-label fw-bold">{{ form.fecha_inicio.label }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                                <input type="datetime-local" 
+                                                    name="fecha_inicio" 
+                                                    id="id_fecha_inicio"
+                                                    class="form-control rounded-end" 
+                                                    value="{{ encuesta.fecha_inicio|date:'Y-m-d\TH:i' }}"
+                                                    required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="id_fecha_fin" class="form-label fw-bold">{{ form.fecha_fin.label }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                                <input type="datetime-local" 
+                                                    name="fecha_fin" 
+                                                    id="id_fecha_fin"
+                                                    class="form-control rounded-end" 
+                                                    value="{{ encuesta.fecha_fin|date:'Y-m-d\TH:i' }}"
+                                                    required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="id_fecha_inicio">{{ form.fecha_inicio.label }}</label>
-                                    <input type="datetime-local" 
-                                           name="fecha_inicio" 
-                                           id="id_fecha_inicio"
-                                           class="form-control" 
-                                           value="{{ encuesta.fecha_inicio|date:'Y-m-d\TH:i' }}"
-                                           required>
-                                </div>
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light py-3">
+                                <h5 class="mb-0"><i class="fas fa-sliders-h me-2 text-primary"></i>Opciones</h5>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="id_fecha_fin">{{ form.fecha_fin.label }}</label>
-                                    <input type="datetime-local" 
-                                           name="fecha_fin" 
-                                           id="id_fecha_fin"
-                                           class="form-control" 
-                                           value="{{ encuesta.fecha_fin|date:'Y-m-d\TH:i' }}"
-                                           required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input type="checkbox" 
-                                           name="activa" 
-                                           id="id_activa" 
-                                           class="form-check-input"
-                                           {% if form.activa.value %}checked{% endif %}>
-                                    <label class="form-check-label" for="id_activa">
-                                        {{ form.activa.label }}
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input type="checkbox" 
-                                           name="es_publica" 
-                                           id="id_es_publica" 
-                                           class="form-check-input"
-                                           {% if form.es_publica.value %}checked{% endif %}>
-                                    <label class="form-check-label" for="id_es_publica">
-                                        {{ form.es_publica.label }}
-                                    </label>
-                                    <small class="form-text text-muted">
-                                        {{ form.es_publica.help_text }}
-                                    </small>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input type="checkbox" 
+                                                name="activa" 
+                                                id="id_activa" 
+                                                class="form-check-input"
+                                                role="switch"
+                                                {% if form.activa.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="id_activa">
+                                                {{ form.activa.label }}
+                                            </label>
+                                            <div class="form-text">Si está activa, los usuarios podrán responder a la encuesta.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-3">
+                                            <input type="checkbox" 
+                                                name="es_publica" 
+                                                id="id_es_publica" 
+                                                class="form-check-input"
+                                                role="switch"
+                                                {% if form.es_publica.value %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold" for="id_es_publica">
+                                                {{ form.es_publica.label }}
+                                            </label>
+                                            <div class="form-text">
+                                                {{ form.es_publica.help_text }}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Cambios
+                            <button type="submit" class="btn btn-primary rounded-3 px-4">
+                                <i class="fas fa-save me-2"></i> Guardar Cambios
                             </button>
-                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalEliminarEncuesta">
-                                <i class="fas fa-trash"></i> Eliminar Encuesta
+                            <button type="button" class="btn btn-danger rounded-3 px-4" data-toggle="modal" data-target="#modalEliminarEncuesta">
+                                <i class="fas fa-trash me-2"></i> Eliminar Encuesta
                             </button>
                         </div>
                     </form>
                 </div>
                 <div class="tab-pane" id="preguntas">
-                    <div class="d-flex justify-content-between mb-3">
-                        <h4>Preguntas de la encuesta</h4>
-                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAgregarPregunta">
-                            <i class="fas fa-plus"></i> Agregar Pregunta
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0"><i class="fas fa-question-circle text-primary me-2"></i>Preguntas de la encuesta</h4>
+                        <button type="button" class="btn btn-primary rounded-3 px-4" data-toggle="modal" data-target="#modalAgregarPregunta">
+                            <i class="fas fa-plus me-2"></i> Agregar Pregunta
                         </button>
                     </div>
                     
                     {% if preguntas %}
-                        <div class="list-group">
+                        <div class="row">
                             {% for pregunta in preguntas %}
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="mb-1">{{ pregunta.texto }}</h5>
-                                            <small class="text-muted">
-                                                Tipo: {{ pregunta.get_tipo_display }} | 
-                                                Orden: {{ pregunta.orden }} | 
-                                                {% if pregunta.requerida %}Requerida{% else %}Opcional{% endif %}
-                                            </small>
+                                <div class="col-md-6 mb-3 pregunta-{{ pregunta.id }}">
+                                    <div class="card shadow-sm hover-card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-center 
+                                            {% if pregunta.tipo == 'TEXT' %}bg-info text-white
+                                            {% elif pregunta.tipo == 'MTEXT' %}bg-info text-white
+                                            {% elif pregunta.tipo == 'RADIO' %}bg-primary text-white
+                                            {% elif pregunta.tipo == 'CHECK' %}bg-success text-white
+                                            {% elif pregunta.tipo == 'SELECT' %}bg-warning
+                                            {% elif pregunta.tipo == 'STAR' %}bg-danger text-white
+                                            {% elif pregunta.tipo == 'SCALE' %}bg-secondary text-white
+                                            {% elif pregunta.tipo == 'MATRIX' %}bg-dark text-white
+                                            {% else %}bg-light
+                                            {% endif %}">
+                                            <h5 class="card-title mb-0">{{ pregunta.texto }}</h5>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-light edit-question-btn" 
+                                                        data-bs-toggle="tooltip" data-bs-placement="top" title="Editar pregunta"
+                                                        data-question-id="{{ pregunta.id }}" data-question-text="{{ pregunta.texto }}">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger delete-question-btn" 
+                                                        data-bs-toggle="tooltip" data-bs-placement="top" title="Eliminar pregunta"
+                                                        data-question-id="{{ pregunta.id }}" data-question-text="{{ pregunta.texto }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#modalEditarPregunta{{ pregunta.id }}">
-                                                <i class="fas fa-edit"></i> Editar
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#modalEliminarPregunta{{ pregunta.id }}">
-                                                <i class="fas fa-trash"></i> Eliminar
-                                            </button>
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-3 fw-bold text-truncate">{{ pregunta.texto }}</h5>
+                                            <p class="card-text text-muted small">
+                                                <i class="fas fa-sort-numeric-down me-1"></i> Orden: {{ pregunta.orden }}
+                                            </p>
+                                            
+                                            {% if pregunta.ayuda %}
+                                            <div class="alert alert-light mb-3 py-2 small">
+                                                <i class="fas fa-info-circle text-primary me-1"></i> 
+                                                {{ pregunta.ayuda }}
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if pregunta.tipo == 'RADIO' or pregunta.tipo == 'CHECK' or pregunta.tipo == 'SELECT' %}
+                                                <div class="mt-2">
+                                                    <small class="text-muted fw-bold mb-2 d-block">Opciones:</small>
+                                                    <div class="list-group list-group-flush">
+                                                        {% for opcion in pregunta.opciones.all|slice:":3" %}
+                                                            <div class="list-group-item border-0 py-1 px-0 small">
+                                                                <i class="fas fa-circle fa-xs text-primary me-2"></i>{{ opcion.texto }}
+                                                            </div>
+                                                        {% endfor %}
+                                                        {% if pregunta.opciones.count > 3 %}
+                                                            <div class="list-group-item border-0 py-1 px-0 small text-muted">
+                                                                <i class="fas fa-ellipsis-h me-2"></i>{{ pregunta.opciones.count|add:"-3" }} opciones más
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="card-footer bg-white border-0">
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class="btn btn-outline-primary btn-sm me-2 rounded-3" data-toggle="modal" data-target="#modalEditarPregunta{{ pregunta.id }}">
+                                                    <i class="fas fa-edit me-1"></i> Editar
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-3" data-toggle="modal" data-target="#modalEliminarPregunta{{ pregunta.id }}">
+                                                    <i class="fas fa-trash me-1"></i> Eliminar
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No hay preguntas en esta encuesta. 
-                            Agrega una pregunta para comenzar.
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
+                                <h5 class="mb-3">No hay preguntas en esta encuesta</h5>
+                                <p class="text-muted mb-4">Agrega una pregunta para comenzar a crear tu encuesta.</p>
+                                <button type="button" class="btn btn-primary rounded-3 px-4" data-toggle="modal" data-target="#modalAgregarPregunta">
+                                    <i class="fas fa-plus me-2"></i> Agregar Primera Pregunta
+                                </button>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
@@ -466,74 +555,110 @@
 {% for pregunta in preguntas %}
 <div class="modal fade" id="modalEditarPregunta{{ pregunta.id }}" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Pregunta</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Editar Pregunta
+                </h5>
+                <button type="button" class="btn-close bg-white" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form method="post" action="{% url 'editar_pregunta' pregunta.id %}" class="form-editar-pregunta">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="texto_{{ pregunta.id }}">Texto de la pregunta</label>
-                        <input type="text" class="form-control" id="texto_{{ pregunta.id }}" 
-                               name="texto" value="{{ pregunta.texto }}" required>
-                    </div>
                     
-                    <div class="form-group">
-                        <label for="orden_{{ pregunta.id }}">Orden</label>
-                        <input type="number" class="form-control" id="orden_{{ pregunta.id }}" 
-                               name="orden" value="{{ pregunta.orden }}" required>
-                    </div>
-                    
-                    <div class="form-check mb-3">
-                        <input type="checkbox" class="form-check-input" id="requerida_{{ pregunta.id }}" 
-                               name="requerida" {% if pregunta.requerida %}checked{% endif %}>
-                        <label class="form-check-label" for="requerida_{{ pregunta.id }}">
-                            Pregunta requerida
-                        </label>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Información básica</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label for="texto_{{ pregunta.id }}" class="form-label fw-bold">Texto de la pregunta</label>
+                                <input type="text" class="form-control rounded-3" id="texto_{{ pregunta.id }}" 
+                                       name="texto" value="{{ pregunta.texto }}" required>
+                                <div class="form-text">El texto principal de la pregunta que verán los usuarios.</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="orden_{{ pregunta.id }}" class="form-label fw-bold">Orden</label>
+                                        <input type="number" class="form-control rounded-3" id="orden_{{ pregunta.id }}" 
+                                               name="orden" value="{{ pregunta.orden }}" required>
+                                        <div class="form-text">Posición de la pregunta en la encuesta.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3 mt-4">
+                                        <input type="checkbox" class="form-check-input" id="requerida_{{ pregunta.id }}" 
+                                               name="requerida" role="switch" {% if pregunta.requerida %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold" for="requerida_{{ pregunta.id }}">
+                                            Pregunta requerida
+                                        </label>
+                                        <div class="form-text">Si está activa, el usuario deberá responderla obligatoriamente.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {% if pregunta.tipo == 'TEXT' or pregunta.tipo == 'MTEXT' %}
-                    <div class="form-group">
-                        <label for="placeholder_{{ pregunta.id }}">Texto de ayuda (placeholder)</label>
-                        <input type="text" class="form-control" id="placeholder_{{ pregunta.id }}" 
-                               name="placeholder" value="{{ pregunta.placeholder }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="max_longitud_{{ pregunta.id }}">Longitud máxima</label>
-                        <input type="number" class="form-control" id="max_longitud_{{ pregunta.id }}" 
-                               name="max_longitud" value="{{ pregunta.max_longitud }}">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Configuración de texto</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label for="placeholder_{{ pregunta.id }}" class="form-label fw-bold">Texto de ayuda (placeholder)</label>
+                                <input type="text" class="form-control rounded-3" id="placeholder_{{ pregunta.id }}" 
+                                       name="placeholder" value="{{ pregunta.placeholder }}">
+                                <div class="form-text">Texto que aparecerá en el campo antes de que el usuario escriba.</div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="max_longitud_{{ pregunta.id }}" class="form-label fw-bold">Longitud máxima</label>
+                                <input type="number" class="form-control rounded-3" id="max_longitud_{{ pregunta.id }}" 
+                                       name="max_longitud" value="{{ pregunta.max_longitud }}">
+                                <div class="form-text">Número máximo de caracteres permitidos en la respuesta.</div>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
 
                     {% if pregunta.tipo == 'RADIO' or pregunta.tipo == 'CHECK' or pregunta.tipo == 'SELECT' %}
-                    <div class="opciones-container">
-                        <h6>Opciones</h6>
-                        {% for opcion in pregunta.opciones.all %}
-                        <div class="form-group opcion-item">
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="opciones[]" 
-                                       value="{{ opcion.texto }}" required>
-                                <div class="input-group-append">
-                                    <button type="button" class="btn btn-danger eliminar-opcion">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Opciones de respuesta</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="opciones-container">
+                                {% for opcion in pregunta.opciones.all %}
+                                <div class="form-group opcion-item mb-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-list-ul text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control rounded-end" name="opciones[]" 
+                                               value="{{ opcion.texto }}" required>
+                                        <button type="button" class="btn btn-outline-danger ms-2 eliminar-opcion rounded-3">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
+                                {% endfor %}
+                                <button type="button" class="btn btn-outline-primary mt-2 agregar-opcion rounded-3">
+                                    <i class="fas fa-plus me-2"></i> Agregar Opción
+                                </button>
                             </div>
                         </div>
-                        {% endfor %}
-                        <button type="button" class="btn btn-secondary agregar-opcion">
-                            <i class="fas fa-plus"></i> Agregar Opción
-                        </button>
                     </div>
                     {% endif %}
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-3" data-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary rounded-3">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
                     </div>
                 </form>
             </div>
@@ -544,26 +669,30 @@
 <!-- Modal para eliminar pregunta -->
 <div class="modal fade" id="modalEliminarPregunta{{ pregunta.id }}" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Eliminar Pregunta</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash me-2"></i>Eliminar Pregunta
+                </h5>
+                <button type="button" class="btn-close bg-white" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar la pregunta "{{ pregunta.texto }}"?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Atención:</strong> Estás a punto de eliminar una pregunta
+                </div>
+                <p>¿Estás seguro de que deseas eliminar la pregunta "<strong>{{ pregunta.texto }}</strong>"?</p>
                 <p class="text-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <i class="fas fa-exclamation-triangle me-1"></i>
                     Esta acción no se puede deshacer y eliminará todas las respuestas asociadas.
                 </p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-dismiss="modal">Cancelar</button>
                 <form method="post" action="{% url 'eliminar_pregunta' pregunta.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Sí, Eliminar Pregunta
+                    <button type="submit" class="btn btn-danger rounded-3">
+                        <i class="fas fa-trash me-2"></i> Sí, Eliminar Pregunta
                     </button>
                 </form>
             </div>
@@ -726,6 +855,57 @@
                 });
             }
         }
+
+        // Agregar animaciones y efectos visuales
+        const cards = document.querySelectorAll('.hover-card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            });
+        });
+        
+        // Mejorar la interacción con los tabs
+        const tabLinks = document.querySelectorAll('.nav-tabs .nav-link');
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                // Remover la clase active de todos los tabs
+                tabLinks.forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Añadir la clase active al tab seleccionado
+                this.classList.add('active');
+                
+                // Mostrar el contenido del tab seleccionado
+                const tabId = this.getAttribute('href').substring(1);
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Añadir tooltips a los botones
+        const buttons = document.querySelectorAll('button[data-toggle="tooltip"]');
+        buttons.forEach(button => {
+            new bootstrap.Tooltip(button);
+        });
+        
+        // Añadir confirmación antes de eliminar
+        const deleteButtons = document.querySelectorAll('button[data-target*="modalEliminarPregunta"]');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const preguntaId = this.getAttribute('data-target').match(/\d+/)[0];
+                const preguntaTexto = document.querySelector(`.pregunta-${preguntaId} .card-title`).textContent;
+                document.querySelector(`#modalEliminarPregunta${preguntaId} .pregunta-texto`).textContent = preguntaTexto;
+            });
+        });
     });
 </script>
 
@@ -871,6 +1051,102 @@
     .patron-option input:checked + label .patron-preview {
         border: 2px solid var(--primary-color);
         box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.3);
+    }
+    
+    /* Estilos generales mejorados */
+    .card-header {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+    
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #555;
+        font-weight: 600;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 0;
+        position: relative;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #4361ee;
+        background: none;
+        border: none;
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: #4361ee;
+    }
+    
+    .nav-tabs .nav-link:hover:not(.active) {
+        background-color: rgba(0,0,0,0.03);
+        border: none;
+    }
+    
+    .form-control, .form-select {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #4361ee;
+        border-color: #4361ee;
+    }
+    
+    .btn-primary:hover {
+        background-color: #3a56d6;
+        border-color: #3a56d6;
+    }
+    
+    .btn-danger {
+        background-color: #e74c3c;
+        border-color: #e74c3c;
+    }
+    
+    .btn-danger:hover {
+        background-color: #d62c1a;
+        border-color: #d62c1a;
+    }
+    
+    .form-check-input:checked {
+        background-color: #4361ee;
+        border-color: #4361ee;
+    }
+    
+    .badge {
+        padding: 0.35em 0.65em;
+        font-weight: 600;
+    }
+    
+    /* Ajustes para la visualización móvil */
+    @media (max-width: 768px) {
+        .card-title {
+            font-size: 1rem;
+        }
+        
+        .card-header h6 {
+            font-size: 0.85rem;
+        }
     }
 </style>
 {% endblock %}

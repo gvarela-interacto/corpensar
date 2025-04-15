@@ -1042,15 +1042,33 @@ def procesar_preguntas_fecha(request, respuesta):
     for pregunta in PreguntaFecha.objects.filter(encuesta=respuesta.encuesta):
         valor = request.POST.get(f'pregunta_{pregunta.id}')
         if valor:
-            if pregunta.tipo == 'DATE':
-                valor = timezone.datetime.strptime(valor, '%Y-%m-%d').date()
-            else:
-                valor = timezone.datetime.strptime(valor, '%Y-%m-%dT%H:%M')
-            RespuestaFecha.objects.create(
-                respuesta_encuesta=respuesta,
-                pregunta=pregunta,
-                valor=valor
-            )
+            try:
+                if pregunta.tipo == 'DATE':
+                    valor = timezone.datetime.strptime(valor, '%Y-%m-%d').date()
+                else:
+                    # Intentar diferentes formatos de fecha/hora
+                    try:
+                        valor = timezone.datetime.strptime(valor, '%Y-%m-%dT%H:%M')
+                    except ValueError:
+                        try:
+                            valor = timezone.datetime.strptime(valor, '%Y-%m-%d %H:%M')
+                        except ValueError:
+                            # Si no es un formato de fecha válido, usar la fecha actual
+                            valor = timezone.now()
+                
+                RespuestaFecha.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    valor=valor
+                )
+            except Exception as e:
+                print(f"Error al procesar fecha para pregunta {pregunta.id}: {str(e)}")
+                # En caso de error, usar la fecha actual
+                RespuestaFecha.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    valor=timezone.now()
+                )
 
 def procesar_preguntas_estrellas(request, respuesta):
     for pregunta in PreguntaEstrellas.objects.filter(encuesta=respuesta.encuesta):
