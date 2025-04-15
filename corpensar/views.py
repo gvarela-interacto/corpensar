@@ -130,7 +130,6 @@ def crear_desde_cero(request):
         activa = bool(request.POST.get('activa'))
         es_publica = bool(request.POST.get('es_publica'))
         region_id = request.POST.get('region')
-        municipio_id = request.POST.get('municipio')
         region = Region.objects.filter(id=region_id).first() if region_id else None
      
 
@@ -145,7 +144,8 @@ def crear_desde_cero(request):
             es_publica=es_publica,
             creador=request.user,
             region=region,
-            municipio= None
+            municipio=None,
+            tema=request.POST.get('tema', 'default')  # Añadir el campo tema
         )   
 
         # Obtener preguntas del formulario
@@ -773,45 +773,41 @@ class FechaForm(BaseEncuestaForm):
 
 
 def responder_encuesta(request, slug):
-    """Vista para responder una encuesta"""
     encuesta = get_object_or_404(Encuesta, slug=slug)
-    municipios = Municipio.objects.filter(region=encuesta.region)
-
-    
-    # Obtener todos los tipos de preguntas hijos
-    tipos_preguntas = [cls.__name__.lower() for cls in PreguntaBase.__subclasses__()]
-    
-    # Recoger todas las preguntas de todos los tipos
     preguntas = []
-    for tipo in tipos_preguntas:
-        preguntas.extend(getattr(encuesta, f'{tipo}_relacionadas').all())
+    secciones_unicas = set()
     
-    # Ordenar las preguntas según el campo 'orden'
-    preguntas_ordenadas = sorted(preguntas, key=lambda x: x.orden)
+    # Obtener todas las preguntas de la encuesta
+    preguntas.extend(encuesta.preguntatexto_relacionadas.all())
+    preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
+    preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
+    preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
+    preguntas.extend(encuesta.preguntaescala_relacionadas.all())
+    preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
+    preguntas.extend(encuesta.preguntafecha_relacionadas.all())
     
-    # 1. Crear lista de secciones en el orden de aparición (incluyendo duplicados)
-    secciones_con_duplicados = [p.seccion or 'General' for p in preguntas_ordenadas]
+    # Ordenar preguntas por orden
+    preguntas.sort(key=lambda x: x.orden)
     
-    # 2. Eliminar duplicados manteniendo el orden
-    secciones_unicas = []
-    seen = set()
-    for seccion in secciones_con_duplicados:
-        if seccion not in seen:
-            seen.add(seccion)
-            secciones_unicas.append(seccion)
+    # Obtener secciones únicas
+    for pregunta in preguntas:
+        if pregunta.seccion:
+            secciones_unicas.add(pregunta.seccion)
     
-    # 3. Agrupar preguntas por sección (opcional, según lo que necesites)
-    preguntas_por_seccion = {}
-    for seccion in secciones_unicas:
-        preguntas_por_seccion[seccion] = [p for p in preguntas_ordenadas if (p.seccion or 'General') == seccion]
+    # Obtener municipios disponibles
+    municipios = Municipio.objects.all()
     
-    return render(request, 'encuesta/responder_encuesta.html', {
+    context = {
         'encuesta': encuesta,
+        'preguntas': preguntas,
+        'secciones_unicas': sorted(secciones_unicas),
         'municipios': municipios,
-        'preguntas': preguntas_ordenadas,
-        'secciones_unicas': secciones_unicas,  # Lista de secciones en orden de aparición sin duplicados
-        'preguntas_por_seccion': preguntas_por_seccion  # Diccionario opcional con preguntas agrupadas
-    })
+        'tema': encuesta.tema,
+    }
+    
+    return render(request, 'Encuesta/responder_encuesta.html', context)
 
 def encuesta_completada(request, slug):
     """Vista de agradecimiento después de completar una encuesta"""

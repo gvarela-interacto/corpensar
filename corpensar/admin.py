@@ -318,8 +318,8 @@ class PreguntaFechaInline(StackedInline):
 
 # Admin principal para Encuesta
 class EncuestaAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica']
-    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion']
+    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
+    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion', 'tema']
     search_fields = ['titulo', 'descripcion']
     prepopulated_fields = {'slug': ('titulo',)}
     filter_horizontal = []
@@ -333,7 +333,7 @@ class EncuestaAdmin(admin.ModelAdmin):
             'fields': ('fecha_inicio', 'fecha_fin', 'fecha_creacion', 'fecha_actualizacion')
         }),
         ('Configuración', {
-            'fields': ('activa', 'es_publica')
+            'fields': ('activa', 'es_publica', 'tema')
         }),
     )
     

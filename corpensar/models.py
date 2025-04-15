@@ -29,6 +29,21 @@ class Municipio(models.Model):
 
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
+    TEMAS = (
+        ('default', _('Tema por defecto')),
+        ('azul', _('Tema Azul')),
+        ('verde', _('Tema Verde')),
+        ('rojo', _('Tema Rojo')),
+        ('morado', _('Tema Morado')),
+        ('naranja', _('Tema Naranja')),
+        ('turquesa', _('Tema Turquesa')),
+        ('rosa', _('Tema Rosa')),
+        ('esmeralda', _('Tema Esmeralda')),
+        ('indigo', _('Tema Índigo')),
+        ('cielo', _('Tema Cielo')),
+        ('coral', _('Tema Coral')),
+    )
+    
     titulo = models.CharField(max_length=200, verbose_name=_("Título"))
     descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
     slug = models.SlugField(max_length=250, unique=True)
@@ -40,6 +55,7 @@ class Encuesta(models.Model):
     creador = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creador"))
     es_publica = models.BooleanField(default=False, verbose_name=_("Es pública"))
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
+    tema = models.CharField(max_length=20, choices=TEMAS, default='default', verbose_name=_("Tema"))
 
     municipio = models.ForeignKey(
         Municipio, 
