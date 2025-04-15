@@ -446,7 +446,6 @@ def editar_encuesta(request, encuesta_id):
 
 # Vista para listar encuestas del usuario
 
-
 class ListaEncuestasView(LoginRequiredMixin, ListView):
     model = Encuesta
     template_name = 'Encuesta/lista_encuestas.html'
@@ -475,8 +474,7 @@ class ResultadosEncuestaView(DetailView):
         context = super().get_context_data(**kwargs)
         encuesta = self.object
 
-        print(f"Encuesta: {encuesta}")
-
+        # Obtener todas las preguntas ordenadas
         preguntas = sorted(
             chain(
                 encuesta.preguntatexto_relacionadas.all(),
@@ -492,82 +490,104 @@ class ResultadosEncuestaView(DetailView):
             key=lambda x: x.orden
         )
 
-        print(f"Preguntas ordenadas: {[p.id for p in preguntas]}")
-
-        context['preguntas'] = preguntas
-        context['graficas'] = {}
+        # Crear lista de preguntas con sus datos directamente
+        preguntas_con_datos = []
 
         for pregunta in preguntas:
             tipo = pregunta.__class__.__name__
-            key = f"pregunta_{pregunta.id}"
-
-            print(f"Procesando pregunta ID {pregunta.id}, tipo {tipo}")
+            datos_pregunta = {
+                'pregunta': pregunta,
+                'datos': None,
+                'tipo': tipo.lower()  # Para usar en el template
+            }
 
             if tipo == 'PreguntaOpcionMultiple':
                 respuestas = RespuestaOpcionMultiple.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                total_respuestas = sum(counter.values())
+                for opcion, cantidad in counter.items():
+                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
+                    counter[opcion] = {'cantidad': cantidad, 'porcentaje': porcentaje}
+                datos_pregunta['datos'] = dict(counter)
+                datos_pregunta['tipo_grafica'] = 'opciones'
 
             elif tipo == 'PreguntaCasillasVerificacion':
                 respuestas = RespuestaCasillasVerificacion.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                total_respuestas = sum(counter.values())
+                for opcion, cantidad in counter.items():
+                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
+                    counter[opcion] = {'cantidad': cantidad, 'porcentaje': porcentaje}
+                datos_pregunta['datos'] = dict(counter)
+                datos_pregunta['tipo_grafica'] = 'opciones'
 
             elif tipo == 'PreguntaMenuDesplegable':
                 respuestas = RespuestaOpcionMenuDesplegable.objects.filter(pregunta=pregunta)
                 counter = Counter([r.opcion.texto for r in respuestas])
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                total_respuestas = sum(counter.values())
+                for opcion, cantidad in counter.items():
+                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
+                    counter[opcion] = {'cantidad': cantidad, 'porcentaje': porcentaje}
+                datos_pregunta['datos'] = dict(counter)
+                datos_pregunta['tipo_grafica'] = 'opciones'
 
             elif tipo == 'PreguntaEstrellas':
                 respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 promedio = sum(valores) / len(valores) if valores else 0
-                context['graficas'][key] = {
-                    'valores': valores,
+                datos_pregunta['datos'] = {
+                    'valores': dict(Counter(valores)),
                     'promedio': promedio
                 }
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                datos_pregunta['tipo_grafica'] = 'estrellas'
 
             elif tipo == 'PreguntaEscala':
                 respuestas = RespuestaEscala.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 counter = Counter(valores)
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                total_respuestas = sum(counter.values())
+                for valor, cantidad in counter.items():
+                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
+                    counter[valor] = {'cantidad': cantidad, 'porcentaje': porcentaje}
+                datos_pregunta['datos'] = dict(counter)
+                datos_pregunta['tipo_grafica'] = 'escala'
 
             elif tipo == 'PreguntaTextoMultiple':
                 respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
-                textos = [r.valor for r in respuestas]
-                context['graficas'][key] = textos
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                datos_pregunta['datos'] = [r.valor for r in respuestas]
+                datos_pregunta['tipo_grafica'] = 'texto'
 
             elif tipo == 'PreguntaTexto':
                 respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
-                textos = [r.valor for r in respuestas]
-                context['graficas'][key] = textos
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                datos_pregunta['datos'] = [r.valor for r in respuestas]
+                datos_pregunta['tipo_grafica'] = 'texto'
 
             elif tipo == 'PreguntaFecha':
                 respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
                 fechas = [r.valor.isoformat() for r in respuestas]
                 counter = Counter(fechas)
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                datos_pregunta['datos'] = dict(counter)
+                datos_pregunta['tipo_grafica'] = 'fechas'
 
             elif tipo == 'PreguntaMatriz':
                 respuestas = RespuestaMatriz.objects.filter(pregunta=pregunta)
                 datos = defaultdict(Counter)
                 for r in respuestas:
                     datos[r.item.texto][r.valor] += 1
-                context['graficas'][key] = {fila: dict(contador) for fila, contador in datos.items()}
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                # Calculamos el porcentaje para cada fila y cada valor en la matriz
+                for fila, contador in datos.items():
+                    total_respuestas_fila = sum(contador.values())
+                    for valor, cantidad in contador.items():
+                        porcentaje = (cantidad / total_respuestas_fila) * 100 if total_respuestas_fila > 0 else 0
+                        contador[valor] = {'porcentaje': porcentaje}
+                datos_pregunta['datos'] = {fila: dict(contador) for fila, contador in datos.items()}
+                datos_pregunta['tipo_grafica'] = 'matriz'
+                datos_pregunta['escala'] = pregunta.escala
 
-        print(f"Contexto final: {context}")
+            preguntas_con_datos.append(datos_pregunta)
+
+        context['preguntas_con_datos'] = preguntas_con_datos
         return context
-
 
 def get_client_ip(request):
     """Obtiene la dirección IP del cliente"""

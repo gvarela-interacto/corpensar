@@ -1,98 +1,114 @@
 {% extends 'base.html' %}
 {% block content %}
-{% load diccionario %}
 
 <div class="container mt-4">
     <h2>Resultados de "{{ encuesta.titulo }}"</h2>
-    {% for pregunta in preguntas %}
-    {% with key="pregunta_"|add:pregunta.id|stringformat:"s" %}
-    {% with data=graficas|dict_get:key %}
+    {% for pregunta_data in preguntas_con_datos %}
     <div class="card my-4">
         <div class="card-header font-weight-bold">
-            {{ pregunta.orden }}. {{ pregunta.texto }} ({{ pregunta.get_tipo_display }})
+            {{ pregunta_data.pregunta.orden }}. {{ pregunta_data.pregunta.texto }} ({{ pregunta_data.pregunta.get_tipo_display }})
         </div>
         <div class="card-body">
-            {% if data %}
-                {% if data.promedio %}
-                    {# Para preguntas de estrellas/rating #}
-                    <div class="alert alert-info">
-                        Promedio: <strong>{{ data.promedio|floatformat:1 }}</strong>
+            {% if pregunta_data.datos %}
+                {% if pregunta_data.tipo_grafica == 'estrellas' %}
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Promedio: <strong>{{ pregunta_data.datos.promedio|floatformat:1 }}</strong></span>
+                            <span>{{ pregunta_data.datos.valores|length }} respuestas</span>
+                        </div>
                     </div>
-                    <h5>Distribución de respuestas:</h5>
-                    <ul class="list-group">
-                        {% for valor, cantidad in data.valores.items %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ valor }} estrellas
-                            <span class="badge bg-primary rounded-pill">{{ cantidad }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    
+                    <div class="mb-3">
+                        <h6 class="mb-2">Distribución:</h6>
+                        <div class="list-group">
+                            {% for valor, cantidad in pregunta_data.datos.valores.items|dictsort:"0" %}
+                            <div class="list-group-item py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% for i in "12345"|make_list %}
+                                            <i class="fas fa-star {% if forloop.counter <= valor %}text-warning{% else %}text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                        <span class="ml-2 small">{{ valor }} estrellas</span>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ cantidad }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
 
-                {% elif data.items and data.values.0 is defined %}
-                    {# Para matrices #}
+                    {% elif pregunta_data.tipo_grafica == 'matriz' %}
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="table-dark">
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Ítem/Fila</th>
-                                    {% for columna in data.values.0.keys %}
-                                    <th>{{ columna }}</th>
+                                    <th class="small align-middle">Afirmación</th>
+                                    {% for opcion in pregunta_data.pregunta.escala.get_opciones %}
+                                    <th class="small text-center">{{ opcion.texto }}</th>
                                     {% endfor %}
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for fila, columnas in data.items %}
+                                {% for fila, valores in pregunta_data.datos.items %}
                                 <tr>
-                                    <td><strong>{{ fila }}</strong></td>
-                                    {% for valor in columnas.values %}
-                                    <td>{{ valor }}</td>
+                                    <td class="small"><strong>{{ fila }}</strong></td>
+                                    {% for val, cant in valores.items %}
+                                    <td class="small text-center">
+                                        <span class="badge bg-primary rounded-pill">{{ valores }}</span>
+                                    </td>
                                     {% endfor %}
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-
-                {% elif data.items %}
-                    {# Para opciones múltiples y casillas de verificación #}
-                    <ul class="list-group">
-                        {% for opcion, total in data.items %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ opcion }}
-                            <span class="badge bg-primary rounded-pill">{{ total }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-
-                {% elif data.0 is string %}
-                    {# Para respuestas de texto #}
-                    <div class="responses-container">
-                        {% for respuesta in data %}
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                {{ respuesta }}
+                {% elif pregunta_data.tipo_grafica == 'opciones' %}
+                    <div class="list-group">
+                        {% for opcion, total in pregunta_data.datos.items %}
+                        <div class="list-group-item py-2 px-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small">{{ opcion }}</span>
+                                <div>
+                                    <span class="badge bg-primary rounded-pill me-2">{{ total }}</span>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
 
+                {% elif pregunta_data.tipo_grafica == 'texto' %}
+                    <div class="responses-container bg-light p-2 rounded">
+                        {% if pregunta_data.datos %}
+                            {% for respuesta in pregunta_data.datos %}
+                            <div class="mb-2 p-2 bg-white rounded border">
+                                <p class="mb-0 small">{{ respuesta }}</p>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-3 text-muted">
+                                <i class="far fa-comment-dots fa-2x mb-2"></i>
+                                <p class="small mb-0">No hay respuestas de texto</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
                 {% else %}
-                    {# Para otros tipos de datos #}
-                    <div class="alert alert-warning">
-                        Formato de datos no reconocido para esta pregunta
+                    <div class="alert alert-warning py-2">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span class="small">Formato de visualización no disponible</span>
                     </div>
                 {% endif %}
             {% else %}
-                <div class="alert alert-secondary">
-                    Aún no hay respuestas para esta pregunta
+                <div class="alert alert-secondary py-2">
+                    <i class="far fa-hourglass me-2"></i>
+                    <span class="small">No hay respuestas registradas</span>
                 </div>
             {% endif %}
         </div>
     </div>
-    {% endwith %}
-    {% endwith %}
     {% empty %}
     <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
         Esta encuesta no tiene preguntas configuradas
     </div>
     {% endfor %}
@@ -105,6 +121,14 @@
     .responses-container {
         max-height: 300px;
         overflow-y: auto;
+    }
+    .fa-star {
+        font-size: 0.9em;
+        margin-right: 2px;
+    }
+    .list-group-item {
+        border-left: none;
+        border-right: none;
     }
 </style>
 {% endblock %}
