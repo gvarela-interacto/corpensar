@@ -132,7 +132,7 @@ def crear_desde_cero(request):
         region_id = request.POST.get('region')
         municipio_id = request.POST.get('municipio')
         region = Region.objects.filter(id=region_id).first() if region_id else None
-        municipio = Municipio.objects.filter(id=municipio_id).first() if municipio_id else None
+     
 
         # Crear la encuesta y guardarla en una variable
         encuesta = Encuesta.objects.create(
@@ -145,7 +145,7 @@ def crear_desde_cero(request):
             es_publica=es_publica,
             creador=request.user,
             region=region,
-            municipio=municipio
+            municipio= None
         )   
 
         # Obtener preguntas del formulario
@@ -775,6 +775,8 @@ class FechaForm(BaseEncuestaForm):
 def responder_encuesta(request, slug):
     """Vista para responder una encuesta"""
     encuesta = get_object_or_404(Encuesta, slug=slug)
+    municipios = Municipio.objects.filter(region=encuesta.region)
+
     
     # Obtener todos los tipos de preguntas hijos
     tipos_preguntas = [cls.__name__.lower() for cls in PreguntaBase.__subclasses__()]
@@ -805,6 +807,7 @@ def responder_encuesta(request, slug):
     
     return render(request, 'encuesta/responder_encuesta.html', {
         'encuesta': encuesta,
+        'municipios': municipios,
         'preguntas': preguntas_ordenadas,
         'secciones_unicas': secciones_unicas,  # Lista de secciones en orden de aparición sin duplicados
         'preguntas_por_seccion': preguntas_por_seccion  # Diccionario opcional con preguntas agrupadas
@@ -817,44 +820,36 @@ def encuesta_completada(request, slug):
         'encuesta': encuesta
     })
     
+
 @login_required
 def guardar_respuesta(request, encuesta_id):
-    print("Entering guardar_respuesta function")
     encuesta = get_object_or_404(Encuesta, id=encuesta_id)
-    print(f"Encuesta retrieved: {encuesta}")
 
     if request.method == 'POST':
-        print("Processing POST request")
+        municipio_id = request.POST.get('municipio')
+        municipio = Municipio.objects.filter(id=municipio_id).first() if municipio_id else None
+
         respuesta = RespuestaEncuesta.objects.create(
             encuesta=encuesta,
             usuario=request.user,
+            municipio=municipio,  # ✅ aquí lo guardas
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             completada=True
         )
-        print(f"RespuestaEncuesta created: {respuesta}")
 
-        print("Processing text questions")
+        # Procesar las respuestas
         procesar_preguntas_texto(request, respuesta)
-        print("Processing multiple choice questions")
         procesar_preguntas_opcion_multiple(request, respuesta)
-        print("Processing checkbox questions")
         procesar_preguntas_casillas(request, respuesta)
-        print("Processing dropdown questions")
         procesar_preguntas_desplegable(request, respuesta)
-        print("Processing scale questions")
         procesar_preguntas_escala(request, respuesta)
-        print("Processing matrix questions")
         procesar_preguntas_matriz(request, respuesta)
-        print("Processing date questions")
         procesar_preguntas_fecha(request, respuesta)
-        print("Processing star rating questions")
         procesar_preguntas_estrellas(request, respuesta)
 
-        print("Redirecting to index")
         return redirect('index')
 
-    print("Redirecting to todas_encuestas")
     return redirect('todas_encuestas')
 
 def procesar_preguntas_texto(request, respuesta):

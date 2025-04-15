@@ -41,16 +41,11 @@ class Encuesta(models.Model):
     es_publica = models.BooleanField(default=False, verbose_name=_("Es pública"))
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
 
-    municipio = ChainedForeignKey(
-        Municipio,
-        chained_field="region",
-        chained_model_field="region",
-        show_all=False,
-        auto_choose=True,
-        sort=True,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+    municipio = models.ForeignKey(
+        Municipio, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
         verbose_name="Municipio"
     )
 
@@ -254,6 +249,7 @@ class RespuestaEncuesta(models.Model):
     """Registro completo de una respuesta a encuesta"""
     encuesta = models.ForeignKey(Encuesta, related_name='respuestas', on_delete=models.CASCADE, verbose_name=_("Encuesta"))
     usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("Usuario"))
+    municipio = models.ForeignKey(Municipio, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("Municipio"))
     fecha_respuesta = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de respuesta"))
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name=_("Dirección IP"))
     user_agent = models.TextField(null=True, blank=True, verbose_name=_("User Agent"))

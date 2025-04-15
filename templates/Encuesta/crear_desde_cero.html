@@ -46,19 +46,6 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label for="municipio" class="form-label d-flex justify-content-between align-items-left">
-                                    <span>Municipio <span class="required-asterisk">*</span></span>
-                                    <a href="{% url 'crear_municipio' %}" class="btn btn-sm btn-outline-success" target="_blank">
-                                        <i class="mdi mdi-plus"></i>
-                                    </a>
-                                </label>
-                                <select class="form-select" id="municipio" name="municipio" required>
-                                    <option value="">Seleccione un municipio</option>
-                                </select>
-                            </div>
-                            
-                            
-                            <div class="mb-3">
                                 <label for="descripcion" class="form-label">Descripción</label>
                                 <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
                             </div>
@@ -901,35 +888,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const regionSelect = document.getElementById('region');
-            const municipioSelect = document.getElementById('municipio');
-        
-            regionSelect.addEventListener('change', function () {
-                const regionId = this.value;
-                municipioSelect.innerHTML = '<option value="">Cargando...</option>';
-        
-                if (regionId) {
-                    fetch(`/api/municipios/?region_id=${regionId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            municipioSelect.innerHTML = '<option value="">Seleccione un municipio</option>';
-                            data.forEach(m => {
-                                const option = document.createElement('option');
-                                option.value = m.id;
-                                option.textContent = m.nombre;
-                                municipioSelect.appendChild(option);
-                            });
-                        })
-                        .catch(error => {
-                            municipioSelect.innerHTML = '<option value="">Error al cargar</option>';
-                            console.error('Error cargando municipios:', error);
-                        });
-                } else {
-                    municipioSelect.innerHTML = '<option value="">Seleccione una región primero</option>';
-                }
-            });
-        });
         // Función global para agregar opciones
         function agregarOpciones(button) {
             console.log('Iniciando agregarOpciones');

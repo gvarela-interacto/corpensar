@@ -376,10 +376,22 @@
         <div class="survey-header">
             <h1>{{encuesta.titulo}}</h1>
             <p>{{encuesta.descripcion}}</p>
+            <p><strong>Región:</strong> {{ encuesta.region.nombre }}</p>
+
+            
         </div>
     
         <form method="POST" action="{% url 'guardar_respuesta' encuesta.id %}" class="survey-body">
             {% csrf_token %}
+            <div class="mb-3">
+                <label for="municipio">Seleccione su municipio</label>
+                <select name="municipio" id="municipio" class="form-select" required>
+                    <option value="">Seleccione un municipio</option>
+                    {% for municipio in municipios %}
+                        <option value="{{ municipio.id }}">{{ municipio.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             {% for seccion in secciones_unicas %}
                 <h3 class="section-title">{{ seccion }}</h3>
                 {% for pregunta in preguntas %}
