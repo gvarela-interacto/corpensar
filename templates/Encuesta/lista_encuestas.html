@@ -14,6 +14,7 @@
                 <tr>
                     <th>Título</th>
                     <th>Estado</th>
+                    <th>Región</th>
                     <th>Fecha Creación</th>
                     <th>Url</th>
                     <th>Acciones</th>
@@ -28,6 +29,7 @@
                             {% if encuesta.activa %}Activa{% else %}Inactiva{% endif %}
                         </span>
                     </td>
+                    <td>{{ encuesta.region.nombre|default:"Sin región" }}</td>
                     <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
                     <td>{{ encuesta.slug }}</td>
                     <td>

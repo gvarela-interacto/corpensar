@@ -120,8 +120,12 @@ def crear_desde_cero(request):
     # Inicializar el formulario fuera del bloque if/else
     form = EncuestaForm()
     regiones = Region.objects.all()
+    print("Regiones disponibles:", [f"{r.id}: {r.nombre}" for r in regiones])
 
     if request.method == 'POST':
+        # Imprimir todos los datos del POST para debug
+        print("Datos del POST completo:", request.POST)
+        
         titulo = request.POST.get('titulo')
         slug = request.POST.get('slug')
         descripcion = request.POST.get('descripcion')
@@ -129,25 +133,70 @@ def crear_desde_cero(request):
         fecha_fin = request.POST.get('fecha_fin')
         activa = bool(request.POST.get('activa'))
         es_publica = bool(request.POST.get('es_publica'))
+        
+        # Procesar region_id con más logs
         region_id = request.POST.get('region')
-        region = Region.objects.filter(id=region_id).first() if region_id else None
-     
+        print(f"Region ID recibido del formulario: {region_id}")
+        print(f"Tipo de region_id: {type(region_id)}")
+        
+        region = None
+        try:
+            if region_id and region_id.strip():
+                region_id = int(region_id)
+                region = Region.objects.get(id=region_id)
+                print(f"Región encontrada: {region}")
+                print(f"ID de la región: {region.id}")
+                print(f"Nombre de la región: {region.nombre}")
+            else:
+                print("No se proporcionó region_id o estaba vacío")
+        except (ValueError, Region.DoesNotExist) as e:
+            print(f"Error al procesar region_id: {e}")
+            messages.error(request, f"Error al procesar la región seleccionada: {e}")
+            return render(request, 'Encuesta/crear_desde_cero.html', {
+                'form': form,
+                'regiones': regiones
+            })
+        
+        tema = request.POST.get('tema', 'default')
 
-        # Crear la encuesta y guardarla en una variable
-        encuesta = Encuesta.objects.create(
-            titulo=titulo,
-            slug=slug,
-            descripcion=descripcion,
-            fecha_inicio=fecha_inicio,
-            fecha_fin=fecha_fin,
-            activa=activa,
-            es_publica=es_publica,
-            creador=request.user,
-            region=region,
-            municipio=None,
-            tema=request.POST.get('tema', 'default')  # Añadir el campo tema
-        )   
-
+        try:
+            # Crear la encuesta y guardarla en una variable
+            print("Intentando crear encuesta con los siguientes datos:")
+            print(f"Título: {titulo}")
+            print(f"Región: {region}")
+            
+            encuesta = Encuesta.objects.create(
+                titulo=titulo,
+                slug=slug,
+                descripcion=descripcion,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                activa=activa,
+                es_publica=es_publica,
+                creador=request.user,
+                region=region,
+                municipio=None,
+                tema=tema
+            )
+            
+            # Verificar que la encuesta se creó correctamente
+            print(f"Encuesta creada con ID: {encuesta.id}")
+            print(f"Región asignada a la encuesta: {encuesta.region}")
+            print(f"ID de la región en la encuesta: {encuesta.region.id if encuesta.region else None}")
+            
+            # Verificar directamente en la base de datos
+            encuesta_verificada = Encuesta.objects.get(id=encuesta.id)
+            print(f"Verificación en BD - Región de la encuesta: {encuesta_verificada.region}")
+            print(f"Verificación en BD - ID de la región: {encuesta_verificada.region.id if encuesta_verificada.region else None}")
+            
+        except Exception as e:
+            print(f"Error al crear la encuesta: {e}")
+            messages.error(request, f"Error al crear la encuesta: {e}")
+            return render(request, 'Encuesta/crear_desde_cero.html', {
+                'form': form,
+                'regiones': regiones
+            })
+        
         # Obtener preguntas del formulario
         preguntas_ids = set()
         
@@ -446,9 +495,25 @@ def editar_encuesta(request, encuesta_id):
     else:
         form = EncuestaForm(instance=encuesta)
     
+    # Obtener todas las preguntas de la encuesta
+    preguntas = []
+    preguntas.extend(encuesta.preguntatexto_relacionadas.all())
+    preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
+    preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
+    preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
+    preguntas.extend(encuesta.preguntaescala_relacionadas.all())
+    preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
+    preguntas.extend(encuesta.preguntafecha_relacionadas.all())
+    
+    # Ordenar preguntas por orden
+    preguntas.sort(key=lambda x: x.orden)
+    
     return render(request, 'Encuesta/editar_encuesta.html', {
         'encuesta': encuesta,
-        'form': form
+        'form': form,
+        'preguntas': preguntas
     })
 
 # Vista para listar encuestas del usuario
@@ -461,7 +526,23 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Encuesta.objects.filter(creador=self.request.user).order_by('-fecha_creacion')
+        # Usar select_related para cargar la región en la misma consulta
+        return Encuesta.objects.select_related('region').filter(
+            creador=self.request.user
+        ).order_by('-fecha_creacion')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar debug info
+        for encuesta in context['encuestas']:
+            print(f"Encuesta ID: {encuesta.id}")
+            print(f"Región de la encuesta: {encuesta.region}")
+            if encuesta.region:
+                print(f"ID de la región: {encuesta.region.id}")
+                print(f"Nombre de la región: {encuesta.region.nombre}")
+            else:
+                print("Esta encuesta no tiene región asignada")
+        return context
 
     
 class TodasEncuestasView(ListView):
@@ -471,7 +552,20 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Encuesta.objects.all().order_by('-fecha_creacion')
+        return Encuesta.objects.select_related('region', 'creador').order_by('-fecha_creacion')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar debug info
+        for encuesta in context['encuestas']:
+            print(f"Encuesta ID: {encuesta.id}")
+            print(f"Región de la encuesta: {encuesta.region}")
+            if encuesta.region:
+                print(f"ID de la región: {encuesta.region.id}")
+                print(f"Nombre de la región: {encuesta.region.nombre}")
+            else:
+                print("Esta encuesta no tiene región asignada")
+        return context
 
 class ResultadosEncuestaView(DetailView):
     model = Encuesta
@@ -1011,3 +1105,17 @@ def crear_municipio(request):
             messages.error(request, "Todos los campos son obligatorios.")
 
     return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})
+
+@login_required
+def eliminar_encuesta(request, encuesta_id):
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
+    
+    if request.method == 'POST':
+        # Guardar el título para el mensaje
+        titulo = encuesta.titulo
+        # Eliminar la encuesta
+        encuesta.delete()
+        messages.success(request, f'La encuesta "{titulo}" ha sido eliminada exitosamente.')
+        return redirect('lista_encuestas')
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta_id)

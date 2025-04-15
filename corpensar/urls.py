@@ -15,6 +15,7 @@ urlpatterns = [
   path('encuestas/crear/con-ia/', views.crear_con_ia, name='crear_con_ia'),
   path('encuestas/duplicar/', views.duplicar_encuesta, name='duplicar_encuesta'),
   path('encuestas/editar/<int:encuesta_id>/', views.editar_encuesta, name='editar_encuesta'),
+  path('encuestas/eliminar/<int:encuesta_id>/', views.eliminar_encuesta, name='eliminar_encuesta'),
   path('encuestas/mis-encuestas/', views.ListaEncuestasView.as_view(), name='lista_encuestas'),
   path('encuestas/todas-encuestas/', views.TodasEncuestasView.as_view(), name='todas_encuestas'),
   path('encuestas/<int:pk>/resultados/', views.ResultadosEncuestaView.as_view(), name='resultados_encuesta'),

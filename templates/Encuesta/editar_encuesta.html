@@ -22,14 +22,141 @@
         <div class="card-body">
             <div class="tab-content">
                 <div class="tab-pane active" id="configuracion">
-                    <form method="post">
+                    <form method="post" id="formConfiguracion">
                         {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_titulo">{{ form.titulo.label }}</label>
+                                    <input type="text" name="titulo" id="id_titulo" class="form-control" value="{{ form.titulo.value|default:'' }}" maxlength="200" required>
+                                    {% if form.titulo.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.titulo.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_tema">{{ form.tema.label }}</label>
+                                    <select name="tema" id="id_tema" class="form-control">
+                                        {% for value, text in form.tema.field.choices %}
+                                            <option value="{{ value }}" {% if form.tema.value == value %}selected{% endif %}>{{ text }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_descripcion">{{ form.descripcion.label }}</label>
+                            <textarea name="descripcion" id="id_descripcion" class="form-control" rows="3">{{ form.descripcion.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_fecha_inicio">{{ form.fecha_inicio.label }}</label>
+                                    <input type="datetime-local" 
+                                           name="fecha_inicio" 
+                                           id="id_fecha_inicio"
+                                           class="form-control" 
+                                           value="{{ encuesta.fecha_inicio|date:'Y-m-d\TH:i' }}"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_fecha_fin">{{ form.fecha_fin.label }}</label>
+                                    <input type="datetime-local" 
+                                           name="fecha_fin" 
+                                           id="id_fecha_fin"
+                                           class="form-control" 
+                                           value="{{ encuesta.fecha_fin|date:'Y-m-d\TH:i' }}"
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           name="activa" 
+                                           id="id_activa" 
+                                           class="form-check-input"
+                                           {% if form.activa.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_activa">
+                                        {{ form.activa.label }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           name="es_publica" 
+                                           id="id_es_publica" 
+                                           class="form-check-input"
+                                           {% if form.es_publica.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="id_es_publica">
+                                        {{ form.es_publica.label }}
+                                    </label>
+                                    <small class="form-text text-muted">
+                                        {{ form.es_publica.help_text }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modalEliminarEncuesta">
+                                <i class="fas fa-trash"></i> Eliminar Encuesta
+                            </button>
+                        </div>
                     </form>
                 </div>
                 <div class="tab-pane" id="preguntas">
-                    <p>Aquí irá el editor de preguntas (a implementar)</p>
+                    <div class="d-flex justify-content-between mb-3">
+                        <h4>Preguntas de la encuesta</h4>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAgregarPregunta">
+                            <i class="fas fa-plus"></i> Agregar Pregunta
+                        </button>
+                    </div>
+                    
+                    {% if preguntas %}
+                        <div class="list-group">
+                            {% for pregunta in preguntas %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-1">{{ pregunta.texto }}</h5>
+                                            <small class="text-muted">
+                                                Tipo: {{ pregunta.get_tipo_display }} | 
+                                                Orden: {{ pregunta.orden }} | 
+                                                {% if pregunta.requerida %}Requerida{% else %}Opcional{% endif %}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#modalEditarPregunta{{ pregunta.id }}">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#modalEliminarPregunta{{ pregunta.id }}">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No hay preguntas en esta encuesta. 
+                            Agrega una pregunta para comenzar.
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="tab-pane" id="diseno">
                     <p>Aquí irán las opciones de diseño (a implementar)</p>
@@ -38,4 +165,90 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para eliminar encuesta -->
+<div class="modal fade" id="modalEliminarEncuesta" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Eliminar Encuesta</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar la encuesta "{{ encuesta.titulo }}"?</p>
+                <p class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Esta acción no se puede deshacer y eliminará todas las preguntas y respuestas asociadas.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <form method="post" action="{% url 'eliminar_encuesta' encuesta.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sí, Eliminar Encuesta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar pregunta -->
+<div class="modal fade" id="modalAgregarPregunta" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Nueva Pregunta</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Aquí irá el formulario para agregar pregunta -->
+                <p>Formulario para agregar pregunta (a implementar)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Inicializar los campos de fecha y hora
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatear las fechas al formato requerido por datetime-local
+        function formatDateForInput(date) {
+            return date.substring(0, 16); // Toma solo YYYY-MM-DDTHH:mm
+        }
+
+        // Establecer valores iniciales
+        var fechaInicio = document.querySelector('input[name="fecha_inicio"]');
+        var fechaFin = document.querySelector('input[name="fecha_fin"]');
+
+        if (fechaInicio.value) {
+            fechaInicio.value = formatDateForInput(fechaInicio.value);
+        }
+        if (fechaFin.value) {
+            fechaFin.value = formatDateForInput(fechaFin.value);
+        }
+
+        // Validar que la fecha de fin no sea anterior a la de inicio
+        fechaInicio.addEventListener('change', function() {
+            if (fechaFin.value && this.value > fechaFin.value) {
+                alert('La fecha de inicio no puede ser posterior a la fecha de finalización');
+                this.value = fechaFin.value;
+            }
+        });
+
+        fechaFin.addEventListener('change', function() {
+            if (fechaInicio.value && this.value < fechaInicio.value) {
+                alert('La fecha de finalización no puede ser anterior a la fecha de inicio');
+                this.value = fechaInicio.value;
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
