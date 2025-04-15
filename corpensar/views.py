@@ -31,7 +31,6 @@ from datetime import datetime
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
 
-
 def registro_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)  # Usamos el formulario por defecto
@@ -120,6 +119,7 @@ def seleccionar_metodo_creacion(request):
 def crear_desde_cero(request):
     # Inicializar el formulario fuera del bloque if/else
     form = EncuestaForm()
+    regiones = Region.objects.all()
 
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
@@ -129,6 +129,10 @@ def crear_desde_cero(request):
         fecha_fin = request.POST.get('fecha_fin')
         activa = bool(request.POST.get('activa'))
         es_publica = bool(request.POST.get('es_publica'))
+        region_id = request.POST.get('region')
+        municipio_id = request.POST.get('municipio')
+        region = Region.objects.filter(id=region_id).first() if region_id else None
+     
 
         # Crear la encuesta y guardarla en una variable
         encuesta = Encuesta.objects.create(
@@ -139,8 +143,10 @@ def crear_desde_cero(request):
             fecha_fin=fecha_fin,
             activa=activa,
             es_publica=es_publica,
-            creador=request.user
-        )
+            creador=request.user,
+            region=region,
+            municipio= None
+        )   
 
         # Obtener preguntas del formulario
         preguntas_ids = set()
@@ -377,7 +383,8 @@ def crear_desde_cero(request):
         return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
-        'form': form
+        'form': form,
+        'regiones': regiones
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
@@ -768,6 +775,8 @@ class FechaForm(BaseEncuestaForm):
 def responder_encuesta(request, slug):
     """Vista para responder una encuesta"""
     encuesta = get_object_or_404(Encuesta, slug=slug)
+    municipios = Municipio.objects.filter(region=encuesta.region)
+
     
     # Obtener todos los tipos de preguntas hijos
     tipos_preguntas = [cls.__name__.lower() for cls in PreguntaBase.__subclasses__()]
@@ -798,6 +807,7 @@ def responder_encuesta(request, slug):
     
     return render(request, 'encuesta/responder_encuesta.html', {
         'encuesta': encuesta,
+        'municipios': municipios,
         'preguntas': preguntas_ordenadas,
         'secciones_unicas': secciones_unicas,  # Lista de secciones en orden de aparición sin duplicados
         'preguntas_por_seccion': preguntas_por_seccion  # Diccionario opcional con preguntas agrupadas
@@ -810,44 +820,36 @@ def encuesta_completada(request, slug):
         'encuesta': encuesta
     })
     
+
 @login_required
 def guardar_respuesta(request, encuesta_id):
-    print("Entering guardar_respuesta function")
     encuesta = get_object_or_404(Encuesta, id=encuesta_id)
-    print(f"Encuesta retrieved: {encuesta}")
 
     if request.method == 'POST':
-        print("Processing POST request")
+        municipio_id = request.POST.get('municipio')
+        municipio = Municipio.objects.filter(id=municipio_id).first() if municipio_id else None
+
         respuesta = RespuestaEncuesta.objects.create(
             encuesta=encuesta,
             usuario=request.user,
+            municipio=municipio,  # ✅ aquí lo guardas
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             completada=True
         )
-        print(f"RespuestaEncuesta created: {respuesta}")
 
-        print("Processing text questions")
+        # Procesar las respuestas
         procesar_preguntas_texto(request, respuesta)
-        print("Processing multiple choice questions")
         procesar_preguntas_opcion_multiple(request, respuesta)
-        print("Processing checkbox questions")
         procesar_preguntas_casillas(request, respuesta)
-        print("Processing dropdown questions")
         procesar_preguntas_desplegable(request, respuesta)
-        print("Processing scale questions")
         procesar_preguntas_escala(request, respuesta)
-        print("Processing matrix questions")
         procesar_preguntas_matriz(request, respuesta)
-        print("Processing date questions")
         procesar_preguntas_fecha(request, respuesta)
-        print("Processing star rating questions")
         procesar_preguntas_estrellas(request, respuesta)
 
-        print("Redirecting to index")
         return redirect('index')
 
-    print("Redirecting to todas_encuestas")
     return redirect('todas_encuestas')
 
 def procesar_preguntas_texto(request, respuesta):
@@ -969,3 +971,47 @@ def procesar_preguntas_estrellas(request, respuesta):
                 pregunta=pregunta,
                 valor=int(valor)
             )
+
+
+def regiones_y_municipios(request):
+    regiones = Region.objects.prefetch_related('municipios').all()
+    return render(request, 'Encuesta/regiones_y_municipios.html', {'regiones': regiones})
+
+@login_required
+def crear_region(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        if nombre:
+            Region.objects.get_or_create(nombre=nombre)
+            messages.success(request, f"Región '{nombre}' creada correctamente.")
+            return redirect('crear_region')
+        else:
+            messages.error(request, "El nombre no puede estar vacío.")
+
+    return render(request, "Encuesta/crear_region.html")
+
+def municipios_por_region(request):
+    region_id = request.GET.get('region_id')
+    municipios = Municipio.objects.filter(region_id=region_id).values('id', 'nombre')
+    return JsonResponse(list(municipios), safe=False)
+
+@login_required
+def crear_municipio(request):
+    regiones = Region.objects.all()
+    
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        region_id = request.POST.get("region")
+        
+        if nombre and region_id:
+            region = Region.objects.filter(id=region_id).first()
+            if region:
+                Municipio.objects.get_or_create(nombre=nombre, region=region)
+                messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                return redirect('crear_municipio')
+            else:
+                messages.error(request, "Región no encontrada.")
+        else:
+            messages.error(request, "Todos los campos son obligatorios.")
+
+    return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})

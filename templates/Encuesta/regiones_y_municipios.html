@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Listado de Regiones y Municipios</h2>
+    <hr>
+    {% for region in regiones %}
+        <h4>{{ region.nombre }}</h4>
+        <ul>
+            {% for municipio in region.municipios.all %}
+                <li>{{ municipio.nombre }}</li>
+            {% endfor %}
+        </ul>
+    {% empty %}
+        <p>No hay regiones registradas.</p>
+    {% endfor %}
+</div>
+{% endblock %}

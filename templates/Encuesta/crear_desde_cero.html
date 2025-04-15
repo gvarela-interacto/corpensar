@@ -30,6 +30,20 @@
                                 </div>
                                 <div class="form-text">Este será el identificador único en la URL de tu encuesta.</div>
                             </div>
+                            <div class="mb-3">
+                                <label for="region" class="form-label d-flex justify-content-between align-items-center">
+                                    <span>Región <span class="required-asterisk">*</span></span>
+                                    <a href="{% url 'crear_region' %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="mdi mdi-plus"></i>
+                                    </a>
+                                </label>
+                                <select class="form-select" id="region" name="region" required>
+                                    <option value="">Seleccione una región</option>
+                                    {% for region in regiones %}
+                                        <option value="{{ region.id }}">{{ region.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                             
                             <div class="mb-3">
                                 <label for="descripcion" class="form-label">Descripción</label>
@@ -873,7 +887,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-    
     <script>
         // Función global para agregar opciones
         function agregarOpciones(button) {
