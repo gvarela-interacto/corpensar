@@ -31,7 +31,6 @@ from datetime import datetime
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
 
-
 def registro_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)  # Usamos el formulario por defecto
@@ -120,6 +119,7 @@ def seleccionar_metodo_creacion(request):
 def crear_desde_cero(request):
     # Inicializar el formulario fuera del bloque if/else
     form = EncuestaForm()
+    regiones = Region.objects.all()
 
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
@@ -129,6 +129,10 @@ def crear_desde_cero(request):
         fecha_fin = request.POST.get('fecha_fin')
         activa = bool(request.POST.get('activa'))
         es_publica = bool(request.POST.get('es_publica'))
+        region_id = request.POST.get('region')
+        municipio_id = request.POST.get('municipio')
+        region = Region.objects.filter(id=region_id).first() if region_id else None
+        municipio = Municipio.objects.filter(id=municipio_id).first() if municipio_id else None
 
         # Crear la encuesta y guardarla en una variable
         encuesta = Encuesta.objects.create(
@@ -139,8 +143,10 @@ def crear_desde_cero(request):
             fecha_fin=fecha_fin,
             activa=activa,
             es_publica=es_publica,
-            creador=request.user
-        )
+            creador=request.user,
+            region=region,
+            municipio=municipio
+        )   
 
         # Obtener preguntas del formulario
         preguntas_ids = set()
@@ -377,7 +383,8 @@ def crear_desde_cero(request):
         return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
-        'form': form
+        'form': form,
+        'regiones': regiones
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
@@ -969,3 +976,47 @@ def procesar_preguntas_estrellas(request, respuesta):
                 pregunta=pregunta,
                 valor=int(valor)
             )
+
+
+def regiones_y_municipios(request):
+    regiones = Region.objects.prefetch_related('municipios').all()
+    return render(request, 'Encuesta/regiones_y_municipios.html', {'regiones': regiones})
+
+@login_required
+def crear_region(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        if nombre:
+            Region.objects.get_or_create(nombre=nombre)
+            messages.success(request, f"Región '{nombre}' creada correctamente.")
+            return redirect('crear_region')
+        else:
+            messages.error(request, "El nombre no puede estar vacío.")
+
+    return render(request, "Encuesta/crear_region.html")
+
+def municipios_por_region(request):
+    region_id = request.GET.get('region_id')
+    municipios = Municipio.objects.filter(region_id=region_id).values('id', 'nombre')
+    return JsonResponse(list(municipios), safe=False)
+
+@login_required
+def crear_municipio(request):
+    regiones = Region.objects.all()
+    
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        region_id = request.POST.get("region")
+        
+        if nombre and region_id:
+            region = Region.objects.filter(id=region_id).first()
+            if region:
+                Municipio.objects.get_or_create(nombre=nombre, region=region)
+                messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                return redirect('crear_municipio')
+            else:
+                messages.error(request, "Región no encontrada.")
+        else:
+            messages.error(request, "Todos los campos son obligatorios.")
+
+    return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})

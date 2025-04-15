@@ -3,8 +3,29 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 from django import forms
+from smart_selects.db_fields import ChainedForeignKey
 
 User = get_user_model()
+class Region(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = "Región"
+        verbose_name_plural = "Regiones"
+
+    def __str__(self):
+        return self.nombre
+
+class Municipio(models.Model):
+    nombre = models.CharField(max_length=100)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name="municipios")
+
+    class Meta:
+        verbose_name = "Municipio"
+        verbose_name_plural = "Municipios"
+
+    def __str__(self):
+        return self.nombre
 
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
@@ -18,6 +39,21 @@ class Encuesta(models.Model):
     activa = models.BooleanField(default=True, verbose_name=_("Activa"))
     creador = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creador"))
     es_publica = models.BooleanField(default=False, verbose_name=_("Es pública"))
+    region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
+
+    municipio = ChainedForeignKey(
+        Municipio,
+        chained_field="region",
+        chained_model_field="region",
+        show_all=False,
+        auto_choose=True,
+        sort=True,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Municipio"
+    )
+
     
     class Meta:
         verbose_name = _("Encuesta")
@@ -26,6 +62,8 @@ class Encuesta(models.Model):
     
     def __str__(self):
         return self.titulo
+    
+
 
 
 class PreguntaBase(models.Model):
