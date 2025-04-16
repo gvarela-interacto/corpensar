@@ -25,7 +25,7 @@
                 <tr>
                     <td class="text-wrap">{{ encuesta.titulo }}</td>
                     <td>
-                        <span class="badge badge-{% if encuesta.activa %}success{% else %}secondary{% endif %}">
+                        <span class="badge badge-{% if encuesta.activa %}success{% else %}warning{% endif %}">
                             {% if encuesta.activa %}Activa{% else %}Inactiva{% endif %}
                         </span>
                     </td>
