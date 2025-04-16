@@ -109,31 +109,41 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-check form-switch mb-3">
-                                            <input type="checkbox" 
-                                                name="activa" 
-                                                id="id_activa" 
-                                                class="form-check-input"
-                                                role="switch"
-                                                {% if form.activa.value %}checked{% endif %}>
-                                            <label class="form-check-label fw-bold" for="id_activa">
-                                                {{ form.activa.label }}
-                                            </label>
-                                            <div class="form-text">Si está activa, los usuarios podrán responder a la encuesta.</div>
+                                            <div class="d-flex flex-column">
+                                                <div class="d-flex align-items-center">
+                                                    <input type="checkbox" 
+                                                        name="activa" 
+                                                        id="id_activa" 
+                                                        class="form-check-input me-2"
+                                                        role="switch"
+                                                        {% if form.activa.value %}checked{% endif %}>
+                                                    <label class="form-check-label fw-bold mb-0" for="id_activa">
+                                                        {{ form.activa.label }}
+                                                    </label>
+                                                </div>
+                                                <div class="form-text ms-4 mt-1">
+                                                    Si está activa, los usuarios podrán responder a la encuesta.
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-check form-switch mb-3">
-                                            <input type="checkbox" 
-                                                name="es_publica" 
-                                                id="id_es_publica" 
-                                                class="form-check-input"
-                                                role="switch"
-                                                {% if form.es_publica.value %}checked{% endif %}>
-                                            <label class="form-check-label fw-bold" for="id_es_publica">
-                                                {{ form.es_publica.label }}
-                                            </label>
-                                            <div class="form-text">
-                                                {{ form.es_publica.help_text }}
+                                            <div class="d-flex flex-column">
+                                                <div class="d-flex align-items-center">
+                                                    <input type="checkbox" 
+                                                        name="es_publica" 
+                                                        id="id_es_publica" 
+                                                        class="form-check-input me-2"
+                                                        role="switch"
+                                                        {% if form.es_publica.value %}checked{% endif %}>
+                                                    <label class="form-check-label fw-bold mb-0" for="id_es_publica">
+                                                        {{ form.es_publica.label }}
+                                                    </label>
+                                                </div>
+                                                <div class="form-text ms-4 mt-1">
+                                                    {{ form.es_publica.help_text }}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -164,18 +174,8 @@
                             {% for pregunta in preguntas %}
                                 <div class="col-md-6 mb-3 pregunta-{{ pregunta.id }}">
                                     <div class="card shadow-sm hover-card h-100">
-                                        <div class="card-header d-flex justify-content-between align-items-center 
-                                            {% if pregunta.tipo == 'TEXT' %}bg-info text-white
-                                            {% elif pregunta.tipo == 'MTEXT' %}bg-info text-white
-                                            {% elif pregunta.tipo == 'RADIO' %}bg-primary text-white
-                                            {% elif pregunta.tipo == 'CHECK' %}bg-success text-white
-                                            {% elif pregunta.tipo == 'SELECT' %}bg-warning
-                                            {% elif pregunta.tipo == 'STAR' %}bg-danger text-white
-                                            {% elif pregunta.tipo == 'SCALE' %}bg-secondary text-white
-                                            {% elif pregunta.tipo == 'MATRIX' %}bg-dark text-white
-                                            {% else %}bg-light
-                                            {% endif %}">
-                                            <h5 class="card-title mb-0">{{ pregunta.texto }}</h5>
+                                        <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#4361ee ;">
+                                            <h5 class="card-title mb-0" style="color: white; font-weight: bold;">{{ pregunta.texto }}</h5>
                                             <div class="btn-group">
                                                 <button type="button" class="btn btn-sm btn-light edit-question-btn" 
                                                         data-bs-toggle="tooltip" data-bs-placement="top" title="Editar pregunta"
@@ -574,26 +574,30 @@
                             <div class="form-group mb-3">
                                 <label for="texto_{{ pregunta.id }}" class="form-label fw-bold">Texto de la pregunta</label>
                                 <input type="text" class="form-control rounded-3" id="texto_{{ pregunta.id }}" 
-                                       name="texto" value="{{ pregunta.texto }}" required>
+                                name="texto" value="{{ pregunta.texto }}" required>
                                 <div class="form-text">El texto principal de la pregunta que verán los usuarios.</div>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="orden_{{ pregunta.id }}" class="form-label fw-bold">Orden</label>
-                                        <input type="number" class="form-control rounded-3" id="orden_{{ pregunta.id }}" 
-                                               name="orden" value="{{ pregunta.orden }}" required>
+                                        <div class="d-inline-block">
+                                            <label for="orden_{{ pregunta.id }}" class="form-label fw-bold">Orden</label>
+                                            <input type="number" class="form-control rounded-3" id="orden_{{ pregunta.id }}" 
+                                            name="orden" value="{{ pregunta.orden }}" required>
+                                        </div>
                                         <div class="form-text">Posición de la pregunta en la encuesta.</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch mb-3 mt-4">
-                                        <input type="checkbox" class="form-check-input" id="requerida_{{ pregunta.id }}" 
-                                               name="requerida" role="switch" {% if pregunta.requerida %}checked{% endif %}>
-                                        <label class="form-check-label fw-bold" for="requerida_{{ pregunta.id }}">
-                                            Pregunta requerida
-                                        </label>
+                                        <div>
+                                            <label class="form-check-label fw-bold" for="requerida_{{ pregunta.id }}">
+                                                Pregunta requerida
+                                            </label>
+                                            <input type="checkbox" class="form-check-input" id="requerida_{{ pregunta.id }}" 
+                                            name="requerida" role="switch" {% if pregunta.requerida %}checked{% endif %}>
+                                        </div>
                                         <div class="form-text">Si está activa, el usuario deberá responderla obligatoriamente.</div>
                                     </div>
                                 </div>
@@ -1147,6 +1151,80 @@
         .card-header h6 {
             font-size: 0.85rem;
         }
+    }
+
+    /* Estilos para checkboxes y switches */
+    .form-check {
+        display: flex;
+        align-items: center;
+        padding-left: 0;
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        float: none;
+        margin-left: 0;
+        margin-right: 0.5rem;
+    }
+
+    .form-check-label {
+        margin-bottom: 0;
+        cursor: pointer;
+    }
+
+    .form-switch {
+        padding-left: 2.5rem;
+    }
+
+    .form-switch .form-check-input {
+        margin-left: -2.5rem;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280, 0, 0, 0.25%29'/%3e%3c/svg%3e");
+        background-position: left center;
+        border-radius: 2rem;
+        transition: background-position .15s ease-in-out;
+        width: 2rem;
+    }
+
+    .form-switch .form-check-input:checked {
+        background-position: right center;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+
+    /* Ajustes específicos para los switches en la configuración */
+    .card-body .form-switch {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card-body .form-switch .form-check-input {
+        margin-top: 0.5rem;
+    }
+
+    .card-body .form-switch .form-text {
+        margin-top: 0.25rem;
+        margin-left: 2.5rem;
+    }
+
+    /* Estilos para los checkboxes en las opciones de respuesta */
+    .opciones-container .form-check {
+        margin: 0.5rem 0;
+    }
+
+    .opciones-container .form-check-input {
+        margin-right: 1rem;
+    }
+
+    /* Mejoras visuales para los switches */
+    .form-switch .form-check-input:focus {
+        border-color: rgba(67, 97, 238, 0.25);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: #4361ee;
+        border-color: #4361ee;
     }
 </style>
 {% endblock %}
