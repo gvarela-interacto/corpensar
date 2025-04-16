@@ -116,129 +116,113 @@
 
                 <!-- VALORACIÓN CON ESTRELLAS (STAR) -->
                 {% elif pregunta_data.tipo == 'preguntaestrellas' %}
-                    <div class="star-rating-results">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h6 class="mb-0">Promedio: <strong>{{ pregunta_data.datos.promedio|floatformat:1 }}</strong>/{{ pregunta_data.pregunta.max_estrellas }}</h6>
-                                <small class="text-muted">
-                                    {{ pregunta_data.datos.valores|length }} respuestas
-                                </small>
-                            </div>
-                            <div class="star-rating">
-                                {% for i in "12345"|make_list %}
-                                    {% if forloop.counter <= pregunta_data.datos.promedio %}
-                                        <i class="fas fa-star text-warning"></i>
-                                    {% else %}
-                                        <i class="far fa-star text-muted"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
+                <div class="star-rating-results">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-0">Promedio: <strong>{{ pregunta_data.datos.promedio|floatformat:1 }}</strong>/5</h6>
+                            <small class="text-muted">{{ pregunta_data.total_respuestas }} respuestas</small>
                         </div>
-                        
-                        <div class="distribution-chart">
-                            {% for valor, cantidad in pregunta_data.datos.valores.items|dictsort:"0" %}
+                        <div class="star-rating">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= pregunta_data.datos.promedio %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star text-muted"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="distribution-chart mb-4">
+                        <h6>Distribución:</h6>
+                        {% for valor in "54321" %}
+                            {% with valor=valor|add:0 %}
                             <div class="d-flex align-items-center mb-2">
-                                <div class="me-2" style="width: 50px;">
+                                <div class="me-2" style="width: 80px;">
                                     {% for i in "12345"|make_list %}
                                         {% if forloop.counter <= valor %}
                                             <i class="fas fa-star text-warning"></i>
                                         {% endif %}
                                     {% endfor %}
+                                    <small class="ms-2">{{ valor }} estrella{{ valor|pluralize }}</small>
                                 </div>
                                 <div class="progress flex-grow-1" style="height: 20px;">
                                     <div class="progress-bar bg-warning" 
-                                         role="progressbar" 
-                                         style="width: {{ cantidad|calculate_percentage:pregunta_data.total_respuestas|percentage }}" 
-                                         aria-valuenow="{{ cantidad }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="{{ pregunta_data.total_respuestas }}">
-                                        <span class="ms-2 text-dark fw-bold">{{ cantidad }}</span>
+                                        role="progressbar" 
+                                        style="width: {{ pregunta_data.datos.valores|get_item:valor|default:0|calculate_percentage:pregunta_data.total_respuestas|percentage }}" 
+                                        aria-valuenow="{{ pregunta_data.datos.valores|get_item:valor|default:0 }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="{{ pregunta_data.total_respuestas }}">
+                                        <span class="ms-2 text-dark fw-bold">{{ pregunta_data.datos.valores|get_item:valor|default:0 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- ESCALA (SCALE) -->
+                {% elif pregunta_data.tipo == 'preguntaescala' %}
+                <div class="scale-results">
+                    <div class="d-flex justify-content-between mb-3">
+                        <small>{{ pregunta_data.pregunta.etiqueta_min }}</small>
+                        <small>{{ pregunta_data.pregunta.etiqueta_max }}</small>
+                    </div>
+                    
+                    <div class="individual-responses">
+                        <h6>Respuestas individuales:</h6>
+                        <div class="list-group">
+                            {% for respuesta in pregunta_data.respuestas_individuales %}
+                            <div class="list-group-item">
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="fw-bold">Valor: {{ respuesta.valor }}</span>
+                                        <small class="text-muted">{{ respuesta.respuesta_encuesta.fecha_respuesta|date:"DATETIME_FORMAT" }}</small>
                                     </div>
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
                     </div>
-
-                <!-- ESCALA (SCALE) -->
-                {% elif pregunta_data.tipo == 'preguntaescala' %}
-                    <div class="scale-results">
-                        <div class="d-flex justify-content-between mb-3">
-                            <small>{{ pregunta_data.pregunta.etiqueta_min }}</small>
-                            <small>{{ pregunta_data.pregunta.etiqueta_max }}</small>
-                        </div>
-                        
-                        <div class="progress" style="height: 30px;">
-                            {% for valor, info in pregunta_data.datos.items|dictsort:"0" %}
-                            <div class="progress-bar" 
-                                 role="progressbar" 
-                                 style="width: {{ info.porcentaje }}%; background-color: rgba(67, 97, 238, {{ forloop.counter|divide:pregunta_data.datos.items|length|add:0.3 }})" 
-                                 title="{{ valor }}: {{ info.cantidad }} respuestas ({{ info.porcentaje|percentage }})">
-                                {% if info.porcentaje > 10 %}{{ valor }}{% endif %}
-                            </div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mt-3">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Valor</th>
-                                        <th>Respuestas</th>
-                                        <th>Porcentaje</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for valor, info in pregunta_data.datos.items|dictsort:"0" %}
-                                    <tr>
-                                        <td>{{ valor }}</td>
-                                        <td>{{ info.cantidad }}</td>
-                                        <td>{{ info.porcentaje|percentage }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                </div>
 
                 <!-- MATRIZ -->
                 {% elif pregunta_data.tipo == 'preguntamatriz' %}
-                    <div class="matrix-results">
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Ítem</th>
-                                        {% for valor in pregunta_data.valores_escala %}
+                <div class="matrix-results">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ítem</th>
+                                    {% for valor in pregunta_data.valores_escala %}
                                         <th class="text-center">{{ valor }}</th>
-                                        {% endfor %}
-                                        <th class="text-center">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for fila, datos in pregunta_data.datos.items %}
-                                    <tr>
-                                        <td><strong>{{ fila }}</strong></td>
-                                        {% for valor in pregunta_data.valores_escala %}
-                                        <td class="text-center">
-                                            {% if valor in datos.valores %}
-                                                {{ datos.valores|get_item:valor }}
-                                                <small class="text-muted d-block">
-                                                    ({{ datos.valores|get_item:valor|calculate_percentage:datos.total|percentage }})
-                                                </small>
-                                            {% else %}
-                                                0
-                                            {% endif %}
-                                        </td>
-                                        {% endfor %}
-                                        <td class="text-center fw-bold">{{ datos.total }}</td>
-                                    </tr>
                                     {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fila, datos in pregunta_data.datos.items %}
+                                <tr>
+                                    <td><strong>{{ fila }}</strong></td>
+                                    {% for valor in pregunta_data.valores_escala %}
+                                    <td class="text-center">
+                                        {% if valor in datos.valores %}
+                                            {{ datos.valores|get_item:valor|get_item:'cantidad'|default:"0" }}
+                                            <small class="text-muted d-block">
+                                                ({{ datos.valores|get_item:valor|get_item:'porcentaje'|default:"0"|floatformat:1 }}%)
+                                            </small>
+                                        {% else %}
+                                            0
+                                            <small class="text-muted d-block">(0.0%)</small>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-
+                </div>
                 <!-- FECHA/HORA -->
                 {% elif pregunta_data.tipo == 'preguntafecha' %}
                     <div class="date-results">
@@ -278,6 +262,61 @@
 </div>
 
 <style>
+    .range-slider {
+        padding: 0.5rem 0;
+    }
+
+    .range-slider input[type="range"] {
+        width: 100%;
+        height: 8px;
+        -webkit-appearance: none;
+        background: transparent;
+    }
+
+    .range-slider input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4361ee;
+        cursor: pointer;
+        margin-top: -6px;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .range-slider input[type="range"]:disabled::-webkit-slider-thumb {
+        background: #6c757d;
+        cursor: default;
+    }
+
+    .table th.text-center, .table td.text-center {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .matrix-results .table th {
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    .scale-value {
+        font-weight: bold;
+        color: #4361ee;
+    }
+
+    .individual-responses {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .star-rating {
+        color: #ffc107;
+        font-size: 1.2rem;
+    }
     .responses-container {
         max-height: 400px;
         overflow-y: auto;

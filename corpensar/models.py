@@ -6,6 +6,8 @@ from django import forms
 
 User = get_user_model()
 
+def get_valores_rango(self):
+    return range(self.min_valor, self.max_valor + 1)
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
     titulo = models.CharField(max_length=200, verbose_name=_("Título"))
@@ -191,7 +193,7 @@ class ItemMatriz(models.Model):
 class ItemMatrizPregunta(ItemMatriz):
     """Ítems para preguntas tipo matriz"""
     pregunta = models.ForeignKey('PreguntaMatriz', related_name='items', 
-                              on_delete=models.CASCADE, verbose_name=_("Pregunta matriz"))
+                                on_delete=models.CASCADE, verbose_name=_("Pregunta matriz"))
 
 
 class PreguntaMatriz(PreguntaBase):
