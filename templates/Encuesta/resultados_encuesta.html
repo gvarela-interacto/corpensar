@@ -3,132 +3,315 @@
 
 <div class="container mt-4">
     <h2>Resultados de "{{ encuesta.titulo }}"</h2>
+    
     {% for pregunta_data in preguntas_con_datos %}
     <div class="card my-4">
         <div class="card-header font-weight-bold">
-            {{ pregunta_data.pregunta.orden }}. {{ pregunta_data.pregunta.texto }} ({{ pregunta_data.pregunta.get_tipo_display }})
+            {{ pregunta_data.pregunta.orden }}. {{ pregunta_data.pregunta.texto }} 
+            <span class="badge bg-secondary ms-2">{{ pregunta_data.pregunta.get_tipo_display }}</span>
         </div>
+        
         <div class="card-body">
             {% if pregunta_data.datos %}
-                {% if pregunta_data.tipo_grafica == 'estrellas' %}
-                    <div class="alert alert-info mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Promedio: <strong>{{ pregunta_data.datos.promedio|floatformat:1 }}</strong></span>
-                            <span>{{ pregunta_data.datos.valores|length }} respuestas</span>
+                <!-- TEXTO SIMPLE -->
+                {% if pregunta_data.tipo == 'preguntatexto' %}
+                    <div class="responses-container bg-light p-3 rounded">
+                        <h6 class="mb-3">Respuestas de texto:</h6>
+                        {% for respuesta in pregunta_data.datos %}
+                        <div class="mb-2 p-3 bg-white rounded border">
+                            <p class="mb-0">{{ respuesta }}</p>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <h6 class="mb-2">Distribución:</h6>
-                        <div class="list-group">
-                            {% for valor, cantidad in pregunta_data.datos.valores.items|dictsort:"0" %}
-                            <div class="list-group-item py-2 px-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        {% for i in "12345"|make_list %}
-                                            <i class="fas fa-star {% if forloop.counter <= valor %}text-warning{% else %}text-muted{% endif %}"></i>
-                                        {% endfor %}
-                                        <span class="ml-2 small">{{ valor }} estrellas</span>
-                                    </div>
-                                    <span class="badge bg-primary rounded-pill">{{ cantidad }}</span>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    {% elif pregunta_data.tipo_grafica == 'matriz' %}
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="small align-middle">Afirmación</th>
-                                    {% for opcion in pregunta_data.pregunta.escala.get_opciones %}
-                                    <th class="small text-center">{{ opcion.texto }}</th>
-                                    {% endfor %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for fila, valores in pregunta_data.datos.items %}
-                                <tr>
-                                    <td class="small"><strong>{{ fila }}</strong></td>
-                                    {% for val, cant in valores.items %}
-                                    <td class="small text-center">
-                                        <span class="badge bg-primary rounded-pill">{{ valores }}</span>
-                                    </td>
-                                    {% endfor %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% elif pregunta_data.tipo_grafica == 'opciones' %}
-                    <div class="list-group">
-                        {% for opcion, total in pregunta_data.datos.items %}
-                        <div class="list-group-item py-2 px-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="small">{{ opcion }}</span>
-                                <div>
-                                    <span class="badge bg-primary rounded-pill me-2">{{ total }}</span>
-                                </div>
-                            </div>
-                        </div>
+                        {% empty %}
+                        <div class="text-muted">No hay respuestas de texto</div>
                         {% endfor %}
                     </div>
 
-                {% elif pregunta_data.tipo_grafica == 'texto' %}
-                    <div class="responses-container bg-light p-2 rounded">
-                        {% if pregunta_data.datos %}
-                            {% for respuesta in pregunta_data.datos %}
-                            <div class="mb-2 p-2 bg-white rounded border">
-                                <p class="mb-0 small">{{ respuesta }}</p>
+                <!-- TEXTO MÚLTIPLE -->
+                {% elif pregunta_data.tipo == 'preguntatextomultiple' %}
+                    <div class="responses-container bg-light p-3 rounded">
+                        <h6 class="mb-3">Respuestas extensas:</h6>
+                        {% for respuesta in pregunta_data.datos %}
+                        <div class="mb-2 p-3 bg-white rounded border">
+                            <p class="mb-0">{{ respuesta|linebreaks }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="text-muted">No hay respuestas extensas</div>
+                        {% endfor %}
+                    </div>
+
+                <!-- OPCIÓN MÚLTIPLE (RADIO) -->
+                {% elif pregunta_data.tipo == 'preguntaopcionmultiple' %}
+                    <div class="chart-container mb-4">
+                        <h6 class="mb-3">Distribución de respuestas:</h6>
+                        <div class="list-group">
+                            {% for opcion, info in pregunta_data.datos.items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ opcion }}</span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ info.cantidad }} ({{ info.porcentaje|percentage }})
+                                    </span>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ info.porcentaje }}%" 
+                                         aria-valuenow="{{ info.porcentaje }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
                             </div>
                             {% endfor %}
-                        {% else %}
-                            <div class="text-center py-3 text-muted">
-                                <i class="far fa-comment-dots fa-2x mb-2"></i>
-                                <p class="small mb-0">No hay respuestas de texto</p>
+                        </div>
+                    </div>
+
+                <!-- CASILLAS DE VERIFICACIÓN (CHECK) -->
+                {% elif pregunta_data.tipo == 'preguntacasillasverificacion' %}
+                    <div class="chart-container mb-4">
+                        <h6 class="mb-3">Opciones seleccionadas:</h6>
+                        <div class="list-group">
+                            {% for opcion, info in pregunta_data.datos.items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ opcion }}</span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ info.cantidad }} ({{ info.porcentaje|percentage }})
+                                    </span>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ info.porcentaje }}%" 
+                                         aria-valuenow="{{ info.porcentaje }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
                             </div>
-                        {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                <!-- MENÚ DESPLEGABLE (SELECT) -->
+                {% elif pregunta_data.tipo == 'preguntamenudesplegable' %}
+                    <div class="chart-container mb-4">
+                        <h6 class="mb-3">Opciones seleccionadas:</h6>
+                        <div class="list-group">
+                            {% for opcion, info in pregunta_data.datos.items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ opcion }}</span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        {{ info.cantidad }} ({{ info.porcentaje|percentage }})
+                                    </span>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ info.porcentaje }}%" 
+                                         aria-valuenow="{{ info.porcentaje }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                <!-- VALORACIÓN CON ESTRELLAS (STAR) -->
+                {% elif pregunta_data.tipo == 'preguntaestrellas' %}
+                    <div class="star-rating-results">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-0">Promedio: <strong>{{ pregunta_data.datos.promedio|floatformat:1 }}</strong>/{{ pregunta_data.pregunta.max_estrellas }}</h6>
+                                <small class="text-muted">
+                                    {{ pregunta_data.datos.valores|length }} respuestas
+                                </small>
+                            </div>
+                            <div class="star-rating">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= pregunta_data.datos.promedio %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="distribution-chart">
+                            {% for valor, cantidad in pregunta_data.datos.valores.items|dictsort:"0" %}
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-2" style="width: 50px;">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= valor %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="progress flex-grow-1" style="height: 20px;">
+                                    <div class="progress-bar bg-warning" 
+                                         role="progressbar" 
+                                         style="width: {{ cantidad|calculate_percentage:pregunta_data.total_respuestas|percentage }}" 
+                                         aria-valuenow="{{ cantidad }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ pregunta_data.total_respuestas }}">
+                                        <span class="ms-2 text-dark fw-bold">{{ cantidad }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                <!-- ESCALA (SCALE) -->
+                {% elif pregunta_data.tipo == 'preguntaescala' %}
+                    <div class="scale-results">
+                        <div class="d-flex justify-content-between mb-3">
+                            <small>{{ pregunta_data.pregunta.etiqueta_min }}</small>
+                            <small>{{ pregunta_data.pregunta.etiqueta_max }}</small>
+                        </div>
+                        
+                        <div class="progress" style="height: 30px;">
+                            {% for valor, info in pregunta_data.datos.items|dictsort:"0" %}
+                            <div class="progress-bar" 
+                                 role="progressbar" 
+                                 style="width: {{ info.porcentaje }}%; background-color: rgba(67, 97, 238, {{ forloop.counter|divide:pregunta_data.datos.items|length|add:0.3 }})" 
+                                 title="{{ valor }}: {{ info.cantidad }} respuestas ({{ info.porcentaje|percentage }})">
+                                {% if info.porcentaje > 10 %}{{ valor }}{% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Valor</th>
+                                        <th>Respuestas</th>
+                                        <th>Porcentaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for valor, info in pregunta_data.datos.items|dictsort:"0" %}
+                                    <tr>
+                                        <td>{{ valor }}</td>
+                                        <td>{{ info.cantidad }}</td>
+                                        <td>{{ info.porcentaje|percentage }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                <!-- MATRIZ -->
+                {% elif pregunta_data.tipo == 'preguntamatriz' %}
+                    <div class="matrix-results">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Ítem</th>
+                                        {% for valor in pregunta_data.valores_escala %}
+                                        <th class="text-center">{{ valor }}</th>
+                                        {% endfor %}
+                                        <th class="text-center">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fila, datos in pregunta_data.datos.items %}
+                                    <tr>
+                                        <td><strong>{{ fila }}</strong></td>
+                                        {% for valor in pregunta_data.valores_escala %}
+                                        <td class="text-center">
+                                            {% if valor in datos.valores %}
+                                                {{ datos.valores|get_item:valor }}
+                                                <small class="text-muted d-block">
+                                                    ({{ datos.valores|get_item:valor|calculate_percentage:datos.total|percentage }})
+                                                </small>
+                                            {% else %}
+                                                0
+                                            {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                        <td class="text-center fw-bold">{{ datos.total }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                <!-- FECHA/HORA -->
+                {% elif pregunta_data.tipo == 'preguntafecha' %}
+                    <div class="date-results">
+                        <div class="list-group">
+                            {% for fecha, cantidad in pregunta_data.datos.items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ fecha|date:"DATETIME_FORMAT" }}</span>
+                                    <span class="badge bg-primary rounded-pill">{{ cantidad }}</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="list-group-item text-muted">No hay respuestas de fecha</div>
+                            {% endfor %}
+                        </div>
                     </div>
 
                 {% else %}
-                    <div class="alert alert-warning py-2">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        <span class="small">Formato de visualización no disponible</span>
+                    <div class="alert alert-warning">
+                        Tipo de pregunta no soportado para visualización
                     </div>
                 {% endif %}
+                
             {% else %}
-                <div class="alert alert-secondary py-2">
-                    <i class="far fa-hourglass me-2"></i>
-                    <span class="small">No hay respuestas registradas</span>
+                <div class="alert alert-secondary">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay respuestas registradas para esta pregunta
                 </div>
             {% endif %}
         </div>
     </div>
     {% empty %}
     <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle me-2"></i>
         Esta encuesta no tiene preguntas configuradas
     </div>
     {% endfor %}
 </div>
 
 <style>
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-    }
     .responses-container {
-        max-height: 300px;
+        max-height: 400px;
         overflow-y: auto;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
     }
-    .fa-star {
-        font-size: 0.9em;
-        margin-right: 2px;
+    
+    .star-rating {
+        font-size: 1.5rem;
     }
-    .list-group-item {
-        border-left: none;
-        border-right: none;
+    
+    .progress-bar {
+        position: relative;
+    }
+    
+    .progress-bar span {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .table th {
+        white-space: nowrap;
+    }
+    
+    .distribution-chart .progress {
+        background-color: #e9ecef;
+    }
+    
+    .badge {
+        font-size: 0.85em;
+        padding: 0.35em 0.65em;
     }
 </style>
 {% endblock %}

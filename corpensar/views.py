@@ -473,8 +473,8 @@ class ResultadosEncuestaView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         encuesta = self.object
+        total_respuestas = encuesta.respuestas.count()
 
-        # Obtener todas las preguntas ordenadas
         preguntas = sorted(
             chain(
                 encuesta.preguntatexto_relacionadas.all(),
@@ -490,99 +490,114 @@ class ResultadosEncuestaView(DetailView):
             key=lambda x: x.orden
         )
 
-        # Crear lista de preguntas con sus datos directamente
         preguntas_con_datos = []
 
         for pregunta in preguntas:
-            tipo = pregunta.__class__.__name__
+            tipo = pregunta.__class__.__name__.lower()
             datos_pregunta = {
                 'pregunta': pregunta,
-                'datos': None,
-                'tipo': tipo.lower()  # Para usar en el template
+                'tipo': tipo,
+                'total_respuestas': total_respuestas
             }
 
-            if tipo == 'PreguntaOpcionMultiple':
+            if tipo == 'preguntaopcionmultiple':
                 respuestas = RespuestaOpcionMultiple.objects.filter(pregunta=pregunta)
-                counter = Counter([r.opcion.texto for r in respuestas])
-                total_respuestas = sum(counter.values())
-                for opcion, cantidad in counter.items():
-                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
-                    counter[opcion] = {'cantidad': cantidad, 'porcentaje': porcentaje}
-                datos_pregunta['datos'] = dict(counter)
-                datos_pregunta['tipo_grafica'] = 'opciones'
+                opciones = {op.texto: {'cantidad': 0, 'porcentaje': 0} for op in pregunta.opciones.all()}
+                
+                for r in respuestas:
+                    opciones[r.opcion.texto]['cantidad'] += 1
+                
+                for opcion, datos in opciones.items():
+                    datos['porcentaje'] = (datos['cantidad'] / total_respuestas * 100) if total_respuestas > 0 else 0
+                
+                datos_pregunta['datos'] = opciones
 
-            elif tipo == 'PreguntaCasillasVerificacion':
+            elif tipo == 'preguntacasillasverificacion':
+                # Similar a opción múltiple
                 respuestas = RespuestaCasillasVerificacion.objects.filter(pregunta=pregunta)
-                counter = Counter([r.opcion.texto for r in respuestas])
-                total_respuestas = sum(counter.values())
-                for opcion, cantidad in counter.items():
-                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
-                    counter[opcion] = {'cantidad': cantidad, 'porcentaje': porcentaje}
-                datos_pregunta['datos'] = dict(counter)
-                datos_pregunta['tipo_grafica'] = 'opciones'
+                opciones = {op.texto: {'cantidad': 0, 'porcentaje': 0} for op in pregunta.opciones.all()}
+                
+                for r in respuestas:
+                    opciones[r.opcion.texto]['cantidad'] += 1
+                
+                for opcion, datos in opciones.items():
+                    datos['porcentaje'] = (datos['cantidad'] / total_respuestas * 100) if total_respuestas > 0 else 0
+                
+                datos_pregunta['datos'] = opciones
 
-            elif tipo == 'PreguntaMenuDesplegable':
+            elif tipo == 'preguntamenudesplegable':
+                # Similar a opción múltiple
                 respuestas = RespuestaOpcionMenuDesplegable.objects.filter(pregunta=pregunta)
-                counter = Counter([r.opcion.texto for r in respuestas])
-                total_respuestas = sum(counter.values())
-                for opcion, cantidad in counter.items():
-                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
-                    counter[opcion] = {'cantidad': cantidad, 'porcentaje': porcentaje}
-                datos_pregunta['datos'] = dict(counter)
-                datos_pregunta['tipo_grafica'] = 'opciones'
+                opciones = {op.texto: {'cantidad': 0, 'porcentaje': 0} for op in pregunta.opciones.all()}
+                
+                for r in respuestas:
+                    opciones[r.opcion.texto]['cantidad'] += 1
+                
+                for opcion, datos in opciones.items():
+                    datos['porcentaje'] = (datos['cantidad'] / total_respuestas * 100) if total_respuestas > 0 else 0
+                
+                datos_pregunta['datos'] = opciones
 
-            elif tipo == 'PreguntaEstrellas':
+            elif tipo == 'preguntaestrellas':
                 respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 promedio = sum(valores) / len(valores) if valores else 0
+                counter = Counter(valores)
+                
                 datos_pregunta['datos'] = {
-                    'valores': dict(Counter(valores)),
-                    'promedio': promedio
+                    'promedio': promedio,
+                    'valores': dict(counter)
                 }
-                datos_pregunta['tipo_grafica'] = 'estrellas'
 
-            elif tipo == 'PreguntaEscala':
+            elif tipo == 'preguntaescala':
                 respuestas = RespuestaEscala.objects.filter(pregunta=pregunta)
                 valores = [r.valor for r in respuestas]
                 counter = Counter(valores)
-                total_respuestas = sum(counter.values())
+                
+                datos = {}
                 for valor, cantidad in counter.items():
-                    porcentaje = (cantidad / total_respuestas) * 100 if total_respuestas > 0 else 0
-                    counter[valor] = {'cantidad': cantidad, 'porcentaje': porcentaje}
-                datos_pregunta['datos'] = dict(counter)
-                datos_pregunta['tipo_grafica'] = 'escala'
+                    datos[valor] = {
+                        'cantidad': cantidad,
+                        'porcentaje': (cantidad / total_respuestas * 100) if total_respuestas > 0 else 0
+                    }
+                
+                datos_pregunta['datos'] = dict(sorted(datos.items()))
 
-            elif tipo == 'PreguntaTextoMultiple':
-                respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
-                datos_pregunta['datos'] = [r.valor for r in respuestas]
-                datos_pregunta['tipo_grafica'] = 'texto'
-
-            elif tipo == 'PreguntaTexto':
-                respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
-                datos_pregunta['datos'] = [r.valor for r in respuestas]
-                datos_pregunta['tipo_grafica'] = 'texto'
-
-            elif tipo == 'PreguntaFecha':
-                respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
-                fechas = [r.valor.isoformat() for r in respuestas]
-                counter = Counter(fechas)
-                datos_pregunta['datos'] = dict(counter)
-                datos_pregunta['tipo_grafica'] = 'fechas'
-
-            elif tipo == 'PreguntaMatriz':
+            elif tipo == 'preguntamatriz':
                 respuestas = RespuestaMatriz.objects.filter(pregunta=pregunta)
                 datos = defaultdict(Counter)
+                
                 for r in respuestas:
                     datos[r.item.texto][r.valor] += 1
-                # Calculamos el porcentaje para cada fila y cada valor en la matriz
+                
+                datos_para_template = {}
                 for fila, contador in datos.items():
-                    total_respuestas_fila = sum(contador.values())
-                    for valor, cantidad in contador.items():
-                        porcentaje = (cantidad / total_respuestas_fila) * 100 if total_respuestas_fila > 0 else 0
-                        contador[valor] = {'porcentaje': porcentaje}
-                datos_pregunta['datos'] = {fila: dict(contador) for fila, contador in datos.items()}
-                datos_pregunta['tipo_grafica'] = 'matriz'
-                datos_pregunta['escala'] = pregunta.escala
+                    total = sum(contador.values())
+                    datos_para_template[fila] = {
+                        'valores': dict(contador),
+
+                        'total': total
+                    }
+                print("valores", valores)
+                datos_pregunta['datos'] = datos_para_template
+                datos_pregunta['valores_escala'] = range(
+                    pregunta.escala.min_valor,
+                    pregunta.escala.max_valor + 1,
+                    pregunta.escala.paso
+                )
+
+            elif tipo == 'preguntafecha':
+                respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
+                fechas = [r.valor for r in respuestas]
+                datos_pregunta['datos'] = dict(Counter(fechas))
+
+            elif tipo == 'preguntatexto':
+                respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
+                datos_pregunta['datos'] = [r.valor for r in respuestas]
+
+            elif tipo == 'preguntatextomultiple':
+                respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
+                datos_pregunta['datos'] = [r.valor for r in respuestas]
 
             preguntas_con_datos.append(datos_pregunta)
 
@@ -598,6 +613,35 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
+
+from django.template.defaulttags import register
+
+@register.filter
+def percentage(value):
+    """Filtro para formatear un valor como porcentaje (0-100) con 1 decimal"""
+    try:
+        return f"{float(value):.1f}%"
+    except (ValueError, TypeError):
+        return "0%"
+
+@register.filter
+def calculate_percentage(value, total):
+    """Filtro para calcular el porcentaje de value sobre total"""
+    try:
+        return (float(value) / float(total)) * 100
+    except (ValueError, ZeroDivisionError):
+        return 0
+    
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key, 0)
+
+@register.filter
+def divide(value, arg):
+    try:
+        return float(value) / float(arg) * 100
+    except (ValueError, ZeroDivisionError):
+        return 0
 
 class BaseEncuestaForm(Form):
     """Formulario base para todas las preguntas de encuesta"""
