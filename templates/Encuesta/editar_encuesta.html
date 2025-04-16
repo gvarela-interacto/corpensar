@@ -57,7 +57,7 @@
 
                                 <div class="form-group mb-3">
                                     <label for="id_descripcion" class="form-label fw-bold">{{ form.descripcion.label }}</label>
-                                    <textarea name="descripcion" id="id_descripcion" class="form-control rounded-3" rows="3">{{ form.descripcion.value|default:'' }}</textarea>
+                                    <textarea name="descripcion" id="id_descripcion" class="form-control rounded-3" rows="3" style="min-height: 100px;">{{ form.descripcion.value|default:'' }}</textarea>
                                     <div class="form-text">Añade detalles sobre el propósito de la encuesta y otra información relevante.</div>
                                 </div>
                             </div>

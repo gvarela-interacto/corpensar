@@ -1,60 +1,86 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container mt-4">
-    <h2>Resultados de "{{ encuesta.titulo }}"</h2>
+<div class="container mt-5">
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="mb-0 fs-3">{{ encuesta.titulo }}</h2>
+            <p class="mb-0 mt-2 text-white-50">Resultados de la encuesta</p>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <p class="text-muted">{{ encuesta.descripcion }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="badge bg-info rounded-pill px-3 py-2">
+                        <i class="fas fa-users me-1"></i> {{preguntas_con_datos.0.total_respuestas|default:"0"}} respuestas
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
     
     {% for pregunta_data in preguntas_con_datos %}
-    <div class="card my-4">
-        <div class="card-header font-weight-bold">
-            {{ pregunta_data.pregunta.orden }}. {{ pregunta_data.pregunta.texto }} 
-            <span class="badge bg-secondary ms-2">{{ pregunta_data.pregunta.get_tipo_display }}</span>
+    <div class="card shadow-sm mb-4 border-0 position-relative overflow-hidden">
+        <div class="card-header py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="fs-5 fw-bold mb-0">
+                    <span class="badge bg-primary rounded-pill me-2">{{ pregunta_data.pregunta.orden }}</span>
+                    {{ pregunta_data.pregunta.texto }}
+                </h3>
+                <span class="badge bg-primary rounded-pill">{{ pregunta_data.pregunta.get_tipo_display }}</span>
+            </div>
         </div>
         
-        <div class="card-body">
+        <div class="card-body p-4">
             {% if pregunta_data.datos %}
                 <!-- TEXTO SIMPLE -->
                 {% if pregunta_data.tipo == 'preguntatexto' %}
-                    <div class="responses-container bg-light p-3 rounded">
-                        <h6 class="mb-3">Respuestas de texto:</h6>
-                        {% for respuesta in pregunta_data.datos %}
-                        <div class="mb-2 p-3 bg-white rounded border">
-                            <p class="mb-0">{{ respuesta }}</p>
+                    <div class="responses-container bg-light p-4 rounded-3 shadow-sm">
+                        <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-comment-alt me-2"></i>Respuestas de texto:</h6>
+                        <div class="text-responses">
+                            {% for respuesta in pregunta_data.datos %}
+                            <div class="mb-3 p-3 bg-white rounded-3 border shadow-sm">
+                                <p class="mb-0">{{ respuesta }}</p>
+                            </div>
+                            {% empty %}
+                            <div class="text-muted fst-italic">No hay respuestas de texto</div>
+                            {% endfor %}
                         </div>
-                        {% empty %}
-                        <div class="text-muted">No hay respuestas de texto</div>
-                        {% endfor %}
                     </div>
 
                 <!-- TEXTO MÚLTIPLE -->
                 {% elif pregunta_data.tipo == 'preguntatextomultiple' %}
-                    <div class="responses-container bg-light p-3 rounded">
-                        <h6 class="mb-3">Respuestas extensas:</h6>
-                        {% for respuesta in pregunta_data.datos %}
-                        <div class="mb-2 p-3 bg-white rounded border">
-                            <p class="mb-0">{{ respuesta|linebreaks }}</p>
+                    <div class="responses-container bg-light p-4 rounded-3 shadow-sm">
+                        <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-paragraph me-2"></i>Respuestas extensas:</h6>
+                        <div class="text-responses">
+                            {% for respuesta in pregunta_data.datos %}
+                            <div class="mb-3 p-3 bg-white rounded-3 border shadow-sm">
+                                <p class="mb-0">{{ respuesta|linebreaks }}</p>
+                            </div>
+                            {% empty %}
+                            <div class="text-muted fst-italic">No hay respuestas extensas</div>
+                            {% endfor %}
                         </div>
-                        {% empty %}
-                        <div class="text-muted">No hay respuestas extensas</div>
-                        {% endfor %}
                     </div>
 
                 <!-- OPCIÓN MÚLTIPLE (RADIO) -->
                 {% elif pregunta_data.tipo == 'preguntaopcionmultiple' %}
                     <div class="chart-container mb-4">
-                        <h6 class="mb-3">Distribución de respuestas:</h6>
-                        <div class="list-group">
+                        <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-chart-bar me-2"></i>Distribución de respuestas:</h6>
+                        <div class="options-list">
                             {% for opcion, info in pregunta_data.datos.items %}
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>{{ opcion }}</span>
-                                    <span class="badge bg-primary rounded-pill">
+                            <div class="option-item mb-3 bg-light p-3 rounded-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">{{ opcion }}</span>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">
                                         {{ info.cantidad }} ({{ info.porcentaje|percentage }})
                                     </span>
                                 </div>
-                                <div class="progress mt-2" style="height: 8px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: {{ info.porcentaje }}%" 
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ info.porcentaje }}%; background: linear-gradient(90deg, #4361ee, #3a0ca3);" 
                                          aria-valuenow="{{ info.porcentaje }}" 
                                          aria-valuemin="0" 
                                          aria-valuemax="100"></div>
@@ -67,19 +93,19 @@
                 <!-- CASILLAS DE VERIFICACIÓN (CHECK) -->
                 {% elif pregunta_data.tipo == 'preguntacasillasverificacion' %}
                     <div class="chart-container mb-4">
-                        <h6 class="mb-3">Opciones seleccionadas:</h6>
-                        <div class="list-group">
+                        <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-check-square me-2"></i>Opciones seleccionadas:</h6>
+                        <div class="options-list">
                             {% for opcion, info in pregunta_data.datos.items %}
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>{{ opcion }}</span>
-                                    <span class="badge bg-primary rounded-pill">
+                            <div class="option-item mb-3 bg-light p-3 rounded-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">{{ opcion }}</span>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">
                                         {{ info.cantidad }} ({{ info.porcentaje|percentage }})
                                     </span>
                                 </div>
-                                <div class="progress mt-2" style="height: 8px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: {{ info.porcentaje }}%" 
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ info.porcentaje }}%; background: linear-gradient(90deg, #4361ee, #3a0ca3);" 
                                          aria-valuenow="{{ info.porcentaje }}" 
                                          aria-valuemin="0" 
                                          aria-valuemax="100"></div>
@@ -92,19 +118,19 @@
                 <!-- MENÚ DESPLEGABLE (SELECT) -->
                 {% elif pregunta_data.tipo == 'preguntamenudesplegable' %}
                     <div class="chart-container mb-4">
-                        <h6 class="mb-3">Opciones seleccionadas:</h6>
-                        <div class="list-group">
+                        <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-list me-2"></i>Opciones seleccionadas:</h6>
+                        <div class="options-list">
                             {% for opcion, info in pregunta_data.datos.items %}
-                            <div class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>{{ opcion }}</span>
-                                    <span class="badge bg-primary rounded-pill">
+                            <div class="option-item mb-3 bg-light p-3 rounded-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">{{ opcion }}</span>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">
                                         {{ info.cantidad }} ({{ info.porcentaje|percentage }})
                                     </span>
                                 </div>
-                                <div class="progress mt-2" style="height: 8px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: {{ info.porcentaje }}%" 
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ info.porcentaje }}%; background: linear-gradient(90deg, #4361ee, #3a0ca3);" 
                                          aria-valuenow="{{ info.porcentaje }}" 
                                          aria-valuemin="0" 
                                          aria-valuemax="100"></div>
@@ -116,45 +142,48 @@
 
                 <!-- VALORACIÓN CON ESTRELLAS (STAR) -->
                 {% elif pregunta_data.tipo == 'preguntaestrellas' %}
-                <div class="star-rating-results">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="star-rating-results p-4 bg-light rounded-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h6 class="mb-0">Promedio: <strong>{{ pregunta_data.datos.promedio|floatformat:1 }}</strong>/5</h6>
-                            <small class="text-muted">{{ pregunta_data.total_respuestas }} respuestas</small>
+                            <h6 class="mb-0 fw-bold text-primary"><i class="fas fa-star me-2"></i>Valoración promedio</h6>
+                            <div class="mt-2 fs-1 fw-bold text-primary">{{ pregunta_data.datos.promedio|floatformat:1 }}<span class="fs-6 text-muted">/5</span></div>
+                            <small class="text-muted">Basado en {{ pregunta_data.total_respuestas }} respuestas</small>
                         </div>
-                        <div class="star-rating">
+                        <div class="star-rating fs-3">
                             {% for i in "12345"|make_list %}
                                 {% if forloop.counter <= pregunta_data.datos.promedio %}
                                     <i class="fas fa-star text-warning"></i>
                                 {% else %}
-                                    <i class="far fa-star text-muted"></i>
+                                    <i class="far fa-star text-warning"></i>
                                 {% endif %}
                             {% endfor %}
                         </div>
                     </div>
                     
-                    <div class="distribution-chart mb-4">
-                        <h6>Distribución:</h6>
+                    <div class="distribution-chart mb-2">
+                        <h6 class="mb-3 fw-bold text-primary">Distribución de valoraciones:</h6>
                         {% for valor in "54321" %}
                             {% with valor=valor|add:0 %}
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="me-2" style="width: 80px;">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stars-label me-3" style="width: 120px;">
                                     {% for i in "12345"|make_list %}
                                         {% if forloop.counter <= valor %}
                                             <i class="fas fa-star text-warning"></i>
                                         {% endif %}
                                     {% endfor %}
-                                    <small class="ms-2">{{ valor }} estrella{{ valor|pluralize }}</small>
                                 </div>
-                                <div class="progress flex-grow-1" style="height: 20px;">
+                                <div class="progress flex-grow-1" style="height: 15px;">
                                     <div class="progress-bar bg-warning" 
                                         role="progressbar" 
-                                        style="width: {{ pregunta_data.datos.valores|get_item:valor|default:0|calculate_percentage:pregunta_data.total_respuestas|percentage }}" 
+                                        style="width: {{ pregunta_data.datos.valores|get_item:valor|default:0|calculate_percentage:pregunta_data.total_respuestas|percentage }}; background: linear-gradient(90deg, #f8961e, #f3722c);" 
                                         aria-valuenow="{{ pregunta_data.datos.valores|get_item:valor|default:0 }}" 
                                         aria-valuemin="0" 
                                         aria-valuemax="{{ pregunta_data.total_respuestas }}">
-                                        <span class="ms-2 text-dark fw-bold">{{ pregunta_data.datos.valores|get_item:valor|default:0 }}</span>
                                     </div>
+                                </div>
+                                <div class="ms-3 text-muted">
+                                    {{ pregunta_data.datos.valores|get_item:valor|default:0 }} 
+                                    <small>({{ pregunta_data.datos.valores|get_item:valor|default:0|calculate_percentage:pregunta_data.total_respuestas|percentage }})</small>
                                 </div>
                             </div>
                             {% endwith %}
@@ -164,22 +193,24 @@
 
                 <!-- ESCALA (SCALE) -->
                 {% elif pregunta_data.tipo == 'preguntaescala' %}
-                <div class="scale-results">
-                    <div class="d-flex justify-content-between mb-3">
-                        <small>{{ pregunta_data.pregunta.etiqueta_min }}</small>
-                        <small>{{ pregunta_data.pregunta.etiqueta_max }}</small>
+                <div class="scale-results p-4 bg-light rounded-3 shadow-sm">
+                    <div class="d-flex justify-content-between mb-4">
+                        <div class="text-muted">
+                            <i class="fas fa-arrow-left me-2"></i>{{ pregunta_data.pregunta.etiqueta_min }}
+                        </div>
+                        <div class="text-muted">
+                            {{ pregunta_data.pregunta.etiqueta_max }}<i class="fas fa-arrow-right ms-2"></i>
+                        </div>
                     </div>
                     
-                    <div class="individual-responses">
-                        <h6>Respuestas individuales:</h6>
-                        <div class="list-group">
+                    <div class="individual-responses mt-4">
+                        <h6 class="mb-3 fw-bold text-primary"><i class="fas fa-list-ol me-2"></i>Respuestas individuales:</h6>
+                        <div class="responses-grid">
                             {% for respuesta in pregunta_data.respuestas_individuales %}
-                            <div class="list-group-item">
-                                <div class="d-flex flex-column">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="fw-bold">Valor: {{ respuesta.valor }}</span>
-                                        <small class="text-muted">{{ respuesta.respuesta_encuesta.fecha_respuesta|date:"DATETIME_FORMAT" }}</small>
-                                    </div>
+                            <div class="response-item p-3 bg-white rounded-3 border shadow-sm mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">{{ respuesta.valor }}</span>
+                                    <small class="text-muted">{{ respuesta.respuesta_encuesta.fecha_respuesta|date:"d/m/Y H:i" }}</small>
                                 </div>
                             </div>
                             {% endfor %}
@@ -189,31 +220,39 @@
 
                 <!-- MATRIZ -->
                 {% elif pregunta_data.tipo == 'preguntamatriz' %}
-                <div class="matrix-results">
+                <div class="matrix-results p-4 bg-light rounded-3 shadow-sm">
+                    <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-table me-2"></i>Resultados de matriz:</h6>
                     <div class="table-responsive">
-                        <table class="table table-bordered">
+                        <table class="table table-hover">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Ítem</th>
+                                    <th class="bg-white border-bottom-0">Ítem</th>
                                     {% for valor in pregunta_data.valores_escala %}
-                                        <th class="text-center">{{ valor }}</th>
+                                        <th class="text-center bg-white border-bottom-0">{{ valor }}</th>
                                     {% endfor %}
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for fila, datos in pregunta_data.datos.items %}
-                                <tr>
-                                    <td><strong>{{ fila }}</strong></td>
+                                <tr class="border-bottom">
+                                    <td class="fw-bold">{{ fila }}</td>
                                     {% for valor in pregunta_data.valores_escala %}
-                                    <td class="text-center">
+                                    <td class="text-center position-relative py-3">
                                         {% if valor in datos.valores %}
-                                            {{ datos.valores|get_item:valor|get_item:'cantidad'|default:"0" }}
-                                            <small class="text-muted d-block">
-                                                ({{ datos.valores|get_item:valor|get_item:'porcentaje'|default:"0"|floatformat:1 }}%)
-                                            </small>
+                                            {% with cantidad=datos.valores|get_item:valor|get_item:'cantidad'|default:"0" %}
+                                            {% with porcentaje=datos.valores|get_item:valor|get_item:'porcentaje'|default:"0"|floatformat:1 %}
+                                                <div class="position-relative">
+                                                    <div class="fs-5 fw-bold {% if cantidad > 0 %}text-primary{% else %}text-muted{% endif %}">{{ cantidad }}</div>
+                                                    <div class="small text-muted">({{ porcentaje }}%)</div>
+                                                    {% if cantidad > 0 %}
+                                                    <div class="matrix-highlight" style="opacity: {{ porcentaje|divide:100|floatformat:2 }}"></div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endwith %}
+                                            {% endwith %}
                                         {% else %}
-                                            0
-                                            <small class="text-muted d-block">(0.0%)</small>
+                                            <div class="fs-5 text-muted">0</div>
+                                            <div class="small text-muted">(0.0%)</div>
                                         {% endif %}
                                     </td>
                                     {% endfor %}
@@ -225,23 +264,25 @@
                 </div>
                 <!-- FECHA/HORA -->
                 {% elif pregunta_data.tipo == 'preguntafecha' %}
-                    <div class="date-results">
-                        <div class="list-group">
+                    <div class="date-results p-4 bg-light rounded-3 shadow-sm">
+                        <h6 class="mb-4 fw-bold text-primary"><i class="fas fa-calendar-alt me-2"></i>Fechas seleccionadas:</h6>
+                        <div class="date-list">
                             {% for fecha, cantidad in pregunta_data.datos.items %}
-                            <div class="list-group-item">
+                            <div class="date-item mb-3 p-3 bg-white rounded-3 border shadow-sm">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span>{{ fecha|date:"DATETIME_FORMAT" }}</span>
-                                    <span class="badge bg-primary rounded-pill">{{ cantidad }}</span>
+                                    <span class="fw-bold">{{ fecha|date:"d/m/Y H:i" }}</span>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">{{ cantidad }}</span>
                                 </div>
                             </div>
                             {% empty %}
-                            <div class="list-group-item text-muted">No hay respuestas de fecha</div>
+                            <div class="text-muted fst-italic p-3">No hay respuestas de fecha</div>
                             {% endfor %}
                         </div>
                     </div>
 
                 {% else %}
                     <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
                         Tipo de pregunta no soportado para visualización
                     </div>
                 {% endif %}
