@@ -3,13 +3,75 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 from django import forms
+from smart_selects.db_fields import ChainedForeignKey
 
 User = get_user_model()
+class Region(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = "Región"
+        verbose_name_plural = "Regiones"
+
+    def __str__(self):
+        return self.nombre
+
+class Municipio(models.Model):
+    nombre = models.CharField(max_length=100)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name="municipios")
+
+    class Meta:
+        verbose_name = "Municipio"
+        verbose_name_plural = "Municipios"
+
+    def __str__(self):
+        return self.nombre
 
 def get_valores_rango(self):
     return range(self.min_valor, self.max_valor + 1)
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
+    TEMAS = (
+        ('default', _('Tema por defecto')),
+        ('azul', _('Tema Azul')),
+        ('verde', _('Tema Verde')),
+        ('rojo', _('Tema Rojo')),
+        ('morado', _('Tema Morado')),
+        ('naranja', _('Tema Naranja')),
+        ('turquesa', _('Tema Turquesa')),
+        ('rosa', _('Tema Rosa')),
+        ('esmeralda', _('Tema Esmeralda')),
+        ('indigo', _('Tema Índigo')),
+        ('cielo', _('Tema Cielo')),
+        ('coral', _('Tema Coral')),
+    )
+    
+    TIPOS_FONDO = (
+        ('color', _('Color sólido')),
+        ('gradiente', _('Gradiente')),
+        ('imagen', _('Imagen')),
+        ('patron', _('Patrón')),
+    )
+    
+    ESTILOS_FUENTE = (
+        ('default', _('Por defecto')),
+        ('serif', _('Serif')),
+        ('sans-serif', _('Sans-serif')),
+        ('monospace', _('Monospace')),
+    )
+    
+    TAMANOS_FUENTE = (
+        ('normal', _('Normal')),
+        ('grande', _('Grande')),
+        ('pequeno', _('Pequeño')),
+    )
+    
+    ESTILOS_BORDE = (
+        ('redondeado', _('Redondeado')),
+        ('cuadrado', _('Cuadrado')),
+        ('suave', _('Suave')),
+    )
+    
     titulo = models.CharField(max_length=200, verbose_name=_("Título"))
     descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
     slug = models.SlugField(max_length=250, unique=True)
@@ -20,7 +82,33 @@ class Encuesta(models.Model):
     activa = models.BooleanField(default=True, verbose_name=_("Activa"))
     creador = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creador"))
     es_publica = models.BooleanField(default=False, verbose_name=_("Es pública"))
+    region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
+    tema = models.CharField(max_length=20, choices=TEMAS, default='default', verbose_name=_("Tema"))
+
+    municipio = models.ForeignKey(
+        Municipio, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        verbose_name="Municipio"
+    )
     
+    # Campos para personalización del diseño
+    imagen_encabezado = models.ImageField(upload_to='encuestas/encabezados/', null=True, blank=True, verbose_name=_("Imagen de encabezado"))
+    logotipo = models.ImageField(upload_to='encuestas/logos/', null=True, blank=True, verbose_name=_("Logotipo"))
+    mostrar_logo = models.BooleanField(default=True, verbose_name=_("Mostrar logotipo"))
+    
+    tipo_fondo = models.CharField(max_length=20, choices=TIPOS_FONDO, default='color', verbose_name=_("Tipo de fondo"))
+    color_fondo = models.CharField(max_length=20, default='#f0f2f5', verbose_name=_("Color de fondo"))
+    color_gradiente_1 = models.CharField(max_length=20, default='#4361ee', verbose_name=_("Color 1 del gradiente"))
+    color_gradiente_2 = models.CharField(max_length=20, default='#3a0ca3', verbose_name=_("Color 2 del gradiente"))
+    imagen_fondo = models.ImageField(upload_to='encuestas/fondos/', null=True, blank=True, verbose_name=_("Imagen de fondo"))
+    patron_fondo = models.CharField(max_length=20, default='patron1', verbose_name=_("Patrón de fondo"))
+    
+    estilo_fuente = models.CharField(max_length=20, choices=ESTILOS_FUENTE, default='default', verbose_name=_("Estilo de fuente"))
+    tamano_fuente = models.CharField(max_length=20, choices=TAMANOS_FUENTE, default='normal', verbose_name=_("Tamaño de fuente"))
+    estilo_bordes = models.CharField(max_length=20, choices=ESTILOS_BORDE, default='redondeado', verbose_name=_("Estilo de bordes"))
+
     class Meta:
         verbose_name = _("Encuesta")
         verbose_name_plural = _("Encuestas")
@@ -28,6 +116,8 @@ class Encuesta(models.Model):
     
     def __str__(self):
         return self.titulo
+    
+
 
 
 class PreguntaBase(models.Model):
@@ -218,6 +308,7 @@ class RespuestaEncuesta(models.Model):
     """Registro completo de una respuesta a encuesta"""
     encuesta = models.ForeignKey(Encuesta, related_name='respuestas', on_delete=models.CASCADE, verbose_name=_("Encuesta"))
     usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("Usuario"))
+    municipio = models.ForeignKey(Municipio, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("Municipio"))
     fecha_respuesta = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de respuesta"))
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name=_("Dirección IP"))
     user_agent = models.TextField(null=True, blank=True, verbose_name=_("User Agent"))
@@ -326,9 +417,10 @@ class RespuestaTextoMultiple(RespuestaBase):
         verbose_name_plural = _("Respuestas de texto múltiple")
 
 class RespuestaOpcionMenuDesplegable(RespuestaBase):
-    pregunta = models.ForeignKey(PreguntaMenuDesplegable, related_name="respuestas", on_delete=models.CASCADE)
+    """Respuesta para preguntas de menú desplegable"""
+    pregunta = models.ForeignKey(PreguntaMenuDesplegable, on_delete=models.CASCADE)
     opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE)
-    
+
     class Meta:
         verbose_name = _("Respuesta a menú desplegable")
         verbose_name_plural = _("Respuestas a menú desplegable")

@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Encuesta de Satisfacción del Cliente</title>
+    <title>{{ encuesta.titulo }}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
+            /* Tema por defecto */
             --primary-color: #4361ee;
             --secondary-color: #3a0ca3;
             --accent-color: #f72585;
@@ -19,6 +20,94 @@
             --dark-gray: #343a40;
             --success-color: #4cc9f0;
             --warning-color: #f8961e;
+        }
+
+        /* Tema Azul */
+        [data-tema="azul"] {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #4cc9f0;
+            --success-color: #4cc9f0;
+        }
+
+        /* Tema Verde */
+        [data-tema="verde"] {
+            --primary-color: #2ecc71;
+            --secondary-color: #27ae60;
+            --accent-color: #1abc9c;
+            --success-color: #2ecc71;
+        }
+
+        /* Tema Rojo */
+        [data-tema="rojo"] {
+            --primary-color: #e74c3c;
+            --secondary-color: #c0392b;
+            --accent-color: #f39c12;
+            --success-color: #e74c3c;
+        }
+
+        /* Tema Morado */
+        [data-tema="morado"] {
+            --primary-color: #9b59b6;
+            --secondary-color: #8e44ad;
+            --accent-color: #3498db;
+            --success-color: #9b59b6;
+        }
+
+        /* Tema Naranja */
+        [data-tema="naranja"] {
+            --primary-color: #f39c12;
+            --secondary-color: #d35400;
+            --accent-color: #e67e22;
+            --success-color: #f39c12;
+        }
+
+        /* Tema Turquesa */
+        [data-tema="turquesa"] {
+            --primary-color: #1abc9c;
+            --secondary-color: #16a085;
+            --accent-color: #2ecc71;
+            --success-color: #1abc9c;
+        }
+
+        /* Tema Rosa */
+        [data-tema="rosa"] {
+            --primary-color: #e84393;
+            --secondary-color: #fd79a8;
+            --accent-color: #ff6b81;
+            --success-color: #e84393;
+        }
+
+        /* Tema Esmeralda */
+        [data-tema="esmeralda"] {
+            --primary-color: #2ecc71;
+            --secondary-color: #27ae60;
+            --accent-color: #1abc9c;
+            --success-color: #2ecc71;
+        }
+
+        /* Tema Índigo */
+        [data-tema="indigo"] {
+            --primary-color: #4834d4;
+            --secondary-color: #686de0;
+            --accent-color: #7ed6df;
+            --success-color: #4834d4;
+        }
+
+        /* Tema Cielo */
+        [data-tema="cielo"] {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #74b9ff;
+            --success-color: #3498db;
+        }
+
+        /* Tema Coral */
+        [data-tema="coral"] {
+            --primary-color: #ff7f50;
+            --secondary-color: #ff6347;
+            --accent-color: #ff8c00;
+            --success-color: #ff7f50;
         }
         
         body {
@@ -372,17 +461,29 @@
     </style>
 </head>
 <body>
-    <div class="survey-container">
+    <div class="survey-container" data-tema="{{ tema }}">
         <div class="survey-header">
-            <h1>{{encuesta.titulo}}</h1>
-            <p>{{encuesta.descripcion}}</p>
+            <h1>{{ encuesta.titulo }}</h1>
+            {% if encuesta.descripcion %}
+                <p>{{ encuesta.descripcion }}</p>
+            {% endif %}
+            <p><strong>Región:</strong> {{ encuesta.region.nombre }}</p>
         </div>
     
         <form method="POST" action="{% url 'guardar_respuesta' encuesta.id %}" class="survey-body">
             {% csrf_token %}
+            <div class="mb-3">
+                <label for="municipio">Seleccione su municipio</label>
+                <select name="municipio" id="municipio" class="form-select" required>
+                    <option value="">Seleccione un municipio</option>
+                    {% for municipio in municipios %}
+                        <option value="{{ municipio.id }}">{{ municipio.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             {% for seccion in secciones_unicas %}
                 <h3 class="section-title">{{ seccion }}</h3>
-                {% for pregunta in preguntas %}
+                {% for pregunta in preguntas|dictsort:"orden" %}
                     {% if pregunta.seccion == seccion %}
                         <div class="question">
                             <div class="question-title">
@@ -521,7 +622,7 @@
                                 <div class="range-container">
                                     <input type="range" 
                                         class="form-range" 
-                                        name="scale_{{ pregunta.id }}"  <!-- Añadido name -->
+                                        name="scale_{{ pregunta.id }}"
                                         min="{{ pregunta.min_valor }}" 
                                         max="{{ pregunta.max_valor }}" 
                                         step="{{ pregunta.paso }}" 
@@ -567,13 +668,13 @@
                             {% elif pregunta.tipo == 'DATE' %}
                                 <input type="date" 
                                     class="form-control" 
-                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    name="pregunta_{{ pregunta.id }}"
                                     {% if pregunta.requerida %}required{% endif %}>
         
                             {% elif pregunta.tipo == 'DATETIME' %}
                                 <input type="datetime-local" 
                                     class="form-control" 
-                                    name="pregunta_{{ pregunta.id }}"  <!-- Añadido name -->
+                                    name="pregunta_{{ pregunta.id }}" 
                                     {% if pregunta.requerida %}required{% endif %}>
                             {% endif %}
         
@@ -613,14 +714,14 @@
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        {% comment %} // Mostrar campo de texto cuando seleccione "Otro"
+        // Mostrar campo de texto cuando seleccione "Otro"
         document.querySelectorAll('input[type="radio"][value="otro"], input[type="checkbox"][value="otro"]').forEach(function(input) {
             input.addEventListener('change', function() {
                 const container = document.getElementById('otro_texto_container_' + this.name.split('_')[1]);
                 if (container) container.style.display = this.checked ? 'block' : 'none';
             });
         });
-         {% endcomment %}
+
         // Validar selecciones mínimas/máximas
         function validarSelecciones(preguntaId) {
             const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);
@@ -645,5 +746,4 @@
         }
     </script>
 </body>
-</html>
 </html>

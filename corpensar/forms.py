@@ -6,11 +6,12 @@ from django.core.exceptions import ValidationError
 class EncuestaForm(forms.ModelForm):
     class Meta:
         model = Encuesta
-        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica']
+        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
         widgets = {
             'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}), 
             'fecha_fin': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'tema': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
             'titulo': 'Título de la encuesta',
@@ -19,6 +20,7 @@ class EncuestaForm(forms.ModelForm):
             'fecha_fin': 'Fecha y hora de finalización',
             'activa': 'Encuesta activa',
             'es_publica': 'Encuesta pública',
+            'tema': 'Tema de la encuesta',
         }
         help_texts = {
             'es_publica': 'Si está marcada, cualquier usuario podrá responder sin necesidad de autenticarse',

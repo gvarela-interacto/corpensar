@@ -21,7 +21,14 @@ from django import forms
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from .models import *
+from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
+                    PreguntaCasillasVerificacion, PreguntaMenuDesplegable, PreguntaEstrellas,
+                    PreguntaEscala, PreguntaMatriz, PreguntaFecha, OpcionMultiple,
+                    OpcionCasillaVerificacion, OpcionMenuDesplegable, Region, Municipio,
+                    RespuestaEncuesta, RespuestaTexto, RespuestaTextoMultiple,
+                    RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
+                    RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
+                    RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta)
 from .decorators import *
 import locale
 import re
@@ -30,7 +37,6 @@ from datetime import datetime
 from django.template.defaulttags import register
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
-
 
 
 def registro_view(request):
@@ -121,8 +127,13 @@ def seleccionar_metodo_creacion(request):
 def crear_desde_cero(request):
     # Inicializar el formulario fuera del bloque if/else
     form = EncuestaForm()
+    regiones = Region.objects.all()
+    print("Regiones disponibles:", [f"{r.id}: {r.nombre}" for r in regiones])
 
     if request.method == 'POST':
+        # Imprimir todos los datos del POST para debug
+        print("Datos del POST completo:", request.POST)
+        
         titulo = request.POST.get('titulo')
         slug = request.POST.get('slug')
         descripcion = request.POST.get('descripcion')
@@ -130,19 +141,70 @@ def crear_desde_cero(request):
         fecha_fin = request.POST.get('fecha_fin')
         activa = bool(request.POST.get('activa'))
         es_publica = bool(request.POST.get('es_publica'))
+        
+        # Procesar region_id con más logs
+        region_id = request.POST.get('region')
+        print(f"Region ID recibido del formulario: {region_id}")
+        print(f"Tipo de region_id: {type(region_id)}")
+        
+        region = None
+        try:
+            if region_id and region_id.strip():
+                region_id = int(region_id)
+                region = Region.objects.get(id=region_id)
+                print(f"Región encontrada: {region}")
+                print(f"ID de la región: {region.id}")
+                print(f"Nombre de la región: {region.nombre}")
+            else:
+                print("No se proporcionó region_id o estaba vacío")
+        except (ValueError, Region.DoesNotExist) as e:
+            print(f"Error al procesar region_id: {e}")
+            messages.error(request, f"Error al procesar la región seleccionada: {e}")
+            return render(request, 'Encuesta/crear_desde_cero.html', {
+                'form': form,
+                'regiones': regiones
+            })
+        
+        tema = request.POST.get('tema', 'default')
 
-        # Crear la encuesta y guardarla en una variable
-        encuesta = Encuesta.objects.create(
-            titulo=titulo,
-            slug=slug,
-            descripcion=descripcion,
-            fecha_inicio=fecha_inicio,
-            fecha_fin=fecha_fin,
-            activa=activa,
-            es_publica=es_publica,
-            creador=request.user
-        )
-
+        try:
+            # Crear la encuesta y guardarla en una variable
+            print("Intentando crear encuesta con los siguientes datos:")
+            print(f"Título: {titulo}")
+            print(f"Región: {region}")
+            
+            encuesta = Encuesta.objects.create(
+                titulo=titulo,
+                slug=slug,
+                descripcion=descripcion,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                activa=activa,
+                es_publica=es_publica,
+                creador=request.user,
+                region=region,
+                municipio=None,
+                tema=tema
+            )
+            
+            # Verificar que la encuesta se creó correctamente
+            print(f"Encuesta creada con ID: {encuesta.id}")
+            print(f"Región asignada a la encuesta: {encuesta.region}")
+            print(f"ID de la región en la encuesta: {encuesta.region.id if encuesta.region else None}")
+            
+            # Verificar directamente en la base de datos
+            encuesta_verificada = Encuesta.objects.get(id=encuesta.id)
+            print(f"Verificación en BD - Región de la encuesta: {encuesta_verificada.region}")
+            print(f"Verificación en BD - ID de la región: {encuesta_verificada.region.id if encuesta_verificada.region else None}")
+            
+        except Exception as e:
+            print(f"Error al crear la encuesta: {e}")
+            messages.error(request, f"Error al crear la encuesta: {e}")
+            return render(request, 'Encuesta/crear_desde_cero.html', {
+                'form': form,
+                'regiones': regiones
+            })
+        
         # Obtener preguntas del formulario
         preguntas_ids = set()
         
@@ -378,7 +440,8 @@ def crear_desde_cero(request):
         return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
-        'form': form
+        'form': form,
+        'regiones': regiones
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
@@ -440,9 +503,25 @@ def editar_encuesta(request, encuesta_id):
     else:
         form = EncuestaForm(instance=encuesta)
     
+    # Obtener todas las preguntas de la encuesta
+    preguntas = []
+    preguntas.extend(encuesta.preguntatexto_relacionadas.all())
+    preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
+    preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
+    preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
+    preguntas.extend(encuesta.preguntaescala_relacionadas.all())
+    preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
+    preguntas.extend(encuesta.preguntafecha_relacionadas.all())
+    
+    # Ordenar preguntas por orden
+    preguntas.sort(key=lambda x: x.orden)
+    
     return render(request, 'Encuesta/editar_encuesta.html', {
         'encuesta': encuesta,
-        'form': form
+        'form': form,
+        'preguntas': preguntas
     })
 
 # Vista para listar encuestas del usuario
@@ -454,7 +533,23 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Encuesta.objects.filter(creador=self.request.user).order_by('-fecha_creacion')
+        # Usar select_related para cargar la región en la misma consulta
+        return Encuesta.objects.select_related('region').filter(
+            creador=self.request.user
+        ).order_by('-fecha_creacion')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar debug info
+        for encuesta in context['encuestas']:
+            print(f"Encuesta ID: {encuesta.id}")
+            print(f"Región de la encuesta: {encuesta.region}")
+            if encuesta.region:
+                print(f"ID de la región: {encuesta.region.id}")
+                print(f"Nombre de la región: {encuesta.region.nombre}")
+            else:
+                print("Esta encuesta no tiene región asignada")
+        return context
 
     
 class TodasEncuestasView(ListView):
@@ -464,7 +559,20 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Encuesta.objects.all().order_by('-fecha_creacion')
+        return Encuesta.objects.select_related('region', 'creador').order_by('-fecha_creacion')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar debug info
+        for encuesta in context['encuestas']:
+            print(f"Encuesta ID: {encuesta.id}")
+            print(f"Región de la encuesta: {encuesta.region}")
+            if encuesta.region:
+                print(f"ID de la región: {encuesta.region.id}")
+                print(f"Nombre de la región: {encuesta.region.nombre}")
+            else:
+                print("Esta encuesta no tiene región asignada")
+        return context
 
 class ResultadosEncuestaView(DetailView):
     model = Encuesta
@@ -865,42 +973,41 @@ class FechaForm(BaseEncuestaForm):
 
 
 def responder_encuesta(request, slug):
-    """Vista para responder una encuesta"""
     encuesta = get_object_or_404(Encuesta, slug=slug)
-    
-    # Obtener todos los tipos de preguntas hijos
-    tipos_preguntas = [cls.__name__.lower() for cls in PreguntaBase.__subclasses__()]
-    
-    # Recoger todas las preguntas de todos los tipos
     preguntas = []
-    for tipo in tipos_preguntas:
-        preguntas.extend(getattr(encuesta, f'{tipo}_relacionadas').all())
-    
-    # Ordenar las preguntas según el campo 'orden'
-    preguntas_ordenadas = sorted(preguntas, key=lambda x: x.orden)
-    
-    # 1. Crear lista de secciones en el orden de aparición (incluyendo duplicados)
-    secciones_con_duplicados = [p.seccion or 'General' for p in preguntas_ordenadas]
-    
-    # 2. Eliminar duplicados manteniendo el orden
     secciones_unicas = []
-    seen = set()
-    for seccion in secciones_con_duplicados:
-        if seccion not in seen:
-            seen.add(seccion)
-            secciones_unicas.append(seccion)
     
-    # 3. Agrupar preguntas por sección (opcional, según lo que necesites)
-    preguntas_por_seccion = {}
-    for seccion in secciones_unicas:
-        preguntas_por_seccion[seccion] = [p for p in preguntas_ordenadas if (p.seccion or 'General') == seccion]
+    # Obtener todas las preguntas de la encuesta
+    preguntas.extend(encuesta.preguntatexto_relacionadas.all())
+    preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
+    preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
+    preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
+    preguntas.extend(encuesta.preguntaescala_relacionadas.all())
+    preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
+    preguntas.extend(encuesta.preguntafecha_relacionadas.all())
     
-    return render(request, 'encuesta/responder_encuesta.html', {
+    # Ordenar preguntas por orden
+    preguntas.sort(key=lambda x: x.orden)
+    
+    # Obtener secciones únicas manteniendo el orden
+    for pregunta in preguntas:
+        if pregunta.seccion and pregunta.seccion not in secciones_unicas:
+            secciones_unicas.append(pregunta.seccion)
+    
+    # Obtener municipios disponibles
+    municipios = Municipio.objects.all()
+    
+    context = {
         'encuesta': encuesta,
-        'preguntas': preguntas_ordenadas,
-        'secciones_unicas': secciones_unicas,  # Lista de secciones en orden de aparición sin duplicados
-        'preguntas_por_seccion': preguntas_por_seccion  # Diccionario opcional con preguntas agrupadas
-    })
+        'preguntas': preguntas,
+        'secciones_unicas': secciones_unicas,
+        'municipios': municipios,
+        'tema': encuesta.tema,
+    }
+    
+    return render(request, 'Encuesta/responder_encuesta.html', context)
 
 def encuesta_completada(request, slug):
     """Vista de agradecimiento después de completar una encuesta"""
@@ -909,44 +1016,36 @@ def encuesta_completada(request, slug):
         'encuesta': encuesta
     })
     
+
 @login_required
 def guardar_respuesta(request, encuesta_id):
-    print("Entering guardar_respuesta function")
     encuesta = get_object_or_404(Encuesta, id=encuesta_id)
-    print(f"Encuesta retrieved: {encuesta}")
 
     if request.method == 'POST':
-        print("Processing POST request")
+        municipio_id = request.POST.get('municipio')
+        municipio = Municipio.objects.filter(id=municipio_id).first() if municipio_id else None
+
         respuesta = RespuestaEncuesta.objects.create(
             encuesta=encuesta,
             usuario=request.user,
+            municipio=municipio,  # ✅ aquí lo guardas
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             completada=True
         )
-        print(f"RespuestaEncuesta created: {respuesta}")
 
-        print("Processing text questions")
+        # Procesar las respuestas
         procesar_preguntas_texto(request, respuesta)
-        print("Processing multiple choice questions")
         procesar_preguntas_opcion_multiple(request, respuesta)
-        print("Processing checkbox questions")
         procesar_preguntas_casillas(request, respuesta)
-        print("Processing dropdown questions")
         procesar_preguntas_desplegable(request, respuesta)
-        print("Processing scale questions")
         procesar_preguntas_escala(request, respuesta)
-        print("Processing matrix questions")
         procesar_preguntas_matriz(request, respuesta)
-        print("Processing date questions")
         procesar_preguntas_fecha(request, respuesta)
-        print("Processing star rating questions")
         procesar_preguntas_estrellas(request, respuesta)
 
-        print("Redirecting to index")
         return redirect('index')
 
-    print("Redirecting to todas_encuestas")
     return redirect('todas_encuestas')
 
 def procesar_preguntas_texto(request, respuesta):
@@ -972,23 +1071,30 @@ def procesar_preguntas_opcion_multiple(request, respuesta):
     for pregunta in PreguntaOpcionMultiple.objects.filter(encuesta=respuesta.encuesta):
         opcion_id = request.POST.get(f'pregunta_{pregunta.id}')
         if opcion_id:
-            if opcion_id == 'otro':
-                texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
-                opcion = OpcionMultiple.objects.filter(pregunta=pregunta, texto='Otro').first()
-                if opcion:
+            try:
+                # Verificar si es una opción "otro"
+                if opcion_id == 'otro':
+                    texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
+                    opcion = OpcionMultiple.objects.filter(pregunta=pregunta, texto='Otro').first()
+                    if opcion:
+                        RespuestaOpcionMultiple.objects.create(
+                            respuesta_encuesta=respuesta,
+                            pregunta=pregunta,
+                            opcion=opcion,
+                            texto_otro=texto_otro
+                        )
+                else:
+                    # Convertir el ID a entero antes de buscar la opción
+                    opcion_id = int(opcion_id)
+                    opcion = OpcionMultiple.objects.get(id=opcion_id)
                     RespuestaOpcionMultiple.objects.create(
                         respuesta_encuesta=respuesta,
                         pregunta=pregunta,
-                        opcion=opcion,
-                        texto_otro=texto_otro
+                        opcion=opcion
                     )
-            else:
-                opcion = OpcionMultiple.objects.get(id=opcion_id)
-                RespuestaOpcionMultiple.objects.create(
-                    respuesta_encuesta=respuesta,
-                    pregunta=pregunta,
-                    opcion=opcion
-                )
+            except (ValueError, OpcionMultiple.DoesNotExist) as e:
+                print(f"Error al procesar opción múltiple: {str(e)}")
+                continue
 
 def procesar_preguntas_casillas(request, respuesta):
     for pregunta in PreguntaCasillasVerificacion.objects.filter(encuesta=respuesta.encuesta):
@@ -1049,15 +1155,33 @@ def procesar_preguntas_fecha(request, respuesta):
     for pregunta in PreguntaFecha.objects.filter(encuesta=respuesta.encuesta):
         valor = request.POST.get(f'pregunta_{pregunta.id}')
         if valor:
-            if pregunta.tipo == 'DATE':
-                valor = timezone.datetime.strptime(valor, '%Y-%m-%d').date()
-            else:
-                valor = timezone.datetime.strptime(valor, '%Y-%m-%dT%H:%M')
-            RespuestaFecha.objects.create(
-                respuesta_encuesta=respuesta,
-                pregunta=pregunta,
-                valor=valor
-            )
+            try:
+                if pregunta.tipo == 'DATE':
+                    valor = timezone.datetime.strptime(valor, '%Y-%m-%d').date()
+                else:
+                    # Intentar diferentes formatos de fecha/hora
+                    try:
+                        valor = timezone.datetime.strptime(valor, '%Y-%m-%dT%H:%M')
+                    except ValueError:
+                        try:
+                            valor = timezone.datetime.strptime(valor, '%Y-%m-%d %H:%M')
+                        except ValueError:
+                            # Si no es un formato de fecha válido, usar la fecha actual
+                            valor = timezone.now()
+                
+                RespuestaFecha.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    valor=valor
+                )
+            except Exception as e:
+                print(f"Error al procesar fecha para pregunta {pregunta.id}: {str(e)}")
+                # En caso de error, usar la fecha actual
+                RespuestaFecha.objects.create(
+                    respuesta_encuesta=respuesta,
+                    pregunta=pregunta,
+                    valor=timezone.now()
+                )
 
 def procesar_preguntas_estrellas(request, respuesta):
     for pregunta in PreguntaEstrellas.objects.filter(encuesta=respuesta.encuesta):
@@ -1068,3 +1192,435 @@ def procesar_preguntas_estrellas(request, respuesta):
                 pregunta=pregunta,
                 valor=int(valor)
             )
+
+
+def regiones_y_municipios(request):
+    regiones = Region.objects.prefetch_related('municipios').all()
+    return render(request, 'Encuesta/regiones_y_municipios.html', {'regiones': regiones})
+
+@login_required
+def crear_region(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        if nombre:
+            Region.objects.get_or_create(nombre=nombre)
+            messages.success(request, f"Región '{nombre}' creada correctamente.")
+            return redirect('crear_region')
+        else:
+            messages.error(request, "El nombre no puede estar vacío.")
+
+    return render(request, "Encuesta/crear_region.html")
+
+def municipios_por_region(request):
+    region_id = request.GET.get('region_id')
+    municipios = Municipio.objects.filter(region_id=region_id).values('id', 'nombre')
+    return JsonResponse(list(municipios), safe=False)
+
+@login_required
+def crear_municipio(request):
+    regiones = Region.objects.all()
+    
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        region_id = request.POST.get("region")
+        
+        if nombre and region_id:
+            region = Region.objects.filter(id=region_id).first()
+            if region:
+                Municipio.objects.get_or_create(nombre=nombre, region=region)
+                messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                return redirect('crear_municipio')
+            else:
+                messages.error(request, "Región no encontrada.")
+        else:
+            messages.error(request, "Todos los campos son obligatorios.")
+
+    return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})
+
+@login_required
+def eliminar_encuesta(request, encuesta_id):
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
+    
+    if request.method == 'POST':
+        # Guardar el título para el mensaje
+        titulo = encuesta.titulo
+        # Eliminar la encuesta
+        encuesta.delete()
+        messages.success(request, f'La encuesta "{titulo}" ha sido eliminada exitosamente.')
+        return redirect('lista_encuestas')
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta_id)
+
+@login_required
+@require_http_methods(["POST"])
+def editar_pregunta(request, pregunta_id):
+    # Buscar la pregunta específica basada en el tipo
+    pregunta = None
+    for modelo in [PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
+                  PreguntaCasillasVerificacion, PreguntaMenuDesplegable, 
+                  PreguntaEstrellas, PreguntaEscala, PreguntaMatriz, PreguntaFecha]:
+        try:
+            pregunta = modelo.objects.get(id=pregunta_id)
+            break
+        except modelo.DoesNotExist:
+            continue
+    
+    if not pregunta:
+        messages.error(request, "Pregunta no encontrada.")
+        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+    
+    # Verificar que el usuario es el creador de la encuesta
+    if pregunta.encuesta.creador != request.user:
+        messages.error(request, "No tienes permiso para editar esta pregunta.")
+        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+    
+    try:
+        with transaction.atomic():
+            # Actualizar campos comunes
+            pregunta.texto = request.POST.get('texto')
+            pregunta.orden = int(request.POST.get('orden'))
+            pregunta.requerida = request.POST.get('requerida') == 'on'
+            
+            # Actualizar campos específicos según el tipo de pregunta
+            if isinstance(pregunta, (PreguntaTexto, PreguntaTextoMultiple)):
+                pregunta.placeholder = request.POST.get('placeholder', '')
+                pregunta.max_longitud = int(request.POST.get('max_longitud', 250))
+            
+            elif isinstance(pregunta, (PreguntaOpcionMultiple, PreguntaCasillasVerificacion, PreguntaMenuDesplegable)):
+                # Obtener las opciones actualizadas
+                nuevas_opciones = request.POST.getlist('opciones[]')
+                
+                # Eliminar opciones existentes
+                if isinstance(pregunta, PreguntaOpcionMultiple):
+                    pregunta.opciones.all().delete()
+                    OpcionModel = OpcionMultiple
+                elif isinstance(pregunta, PreguntaCasillasVerificacion):
+                    pregunta.opciones.all().delete()
+                    OpcionModel = OpcionCasillaVerificacion
+                else:
+                    pregunta.opciones.all().delete()
+                    OpcionModel = OpcionMenuDesplegable
+                
+                # Crear nuevas opciones
+                for i, texto in enumerate(nuevas_opciones):
+                    if texto.strip():  # Solo crear si no está vacío
+                        OpcionModel.objects.create(
+                            pregunta=pregunta,
+                            texto=texto,
+                            orden=i+1
+                        )
+            
+            pregunta.save()
+            messages.success(request, "Pregunta actualizada exitosamente.")
+            
+    except Exception as e:
+        messages.error(request, f"Error al actualizar la pregunta: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+
+@login_required
+@require_http_methods(["POST"])
+def eliminar_pregunta(request, pregunta_id):
+    # Buscar la pregunta específica basada en el tipo
+    pregunta = None
+    for modelo in [PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
+                  PreguntaCasillasVerificacion, PreguntaMenuDesplegable, 
+                  PreguntaEstrellas, PreguntaEscala, PreguntaMatriz, PreguntaFecha]:
+        try:
+            pregunta = modelo.objects.get(id=pregunta_id)
+            break
+        except modelo.DoesNotExist:
+            continue
+    
+    if not pregunta:
+        messages.error(request, "Pregunta no encontrada.")
+        return redirect('lista_encuestas')
+    
+    # Verificar que el usuario es el creador de la encuesta
+    if pregunta.encuesta.creador != request.user:
+        messages.error(request, "No tienes permiso para eliminar esta pregunta.")
+        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+    
+    try:
+        encuesta_id = pregunta.encuesta.id
+        pregunta.delete()
+        messages.success(request, "Pregunta eliminada exitosamente.")
+    except Exception as e:
+        messages.error(request, f"Error al eliminar la pregunta: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta_id)
+
+@login_required
+def actualizar_diseno(request, encuesta_id):
+    # Buscar la encuesta
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+    
+    # Verificar que el usuario es el creador de la encuesta
+    if encuesta.creador != request.user:
+        messages.error(request, "No tienes permiso para editar esta encuesta.")
+        return redirect('editar_encuesta', encuesta_id=encuesta.id)
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Actualizar el tema
+                encuesta.tema = request.POST.get('tema', 'default')
+                
+                # Procesar la imagen de encabezado
+                if 'eliminar_imagen' in request.POST:
+                    # Si se marca la casilla de eliminar, eliminar la imagen
+                    if encuesta.imagen_encabezado:
+                        encuesta.imagen_encabezado.delete()
+                    encuesta.imagen_encabezado = None
+                elif 'imagen_encabezado' in request.FILES:
+                    # Si se sube una nueva imagen, actualizar
+                    encuesta.imagen_encabezado = request.FILES['imagen_encabezado']
+                
+                # Procesar el logotipo
+                if 'eliminar_logo' in request.POST:
+                    if encuesta.logotipo:
+                        encuesta.logotipo.delete()
+                    encuesta.logotipo = None
+                elif 'logotipo' in request.FILES:
+                    encuesta.logotipo = request.FILES['logotipo']
+                
+                # Actualizar opciones de logotipo
+                encuesta.mostrar_logo = 'mostrar_logo' in request.POST
+                
+                # Actualizar estilos de texto y bordes
+                encuesta.estilo_fuente = request.POST.get('estilo_fuente', 'default')
+                encuesta.tamano_fuente = request.POST.get('tamano_fuente', 'normal')
+                encuesta.estilo_bordes = request.POST.get('estilo_bordes', 'redondeado')
+                
+                # Actualizar opciones de fondo
+                encuesta.tipo_fondo = request.POST.get('tipo_fondo', 'color')
+                encuesta.color_fondo = request.POST.get('color_fondo', '#f0f2f5')
+                encuesta.color_gradiente_1 = request.POST.get('color_gradiente_1', '#4361ee')
+                encuesta.color_gradiente_2 = request.POST.get('color_gradiente_2', '#3a0ca3')
+                
+                # Procesar imagen de fondo
+                if 'eliminar_imagen_fondo' in request.POST:
+                    if encuesta.imagen_fondo:
+                        encuesta.imagen_fondo.delete()
+                    encuesta.imagen_fondo = None
+                elif 'imagen_fondo' in request.FILES:
+                    encuesta.imagen_fondo = request.FILES['imagen_fondo']
+                
+                # Actualizar patrón de fondo
+                if encuesta.tipo_fondo == 'patron':
+                    encuesta.patron_fondo = request.POST.get('patron_fondo', 'patron1')
+                
+                # Guardar los cambios
+                encuesta.save()
+                
+                messages.success(request, "Diseño actualizado exitosamente.")
+        except Exception as e:
+            messages.error(request, f"Error al actualizar el diseño: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta.id)
+
+@login_required
+def preview_diseno(request, encuesta_id):
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
+    
+    # Obtener la primera pregunta de cada tipo para mostrar en la vista previa
+    preguntas_ejemplo = []
+    
+    # Obtener una pregunta de texto
+    pregunta_texto = PreguntaTexto.objects.filter(encuesta=encuesta).first()
+    if pregunta_texto:
+        preguntas_ejemplo.append(pregunta_texto)
+    
+    # Obtener una pregunta de opción múltiple
+    pregunta_opciones = PreguntaOpcionMultiple.objects.filter(encuesta=encuesta).first()
+    if pregunta_opciones:
+        preguntas_ejemplo.append(pregunta_opciones)
+    
+    # Si no hay suficientes preguntas, crear una pregunta de ejemplo
+    if not preguntas_ejemplo:
+        pregunta_ejemplo = {
+            'texto': 'Esta es una pregunta de ejemplo para mostrar el diseño',
+            'tipo': 'TEXT',
+            'requerida': True,
+            'ayuda': 'Este texto es solo para mostrar cómo se verá la encuesta con el diseño seleccionado.'
+        }
+        preguntas_ejemplo.append(pregunta_ejemplo)
+    
+    # Si se proporciona un tema en la URL, usarlo para la vista previa
+    tema_preview = request.GET.get('tema', encuesta.tema)
+    
+    context = {
+        'encuesta': encuesta,
+        'preguntas': preguntas_ejemplo,
+        'tema_preview': tema_preview,
+        'es_preview': True
+    }
+    
+    return render(request, 'Encuesta/preview_diseno.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def agregar_pregunta(request, encuesta_id):
+    try:
+        encuesta = Encuesta.objects.get(id=encuesta_id)
+        
+        # Verificar que el usuario sea el propietario de la encuesta
+        if encuesta.usuario != request.user:
+            return JsonResponse({'error': 'No tienes permiso para modificar esta encuesta'}, status=403)
+        
+        # Obtener datos del formulario
+        texto = request.POST.get('texto')
+        tipo = request.POST.get('tipo')
+        orden = request.POST.get('orden')
+        requerida = request.POST.get('requerida') == 'on'
+        ayuda = request.POST.get('ayuda', '')
+        
+        # Crear la pregunta según el tipo
+        if tipo == 'TEXT':
+            pregunta = PreguntaTexto.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+        elif tipo == 'MTEXT':
+            pregunta = PreguntaTextoMultiple.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+        elif tipo in ['RADIO', 'CHECK', 'SELECT']:
+            # Crear pregunta de opción múltiple
+            if tipo == 'RADIO':
+                pregunta = PreguntaOpcionMultiple.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    orden=orden,
+                    requerida=requerida,
+                    ayuda=ayuda
+                )
+            elif tipo == 'CHECK':
+                pregunta = PreguntaCasillasVerificacion.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    orden=orden,
+                    requerida=requerida,
+                    ayuda=ayuda
+                )
+            else:  # SELECT
+                pregunta = PreguntaMenuDesplegable.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    orden=orden,
+                    requerida=requerida,
+                    ayuda=ayuda
+                )
+            
+            # Agregar opciones
+            opciones = request.POST.getlist('opciones[]')
+            for i, opcion_texto in enumerate(opciones):
+                if opcion_texto.strip():  # Solo crear si no está vacío
+                    if tipo == 'RADIO':
+                        OpcionMultiple.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_texto,
+                            orden=i+1
+                        )
+                    elif tipo == 'CHECK':
+                        OpcionCasillaVerificacion.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_texto,
+                            orden=i+1
+                        )
+                    else:  # SELECT
+                        OpcionMenuDesplegable.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_texto,
+                            orden=i+1
+                        )
+                    
+        elif tipo == 'SCALE':
+            # Crear pregunta de escala
+            escala_min = request.POST.get('escala_min', 1)
+            escala_max = request.POST.get('escala_max', 5)
+            escala_paso = request.POST.get('escala_paso', 1)
+            
+            pregunta = PreguntaEscala.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda,
+                valor_minimo=escala_min,
+                valor_maximo=escala_max,
+                paso=escala_paso
+            )
+            
+        elif tipo == 'MATRIX':
+            # Crear pregunta de matriz
+            pregunta = PreguntaMatriz.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+            
+            # Agregar filas y columnas
+            filas = request.POST.getlist('filas[]')
+            columnas = request.POST.getlist('columnas[]')
+            
+            for i, fila_texto in enumerate(filas):
+                if fila_texto.strip():
+                    ItemMatrizPregunta.objects.create(
+                        pregunta=pregunta,
+                        texto=fila_texto,
+                        orden=i+1
+                    )
+            
+            for i, columna_texto in enumerate(columnas):
+                if columna_texto.strip():
+                    ColumnaMatriz.objects.create(
+                        pregunta=pregunta,
+                        texto=columna_texto,
+                        orden=i+1
+                    )
+                    
+        elif tipo == 'DATE':
+            pregunta = PreguntaFecha.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+            
+        elif tipo == 'STARS':
+            pregunta = PreguntaEstrellas.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+            
+        # Reordenar las preguntas si es necesario
+        preguntas = encuesta.obtener_preguntas().filter(orden__gte=orden)
+        for p in preguntas:
+            if p != pregunta:
+                p.orden += 1
+                p.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Pregunta agregada correctamente',
+            'pregunta_id': pregunta.id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=400)

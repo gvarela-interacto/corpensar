@@ -8,9 +8,54 @@ from .models import (
     PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
     RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
-    RespuestaMatriz, RespuestaFecha
+    RespuestaMatriz, RespuestaFecha,Region, Municipio
 )
 
+
+# Inline para mostrar municipios dentro de Region
+class MunicipioInline(admin.TabularInline):
+    model = Municipio
+    extra = 1
+    show_change_link = True
+
+
+
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = ('nombre',)
+
+    def has_module_permission(self, request):
+        """Oculta el módulo del listado general"""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """No permitir editar"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """No permitir eliminar"""
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        """No mostrar listado"""
+        return False
+
+
+@admin.register(Municipio)
+class MunicipioAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'region')
+
+    def has_module_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return False
 # Inlines para las opciones de preguntas
 class OpcionMultipleInline(TabularInline):
     model = OpcionMultiple
@@ -273,8 +318,8 @@ class PreguntaFechaInline(StackedInline):
 
 # Admin principal para Encuesta
 class EncuestaAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica']
-    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion']
+    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
+    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion', 'tema']
     search_fields = ['titulo', 'descripcion']
     prepopulated_fields = {'slug': ('titulo',)}
     filter_horizontal = []
@@ -288,7 +333,7 @@ class EncuestaAdmin(admin.ModelAdmin):
             'fields': ('fecha_inicio', 'fecha_fin', 'fecha_creacion', 'fecha_actualizacion')
         }),
         ('Configuración', {
-            'fields': ('activa', 'es_publica')
+            'fields': ('activa', 'es_publica', 'tema')
         }),
     )
     

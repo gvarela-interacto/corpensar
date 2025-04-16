@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-map-marker-alt"></i> Regiones y Municipios</h2>
+                <div>
+                    <a href="{% url 'crear_region' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Región
+                    </a>
+                    <a href="{% url 'crear_municipio' %}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Nuevo Municipio
+                    </a>
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        {% for region in regiones %}
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-globe-americas"></i> {{ region.nombre }}</h5>
+                        <span class="badge bg-light text-primary">{{ region.municipios.count }} municipios</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if region.municipios.all %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nombre del Municipio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for municipio in region.municipios.all %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <i class="fas fa-city text-secondary"></i> 
+                                        {{ municipio.nombre }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                        <p class="mb-0">No hay municipios registrados en esta región.</p>
+                        <a href="{% url 'crear_municipio' %}" class="btn btn-sm btn-outline-primary mt-2">
+                            Agregar municipio
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <div class="text-center py-5">
+                    <i class="fas fa-map fa-3x mb-3"></i>
+                    <h4>No hay regiones registradas</h4>
+                    <p>Para comenzar, crea una nueva región.</p>
+                    <a href="{% url 'crear_region' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear primera región
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Animación al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+{% endblock %}
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .table-responsive {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
