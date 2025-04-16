@@ -35,6 +35,7 @@ urlpatterns = [
 
   path('pregunta/<int:pregunta_id>/editar/', views.editar_pregunta, name='editar_pregunta'),
   path('pregunta/<int:pregunta_id>/eliminar/', views.eliminar_pregunta, name='eliminar_pregunta'),
+  path('encuesta/<int:encuesta_id>/agregar-pregunta/', views.agregar_pregunta, name='agregar_pregunta'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

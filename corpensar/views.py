@@ -21,12 +21,20 @@ from django import forms
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from .models import *
+from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
+                    PreguntaCasillasVerificacion, PreguntaMenuDesplegable, PreguntaEstrellas,
+                    PreguntaEscala, PreguntaMatriz, PreguntaFecha, OpcionMultiple,
+                    OpcionCasillaVerificacion, OpcionMenuDesplegable, Region, Municipio,
+                    RespuestaEncuesta, RespuestaTexto, RespuestaTextoMultiple,
+                    RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
+                    RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
+                    RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta)
 from .decorators import *
 import locale
 import re
 import csv
 from datetime import datetime
+from django.template.defaulttags import register
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -518,7 +526,6 @@ def editar_encuesta(request, encuesta_id):
 
 # Vista para listar encuestas del usuario
 
-
 class ListaEncuestasView(LoginRequiredMixin, ListView):
     model = Encuesta
     template_name = 'Encuesta/lista_encuestas.html'
@@ -575,8 +582,7 @@ class ResultadosEncuestaView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         encuesta = self.object
-
-        print(f"Encuesta: {encuesta}")
+        total_respuestas = encuesta.respuestas.count()
 
         preguntas = sorted(
             chain(
@@ -593,82 +599,183 @@ class ResultadosEncuestaView(DetailView):
             key=lambda x: x.orden
         )
 
-        print(f"Preguntas ordenadas: {[p.id for p in preguntas]}")
-
-        context['preguntas'] = preguntas
-        context['graficas'] = {}
+        preguntas_con_datos = []
 
         for pregunta in preguntas:
-            tipo = pregunta.__class__.__name__
-            key = f"pregunta_{pregunta.id}"
+            tipo = pregunta.__class__.__name__.lower()
+            datos_pregunta = {
+                'pregunta': pregunta,
+                'tipo': tipo,
+                'total_respuestas': total_respuestas
+            }
 
-            print(f"Procesando pregunta ID {pregunta.id}, tipo {tipo}")
-
-            if tipo == 'PreguntaOpcionMultiple':
+            if tipo == 'preguntaopcionmultiple':
                 respuestas = RespuestaOpcionMultiple.objects.filter(pregunta=pregunta)
-                counter = Counter([r.opcion.texto for r in respuestas])
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                opciones = {op.texto: {'cantidad': 0, 'porcentaje': 0} for op in pregunta.opciones.all()}
+                total_respuestas_pregunta = respuestas.count()  # Total de respuestas para esta pregunta
+                
+                for r in respuestas:
+                    opciones[r.opcion.texto]['cantidad'] += 1
+                
+                for opcion, datos in opciones.items():
+                    datos['porcentaje'] = (datos['cantidad'] / total_respuestas_pregunta * 100) if total_respuestas_pregunta > 0 else 0
+                
+                datos_pregunta['datos'] = opciones
+                datos_pregunta['total_respuestas_pregunta'] = total_respuestas_pregunta
 
-            elif tipo == 'PreguntaCasillasVerificacion':
+            elif tipo == 'preguntacasillasverificacion':
                 respuestas = RespuestaCasillasVerificacion.objects.filter(pregunta=pregunta)
-                counter = Counter([r.opcion.texto for r in respuestas])
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                opciones = {op.texto: {'cantidad': 0, 'porcentaje': 0} for op in pregunta.opciones.all()}
+                
+                # Contar todas las selecciones (no respuestas)
+                total_selecciones = respuestas.count()
+                
+                for r in respuestas:
+                    opciones[r.opcion.texto]['cantidad'] += 1
+                
+                # Calcular porcentaje basado en total de selecciones
+                for opcion, datos in opciones.items():
+                    datos['porcentaje'] = (datos['cantidad'] / total_selecciones * 100) if total_selecciones > 0 else 0
+                
+                datos_pregunta['datos'] = opciones
+                datos_pregunta['total_selecciones'] = total_selecciones  # Agregar esto para el template
 
-            elif tipo == 'PreguntaMenuDesplegable':
+            elif tipo == 'preguntamenudesplegable':
+                # Similar a opción múltiple
                 respuestas = RespuestaOpcionMenuDesplegable.objects.filter(pregunta=pregunta)
-                counter = Counter([r.opcion.texto for r in respuestas])
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                opciones = {op.texto: {'cantidad': 0, 'porcentaje': 0} for op in pregunta.opciones.all()}
+                
+                for r in respuestas:
+                    opciones[r.opcion.texto]['cantidad'] += 1
+                
+                for opcion, datos in opciones.items():
+                    datos['porcentaje'] = (datos['cantidad'] / total_respuestas * 100) if total_respuestas > 0 else 0
+                
+                datos_pregunta['datos'] = opciones
 
-            elif tipo == 'PreguntaEstrellas':
-                respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta)
+            elif tipo == 'preguntaestrellas':
+                respuestas = RespuestaEstrellas.objects.filter(pregunta=pregunta).select_related('respuesta_encuesta')
+                
+                # Invertir los valores (1->5, 2->4, 3->3, 4->2, 5->1)
+                valores = [6 - r.valor for r in respuestas]  # Esto invierte los valores (1->5, 5->1)
+                
+                promedio = sum(valores) / len(valores) if valores else 0
+                counter = Counter(valores)
+                
+                # Asegurarnos de incluir todas las estrellas posibles (1-5)
+                valores_completos = {i: counter.get(i, 0) for i in range(1, 6)}
+                
+                datos_pregunta['datos'] = {
+                    'promedio': promedio,
+                    'valores': valores_completos
+                }
+                datos_pregunta['respuestas_individuales'] = respuestas.order_by('-respuesta_encuesta__fecha_respuesta')
+
+            elif tipo == 'preguntaescala':
+                respuestas = RespuestaEscala.objects.filter(pregunta=pregunta).select_related('respuesta_encuesta')
                 valores = [r.valor for r in respuestas]
                 promedio = sum(valores) / len(valores) if valores else 0
-                context['graficas'][key] = {
-                    'valores': valores,
+                counter = Counter(valores)
+                
+                datos = {}
+                for valor, cantidad in counter.items():
+                    datos[valor] = {
+                        'cantidad': cantidad,
+                        'porcentaje': (cantidad / len(valores) * 100) if valores else 0
+                    }
+                
+                datos_pregunta['datos'] = {
+                    'valores': dict(sorted(datos.items())),
                     'promedio': promedio
                 }
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                datos_pregunta['respuestas_individuales'] = respuestas.order_by('-respuesta_encuesta__fecha_respuesta')
 
-            elif tipo == 'PreguntaEscala':
-                respuestas = RespuestaEscala.objects.filter(pregunta=pregunta)
-                valores = [r.valor for r in respuestas]
-                counter = Counter(valores)
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
-
-            elif tipo == 'PreguntaTextoMultiple':
-                respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
-                textos = [r.valor for r in respuestas]
-                context['graficas'][key] = textos
-                print(f"Graficas para {key}: {context['graficas'][key]}")
-
-            elif tipo == 'PreguntaTexto':
-                respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
-                textos = [r.valor for r in respuestas]
-                context['graficas'][key] = textos
-                print(f"Graficas para {key}: {context['graficas'][key]}")
-
-            elif tipo == 'PreguntaFecha':
-                respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
-                fechas = [r.valor.isoformat() for r in respuestas]
-                counter = Counter(fechas)
-                context['graficas'][key] = dict(counter)
-                print(f"Graficas para {key}: {context['graficas'][key]}")
-
-            elif tipo == 'PreguntaMatriz':
+            elif tipo == 'preguntamatriz':
                 respuestas = RespuestaMatriz.objects.filter(pregunta=pregunta)
                 datos = defaultdict(Counter)
+                
                 for r in respuestas:
                     datos[r.item.texto][r.valor] += 1
-                context['graficas'][key] = {fila: dict(contador) for fila, contador in datos.items()}
-                print(f"Graficas para {key}: {context['graficas'][key]}")
+                
+                min_val = pregunta.escala.min_valor
+                max_val = pregunta.escala.max_valor
+                paso = pregunta.escala.paso
+                
+                valores_escala = []
+                current = min_val
+                while current <= max_val:
+                    valores_escala.append(current)
+                    current += paso
+                if max_val not in valores_escala:
+                    valores_escala.append(max_val)
+                
+                datos_para_template = {}
+                for fila, contador in datos.items():
+                    total = sum(contador.values())
+                    valores_fila = {}
+                    
+                    for valor in valores_escala:
+                        cantidad = contador.get(valor, 0)
+                        valores_fila[valor] = {
+                            'cantidad': cantidad,
+                            'porcentaje': (cantidad / total * 100) if total > 0 else 0
+                        }
+                    
+                    datos_para_template[fila] = {
+                        'valores': valores_fila,
+                        'total': total
+                    }
+                
+                datos_pregunta['datos'] = datos_para_template
+                datos_pregunta['valores_escala'] = valores_escala
+            elif tipo == 'preguntafecha':
+                respuestas = RespuestaFecha.objects.filter(pregunta=pregunta)
+                fechas = [r.valor for r in respuestas]
+                datos_pregunta['datos'] = dict(Counter(fechas))
 
-        print(f"Contexto final: {context}")
+            elif tipo == 'preguntatexto':
+                respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
+                datos_pregunta['datos'] = [r.valor for r in respuestas]
+
+            elif tipo == 'preguntatextomultiple':
+                respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
+                datos_pregunta['datos'] = [r.valor for r in respuestas]
+
+            preguntas_con_datos.append(datos_pregunta)
+
+        context['preguntas_con_datos'] = preguntas_con_datos
         return context
 
+
+@register.filter
+def percentage(value):
+    """Filtro para formatear un valor como porcentaje (0-100) con 1 decimal"""
+    try:
+        return f"{float(value):.1f}%"
+    except (ValueError, TypeError):
+        return "0%"
+
+@register.filter
+def calculate_percentage(value, total):
+    """Filtro para calcular el porcentaje de value sobre total"""
+    try:
+        # Si el valor es un diccionario, sumar sus valores
+        if isinstance(value, dict):
+            value = sum(value.values())
+        return (float(value) / float(total)) * 100
+    except (ValueError, ZeroDivisionError, TypeError):
+        return 0
+    
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key, 0)
+
+@register.filter
+def divide(value, arg):
+    try:
+        return float(value) / float(arg) * 100
+    except (ValueError, ZeroDivisionError):
+        return 0
 
 def get_client_ip(request):
     """Obtiene la dirección IP del cliente"""
@@ -678,7 +785,6 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
-
 
 class BaseEncuestaForm(Form):
     """Formulario base para todas las preguntas de encuesta"""
@@ -869,7 +975,7 @@ class FechaForm(BaseEncuestaForm):
 def responder_encuesta(request, slug):
     encuesta = get_object_or_404(Encuesta, slug=slug)
     preguntas = []
-    secciones_unicas = set()
+    secciones_unicas = []
     
     # Obtener todas las preguntas de la encuesta
     preguntas.extend(encuesta.preguntatexto_relacionadas.all())
@@ -885,10 +991,10 @@ def responder_encuesta(request, slug):
     # Ordenar preguntas por orden
     preguntas.sort(key=lambda x: x.orden)
     
-    # Obtener secciones únicas
+    # Obtener secciones únicas manteniendo el orden
     for pregunta in preguntas:
-        if pregunta.seccion:
-            secciones_unicas.add(pregunta.seccion)
+        if pregunta.seccion and pregunta.seccion not in secciones_unicas:
+            secciones_unicas.append(pregunta.seccion)
     
     # Obtener municipios disponibles
     municipios = Municipio.objects.all()
@@ -896,7 +1002,7 @@ def responder_encuesta(request, slug):
     context = {
         'encuesta': encuesta,
         'preguntas': preguntas,
-        'secciones_unicas': sorted(secciones_unicas),
+        'secciones_unicas': secciones_unicas,
         'municipios': municipios,
         'tema': encuesta.tema,
     }
@@ -965,23 +1071,30 @@ def procesar_preguntas_opcion_multiple(request, respuesta):
     for pregunta in PreguntaOpcionMultiple.objects.filter(encuesta=respuesta.encuesta):
         opcion_id = request.POST.get(f'pregunta_{pregunta.id}')
         if opcion_id:
-            if opcion_id == 'otro':
-                texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
-                opcion = OpcionMultiple.objects.filter(pregunta=pregunta, texto='Otro').first()
-                if opcion:
+            try:
+                # Verificar si es una opción "otro"
+                if opcion_id == 'otro':
+                    texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
+                    opcion = OpcionMultiple.objects.filter(pregunta=pregunta, texto='Otro').first()
+                    if opcion:
+                        RespuestaOpcionMultiple.objects.create(
+                            respuesta_encuesta=respuesta,
+                            pregunta=pregunta,
+                            opcion=opcion,
+                            texto_otro=texto_otro
+                        )
+                else:
+                    # Convertir el ID a entero antes de buscar la opción
+                    opcion_id = int(opcion_id)
+                    opcion = OpcionMultiple.objects.get(id=opcion_id)
                     RespuestaOpcionMultiple.objects.create(
                         respuesta_encuesta=respuesta,
                         pregunta=pregunta,
-                        opcion=opcion,
-                        texto_otro=texto_otro
+                        opcion=opcion
                     )
-            else:
-                opcion = OpcionMultiple.objects.get(id=opcion_id)
-                RespuestaOpcionMultiple.objects.create(
-                    respuesta_encuesta=respuesta,
-                    pregunta=pregunta,
-                    opcion=opcion
-                )
+            except (ValueError, OpcionMultiple.DoesNotExist) as e:
+                print(f"Error al procesar opción múltiple: {str(e)}")
+                continue
 
 def procesar_preguntas_casillas(request, respuesta):
     for pregunta in PreguntaCasillasVerificacion.objects.filter(encuesta=respuesta.encuesta):
@@ -1190,11 +1303,12 @@ def editar_pregunta(request, pregunta_id):
                 
                 # Crear nuevas opciones
                 for i, texto in enumerate(nuevas_opciones):
-                    OpcionModel.objects.create(
-                        pregunta=pregunta,
-                        texto=texto,
-                        orden=i + 1
-                    )
+                    if texto.strip():  # Solo crear si no está vacío
+                        OpcionModel.objects.create(
+                            pregunta=pregunta,
+                            texto=texto,
+                            orden=i+1
+                        )
             
             pregunta.save()
             messages.success(request, "Pregunta actualizada exitosamente.")
@@ -1343,3 +1457,170 @@ def preview_diseno(request, encuesta_id):
     }
     
     return render(request, 'Encuesta/preview_diseno.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def agregar_pregunta(request, encuesta_id):
+    try:
+        encuesta = Encuesta.objects.get(id=encuesta_id)
+        
+        # Verificar que el usuario sea el propietario de la encuesta
+        if encuesta.usuario != request.user:
+            return JsonResponse({'error': 'No tienes permiso para modificar esta encuesta'}, status=403)
+        
+        # Obtener datos del formulario
+        texto = request.POST.get('texto')
+        tipo = request.POST.get('tipo')
+        orden = request.POST.get('orden')
+        requerida = request.POST.get('requerida') == 'on'
+        ayuda = request.POST.get('ayuda', '')
+        
+        # Crear la pregunta según el tipo
+        if tipo == 'TEXT':
+            pregunta = PreguntaTexto.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+        elif tipo == 'MTEXT':
+            pregunta = PreguntaTextoMultiple.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+        elif tipo in ['RADIO', 'CHECK', 'SELECT']:
+            # Crear pregunta de opción múltiple
+            if tipo == 'RADIO':
+                pregunta = PreguntaOpcionMultiple.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    orden=orden,
+                    requerida=requerida,
+                    ayuda=ayuda
+                )
+            elif tipo == 'CHECK':
+                pregunta = PreguntaCasillasVerificacion.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    orden=orden,
+                    requerida=requerida,
+                    ayuda=ayuda
+                )
+            else:  # SELECT
+                pregunta = PreguntaMenuDesplegable.objects.create(
+                    encuesta=encuesta,
+                    texto=texto,
+                    orden=orden,
+                    requerida=requerida,
+                    ayuda=ayuda
+                )
+            
+            # Agregar opciones
+            opciones = request.POST.getlist('opciones[]')
+            for i, opcion_texto in enumerate(opciones):
+                if opcion_texto.strip():  # Solo crear si no está vacío
+                    if tipo == 'RADIO':
+                        OpcionMultiple.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_texto,
+                            orden=i+1
+                        )
+                    elif tipo == 'CHECK':
+                        OpcionCasillaVerificacion.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_texto,
+                            orden=i+1
+                        )
+                    else:  # SELECT
+                        OpcionMenuDesplegable.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_texto,
+                            orden=i+1
+                        )
+                    
+        elif tipo == 'SCALE':
+            # Crear pregunta de escala
+            escala_min = request.POST.get('escala_min', 1)
+            escala_max = request.POST.get('escala_max', 5)
+            escala_paso = request.POST.get('escala_paso', 1)
+            
+            pregunta = PreguntaEscala.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda,
+                valor_minimo=escala_min,
+                valor_maximo=escala_max,
+                paso=escala_paso
+            )
+            
+        elif tipo == 'MATRIX':
+            # Crear pregunta de matriz
+            pregunta = PreguntaMatriz.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+            
+            # Agregar filas y columnas
+            filas = request.POST.getlist('filas[]')
+            columnas = request.POST.getlist('columnas[]')
+            
+            for i, fila_texto in enumerate(filas):
+                if fila_texto.strip():
+                    ItemMatrizPregunta.objects.create(
+                        pregunta=pregunta,
+                        texto=fila_texto,
+                        orden=i+1
+                    )
+            
+            for i, columna_texto in enumerate(columnas):
+                if columna_texto.strip():
+                    ColumnaMatriz.objects.create(
+                        pregunta=pregunta,
+                        texto=columna_texto,
+                        orden=i+1
+                    )
+                    
+        elif tipo == 'DATE':
+            pregunta = PreguntaFecha.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+            
+        elif tipo == 'STARS':
+            pregunta = PreguntaEstrellas.objects.create(
+                encuesta=encuesta,
+                texto=texto,
+                orden=orden,
+                requerida=requerida,
+                ayuda=ayuda
+            )
+            
+        # Reordenar las preguntas si es necesario
+        preguntas = encuesta.obtener_preguntas().filter(orden__gte=orden)
+        for p in preguntas:
+            if p != pregunta:
+                p.orden += 1
+                p.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Pregunta agregada correctamente',
+            'pregunta_id': pregunta.id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=400)

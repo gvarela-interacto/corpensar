@@ -27,6 +27,8 @@ class Municipio(models.Model):
     def __str__(self):
         return self.nombre
 
+def get_valores_rango(self):
+    return range(self.min_valor, self.max_valor + 1)
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
     TEMAS = (
@@ -281,7 +283,7 @@ class ItemMatriz(models.Model):
 class ItemMatrizPregunta(ItemMatriz):
     """Ítems para preguntas tipo matriz"""
     pregunta = models.ForeignKey('PreguntaMatriz', related_name='items', 
-                              on_delete=models.CASCADE, verbose_name=_("Pregunta matriz"))
+                                on_delete=models.CASCADE, verbose_name=_("Pregunta matriz"))
 
 
 class PreguntaMatriz(PreguntaBase):
@@ -415,9 +417,10 @@ class RespuestaTextoMultiple(RespuestaBase):
         verbose_name_plural = _("Respuestas de texto múltiple")
 
 class RespuestaOpcionMenuDesplegable(RespuestaBase):
-    pregunta = models.ForeignKey(PreguntaMenuDesplegable, related_name="respuestas", on_delete=models.CASCADE)
+    """Respuesta para preguntas de menú desplegable"""
+    pregunta = models.ForeignKey(PreguntaMenuDesplegable, on_delete=models.CASCADE)
     opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE)
-    
+
     class Meta:
         verbose_name = _("Respuesta a menú desplegable")
         verbose_name_plural = _("Respuestas a menú desplegable")
