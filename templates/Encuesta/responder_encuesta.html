@@ -282,6 +282,86 @@
             border-color: var(--primary-color);
         }
         
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+        
+        .star-rating input {
+            display: none;
+        }
+        
+        .star-rating label {
+            cursor: pointer;
+            font-size: 30px;
+            color: #ddd;
+            padding: 0 5px;
+            transition: all 0.2s ease;
+        }
+        
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #ffc107;
+            transform: scale(1.2);
+        }
+        
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        
+        .scale-labels span {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .matrix-table {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--medium-gray);
+        }
+        
+        .matrix-table th, .matrix-table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px;
+        }
+        
+        .matrix-table th {
+            font-weight: 600;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .matrix-table th:first-child,
+        .matrix-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+        
+        .form-range {
+            height: 10px;
+            padding: 0;
+            margin-top: 15px;
+        }
+        
+        .form-range::-webkit-slider-thumb {
+            background: var(--primary-color);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
         .survey-footer {
             background-color: var(--light-gray);
             padding: 25px 40px;
