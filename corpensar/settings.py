@@ -53,14 +53,14 @@ TEMPLATES = [
         },
     },
 ]
-"""
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'corpensarCaldas',       
+        'NAME': 'corpensar',       
         'USER': 'root',
-        'PASSWORD': 'M@j0309!mysql',
-        'HOST': '45.79.2.216',
+        'PASSWORD': 'M@j0309!Mysql',
+        'HOST': '72.14.187.231',
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -69,14 +69,13 @@ DATABASES = {
     }
 }
 """
- 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+"""
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
