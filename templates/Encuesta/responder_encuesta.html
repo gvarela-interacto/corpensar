@@ -523,20 +523,22 @@
                                 </div>
                             {% endif %}
 
+                            <!-- Para preguntas de texto simple -->
                             {% if pregunta.tipo == 'TEXT' %}
-                                <input type="text" 
-                                    class="form-control" 
-                                    name="pregunta_{{ pregunta.id }}"  
-                                    placeholder="{{pregunta.placeholder}}" 
-                                    maxlength="{{pregunta.max_longitud}}"
-                                    {% if pregunta.requerida %}required{% endif %}>
-                            
+                            <input type="text" 
+                                class="form-control" 
+                                name="pregunta_texto_{{ pregunta.id }}" 
+                                placeholder="{{ pregunta.placeholder }}" 
+                                maxlength="{{ pregunta.max_longitud }}"
+                                {% if pregunta.requerida %}required{% endif %}>
+
+                            <!-- Para preguntas de texto múltiple -->
                             {% elif pregunta.tipo == 'MTEXT' %}
-                                <textarea class="form-control" 
-                                    name="pregunta_{{ pregunta.id }}"  
-                                    rows="{{pregunta.filas}}" 
-                                    placeholder="{{pregunta.placeholder}}" 
-                                    maxlength="{{pregunta.max_longitud}}"
+                            <textarea class="form-control" 
+                                    name="pregunta_textomultiple_{{ pregunta.id }}" 
+                                    rows="{{ pregunta.filas }}" 
+                                    placeholder="{{ pregunta.placeholder }}" 
+                                    maxlength="{{ pregunta.max_longitud }}"
                                     {% if pregunta.requerida %}required{% endif %}></textarea>
                             
                             {% elif pregunta.tipo == 'RADIO' %}

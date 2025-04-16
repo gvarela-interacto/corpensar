@@ -1117,22 +1117,24 @@ def guardar_respuesta(request, encuesta_id):
     return redirect('todas_encuestas')
 
 def procesar_preguntas_texto(request, respuesta):
+    # Para texto simple
     for pregunta in PreguntaTexto.objects.filter(encuesta=respuesta.encuesta):
-        valor = request.POST.get(f'pregunta_{pregunta.id}')
+        valor = request.POST.get(f'pregunta_texto_{pregunta.id}')
         if valor:
             RespuestaTexto.objects.create(
                 respuesta_encuesta=respuesta,
                 pregunta=pregunta,
-                valor=valor
+                valor=str(valor)  # Forzar conversión a string
             )
     
+    # Para texto múltiple
     for pregunta in PreguntaTextoMultiple.objects.filter(encuesta=respuesta.encuesta):
-        valor = request.POST.get(f'pregunta_{pregunta.id}')
+        valor = request.POST.get(f'pregunta_textomultiple_{pregunta.id}')
         if valor:
             RespuestaTextoMultiple.objects.create(
                 respuesta_encuesta=respuesta,
                 pregunta=pregunta,
-                valor=valor
+                valor=str(valor)  # Forzar conversión a string
             )
 
 def procesar_preguntas_opcion_multiple(request, respuesta):
