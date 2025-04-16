@@ -23,7 +23,7 @@
             <tbody>
                 {% for encuesta in encuestas %}
                 <tr>
-                    <td>{{ encuesta.titulo }}</td>
+                    <td class="text-wrap">{{ encuesta.titulo }}</td>
                     <td>
                         <span class="badge badge-{% if encuesta.activa %}success{% else %}secondary{% endif %}">
                             {% if encuesta.activa %}Activa{% else %}Inactiva{% endif %}
@@ -31,8 +31,8 @@
                     </td>
                     <td>{{ encuesta.region.nombre|default:"Sin región" }}</td>
                     <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
-                    <td>{{ encuesta.slug }}</td>
-                    <td>
+                    <td class="text-wrap">{{ encuesta.slug }}</td>
+                    <td class="text-wrap">
                         {% if encuesta.slug %}
                         <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-link"></i> Ver
@@ -42,10 +42,10 @@
                             <i class="fas fa-link"></i> Sin URL
                         </button>
                         {% endif %}
-                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
+                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary mt-1">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success">
+                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success mt-1">
                             <i class="fas fa-chart-bar"></i> Resultados
                         </a>
                     </td>
