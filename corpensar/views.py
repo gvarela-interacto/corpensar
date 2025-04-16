@@ -1064,8 +1064,8 @@ def responder_encuesta(request, slug):
         if pregunta.seccion and pregunta.seccion not in secciones_unicas:
             secciones_unicas.append(pregunta.seccion)
     
-    # Obtener municipios disponibles
-    municipios = Municipio.objects.all()
+    # Obtener municipios disponibles filtrados por la región de la encuesta
+    municipios = Municipio.objects.filter(region=encuesta.region)
     
     context = {
         'encuesta': encuesta,
