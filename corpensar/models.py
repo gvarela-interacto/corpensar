@@ -146,7 +146,7 @@ class PreguntaBase(models.Model):
     requerida = models.BooleanField(default=True, verbose_name=_("Requerida"))
     orden = models.PositiveIntegerField(verbose_name=_("Orden"))
     ayuda = models.CharField(max_length=300, blank=True, verbose_name=_("Texto de ayuda"))
-    seccion = models.CharField(max_length=100, blank=True, verbose_name=_("Sección"))
+    seccion = models.CharField(max_length=100, blank=True, default='', verbose_name=_("Sección"))
     
     class Meta:
         abstract = True
@@ -237,6 +237,9 @@ class PreguntaMenuDesplegable(PreguntaBase):
     opcion_vacia = models.BooleanField(default=True, verbose_name=_("Incluir opción vacía"))
     texto_vacio = models.CharField(max_length=100, blank=True, default=_("Seleccione..."), 
                                  verbose_name=_("Texto para opción vacía"))
+    opcion_otro = models.BooleanField(default=False, verbose_name=_("Incluir opción 'Otro'"))
+    texto_otro = models.CharField(max_length=100, blank=True, default=_("Otro"), 
+                                verbose_name=_("Texto para 'Otro'"))
     
     class Meta:
         verbose_name = _("Pregunta de menú desplegable")
@@ -419,7 +422,8 @@ class RespuestaTextoMultiple(RespuestaBase):
 class RespuestaOpcionMenuDesplegable(RespuestaBase):
     """Respuesta para preguntas de menú desplegable"""
     pregunta = models.ForeignKey(PreguntaMenuDesplegable, on_delete=models.CASCADE)
-    opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE)
+    opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE, null=True, blank=True)
+    texto_otro = models.TextField(blank=True)
 
     class Meta:
         verbose_name = _("Respuesta a menú desplegable")

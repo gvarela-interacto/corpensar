@@ -259,8 +259,8 @@ def crear_desde_cero(request):
                 titulo=titulo,
                 slug=slug,
                 descripcion=descripcion,
-                fecha_inicio=fecha_inicio,
-                fecha_fin=fecha_fin,
+                fecha_inicio=timezone.make_aware(datetime.strptime(fecha_inicio, '%Y-%m-%dT%H:%M')),
+                fecha_fin=timezone.make_aware(datetime.strptime(fecha_fin, '%Y-%m-%dT%H:%M')),
                 activa=activa,
                 es_publica=es_publica,
                 creador=request.user,
@@ -400,7 +400,9 @@ def crear_desde_cero(request):
                     ayuda=ayuda,
                     seccion=seccion,
                     opcion_vacia=request.POST.get(f'questions[{pregunta_id}][empty_option]', 'true') == 'true',
-                    texto_vacio=request.POST.get(f'questions[{pregunta_id}][empty_text]', 'Seleccione...')
+                    texto_vacio=request.POST.get(f'questions[{pregunta_id}][empty_text]', 'Seleccione...'),
+                    opcion_otro=request.POST.get(f'questions[{pregunta_id}][opcion_otro]', 'false') == 'true',
+                    texto_otro=request.POST.get(f'questions[{pregunta_id}][texto_otro]', 'Otro')
                 )
                 # Procesar opciones si están disponibles
                 for key in request.POST:
@@ -597,8 +599,8 @@ def editar_encuesta(request, encuesta_id):
     preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
     preguntas.extend(encuesta.preguntafecha_relacionadas.all())
     
-    # Ordenar preguntas por orden
-    preguntas.sort(key=lambda x: x.orden)
+    # Filtrar preguntas con orden 0 y ordenar el resto por orden
+    preguntas = sorted([p for p in preguntas if p.orden > 0], key=lambda x: x.orden)
     
     return render(request, 'Encuesta/editar_encuesta.html', {
         'encuesta': encuesta,
@@ -652,17 +654,21 @@ class ResultadosEncuestaView(DetailView):
         encuesta = self.object
         total_respuestas = encuesta.respuestas.count()
 
+        # Obtener todas las preguntas y filtrar las que tengan orden 0
         preguntas = sorted(
-            chain(
-                encuesta.preguntatexto_relacionadas.all(),
-                encuesta.preguntatextomultiple_relacionadas.all(),
-                encuesta.preguntaopcionmultiple_relacionadas.all(),
-                encuesta.preguntacasillasverificacion_relacionadas.all(),
-                encuesta.preguntamenudesplegable_relacionadas.all(),
-                encuesta.preguntaestrellas_relacionadas.all(),
-                encuesta.preguntaescala_relacionadas.all(),
-                encuesta.preguntamatriz_relacionadas.all(),
-                encuesta.preguntafecha_relacionadas.all(),
+            filter(
+                lambda x: x.orden > 0,
+                chain(
+                    encuesta.preguntatexto_relacionadas.all(),
+                    encuesta.preguntatextomultiple_relacionadas.all(),
+                    encuesta.preguntaopcionmultiple_relacionadas.all(),
+                    encuesta.preguntacasillasverificacion_relacionadas.all(),
+                    encuesta.preguntamenudesplegable_relacionadas.all(),
+                    encuesta.preguntaestrellas_relacionadas.all(),
+                    encuesta.preguntaescala_relacionadas.all(),
+                    encuesta.preguntamatriz_relacionadas.all(),
+                    encuesta.preguntafecha_relacionadas.all(),
+                )
             ),
             key=lambda x: x.orden
         )
@@ -1056,8 +1062,8 @@ def responder_encuesta(request, slug):
     preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
     preguntas.extend(encuesta.preguntafecha_relacionadas.all())
     
-    # Ordenar preguntas por orden
-    preguntas.sort(key=lambda x: x.orden)
+    # Filtrar preguntas con orden 0 y ordenar el resto por orden
+    preguntas = sorted([p for p in preguntas if p.orden > 0], key=lambda x: x.orden)
     
     # Obtener secciones únicas manteniendo el orden
     for pregunta in preguntas:
@@ -1190,12 +1196,26 @@ def procesar_preguntas_desplegable(request, respuesta):
     for pregunta in PreguntaMenuDesplegable.objects.filter(encuesta=respuesta.encuesta):
         opcion_id = request.POST.get(f'pregunta_{pregunta.id}')
         if opcion_id:
-            opcion = OpcionMenuDesplegable.objects.get(id=opcion_id)
-            RespuestaOpcionMenuDesplegable.objects.create(
-                respuesta_encuesta=respuesta,
-                pregunta=pregunta,
-                opcion=opcion
-            )
+            if opcion_id == 'otro':
+                texto_otro = request.POST.get(f'pregunta_otro_{pregunta.id}', '')
+                opcion = OpcionMenuDesplegable.objects.filter(pregunta=pregunta, texto='Otro').first()
+                if opcion:
+                    RespuestaOpcionMenuDesplegable.objects.create(
+                        respuesta_encuesta=respuesta,
+                        pregunta=pregunta,
+                        opcion=opcion,
+                        texto_otro=texto_otro
+                    )
+            else:
+                try:
+                    opcion = OpcionMenuDesplegable.objects.get(id=opcion_id)
+                    RespuestaOpcionMenuDesplegable.objects.create(
+                        respuesta_encuesta=respuesta,
+                        pregunta=pregunta,
+                        opcion=opcion
+                    )
+                except OpcionMenuDesplegable.DoesNotExist:
+                    continue
 
 def procesar_preguntas_escala(request, respuesta):
     for pregunta in PreguntaEscala.objects.filter(encuesta=respuesta.encuesta):
@@ -1357,6 +1377,11 @@ def editar_pregunta(request, pregunta_id):
             elif isinstance(pregunta, (PreguntaOpcionMultiple, PreguntaCasillasVerificacion, PreguntaMenuDesplegable)):
                 # Obtener las opciones actualizadas
                 nuevas_opciones = request.POST.getlist('opciones[]')
+                
+                # Actualizar opción "otro" si está disponible
+                if isinstance(pregunta, (PreguntaOpcionMultiple, PreguntaCasillasVerificacion, PreguntaMenuDesplegable)):
+                    pregunta.opcion_otro = request.POST.get('opcion_otro') == 'on'
+                    pregunta.texto_otro = request.POST.get('texto_otro', 'Otro')
                 
                 # Eliminar opciones existentes
                 if isinstance(pregunta, PreguntaOpcionMultiple):
@@ -1584,7 +1609,9 @@ def agregar_pregunta(request, encuesta_id):
                     texto=texto,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    ayuda=ayuda,
+                    opcion_otro=request.POST.get('opcion_otro') == 'on',
+                    texto_otro=request.POST.get('texto_otro', 'Otro')
                 )
             
             # Agregar opciones

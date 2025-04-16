@@ -827,6 +827,22 @@
                                     <i class="fas fa-plus me-2"></i> Agregar Opción
                                 </button>
                             </div>
+
+                            <div class="form-check mt-3">
+                                <input type="checkbox" class="form-check-input" id="opcion_otro_{{ pregunta.id }}" 
+                                       name="opcion_otro" {% if pregunta.opcion_otro %}checked{% endif %}>
+                                <label class="form-check-label" for="opcion_otro_{{ pregunta.id }}">
+                                    Incluir opción "Otro"
+                                </label>
+                            </div>
+                            
+                            <div class="mt-2" id="texto_otro_container_{{ pregunta.id }}" 
+                                 style="display: {% if pregunta.opcion_otro %}block{% else %}none{% endif %}">
+                                <label class="form-label">Texto para la opción "Otro":</label>
+                                <input type="text" class="form-control" name="texto_otro" 
+                                       value="{{ pregunta.texto_otro|default:'Otro' }}" 
+                                       placeholder="Ej: Otro (especifique)">
+                            </div>
                         </div>
                     </div>
                     {% endif %}
@@ -913,6 +929,16 @@
                 alert('La fecha de finalización no puede ser anterior a la fecha de inicio');
                 this.value = fechaInicio.value;
             }
+        });
+
+        // Manejar la visibilidad del campo de texto "otro"
+        document.querySelectorAll('input[name="opcion_otro"]').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const container = document.getElementById('texto_otro_container_' + this.id.split('_').pop());
+                if (container) {
+                    container.style.display = this.checked ? 'block' : 'none';
+                }
+            });
         });
     });
 

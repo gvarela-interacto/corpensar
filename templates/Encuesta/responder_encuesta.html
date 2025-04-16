@@ -616,16 +616,31 @@
                                 {% endif %}
                             
                             {% elif pregunta.tipo == 'SELECT' %}
-                                <select class="form-select" 
-                                    name="pregunta_{{ pregunta.id }}" 
-                                    {% if pregunta.requerida %}required{% endif %}>
-                                    {% if pregunta.opcion_vacia %}
-                                        <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
+                                <div class="select-container">
+                                    <select class="form-select" 
+                                        name="pregunta_{{ pregunta.id }}" 
+                                        id="select_{{ pregunta.id }}"
+                                        onchange="manejarCambioSelect('{{ pregunta.id }}')"
+                                        {% if pregunta.requerida %}required{% endif %}>
+                                        {% if pregunta.opcion_vacia %}
+                                            <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
+                                        {% endif %}
+                                        {% for opcion in pregunta.opciones.all %}
+                                            <option value="{{ opcion.id }}">{{ opcion.texto }}</option>
+                                        {% endfor %}
+                                        {% if pregunta.opcion_otro %}
+                                            <option value="otro">{{ pregunta.texto_otro|default:"Otro" }}</option>
+                                        {% endif %}
+                                    </select>
+                                    {% if pregunta.opcion_otro %}
+                                        <div class="mt-2" id="otro_texto_container_{{ pregunta.id }}" style="display:none;">
+                                            <input type="text" 
+                                                class="form-control" 
+                                                name="pregunta_otro_{{ pregunta.id }}"
+                                                placeholder="Especifique...">
+                                        </div>
                                     {% endif %}
-                                    {% for opcion in pregunta.opciones.all %}
-                                        <option value="{{ opcion.id }}">{{ opcion.texto }}</option>
-                                    {% endfor %}
-                                </select>
+                                </div>
                             
                             {% elif pregunta.tipo == 'STAR' %}
                                 <div class="star-rating">
@@ -740,6 +755,16 @@
                 }
             });
         });
+
+        // Función para manejar el cambio en selects
+        function manejarCambioSelect(preguntaId) {
+            const select = document.getElementById('select_' + preguntaId);
+            const container = document.getElementById('otro_texto_container_' + preguntaId);
+            if (container) {
+                container.style.display = select.value === 'otro' ? 'block' : 'none';
+                if (select.value === 'otro') container.querySelector('input').focus();
+            }
+        }
 
         // Función para validar selecciones en casillas de verificación
         function validarSelecciones(preguntaId) {
