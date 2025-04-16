@@ -27,6 +27,8 @@ class Municipio(models.Model):
     def __str__(self):
         return self.nombre
 
+def get_valores_rango(self):
+    return range(self.min_valor, self.max_valor + 1)
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
     TEMAS = (
@@ -281,7 +283,7 @@ class ItemMatriz(models.Model):
 class ItemMatrizPregunta(ItemMatriz):
     """Ítems para preguntas tipo matriz"""
     pregunta = models.ForeignKey('PreguntaMatriz', related_name='items', 
-                              on_delete=models.CASCADE, verbose_name=_("Pregunta matriz"))
+                                on_delete=models.CASCADE, verbose_name=_("Pregunta matriz"))
 
 
 class PreguntaMatriz(PreguntaBase):
