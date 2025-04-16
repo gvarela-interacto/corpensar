@@ -460,11 +460,11 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Etiqueta para valor mínimo <span class="required-asterisk">*</span></label>
-                            <input type="text" class="form-control" name="questions[{id}][scale][etiqueta_min]" value="Muy en desacuerdo" required>
+                            <input type="text" class="form-control" name="questions[{id}][scale][etiqueta_min]" placeholder="Muy en desacuerdo" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Etiqueta para valor máximo <span class="required-asterisk">*</span></label>
-                            <input type="text" class="form-control" name="questions[{id}][scale][etiqueta_max]" value="Muy de acuerdo" required>
+                            <input type="text" class="form-control" name="questions[{id}][scale][etiqueta_max]" placeholder="Muy de acuerdo" required>
                         </div>
                     </div>
                 </div>
@@ -473,14 +473,7 @@
             <div class="mb-3">
                 <label class="form-label">Ítems de la matriz <span class="required-asterisk">*</span></label>
                 <div class="items-list mb-2">
-                    <div class="option-row input-group">
-                        <span class="input-group-text"><i class="fas fa-grip-vertical"></i></span>
-                        <input type="text" class="form-control" name="questions[{id}][items][0][texto]" placeholder="Texto del ítem" required>
-                        <input type="hidden" name="questions[{id}][items][0][orden]" value="1">
-                        <button type="button" class="btn btn-outline-danger remove-item" onclick="eliminarItem(this)">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                    <!-- Los ítems se agregarán dinámicamente -->
                 </div>
                 <button type="button" class="btn btn-outline-secondary btn-sm add-item" onclick="agregarItem(this)">
                     <i class="fas fa-plus"></i> Añadir Ítem
@@ -1304,27 +1297,32 @@
                         template = $('#date-options-template').html();
                         break;
                     default:
-                        return; // Si no hay template, no hacemos nada
+                        console.log('Tipo de pregunta no reconocido:', type);
+                        return;
+                }
+                
+                // Si no hay template, no hacemos nada
+                if (!template) {
+                    console.log('No se encontró template para el tipo:', type);
+                    return;
                 }
                 
                 // Reemplazar los placeholders en el template
-                if (template) {
-                    template = template.replace(/{id}/g, questionId);
-                    $optionsContainer.html(template);
-                    
-                    // Configurar eventos específicos según el tipo
-                    switch(type) {
-                        case 'RADIO':
-                        case 'CHECK':
-                        case 'SELECT':
-                            // Inicializar con una opción
-                            $optionsContainer.find('.add-option').trigger('click');
-                            break;
-                        case 'MATRIX':
-                            // Inicializar con un ítem
-                            $optionsContainer.find('.add-item').trigger('click');
-                            break;
-                    }
+                template = template.replace(/{id}/g, questionId);
+                $optionsContainer.html(template);
+                
+                // Configurar eventos específicos según el tipo
+                switch(type) {
+                    case 'RADIO':
+                    case 'CHECK':
+                    case 'SELECT':
+                        // Inicializar con una opción
+                        $optionsContainer.find('.add-option').trigger('click');
+                        break;
+                    case 'MATRIX':
+                        // Inicializar con un ítem
+                        $optionsContainer.find('.add-item').trigger('click');
+                        break;
                 }
             }
 

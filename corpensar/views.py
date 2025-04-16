@@ -128,11 +128,10 @@ def crear_desde_cero(request):
     # Inicializar el formulario fuera del bloque if/else
     form = EncuestaForm()
     regiones = Region.objects.all()
-    print("Regiones disponibles:", [f"{r.id}: {r.nombre}" for r in regiones])
 
     if request.method == 'POST':
         # Imprimir todos los datos del POST para debug
-        print("Datos del POST completo:", request.POST)
+        # #print("Datos del POST completo:", request.POST)
         
         titulo = request.POST.get('titulo')
         slug = request.POST.get('slug')
@@ -144,21 +143,21 @@ def crear_desde_cero(request):
         
         # Procesar region_id con más logs
         region_id = request.POST.get('region')
-        print(f"Region ID recibido del formulario: {region_id}")
-        print(f"Tipo de region_id: {type(region_id)}")
+        # #print(f"Region ID recibido del formulario: {region_id}")
+        # #print(f"Tipo de region_id: {type(region_id)}")
         
         region = None
         try:
             if region_id and region_id.strip():
                 region_id = int(region_id)
                 region = Region.objects.get(id=region_id)
-                print(f"Región encontrada: {region}")
-                print(f"ID de la región: {region.id}")
-                print(f"Nombre de la región: {region.nombre}")
+                #print(f"Región encontrada: {region}")
+                #print(f"ID de la región: {region.id}")
+                #print(f"Nombre de la región: {region.nombre}")
             else:
                 print("No se proporcionó region_id o estaba vacío")
         except (ValueError, Region.DoesNotExist) as e:
-            print(f"Error al procesar region_id: {e}")
+            #print(f"Error al procesar region_id: {e}")
             messages.error(request, f"Error al procesar la región seleccionada: {e}")
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
@@ -169,9 +168,9 @@ def crear_desde_cero(request):
 
         try:
             # Crear la encuesta y guardarla en una variable
-            print("Intentando crear encuesta con los siguientes datos:")
-            print(f"Título: {titulo}")
-            print(f"Región: {region}")
+            #print("Intentando crear encuesta con los siguientes datos:")
+            #print(f"Título: {titulo}")
+            #print(f"Región: {region}")
             
             encuesta = Encuesta.objects.create(
                 titulo=titulo,
@@ -188,17 +187,17 @@ def crear_desde_cero(request):
             )
             
             # Verificar que la encuesta se creó correctamente
-            print(f"Encuesta creada con ID: {encuesta.id}")
-            print(f"Región asignada a la encuesta: {encuesta.region}")
-            print(f"ID de la región en la encuesta: {encuesta.region.id if encuesta.region else None}")
+            #print(f"Encuesta creada con ID: {encuesta.id}")
+            #print(f"Región asignada a la encuesta: {encuesta.region}")
+            #print(f"ID de la región en la encuesta: {encuesta.region.id if encuesta.region else None}")
             
             # Verificar directamente en la base de datos
             encuesta_verificada = Encuesta.objects.get(id=encuesta.id)
-            print(f"Verificación en BD - Región de la encuesta: {encuesta_verificada.region}")
-            print(f"Verificación en BD - ID de la región: {encuesta_verificada.region.id if encuesta_verificada.region else None}")
+            #print(f"Verificación en BD - Región de la encuesta: {encuesta_verificada.region}")
+            #print(f"Verificación en BD - ID de la región: {encuesta_verificada.region.id if encuesta_verificada.region else None}")
             
         except Exception as e:
-            print(f"Error al crear la encuesta: {e}")
+            #print(f"Error al crear la encuesta: {e}")
             messages.error(request, f"Error al crear la encuesta: {e}")
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
@@ -541,14 +540,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Agregar debug info
-        for encuesta in context['encuestas']:
-            print(f"Encuesta ID: {encuesta.id}")
-            print(f"Región de la encuesta: {encuesta.region}")
-            if encuesta.region:
-                print(f"ID de la región: {encuesta.region.id}")
-                print(f"Nombre de la región: {encuesta.region.nombre}")
-            else:
-                print("Esta encuesta no tiene región asignada")
+        
         return context
 
     
@@ -564,14 +556,7 @@ class TodasEncuestasView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Agregar debug info
-        for encuesta in context['encuestas']:
-            print(f"Encuesta ID: {encuesta.id}")
-            print(f"Región de la encuesta: {encuesta.region}")
-            if encuesta.region:
-                print(f"ID de la región: {encuesta.region.id}")
-                print(f"Nombre de la región: {encuesta.region.nombre}")
-            else:
-                print("Esta encuesta no tiene región asignada")
+        
         return context
 
 class ResultadosEncuestaView(DetailView):
@@ -1093,7 +1078,7 @@ def procesar_preguntas_opcion_multiple(request, respuesta):
                         opcion=opcion
                     )
             except (ValueError, OpcionMultiple.DoesNotExist) as e:
-                print(f"Error al procesar opción múltiple: {str(e)}")
+                #print(f"Error al procesar opción múltiple: {str(e)}")
                 continue
 
 def procesar_preguntas_casillas(request, respuesta):
@@ -1175,7 +1160,7 @@ def procesar_preguntas_fecha(request, respuesta):
                     valor=valor
                 )
             except Exception as e:
-                print(f"Error al procesar fecha para pregunta {pregunta.id}: {str(e)}")
+                #print(f"Error al procesar fecha para pregunta {pregunta.id}: {str(e)}")
                 # En caso de error, usar la fecha actual
                 RespuestaFecha.objects.create(
                     respuesta_encuesta=respuesta,
