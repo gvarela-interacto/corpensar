@@ -483,7 +483,7 @@
             </div>
             {% for seccion in secciones_unicas %}
                 <h3 class="section-title">{{ seccion }}</h3>
-                {% for pregunta in preguntas %}
+                {% for pregunta in preguntas|dictsort:"orden" %}
                     {% if pregunta.seccion == seccion %}
                         <div class="question">
                             <div class="question-title">
@@ -714,14 +714,14 @@
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        {% comment %} // Mostrar campo de texto cuando seleccione "Otro"
+        // Mostrar campo de texto cuando seleccione "Otro"
         document.querySelectorAll('input[type="radio"][value="otro"], input[type="checkbox"][value="otro"]').forEach(function(input) {
             input.addEventListener('change', function() {
                 const container = document.getElementById('otro_texto_container_' + this.name.split('_')[1]);
                 if (container) container.style.display = this.checked ? 'block' : 'none';
             });
         });
-         {% endcomment %}
+
         // Validar selecciones mínimas/máximas
         function validarSelecciones(preguntaId) {
             const checks = document.querySelectorAll(`input[name="pregunta_${preguntaId}[]"]:checked`);

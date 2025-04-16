@@ -536,16 +536,191 @@
 <!-- Modal para agregar pregunta -->
 <div class="modal fade" id="modalAgregarPregunta" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Agregar Nueva Pregunta</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Agregar Nueva Pregunta
+                </h5>
+                <button type="button" class="btn-close bg-white" data-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Aquí irá el formulario para agregar pregunta -->
-                <p>Formulario para agregar pregunta (a implementar)</p>
+                <form method="post" action="{% url 'agregar_pregunta' encuesta.id %}" class="form-agregar-pregunta">
+                    {% csrf_token %}
+                    
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Información básica</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label for="texto_nueva" class="form-label fw-bold">Texto de la pregunta</label>
+                                <input type="text" class="form-control rounded-3" id="texto_nueva" 
+                                       name="texto" required>
+                                <div class="form-text">El texto principal de la pregunta que verán los usuarios.</div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="tipo_nueva" class="form-label fw-bold">Tipo de pregunta</label>
+                                <select class="form-select rounded-3" id="tipo_nueva" name="tipo" required>
+                                    <option value="TEXT">Texto corto</option>
+                                    <option value="MTEXT">Texto largo</option>
+                                    <option value="RADIO">Opción múltiple (una respuesta)</option>
+                                    <option value="CHECK">Casillas de verificación (múltiples respuestas)</option>
+                                    <option value="SELECT">Menú desplegable</option>
+                                    <option value="SCALE">Escala numérica</option>
+                                    <option value="MATRIX">Matriz de opciones</option>
+                                    <option value="DATE">Fecha y hora</option>
+                                    <option value="STARS">Calificación con estrellas</option>
+                                </select>
+                                <div class="form-text">Selecciona el tipo de respuesta que deseas recibir.</div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="orden_nueva" class="form-label fw-bold">Orden</label>
+                                        <input type="number" class="form-control rounded-3" id="orden_nueva" 
+                                               name="orden" value="{{ preguntas.count|add:"1" }}" required>
+                                        <div class="form-text">Posición de la pregunta en la encuesta.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3 mt-4">
+                                        <div class="d-flex flex-column">
+                                            <div class="d-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input me-2" id="requerida_nueva" 
+                                                       name="requerida" role="switch">
+                                                <label class="form-check-label fw-bold mb-0" for="requerida_nueva">
+                                                    Pregunta requerida
+                                                </label>
+                                            </div>
+                                            <div class="form-text ms-4 mt-1">
+                                                Si está activa, el usuario deberá responderla obligatoriamente.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="ayuda_nueva" class="form-label fw-bold">Texto de ayuda</label>
+                                <input type="text" class="form-control rounded-3" id="ayuda_nueva" 
+                                       name="ayuda">
+                                <div class="form-text">Texto adicional para explicar mejor la pregunta (opcional).</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección dinámica para opciones -->
+                    <div id="seccion-opciones" class="card border-0 shadow-sm mb-3" style="display: none;">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Opciones de respuesta</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="opciones-container">
+                                <div class="form-group opcion-item mb-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-list-ul text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control rounded-end" name="opciones[]" 
+                                               placeholder="Escribe una opción">
+                                        <button type="button" class="btn btn-outline-danger ms-2 eliminar-opcion rounded-3">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary mt-2 agregar-opcion rounded-3">
+                                <i class="fas fa-plus me-2"></i> Agregar Opción
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sección para configuración de escala -->
+                    <div id="seccion-escala" class="card border-0 shadow-sm mb-3" style="display: none;">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Configuración de escala</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="escala_min" class="form-label fw-bold">Valor mínimo</label>
+                                        <input type="number" class="form-control rounded-3" id="escala_min" 
+                                               name="escala_min" value="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="escala_max" class="form-label fw-bold">Valor máximo</label>
+                                        <input type="number" class="form-control rounded-3" id="escala_max" 
+                                               name="escala_max" value="5">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="escala_paso" class="form-label fw-bold">Paso</label>
+                                <input type="number" class="form-control rounded-3" id="escala_paso" 
+                                       name="escala_paso" value="1">
+                                <div class="form-text">El incremento entre cada valor de la escala.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección para configuración de matriz -->
+                    <div id="seccion-matriz" class="card border-0 shadow-sm mb-3" style="display: none;">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Configuración de matriz</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-bold">Filas (elementos a evaluar)</label>
+                                <div id="filas-container">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-grip-lines text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="filas[]" placeholder="Elemento">
+                                        <button type="button" class="btn btn-outline-danger ms-2 eliminar-fila rounded-3">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2 agregar-fila">
+                                    <i class="fas fa-plus me-2"></i>Agregar Fila
+                                </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label fw-bold">Columnas (opciones de respuesta)</label>
+                                <div id="columnas-container">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-grip-lines-vertical text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control" name="columnas[]" placeholder="Opción">
+                                        <button type="button" class="btn btn-outline-danger ms-2 eliminar-columna rounded-3">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2 agregar-columna">
+                                    <i class="fas fa-plus me-2"></i>Agregar Columna
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-3" data-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary rounded-3">
+                            <i class="fas fa-plus me-2"></i>Agregar Pregunta
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -822,7 +997,7 @@
             if (btnPrevisualizar) {
                 btnPrevisualizar.addEventListener('click', function() {
                     // Abrir una ventana de previsualización
-                    const encuestaId = {{ encuesta.id }};
+                    const encuestaId = '{{ encuesta.id }}';
                     const url = '/encuestas/' + encuestaId + '/preview-diseno/?tema=' + temaSelect.value;
                     window.open(url, '_blank', 'width=800,height=800');
                 });
@@ -864,53 +1039,25 @@
         const cards = document.querySelectorAll('.hover-card');
         cards.forEach(card => {
             card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+                this.classList.add('shadow-lg');
             });
-            
             card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+                this.classList.remove('shadow-lg');
             });
         });
-        
-        // Mejorar la interacción con los tabs
-        const tabLinks = document.querySelectorAll('.nav-tabs .nav-link');
-        tabLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                // Remover la clase active de todos los tabs
-                tabLinks.forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                // Añadir la clase active al tab seleccionado
-                this.classList.add('active');
-                
-                // Mostrar el contenido del tab seleccionado
-                const tabId = this.getAttribute('href').substring(1);
-                document.querySelectorAll('.tab-pane').forEach(pane => {
-                    pane.classList.remove('active');
-                });
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-        
-        // Añadir tooltips a los botones
-        const buttons = document.querySelectorAll('button[data-toggle="tooltip"]');
-        buttons.forEach(button => {
-            new bootstrap.Tooltip(button);
-        });
-        
-        // Añadir confirmación antes de eliminar
-        const deleteButtons = document.querySelectorAll('button[data-target*="modalEliminarPregunta"]');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const preguntaId = this.getAttribute('data-target').match(/\d+/)[0];
-                const preguntaTexto = document.querySelector(`.pregunta-${preguntaId} .card-title`).textContent;
-                document.querySelector(`#modalEliminarPregunta${preguntaId} .pregunta-texto`).textContent = preguntaTexto;
-            });
-        });
+
+        // Inicializar las secciones
+        actualizarSecciones();
     });
+
+    // Manejar el envío del formulario de agregar pregunta
+    const formAgregarPregunta = document.querySelector('.form-agregar-pregunta');
+    if (formAgregarPregunta) {
+        formAgregarPregunta.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Lógica del formulario aquí
+        });
+    }
 </script>
 
 <style>

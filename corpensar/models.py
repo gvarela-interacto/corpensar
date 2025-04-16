@@ -415,9 +415,10 @@ class RespuestaTextoMultiple(RespuestaBase):
         verbose_name_plural = _("Respuestas de texto múltiple")
 
 class RespuestaOpcionMenuDesplegable(RespuestaBase):
-    pregunta = models.ForeignKey(PreguntaMenuDesplegable, related_name="respuestas", on_delete=models.CASCADE)
+    """Respuesta para preguntas de menú desplegable"""
+    pregunta = models.ForeignKey(PreguntaMenuDesplegable, on_delete=models.CASCADE)
     opcion = models.ForeignKey(OpcionMenuDesplegable, on_delete=models.CASCADE)
-    
+
     class Meta:
         verbose_name = _("Respuesta a menú desplegable")
         verbose_name_plural = _("Respuestas a menú desplegable")
