@@ -12,7 +12,8 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import modelform_factory, formset_factory, Form
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, F, Sum
+from django.db.models.functions import TruncDate
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
@@ -33,7 +34,7 @@ from .decorators import *
 import locale
 import re
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.template.defaulttags import register
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
@@ -59,7 +60,8 @@ def custom_logout(request):
 @login_required
 def index_view(request):
     now = timezone.now()
-
+    
+    # Estadísticas básicas
     total_encuestas = Encuesta.objects.count()
     encuestas_activas = Encuesta.objects.filter(
         activa=True,
@@ -72,27 +74,104 @@ def index_view(request):
         num_respuestas=Count('respuestas')
     ).aggregate(avg=Avg('num_respuestas'))['avg'] or 0
 
+    # Alertas
     encuestas_proximo_fin = Encuesta.objects.filter(
         fecha_fin__gte=now,
         fecha_fin__lte=now + timezone.timedelta(days=3)
-    ).count()
-
-    encuestas_poca_participacion = Encuesta.objects.annotate(
+    )
+    
+    encuestas_sin_respuestas = Encuesta.objects.filter(
+        activa=True
+    ).annotate(
         num_respuestas=Count('respuestas')
-    ).filter(num_respuestas__lt=5).count()
+    ).filter(num_respuestas=0).count()
 
-    tipos_preguntas = PreguntaTexto.objects.values('tipo').annotate(
-        total=Count('tipo')
+    # Distribución por región
+    distribucion_region = Encuesta.objects.values(
+        'region__nombre'
+    ).annotate(
+        total=Count('id')
     ).order_by('-total')
+
+    # Tendencia de respuestas últimos 7 días
+    una_semana_atras = now - timedelta(days=7)
+    tendencia_respuestas = RespuestaEncuesta.objects.filter(
+        fecha_respuesta__gte=una_semana_atras
+    ).annotate(
+        fecha=TruncDate('fecha_respuesta')
+    ).values('fecha').annotate(
+        total=Count('id')
+    ).order_by('fecha')
+
+    # Top municipios con más respuestas
+    top_municipios = RespuestaEncuesta.objects.values(
+        'municipio__nombre'
+    ).annotate(
+        total=Count('id')
+    ).order_by('-total')[:5]
+
+    # Tasa de finalización
+    encuestas_stats = Encuesta.objects.annotate(
+        total_preguntas=Count('preguntatexto_relacionadas') + 
+                        Count('preguntaopcionmultiple_relacionadas') + 
+                        Count('preguntacasillasverificacion_relacionadas') + 
+                        Count('preguntamenudesplegable_relacionadas') + 
+                        Count('preguntaestrellas_relacionadas') + 
+                        Count('preguntaescala_relacionadas') + 
+                        Count('preguntamatriz_relacionadas') + 
+                        Count('preguntafecha_relacionadas'),
+        respuestas_completas=Count('respuestas', distinct=True)
+    ).aggregate(
+        tasa_finalizacion=Avg(F('respuestas_completas') * 100.0 / F('total_preguntas'))
+    )
+
+    # Tipos de preguntas
+    tipos_preguntas = []
+    
+    # Contar cada tipo de pregunta
+    texto_count = PreguntaTexto.objects.count()
+    if texto_count > 0:
+        tipos_preguntas.append({'tipo': 'Texto', 'total': texto_count})
+    
+    texto_multiple_count = PreguntaTextoMultiple.objects.count()
+    if texto_multiple_count > 0:
+        tipos_preguntas.append({'tipo': 'Texto Múltiple', 'total': texto_multiple_count})
+    
+    opcion_multiple_count = PreguntaOpcionMultiple.objects.count()
+    if opcion_multiple_count > 0:
+        tipos_preguntas.append({'tipo': 'Opción Múltiple', 'total': opcion_multiple_count})
+    
+    casillas_count = PreguntaCasillasVerificacion.objects.count()
+    if casillas_count > 0:
+        tipos_preguntas.append({'tipo': 'Casillas', 'total': casillas_count})
+    
+    menu_count = PreguntaMenuDesplegable.objects.count()
+    if menu_count > 0:
+        tipos_preguntas.append({'tipo': 'Menú Desplegable', 'total': menu_count})
+    
+    estrellas_count = PreguntaEstrellas.objects.count()
+    if estrellas_count > 0:
+        tipos_preguntas.append({'tipo': 'Estrellas', 'total': estrellas_count})
+    
+    escala_count = PreguntaEscala.objects.count()
+    if escala_count > 0:
+        tipos_preguntas.append({'tipo': 'Escala', 'total': escala_count})
+    
+    matriz_count = PreguntaMatriz.objects.count()
+    if matriz_count > 0:
+        tipos_preguntas.append({'tipo': 'Matriz', 'total': matriz_count})
+    
+    fecha_count = PreguntaFecha.objects.count()
+    if fecha_count > 0:
+        tipos_preguntas.append({'tipo': 'Fecha', 'total': fecha_count})
 
     ultimas_respuestas = RespuestaEncuesta.objects.select_related(
         'encuesta', 'usuario'
     ).order_by('-fecha_respuesta')[:10]
 
-    # Encuestas con detalle por nombre, cantidad de respuestas y promedio
     encuestas_detalle = Encuesta.objects.annotate(
         cantidad_respuestas=Count('respuestas'),
-        promedio_respuestas=Avg('respuestas__id')  # O puedes usar otra métrica más significativa
+        promedio_respuestas=Avg('respuestas__id')
     ).order_by('-fecha_creacion')
 
     context = {
@@ -101,10 +180,14 @@ def index_view(request):
         'total_respuestas': total_respuestas,
         'avg_respuestas': round(avg_respuestas, 1),
         'encuestas_proximo_fin': encuestas_proximo_fin,
-        'encuestas_poca_participacion': encuestas_poca_participacion,
+        'encuestas_sin_respuestas': encuestas_sin_respuestas,
+        'distribucion_region': distribucion_region,
+        'tendencia_respuestas': tendencia_respuestas,
+        'top_municipios': top_municipios,
+        'tasa_finalizacion': round(encuestas_stats['tasa_finalizacion'] or 0, 1),
         'tipos_preguntas': tipos_preguntas,
         'ultimas_respuestas': ultimas_respuestas,
-        'encuestas_detalle': encuestas_detalle, 
+        'encuestas_detalle': encuestas_detalle,
     }
 
     return render(request, 'index.html', context)

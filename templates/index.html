@@ -75,142 +75,196 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+  /* Nuevos estilos para las tarjetas de KPI */
+  .kpi-card {
+    border-radius: 10px;
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-5px);
+  }
+  .chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1rem;
+  }
 </style>
 
 <div class="container-fluid py-4">
   
-  <!-- Tarjetas de resumen -->
+  <!-- KPIs Principales -->
   <div class="row mb-4">
     <div class="col-md-3 col-sm-6 mb-3">
-      <div class="card h-100 border-0">
+      <div class="card kpi-card h-100 border-0 shadow-sm">
         <div class="position-absolute w-100" style="height: 6px; background-color: #0d6efd; top: 0; left: 0;"></div>
-        <div class="card-body bg-light">
-          <h5 class="card-title">Total Encuestas</h5>
+        <div class="card-body">
+          <h5 class="card-title text-muted">Total Encuestas</h5>
           <h2 class="display-4">{{ total_encuestas }}</h2>
+          <p class="text-success mb-0">
+            <i class="mdi mdi-arrow-up"></i>
+            {{ encuestas_activas }} activas
+          </p>
         </div>
       </div>
     </div>
     
     <div class="col-md-3 col-sm-6 mb-3">
-      <div class="card h-100 border-0">
+      <div class="card kpi-card h-100 border-0 shadow-sm">
         <div class="position-absolute w-100" style="height: 6px; background-color: #198754; top: 0; left: 0;"></div>
-        <div class="card-body bg-light">
-          <h5 class="card-title">Encuestas Activas</h5>
-          <h2 class="display-4">{{ encuestas_activas }}</h2>
+        <div class="card-body">
+          <h5 class="card-title text-muted">Total Respuestas</h5>
+          <h2 class="display-4">{{ total_respuestas|intcomma }}</h2>
+          <p class="text-success mb-0">
+            <i class="mdi mdi-chart-line"></i>
+            {{ avg_respuestas }} promedio
+          </p>
         </div>
       </div>
     </div>
     
     <div class="col-md-3 col-sm-6 mb-3">
-      <div class="card h-100 border-0">
+      <div class="card kpi-card h-100 border-0 shadow-sm">
         <div class="position-absolute w-100" style="height: 6px; background-color: #ffc107; top: 0; left: 0;"></div>
-        <div class="card-body bg-light">
-          <h5 class="card-title">Respuestas Totales</h5>
-          <h2 class="display-4">{{ total_respuestas|intcomma }}</h2>
+        <div class="card-body">
+          <h5 class="card-title text-muted">Tasa de Finalización</h5>
+          <h2 class="display-4">{{ tasa_finalizacion }}%</h2>
+          <p class="text-warning mb-0">
+            <i class="mdi mdi-flag-checkered"></i>
+            promedio general
+          </p>
         </div>
       </div>
     </div>
     
-    <div class="col-md-3 col-sm-6 mb-2">
-      <div class="card h-100 border-0">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="card kpi-card h-100 border-0 shadow-sm">
         <div class="position-absolute w-100" style="height: 6px; background-color: #dc3545; top: 0; left: 0;"></div>
-        <div class="card-body bg-light">
-          <h5 class="card-title">Promedio Resp.</h5>
-          <h2 class="display-4">{{ avg_respuestas }}</h2>
+        <div class="card-body">
+          <h5 class="card-title text-muted">Encuestas Sin Respuestas</h5>
+          <h2 class="display-4">{{ encuestas_sin_respuestas }}</h2>
+          <p class="text-danger mb-0">
+            <i class="mdi mdi-alert"></i>
+            necesitan atención
+          </p>
         </div>
       </div>
     </div>
   </div>
 
-
-  <div class="col-md-12 mb-4">
-    <div class="card h-100">
-      <div class="card-header">
-        <h5 class="card-title">Alertas de Inventario</h5>
+  <!-- Alertas -->
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3">
+      <div class="alert alert-warning alert-clickable">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>{{ encuestas_proximo_fin.count }}</strong> encuestas por finalizar en 3 días
       </div>
-      <div class="card-body">
-        <div class="row">
-          <!-- Primera fila -->
-          <div class="col-md-6 mb-3">
-            <div class="alert alert-warning alert-clickable" data-target="reorden-products">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              <strong>{{ encuestas_proximo_fin }}</strong> Encuestas por finalizar en 3 días
-            </div>
-            
-            <div id="reorden-products" class="product-list-container" style="display: none;">
-              <ul class="list-group">
-                {% for respuesta in ultimas_respuestas %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{% url 'responder_encuesta' respuesta.encuesta.slug %}" class="text-decoration-none text-dark flex-grow-1">
-                      {{ respuesta.encuesta.titulo|truncatechars:30 }}
-                    </a>
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar_encuesta' respuesta.encuesta.id %}" title="Editar">
-                      <i class="mdi mdi-pencil-outline"></i>
-                    </a>
-                  </li>
-                {% empty %}
-                  <li class="list-group-item text-muted">No hay tiquetera en esta categoría</li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-    
-          <div class="col-md-6 mb-3">
-            <div class="alert alert-clickable" style="background-color: #fd7373e9; color: #920101;" data-target="no-image-products">
-              <i class="bi bi-image me-2"></i>
-              <strong>{{ encuestas_poca_participacion }}</strong> Encuestas con menos de 5 respuestas
-            </div>
-            <div id="no-image-products" class="product-list-container" style="display: none;">
-              <ul class="list-group">
-                {% for producto in tiquetera_sin_imagen %}
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{% url 'tiquetera-detalle' producto.id_producto %}" class="text-decoration-none text-dark flex-grow-1">
-                      {{ producto.nombre }}
-                    </a>
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'editar-producto' producto.id_producto %}" title="Editar">
-                      <i class="mdi mdi-pencil-outline"></i>
-                    </a>
-                  </li>
-                {% empty %}
-                  <li class="list-group-item text-muted">No hay tiquetera en esta categoría</li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-        </div>
+      
+      <div id="reorden-products" class="product-list-container" style="display: none;">
+        <ul class="list-group">
+          {% for encuesta in encuestas_proximo_fin %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span class="text-truncate">{{ encuesta.titulo }}</span>
+              <span class="badge bg-warning">{{ encuesta.fecha_fin|date:"d M" }}</span>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">No hay encuestas próximas a finalizar</li>
+          {% endfor %}
+        </ul>
       </div>
     </div>
+  </div>
 
-<!-- Contenedor principal -->
-<div class="container">
-  <!-- Fila para los gráficos y/o tablas -->
+  <!-- Gráficas y Estadísticas -->
   <div class="row mb-4">
-    <!-- Columna para el gráfico: ocupa 12 columnas en pantallas pequeñas y 6 en pantallas grandes -->
-    <div class="col-12 col-lg-6 mb-4">
-      <div class="card">
+    <!-- Distribución de Tipos de Preguntas -->
+    <div class="col-12 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
         <div class="card-header">
-          <h5 class="mb-0">Distribución de Tipos de Preguntas</h5>
+          <h5 class="mb-0">Tipos de Preguntas</h5>
         </div>
         <div class="card-body">
-          <!-- Chart Container con altura relativa (ajústala según necesidad) -->
-          <div class="chart-container" style="position: relative; height:40vh; width:100%;">
+          <div class="chart-container">
             <canvas id="tipoPreguntasChart"></canvas>
           </div>
         </div>
       </div>
     </div>
     
+    <!-- Tendencia de Respuestas -->
+    <div class="col-12 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Tendencia de Respuestas</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="tendenciaRespuestasChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Distribución por Región -->
+    <div class="col-12 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Distribución por Región</h5>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="distribucionRegionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Municipios y Últimas Respuestas -->
+  <div class="row">
+    <!-- Top Municipios -->
+    <div class="col-lg-6 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Top Municipios</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Municipio</th>
+                  <th class="text-end">Total Encuestas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for municipio in top_municipios %}
+                <tr>
+                  <td>{{ municipio.municipio__nombre|default:"Sin municipio" }}</td>
+                  <td class="text-end">{{ municipio.total }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="2" class="text-center">No hay datos disponibles</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
     
     <!-- Últimas Respuestas -->
     <div class="col-lg-6 mb-4">
-      <div class="card h-100">
+      <div class="card h-100 shadow-sm">
         <div class="card-header">
-          <h5 class="card-title">Últimas Respuestas</h5>
+          <h5 class="mb-0">Últimas Respuestas</h5>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
-              <thead class="bg-light">
+              <thead>
                 <tr>
                   <th>Encuesta</th>
                   <th>Usuario</th>
@@ -248,65 +302,16 @@
       </div>
     </div>
   </div>
-
-  <!-- Detalle de Encuestas -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title">Resumen por Encuesta</h5>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Encuesta</th>
-                  <th>Estado</th>
-                  <th>Respuestas</th>
-                  <th>Promedio</th>
-                  <th>Fecha Fin</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for encuesta in encuestas_detalle %}
-                <tr>
-                  <td>{{ encuesta.titulo }}</td>
-                  <td>
-                    {% if encuesta.activa %}
-                      <span class="badge bg-success">Activa</span>
-                    {% else %}
-                      <span class="badge bg-secondary">Inactiva</span>
-                    {% endif %}
-                  </td>
-                  <td>{{ encuesta.cantidad_respuestas }}</td>
-                  <td>{{ encuesta.promedio_respuestas|default:0|floatformat:1 }}</td>
-                  <td>{{ encuesta.fecha_fin|date:"d M Y" }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="5" class="text-center py-4 text-muted">
-                    No hay encuestas disponibles
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Datos para el gráfico
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Tipos de Preguntas
     const tipoPreguntasData = {
       labels: [
         {% for tipo in tipos_preguntas %}
-          "{{ tipo.get_tipo_display }}"{% if not forloop.last %},{% endif %}
+          "{{ tipo.tipo }}"{% if not forloop.last %},{% endif %}
         {% endfor %}
       ],
       datasets: [{
@@ -317,15 +322,13 @@
         ],
         backgroundColor: [
           '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
-          '#e74a3b', '#858796', '#5a5c69'
+          '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997'
         ],
         hoverOffset: 10
       }]
     };
 
-    // Configuración del gráfico
-    const ctx = document.getElementById('tipoPreguntasChart').getContext('2d');
-    new Chart(ctx, {
+    new Chart(document.getElementById('tipoPreguntasChart').getContext('2d'), {
       type: 'doughnut',
       data: tipoPreguntasData,
       options: {
@@ -333,14 +336,94 @@
         plugins: {
           legend: {
             position: 'right',
-            labels: {
-              boxWidth: 15,
-              padding: 20
-            }
+            labels: { boxWidth: 15, padding: 20 }
           }
         }
       }
     });
-  });
+
+    // Gráfico de Tendencia de Respuestas
+    const tendenciaData = {
+      labels: [
+        {% for item in tendencia_respuestas %}
+          "{{ item.fecha|date:'d M' }}"{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ],
+      datasets: [{
+        label: 'Respuestas',
+        data: [
+          {% for item in tendencia_respuestas %}
+            {{ item.total }}{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ],
+        borderColor: '#4e73df',
+        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    };
+
+    new Chart(document.getElementById('tendenciaRespuestasChart').getContext('2d'), {
+      type: 'line',
+      data: tendenciaData,
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 }
+          }
+        }
+      }
+    });
+
+    // Gráfico de Distribución por Región
+    const regionData = {
+      labels: [
+        {% for region in distribucion_region %}
+          "{{ region.region__nombre|default:'Sin región' }}"{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ],
+      datasets: [{
+        data: [
+          {% for region in distribucion_region %}
+            {{ region.total }}{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ],
+        backgroundColor: [
+          '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+          '#e74a3b', '#858796', '#5a5c69'
+        ]
+      }]
+    };
+
+    new Chart(document.getElementById('distribucionRegionChart').getContext('2d'), {
+      type: 'pie',
+      data: regionData,
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { boxWidth: 15, padding: 20 }
+          }
+        }
+      }
+    });
+
+    // Funcionalidad para mostrar/ocultar las listas de alertas
+    document.querySelectorAll('.alert-clickable').forEach(alert => {
+      alert.addEventListener('click', function() {
+        const targetId = this.dataset.target;
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          targetElement.style.display = targetElement.style.display === 'none' ? 'block' : 'none';
+        }
+      });
+    });
+});
 </script>
 {% endblock %} 
