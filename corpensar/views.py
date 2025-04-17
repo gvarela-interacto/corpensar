@@ -86,6 +86,11 @@ def index_view(request):
         num_respuestas=Count('respuestas')
     ).filter(num_respuestas=0).count()
 
+    # Distribución por categoría
+    distribucion_categoria = Encuesta.objects.values('categoria__nombre').annotate(
+        total=Count('id')
+    ).order_by('-total')
+
     # Distribución por región
     distribucion_region = Encuesta.objects.values(
         'region__nombre'
@@ -188,6 +193,7 @@ def index_view(request):
         'tipos_preguntas': tipos_preguntas,
         'ultimas_respuestas': ultimas_respuestas,
         'encuestas_detalle': encuestas_detalle,
+        'distribucion_categoria': distribucion_categoria,
     }
 
     return render(request, 'index.html', context)
