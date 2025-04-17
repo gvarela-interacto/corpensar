@@ -58,7 +58,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'corpensar',       
-        'USER': 'root',
+        'USER': 'remote',
         'PASSWORD': 'M@j0309!Mysql',
         'HOST': '72.14.187.231',
         'PORT': '3306',
