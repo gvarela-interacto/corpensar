@@ -24,6 +24,7 @@ urlpatterns = [
   path('regiones-y-municipios/', views.regiones_y_municipios, name='regiones_y_municipios'),
   path('region/crear/', views.crear_region, name='crear_region'),
   path('municipio/crear/', views.crear_municipio, name='crear_municipio'),
+  path('categoria/crear/', views.crear_categoria, name='crear_categoria'), # Crear Categoria
   path('api/municipios/', views.municipios_por_region, name='municipios_por_region'),
   path('encuestas/<int:encuesta_id>/diseno/', views.actualizar_diseno, name='actualizar_diseno'),
   path('encuestas/<int:encuesta_id>/preview-diseno/', views.preview_diseno, name='preview_diseno'),

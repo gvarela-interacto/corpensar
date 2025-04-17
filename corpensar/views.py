@@ -1307,6 +1307,18 @@ def crear_municipio(request):
 
     return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})
 
+
+@login_required
+def crear_categoria(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        if nombre:
+            Categoria.objects.get_or_create(nombre=nombre)
+            messages.success(request, f"Categoría '{nombre}' creada correctamente.")
+            return redirect('crear_categoria')
+        
+    return render(request, "Encuesta/crear_categoria.html")
+
 @login_required
 def eliminar_encuesta(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
