@@ -29,7 +29,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaEncuesta, RespuestaTexto, RespuestaTextoMultiple,
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
-                    RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta)
+                    RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria)
 from .decorators import *
 import locale
 import re
@@ -85,6 +85,11 @@ def index_view(request):
     ).annotate(
         num_respuestas=Count('respuestas')
     ).filter(num_respuestas=0).count()
+
+    # Distribución por categoría
+    distribucion_categoria = Encuesta.objects.values('categoria__nombre').annotate(
+        total=Count('id')
+    ).order_by('-total')
 
     # Distribución por región
     distribucion_region = Encuesta.objects.values(
@@ -188,6 +193,7 @@ def index_view(request):
         'tipos_preguntas': tipos_preguntas,
         'ultimas_respuestas': ultimas_respuestas,
         'encuestas_detalle': encuestas_detalle,
+        'distribucion_categoria': distribucion_categoria,
     }
 
     return render(request, 'index.html', context)
@@ -211,6 +217,7 @@ def crear_desde_cero(request):
     # Inicializar el formulario fuera del bloque if/else
     form = EncuestaForm()
     regiones = Region.objects.all()
+    categorias = Categoria.objects.all()
 
     if request.method == 'POST':
         # Imprimir todos los datos del POST para debug
@@ -226,35 +233,33 @@ def crear_desde_cero(request):
         
         # Procesar region_id con más logs
         region_id = request.POST.get('region')
-        # #print(f"Region ID recibido del formulario: {region_id}")
-        # #print(f"Tipo de region_id: {type(region_id)}")
+        categoria_id = request.POST.get('categoria')
         
         region = None
+        categoria = None
         try:
             if region_id and region_id.strip():
                 region_id = int(region_id)
                 region = Region.objects.get(id=region_id)
-                #print(f"Región encontrada: {region}")
-                #print(f"ID de la región: {region.id}")
-                #print(f"Nombre de la región: {region.nombre}")
             else:
                 print("No se proporcionó region_id o estaba vacío")
-        except (ValueError, Region.DoesNotExist) as e:
-            #print(f"Error al procesar region_id: {e}")
-            messages.error(request, f"Error al procesar la región seleccionada: {e}")
+
+            if categoria_id and categoria_id.strip():
+                categoria_id = int(categoria_id)
+                categoria = Categoria.objects.get(id=categoria_id)
+            
+        except (ValueError, Region.DoesNotExist, Categoria.DoesNotExist) as e:
+            messages.error(request, f"Error al procesar la región o categoría seleccionada: {e}")
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
-                'regiones': regiones
+                'regiones': regiones,
+                'categorias': categorias
             })
         
         tema = request.POST.get('tema', 'default')
 
         try:
             # Crear la encuesta y guardarla en una variable
-            #print("Intentando crear encuesta con los siguientes datos:")
-            #print(f"Título: {titulo}")
-            #print(f"Región: {region}")
-            
             encuesta = Encuesta.objects.create(
                 titulo=titulo,
                 slug=slug,
@@ -265,26 +270,17 @@ def crear_desde_cero(request):
                 es_publica=es_publica,
                 creador=request.user,
                 region=region,
+                categoria=categoria,
                 municipio=None,
                 tema=tema
             )
             
-            # Verificar que la encuesta se creó correctamente
-            #print(f"Encuesta creada con ID: {encuesta.id}")
-            #print(f"Región asignada a la encuesta: {encuesta.region}")
-            #print(f"ID de la región en la encuesta: {encuesta.region.id if encuesta.region else None}")
-            
-            # Verificar directamente en la base de datos
-            encuesta_verificada = Encuesta.objects.get(id=encuesta.id)
-            #print(f"Verificación en BD - Región de la encuesta: {encuesta_verificada.region}")
-            #print(f"Verificación en BD - ID de la región: {encuesta_verificada.region.id if encuesta_verificada.region else None}")
-            
         except Exception as e:
-            #print(f"Error al crear la encuesta: {e}")
             messages.error(request, f"Error al crear la encuesta: {e}")
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
-                'regiones': regiones
+                'regiones': regiones,
+                'categorias': categorias
             })
         
         # Obtener preguntas del formulario
@@ -523,7 +519,8 @@ def crear_desde_cero(request):
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
         'form': form,
-        'regiones': regiones
+        'regiones': regiones,
+        'categorias': categorias
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
@@ -1306,6 +1303,40 @@ def crear_municipio(request):
             messages.error(request, "Todos los campos son obligatorios.")
 
     return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})
+
+
+
+@login_required
+def crear_categoria(request):
+    categorias = Categoria.objects.all()
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        if nombre:
+            Categoria.objects.get_or_create(nombre=nombre)
+            messages.success(request, f"Categoría '{nombre}' creada correctamente.")
+            return redirect('crear_categoria')
+        
+    return render(request, "Encuesta/crear_categoria.html", {"categorias": categorias})
+
+@login_required
+def eliminar_categoria(request, categoria_id):
+    """Vista para eliminar una categoría"""
+    try:
+        categoria = Categoria.objects.get(id=categoria_id)
+        nombre = categoria.nombre
+        
+        # Verificar si hay encuestas asociadas a esta categoría
+        encuestas_asociadas = Encuesta.objects.filter(categoria=categoria).count()
+        
+        if encuestas_asociadas > 0:
+            messages.error(request, f"No se puede eliminar la categoría '{nombre}' porque está siendo utilizada en {encuestas_asociadas} encuesta(s).")
+        else:
+            categoria.delete()
+            messages.success(request, f"Categoría '{nombre}' eliminada correctamente.")
+    except Categoria.DoesNotExist:
+        messages.error(request, "La categoría no existe.")
+    
+    return redirect('crear_categoria')
 
 @login_required
 def eliminar_encuesta(request, encuesta_id):

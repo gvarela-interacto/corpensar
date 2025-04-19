@@ -6,6 +6,18 @@ from django import forms
 from smart_selects.db_fields import ChainedForeignKey
 
 User = get_user_model()
+
+# Se aplica para categorizar si un formulario es una encuesta, entrevista, etc.
+class Categoria(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = "Categoría"
+        verbose_name_plural = "Categorías"
+
+    def __str__(self):
+        return self.nombre
+
 class Region(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
 
@@ -84,6 +96,7 @@ class Encuesta(models.Model):
     es_publica = models.BooleanField(default=False, verbose_name=_("Es pública"))
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
     tema = models.CharField(max_length=20, choices=TEMAS, default='default', verbose_name=_("Tema"))
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Categoría")
 
     municipio = models.ForeignKey(
         Municipio, 

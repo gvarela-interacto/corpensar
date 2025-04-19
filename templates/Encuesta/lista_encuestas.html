@@ -15,6 +15,7 @@
                     <th>Título</th>
                     <th>Estado</th>
                     <th>Región</th>
+                    <th>Categoría</th>
                     <th>Fecha Creación</th>
                     <th>Url</th>
                     <th>Acciones</th>
@@ -30,6 +31,7 @@
                         </span>
                     </td>
                     <td>{{ encuesta.region.nombre|default:"Sin región" }}</td>
+                    <td>{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
                     <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
                     <td class="text-wrap">{{ encuesta.slug }}</td>
                     <td class="text-wrap">
