@@ -203,7 +203,7 @@ def index_view(request):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import *
 from .forms import *
 
@@ -612,15 +612,17 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
+        now = timezone.now()
         # Usar select_related para cargar la región en la misma consulta
         return Encuesta.objects.select_related('region').filter(
-            creador=self.request.user
+            creador=self.request.user,
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
         ).order_by('-fecha_creacion')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Agregar debug info
-        
         return context
 
     
@@ -631,12 +633,15 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Encuesta.objects.select_related('region', 'creador').order_by('-fecha_creacion')
+        now = timezone.now()
+        return Encuesta.objects.select_related('region', 'creador').filter(
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
+        ).order_by('-fecha_creacion')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Agregar debug info
-        
         return context
 
 class ResultadosEncuestaView(DetailView):
@@ -1727,41 +1732,84 @@ def agregar_pregunta(request, encuesta_id):
         }, status=400)
 
 @login_required
+def eliminar_region(request, region_id):
+    try:
+        region = Region.objects.get(id=region_id)
+        nombre_region = region.nombre
+        # Verificar si hay municipios asociados
+        municipios = Municipio.objects.filter(region=region)
+        if municipios.exists():
+            messages.error(request, f'No se puede eliminar la región {nombre_region} porque tiene municipios asociados. Elimine primero los municipios.')
+            return redirect('regiones_y_municipios')
+        
+        region.delete()
+        messages.success(request, f'La región {nombre_region} ha sido eliminada exitosamente.')
+    except Region.DoesNotExist:
+        messages.error(request, 'La región no existe.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar la región: {str(e)}')
+    return redirect('regiones_y_municipios')
+
+@login_required
+def eliminar_municipio(request, municipio_id):
+    try:
+        municipio = Municipio.objects.get(id=municipio_id)
+        nombre_municipio = municipio.nombre
+        municipio.delete()
+        messages.success(request, f'El municipio {nombre_municipio} ha sido eliminado exitosamente.')
+    except Municipio.DoesNotExist:
+        messages.error(request, 'El municipio no existe.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar el municipio: {str(e)}')
+    return redirect('regiones_y_municipios')
+
+@login_required
 def estadisticas_municipios(request):
     """
     Vista que retorna estadísticas de encuestas por municipio
     """
-    # Obtener estadísticas por municipio
+    now = timezone.now()
+    
+    # Obtener todos los municipios con sus regiones
+    municipios = Municipio.objects.select_related('region').all()
+    
+    # Preparar diccionario de estadísticas
     estadisticas = {}
     
-    # Obtener todos los municipios
-    municipios = Municipio.objects.all()
-    
     for municipio in municipios:
-        # Obtener encuestas por municipio
-        total_encuestas = Encuesta.objects.filter(municipio=municipio).count()
+        # Obtener encuestas activas para este municipio
+        encuestas_municipio = Encuesta.objects.filter(
+            municipio=municipio,
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
+        )
+        total_encuestas = encuestas_municipio.count()
         
-        # Obtener respuestas por municipio
-        total_respuestas = RespuestaEncuesta.objects.filter(encuesta__municipio=municipio).count()
+        # Obtener respuestas para este municipio
+        respuestas_municipio = RespuestaEncuesta.objects.filter(
+            municipio=municipio,
+            encuesta__in=encuestas_municipio
+        )
+        total_respuestas = respuestas_municipio.count()
+        
+        # Obtener encuestas únicas que tienen respuestas
+        encuestas_respondidas = respuestas_municipio.values('encuesta').distinct().count()
         
         # Calcular tasa de finalización
         tasa_finalizacion = 0
         if total_encuestas > 0:
-            encuestas_con_respuestas = Encuesta.objects.filter(
-                municipio=municipio,
-                respuesta__isnull=False
-            ).distinct().count()
-            tasa_finalizacion = round((encuestas_con_respuestas / total_encuestas) * 100, 2)
+            tasa_finalizacion = round((encuestas_respondidas / total_encuestas) * 100, 2)
         
-        estadisticas[municipio.id] = {
+        # Guardar estadísticas
+        estadisticas[str(municipio.id)] = {
             'id': municipio.id,
             'nombre': municipio.nombre,
+            'region': municipio.region.nombre if municipio.region else 'No asignada',
             'totalEncuestas': total_encuestas,
             'totalRespuestas': total_respuestas,
-            'tasaFinalizacion': tasa_finalizacion,
-            'region': municipio.region.nombre if municipio.region else 'Sin región'
+            'encuestasRespondidas': encuestas_respondidas,
+            'tasaFinalizacion': tasa_finalizacion
         }
     
-    return JsonResponse({
-        'estadisticas': estadisticas
-    })
+    return JsonResponse(estadisticas)

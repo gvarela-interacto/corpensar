@@ -6,11 +6,179 @@
       "properties": {
         "id": "05001",
         "nombre": "Medellín",
-        "region": "Antioquia"
+        "region": "Andina"
       },
       "geometry": {
         "type": "Point",
         "coordinates": [-75.5736, 6.2442]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "11001",
+        "nombre": "Bogotá D.C.",
+        "region": "Andina"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-74.0721, 4.7110]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "76001",
+        "nombre": "Cali",
+        "region": "Andina"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-76.5225, 3.4516]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "08001",
+        "nombre": "Barranquilla",
+        "region": "Caribe"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-74.7813, 10.9685]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "13001",
+        "nombre": "Cartagena",
+        "region": "Caribe"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.5144, 10.3910]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "68001",
+        "nombre": "Bucaramanga",
+        "region": "Andina"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-73.1198, 7.1254]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "50001",
+        "nombre": "Villavicencio",
+        "region": "Orinoquía"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-73.6345, 4.1420]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "27001",
+        "nombre": "Quibdó",
+        "region": "Pacífica"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-76.6582, 5.6956]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "19001",
+        "nombre": "Popayán",
+        "region": "Andina"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-76.6132, 2.4448]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "47001",
+        "nombre": "Santa Marta",
+        "region": "Caribe"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-74.2110, 11.2404]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "91001",
+        "nombre": "Leticia",
+        "region": "Amazonía"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-69.9406, -4.2153]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "66001",
+        "nombre": "Pereira",
+        "region": "Andina"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.6962, 4.8133]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "23001",
+        "nombre": "Montería",
+        "region": "Caribe"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.8814, 8.7575]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "52001",
+        "nombre": "Pasto",
+        "region": "Andina"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-77.2811, 1.2136]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "44001",
+        "nombre": "Riohacha",
+        "region": "Caribe"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-72.9065, 11.5444]
       }
     }
   ]
