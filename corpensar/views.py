@@ -1725,3 +1725,50 @@ def agregar_pregunta(request, encuesta_id):
         return JsonResponse({
             'error': str(e)
         }, status=400)
+
+@login_required
+def estadisticas_municipios(request):
+    """
+    Vista que devuelve estadísticas por municipio en formato JSON para el mapa interactivo.
+    """
+    # Obtenemos todas las encuestas y respuestas asociadas a municipios
+    encuestas_por_municipio = Encuesta.objects.filter(municipio__isnull=False).values('municipio').annotate(
+        total_encuestas=Count('id')
+    )
+    
+    respuestas_por_municipio = RespuestaEncuesta.objects.filter(municipio__isnull=False).values('municipio').annotate(
+        total_respuestas=Count('id')
+    )
+    
+    # Calculamos la tasa de finalización por municipio
+    municipios_con_encuestas = {item['municipio']: item['total_encuestas'] for item in encuestas_por_municipio}
+    municipios_con_respuestas = {item['municipio']: item['total_respuestas'] for item in respuestas_por_municipio}
+    
+    # Obtenemos todos los municipios
+    todos_municipios = Municipio.objects.all().select_related('region')
+    
+    # Creamos el diccionario de estadísticas
+    estadisticas = {}
+    for municipio in todos_municipios:
+        total_encuestas = municipios_con_encuestas.get(municipio.id, 0)
+        total_respuestas = municipios_con_respuestas.get(municipio.id, 0)
+        
+        # Calculamos la tasa de finalización (porcentaje de encuestas con respuestas)
+        tasa_finalizacion = 0
+        if total_encuestas > 0:
+            tasa_finalizacion = round((total_respuestas / total_encuestas) * 100, 2)
+        
+        # Incluimos el municipio en las estadísticas
+        estadisticas[municipio.id] = {
+            'id': municipio.id,
+            'nombre': municipio.nombre,
+            'region': {
+                'id': municipio.region.id,
+                'nombre': municipio.region.nombre
+            } if municipio.region else None,
+            'totalEncuestas': total_encuestas,
+            'totalRespuestas': total_respuestas,
+            'tasaFinalizacion': tasa_finalizacion
+        }
+    
+    return JsonResponse({'estadisticas': estadisticas})
