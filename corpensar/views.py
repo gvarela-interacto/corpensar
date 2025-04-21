@@ -12,8 +12,8 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import modelform_factory, formset_factory, Form
-from django.db.models import Count, Avg, F, Sum
-from django.db.models.functions import TruncDate
+from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField
+from django.db.models.functions import TruncDate, Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
@@ -1729,46 +1729,39 @@ def agregar_pregunta(request, encuesta_id):
 @login_required
 def estadisticas_municipios(request):
     """
-    Vista que devuelve estadísticas por municipio en formato JSON para el mapa interactivo.
+    Vista que retorna estadísticas de encuestas por municipio
     """
-    # Obtenemos todas las encuestas y respuestas asociadas a municipios
-    encuestas_por_municipio = Encuesta.objects.filter(municipio__isnull=False).values('municipio').annotate(
-        total_encuestas=Count('id')
-    )
-    
-    respuestas_por_municipio = RespuestaEncuesta.objects.filter(municipio__isnull=False).values('municipio').annotate(
-        total_respuestas=Count('id')
-    )
-    
-    # Calculamos la tasa de finalización por municipio
-    municipios_con_encuestas = {item['municipio']: item['total_encuestas'] for item in encuestas_por_municipio}
-    municipios_con_respuestas = {item['municipio']: item['total_respuestas'] for item in respuestas_por_municipio}
-    
-    # Obtenemos todos los municipios
-    todos_municipios = Municipio.objects.all().select_related('region')
-    
-    # Creamos el diccionario de estadísticas
+    # Obtener estadísticas por municipio
     estadisticas = {}
-    for municipio in todos_municipios:
-        total_encuestas = municipios_con_encuestas.get(municipio.id, 0)
-        total_respuestas = municipios_con_respuestas.get(municipio.id, 0)
+    
+    # Obtener todos los municipios
+    municipios = Municipio.objects.all()
+    
+    for municipio in municipios:
+        # Obtener encuestas por municipio
+        total_encuestas = Encuesta.objects.filter(municipio=municipio).count()
         
-        # Calculamos la tasa de finalización (porcentaje de encuestas con respuestas)
+        # Obtener respuestas por municipio
+        total_respuestas = RespuestaEncuesta.objects.filter(encuesta__municipio=municipio).count()
+        
+        # Calcular tasa de finalización
         tasa_finalizacion = 0
         if total_encuestas > 0:
-            tasa_finalizacion = round((total_respuestas / total_encuestas) * 100, 2)
+            encuestas_con_respuestas = Encuesta.objects.filter(
+                municipio=municipio,
+                respuesta__isnull=False
+            ).distinct().count()
+            tasa_finalizacion = round((encuestas_con_respuestas / total_encuestas) * 100, 2)
         
-        # Incluimos el municipio en las estadísticas
         estadisticas[municipio.id] = {
             'id': municipio.id,
             'nombre': municipio.nombre,
-            'region': {
-                'id': municipio.region.id,
-                'nombre': municipio.region.nombre
-            } if municipio.region else None,
             'totalEncuestas': total_encuestas,
             'totalRespuestas': total_respuestas,
-            'tasaFinalizacion': tasa_finalizacion
+            'tasaFinalizacion': tasa_finalizacion,
+            'region': municipio.region.nombre if municipio.region else 'Sin región'
         }
     
-    return JsonResponse({'estadisticas': estadisticas})
+    return JsonResponse({
+        'estadisticas': estadisticas
+    })

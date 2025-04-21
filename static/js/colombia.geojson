@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "05001",
+        "nombre": "Medellín",
+        "region": "Antioquia"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-75.5736, 6.2442]
+      }
+    }
+  ]
+} 

@@ -454,8 +454,9 @@
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button type="button" class="btn btn-outline-primary" id="btnTotalEncuestas">Total Encuestas</button>
+                      <button type="button" class="btn btn-outline-success" id="btnTotalRespuestas">Total Respuestas</button>
+                      <button type="button" class="btn btn-outline-warning" id="btnTasaFinalizacion">Tasa de Finalización</button>
                     </div>
                   </div>
                 </div>
@@ -947,140 +948,79 @@ document.addEventListener('DOMContentLoaded', function() {
         let tipoEstadisticaActual = 'totalEncuestas';
         
         // Cargar GeoJSON de Colombia con municipios
-        fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json')
+        fetch('/static/js/colombia.geojson')
             .then(response => response.json())
             .then(data => {
-                // Cargar datos de estadísticas del servidor (simulado por ahora)
-                cargarDatosEstadisticas();
-                
-                // Crear capa de municipios
-                municipiosLayer = L.geoJSON(data, {
-                    style: feature => estilizarMunicipio(feature),
-                    onEachFeature: (feature, layer) => {
-                        layer.on({
-                            mouseover: resaltarMunicipio,
-                            mouseout: resetearResaltado,
-                            click: mostrarInfoMunicipio
-                        });
-                    }
-                }).addTo(map);
+                // Cargar datos de estadísticas del servidor
+                fetch('/api/estadisticas-municipios/')
+                    .then(response => response.json())
+                    .then(estadisticas => {
+                        // Procesar datos de estadísticas
+                        datosEstadisticas = estadisticas;
+                        
+                        // Crear capa de municipios
+                        municipiosLayer = L.geoJSON(data, {
+                            pointToLayer: function(feature, latlng) {
+                                return L.circleMarker(latlng, {
+                                    radius: 8,
+                                    fillColor: getColorForValue(datosEstadisticas[feature.properties.id]?.totalEncuestas || 0),
+                                    color: '#fff',
+                                    weight: 1,
+                                    opacity: 1,
+                                    fillOpacity: 0.8
+                                });
+                            },
+                            onEachFeature: (feature, layer) => {
+                                const datos = datosEstadisticas[feature.properties.id] || {
+                                    totalEncuestas: 0,
+                                    totalRespuestas: 0,
+                                    tasaFinalizacion: 0
+                                };
+                                
+                                layer.bindPopup(`
+                                    <b>${feature.properties.nombre}</b><br>
+                                    Total Encuestas: ${datos.totalEncuestas}<br>
+                                    Total Respuestas: ${datos.totalRespuestas}<br>
+                                    Tasa Finalización: ${datos.tasaFinalizacion}%
+                                `);
+                                
+                                layer.on({
+                                    mouseover: function(e) {
+                                        this.setStyle({
+                                            radius: 10,
+                                            fillOpacity: 1
+                                        });
+                                    },
+                                    mouseout: function(e) {
+                                        this.setStyle({
+                                            radius: 8,
+                                            fillOpacity: 0.8
+                                        });
+                                    },
+                                    click: function(e) {
+                                        mostrarInfoMunicipio(feature.properties.id);
+                                    }
+                                });
+                            }
+                        }).addTo(map);
+                    })
+                    .catch(error => console.error('Error al cargar estadísticas:', error));
             })
             .catch(error => console.error('Error al cargar el mapa:', error));
         
-        // Función para cargar datos de estadísticas (simulado)
-        function cargarDatosEstadisticas() {
-            // Consumir datos reales desde la API
-            fetch('/api/estadisticas-municipios/')
-                .then(response => response.json())
-                .then(data => {
-                    // Actualizar datos de estadísticas con los datos reales
-                    datosEstadisticas = {};
-                    
-                    Object.values(data.estadisticas).forEach(municipio => {
-                        // Usamos el ID del municipio como clave
-                        datosEstadisticas[municipio.id] = {
-                            nombre: municipio.nombre,
-                            totalEncuestas: municipio.totalEncuestas,
-                            totalRespuestas: municipio.totalRespuestas,
-                            tasaFinalizacion: municipio.tasaFinalizacion,
-                            region: municipio.region ? municipio.region.nombre : 'Sin región'
-                        };
-                    });
-                    
-                    // Actualizar el mapa con los datos cargados
-                    if (municipiosLayer) {
-                        municipiosLayer.setStyle(estilizarMunicipio);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al cargar datos de estadísticas:', error);
-                    
-                    // En caso de error, usamos datos simulados como respaldo
-                    fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json')
-                        .then(response => response.json())
-                        .then(data => {
-                            data.features.forEach(feature => {
-                                const municipioId = feature.properties.DPTO_CCDGO;
-                                const municipioNombre = feature.properties.NOMBRE_DPT || 'Desconocido';
-                                
-                                datosEstadisticas[municipioId] = {
-                                    nombre: municipioNombre,
-                                    totalEncuestas: Math.floor(Math.random() * 100),
-                                    totalRespuestas: Math.floor(Math.random() * 500),
-                                    tasaFinalizacion: Math.floor(Math.random() * 100)
-                                };
-                            });
-                            
-                            // Actualizar el mapa con los datos simulados
-                            if (municipiosLayer) {
-                                municipiosLayer.setStyle(estilizarMunicipio);
-                            }
-                        });
-                });
-        }
-        
-        // Función para estilizar municipios según datos
-        function estilizarMunicipio(feature) {
-            // En el GeoJSON, el ID puede estar en diferentes propiedades dependiendo del origen del archivo
-            const municipioId = feature.properties.DPTO_CCDGO || feature.properties.id || feature.id;
-            const datos = datosEstadisticas[municipioId] || { totalEncuestas: 0, totalRespuestas: 0, tasaFinalizacion: 0 };
-            
-            let valor = 0;
-            let colorEscala = ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c'];
-            
-            switch (tipoEstadisticaActual) {
-                case 'totalEncuestas':
-                    valor = datos.totalEncuestas;
-                    break;
-                case 'totalRespuestas':
-                    valor = datos.totalRespuestas;
-                    break;
-                case 'tasaFinalizacion':
-                    valor = datos.tasaFinalizacion;
-                    break;
-            }
-            
-            // Calcular color basado en el valor
-            const indiceColor = Math.min(Math.floor(valor / 20), colorEscala.length - 1);
-            
-            return {
-                fillColor: colorEscala[indiceColor],
-                weight: 1,
-                opacity: 1,
-                color: 'white',
-                dashArray: '3',
-                fillOpacity: 0.7
-            };
-        }
-        
-        // Función para resaltar municipio al pasar el mouse
-        function resaltarMunicipio(e) {
-            const layer = e.target;
-            
-            layer.setStyle({
-                weight: 2,
-                color: '#666',
-                dashArray: '',
-                fillOpacity: 0.9
-            });
-            
-            layer.bringToFront();
-        }
-        
-        // Función para quitar resaltado
-        function resetearResaltado(e) {
-            municipiosLayer.resetStyle(e.target);
+        // Función para obtener color basado en el valor
+        function getColorForValue(value) {
+            const colors = ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c'];
+            const index = Math.min(Math.floor(value / 5), colors.length - 1);
+            return colors[index];
         }
         
         // Función para mostrar información del municipio
-        function mostrarInfoMunicipio(e) {
-            const feature = e.target.feature;
-            const municipioId = feature.properties.DPTO_CCDGO || feature.properties.id || feature.id;
-            const datos = datosEstadisticas[municipioId] || { 
-                nombre: feature.properties.NOMBRE_DPT || 'Desconocido',
-                totalEncuestas: 0, 
-                totalRespuestas: 0, 
-                tasaFinalizacion: 0 
+        function mostrarInfoMunicipio(municipioId) {
+            const datos = datosEstadisticas[municipioId] || {
+                totalEncuestas: 0,
+                totalRespuestas: 0,
+                tasaFinalizacion: 0
             };
             
             // Mostrar panel de información
@@ -1146,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Configurar botones para cambiar tipo de estadística
         document.getElementById('btnTotalEncuestas').addEventListener('click', function() {
             tipoEstadisticaActual = 'totalEncuestas';
-            municipiosLayer.setStyle(estilizarMunicipio);
+            actualizarMapa();
             this.classList.add('active');
             document.getElementById('btnTotalRespuestas').classList.remove('active');
             document.getElementById('btnTasaFinalizacion').classList.remove('active');
@@ -1154,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('btnTotalRespuestas').addEventListener('click', function() {
             tipoEstadisticaActual = 'totalRespuestas';
-            municipiosLayer.setStyle(estilizarMunicipio);
+            actualizarMapa();
             this.classList.add('active');
             document.getElementById('btnTotalEncuestas').classList.remove('active');
             document.getElementById('btnTasaFinalizacion').classList.remove('active');
@@ -1162,11 +1102,42 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('btnTasaFinalizacion').addEventListener('click', function() {
             tipoEstadisticaActual = 'tasaFinalizacion';
-            municipiosLayer.setStyle(estilizarMunicipio);
+            actualizarMapa();
             this.classList.add('active');
             document.getElementById('btnTotalEncuestas').classList.remove('active');
             document.getElementById('btnTotalRespuestas').classList.remove('active');
         });
+        
+        // Función para actualizar el mapa según el tipo de estadística seleccionado
+        function actualizarMapa() {
+            if (municipiosLayer) {
+                municipiosLayer.eachLayer(function(layer) {
+                    const feature = layer.feature;
+                    const datos = datosEstadisticas[feature.properties.id] || {
+                        totalEncuestas: 0,
+                        totalRespuestas: 0,
+                        tasaFinalizacion: 0
+                    };
+                    
+                    let valor = 0;
+                    switch (tipoEstadisticaActual) {
+                        case 'totalEncuestas':
+                            valor = datos.totalEncuestas;
+                            break;
+                        case 'totalRespuestas':
+                            valor = datos.totalRespuestas;
+                            break;
+                        case 'tasaFinalizacion':
+                            valor = datos.tasaFinalizacion;
+                            break;
+                    }
+                    
+                    layer.setStyle({
+                        fillColor: getColorForValue(valor)
+                    });
+                });
+            }
+        }
         
         // Seleccionar el primer botón por defecto
         document.getElementById('btnTotalEncuestas').classList.add('active');
