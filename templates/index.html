@@ -489,15 +489,6 @@
                   </div>
                 </div>
                 <div class="card-body">
-                  <div class="row mb-3">
-                    <div class="col-md-12">
-                      <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary" id="btnTotalEncuestas">Total Encuestas</button>
-                        <button type="button" class="btn btn-outline-success" id="btnTotalRespuestas">Total Respuestas</button>
-                        <button type="button" class="btn btn-outline-warning" id="btnTasaFinalizacion">Tasa de Finalización</button>
-                      </div>
-                    </div>
-                  </div>
                   <div id="mapaColombia" style="height: 500px; width: 100%;"></div>
                   <div id="infoMunicipio" class="mt-3 p-3 border rounded" style="display: none;">
                     <h5 id="nombreMunicipio" class="mb-2"></h5>
@@ -512,8 +503,22 @@
                         <p><strong>Tasa de Finalización:</strong> <span id="tasaFinalizacionMunicipio">0%</span></p>
                       </div>
                     </div>
-                    <div class="chart-container" style="height: 200px;">
-                      <canvas id="estadisticasMunicipio"></canvas>
+                    <div class="row">
+                      <div class="col-md-4">
+                        <div class="chart-container" style="height: 200px;">
+                          <canvas id="estadisticasEncuestasMunicipio"></canvas>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="chart-container" style="height: 200px;">
+                          <canvas id="estadisticasRespuestasMunicipio"></canvas>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="chart-container" style="height: 200px;">
+                          <canvas id="estadisticasFinalizacionMunicipio"></canvas>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1152,33 +1157,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         function crearGraficoMunicipio(datos) {
-            const ctx = document.getElementById('estadisticasMunicipio').getContext('2d');
-            
-            if (window.municipioChart) {
-                window.municipioChart.destroy();
+            // Gráfico de Total Encuestas
+            const ctxEncuestas = document.getElementById('estadisticasEncuestasMunicipio').getContext('2d');
+            if (window.municipioChartEncuestas) {
+                window.municipioChartEncuestas.destroy();
             }
-            
-            window.municipioChart = new Chart(ctx, {
+            window.municipioChartEncuestas = new Chart(ctxEncuestas, {
                 type: 'bar',
                 data: {
-                    labels: ['Total Encuestas', 'Total Respuestas', 'Tasa Finalización (%)'],
+                    labels: ['Total Encuestas'],
                     datasets: [{
-                        label: 'Estadísticas',
-                        data: [
-                            datos.totalEncuestas,
-                            datos.totalRespuestas,
-                            datos.tasaFinalizacion
-                        ],
-                        backgroundColor: [
-                            'rgba(13, 110, 253, 0.7)',
-                            'rgba(25, 135, 84, 0.7)',
-                            'rgba(255, 193, 7, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgb(13, 110, 253)',
-                            'rgb(25, 135, 84)',
-                            'rgb(255, 193, 7)'
-                        ],
+                        label: 'Total Encuestas',
+                        data: [datos.totalEncuestas],
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderColor: 'rgb(13, 110, 253)',
                         borderWidth: 1
                     }]
                 },
@@ -1186,19 +1178,80 @@ document.addEventListener('DOMContentLoaded', function() {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${value} (${percentage}%)`;
-                                }
-                            }
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Total Encuestas'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Total Respuestas
+            const ctxRespuestas = document.getElementById('estadisticasRespuestasMunicipio').getContext('2d');
+            if (window.municipioChartRespuestas) {
+                window.municipioChartRespuestas.destroy();
+            }
+            window.municipioChartRespuestas = new Chart(ctxRespuestas, {
+                type: 'bar',
+                data: {
+                    labels: ['Total Respuestas'],
+                    datasets: [{
+                        label: 'Total Respuestas',
+                        data: [datos.totalRespuestas],
+                        backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                        borderColor: 'rgb(25, 135, 84)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Total Respuestas'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Tasa de Finalización
+            const ctxFinalizacion = document.getElementById('estadisticasFinalizacionMunicipio').getContext('2d');
+            if (window.municipioChartFinalizacion) {
+                window.municipioChartFinalizacion.destroy();
+            }
+            window.municipioChartFinalizacion = new Chart(ctxFinalizacion, {
+                type: 'bar',
+                data: {
+                    labels: ['Tasa Finalización'],
+                    datasets: [{
+                        label: 'Tasa Finalización',
+                        data: [datos.tasaFinalizacion],
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgb(255, 193, 7)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Tasa de Finalización (%)'
                         }
                     },
                     scales: {
@@ -1208,11 +1261,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 callback: function(value) {
                                     return value + '%';
                                 }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
                             }
                         }
                     }
