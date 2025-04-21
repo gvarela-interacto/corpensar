@@ -1765,51 +1765,54 @@ def eliminar_municipio(request, municipio_id):
 
 @login_required
 def estadisticas_municipios(request):
-    """
-    Vista que retorna estadísticas de encuestas por municipio
-    """
-    now = timezone.now()
-    
-    # Obtener todos los municipios con sus regiones
-    municipios = Municipio.objects.select_related('region').all()
-    
-    # Preparar diccionario de estadísticas
-    estadisticas = {}
-    
-    for municipio in municipios:
-        # Obtener encuestas activas para este municipio
-        encuestas_municipio = Encuesta.objects.filter(
-            municipio=municipio,
-            activa=True,
-            fecha_inicio__lte=now,
-            fecha_fin__gte=now
-        )
-        total_encuestas = encuestas_municipio.count()
+    """Obtiene estadísticas de encuestas por municipio"""
+    try:
+        now = timezone.now()
+        municipios = Municipio.objects.select_related('region').all()
+        data = {}
         
-        # Obtener respuestas para este municipio
-        respuestas_municipio = RespuestaEncuesta.objects.filter(
-            municipio=municipio,
-            encuesta__in=encuestas_municipio
-        )
-        total_respuestas = respuestas_municipio.count()
+        for municipio in municipios:
+            # Obtener encuestas activas para este municipio
+            encuestas_activas = Encuesta.objects.filter(
+                region=municipio.region
+            )
+            
+            # Obtener respuestas para este municipio
+            respuestas = RespuestaEncuesta.objects.filter(
+                municipio=municipio
+            )
+            
+            # Contar respuestas únicas por encuesta
+            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+            
+            # Calcular estadísticas
+            total_encuestas = encuestas_activas.count()
+            total_respuestas = respuestas.count()
+
+            print(Encuesta.objects.all())
+
+            print(f"Total encuestas: {total_encuestas}")
+            print(f"Total respuestas: {total_respuestas}")
+            print(f"Encuestas respondidas: {encuestas_respondidas}")
+            print(f"Municipio: {municipio.nombre}")
+            print(f"Region: {municipio.region.nombre if municipio.region else 'No asignada'}")
+            print(f"Encuestas activas: {encuestas_activas}")
+            
+            # Calcular tasa de finalización
+            tasa_finalizacion = 0
+            if total_encuestas > 0:
+                tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
+            
+            # Usar el nombre del municipio en mayúsculas como clave
+            data[municipio.nombre.upper()] = {
+                'nombre': municipio.nombre,
+                'region': municipio.region.nombre if municipio.region else 'No asignada',
+                'totalEncuestas': total_encuestas,
+                'totalRespuestas': total_respuestas,
+                'encuestasRespondidas': encuestas_respondidas,
+                'tasaFinalizacion': round(tasa_finalizacion, 2)
+            }
         
-        # Obtener encuestas únicas que tienen respuestas
-        encuestas_respondidas = respuestas_municipio.values('encuesta').distinct().count()
-        
-        # Calcular tasa de finalización
-        tasa_finalizacion = 0
-        if total_encuestas > 0:
-            tasa_finalizacion = round((encuestas_respondidas / total_encuestas) * 100, 2)
-        
-        # Guardar estadísticas
-        estadisticas[str(municipio.id)] = {
-            'id': municipio.id,
-            'nombre': municipio.nombre,
-            'region': municipio.region.nombre if municipio.region else 'No asignada',
-            'totalEncuestas': total_encuestas,
-            'totalRespuestas': total_respuestas,
-            'encuestasRespondidas': encuestas_respondidas,
-            'tasaFinalizacion': tasa_finalizacion
-        }
-    
-    return JsonResponse(estadisticas)
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

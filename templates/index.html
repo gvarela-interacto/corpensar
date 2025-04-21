@@ -1005,10 +1005,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             municipiosLayer = L.geoJSON(geoJson, {
                 style: function(feature) {
-                    const datos = datosEstadisticas[feature.properties.id] || {
+                    const nombreMunicipio = feature.properties.nombre.toUpperCase();
+                    const datos = datosEstadisticas[nombreMunicipio] || {
                         totalEncuestas: 0,
                         totalRespuestas: 0,
-                        tasaFinalizacion: 0
+                        tasaFinalizacion: 0,
+                        region: 'No asignada'
                     };
                     
                     return {
@@ -1020,7 +1022,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                 },
                 onEachFeature: function(feature, layer) {
-                    const datos = datosEstadisticas[feature.properties.id] || {
+                    const nombreMunicipio = feature.properties.nombre.toUpperCase();
+                    const datos = datosEstadisticas[nombreMunicipio] || {
                         totalEncuestas: 0,
                         totalRespuestas: 0,
                         tasaFinalizacion: 0,
@@ -1052,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         },
                         click: function() {
-                            mostrarInfoMunicipio(feature.properties.id);
+                            mostrarInfoMunicipio(nombreMunicipio);
                         }
                     });
                 }
@@ -1133,8 +1136,8 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         });
         
-        function mostrarInfoMunicipio(municipioId) {
-            const datos = datosEstadisticas[municipioId];
+        function mostrarInfoMunicipio(nombreMunicipio) {
+            const datos = datosEstadisticas[nombreMunicipio];
             if (!datos) return;
             
             const infoPanel = document.getElementById('infoMunicipio');
