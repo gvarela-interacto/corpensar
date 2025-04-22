@@ -4,6 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from .views import estadisticas_municipios
 
 urlpatterns = [
   path('admin/', admin.site.urls),
@@ -23,12 +24,15 @@ urlpatterns = [
   path('encuesta/responder/<int:encuesta_id>/', views.guardar_respuesta, name='guardar_respuesta'),
   path('regiones-y-municipios/', views.regiones_y_municipios, name='regiones_y_municipios'),
   path('region/crear/', views.crear_region, name='crear_region'),
+  path('region/eliminar/<int:region_id>/', views.eliminar_region, name='eliminar_region'),
   path('municipio/crear/', views.crear_municipio, name='crear_municipio'),
+  path('municipio/eliminar/<int:municipio_id>/', views.eliminar_municipio, name='eliminar_municipio'),
   path('categoria/crear/', views.crear_categoria, name='crear_categoria'), # Crear Categoria
   path('categoria/eliminar/<int:categoria_id>/', views.eliminar_categoria, name='eliminar_categoria'), # Eliminar Categoria
   path('api/municipios/', views.municipios_por_region, name='municipios_por_region'),
   path('encuestas/<int:encuesta_id>/diseno/', views.actualizar_diseno, name='actualizar_diseno'),
   path('encuestas/<int:encuesta_id>/preview-diseno/', views.preview_diseno, name='preview_diseno'),
+  path('api/estadisticas-municipios/', estadisticas_municipios, name='estadisticas_municipios'),
 
   #Inicio Sesion y Registro
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),

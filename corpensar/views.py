@@ -12,8 +12,8 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import modelform_factory, formset_factory, Form
-from django.db.models import Count, Avg, F, Sum
-from django.db.models.functions import TruncDate
+from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField
+from django.db.models.functions import TruncDate, Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
@@ -203,7 +203,7 @@ def index_view(request):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import *
 from .forms import *
 
@@ -612,15 +612,17 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
+        now = timezone.now()
         # Usar select_related para cargar la región en la misma consulta
         return Encuesta.objects.select_related('region').filter(
-            creador=self.request.user
+            creador=self.request.user,
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
         ).order_by('-fecha_creacion')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Agregar debug info
-        
         return context
 
     
@@ -631,12 +633,15 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return Encuesta.objects.select_related('region', 'creador').order_by('-fecha_creacion')
+        now = timezone.now()
+        return Encuesta.objects.select_related('region', 'creador').filter(
+            activa=True,
+            fecha_inicio__lte=now,
+            fecha_fin__gte=now
+        ).order_by('-fecha_creacion')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Agregar debug info
-        
         return context
 
 class ResultadosEncuestaView(DetailView):
@@ -1725,3 +1730,89 @@ def agregar_pregunta(request, encuesta_id):
         return JsonResponse({
             'error': str(e)
         }, status=400)
+
+@login_required
+def eliminar_region(request, region_id):
+    try:
+        region = Region.objects.get(id=region_id)
+        nombre_region = region.nombre
+        # Verificar si hay municipios asociados
+        municipios = Municipio.objects.filter(region=region)
+        if municipios.exists():
+            messages.error(request, f'No se puede eliminar la región {nombre_region} porque tiene municipios asociados. Elimine primero los municipios.')
+            return redirect('regiones_y_municipios')
+        
+        region.delete()
+        messages.success(request, f'La región {nombre_region} ha sido eliminada exitosamente.')
+    except Region.DoesNotExist:
+        messages.error(request, 'La región no existe.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar la región: {str(e)}')
+    return redirect('regiones_y_municipios')
+
+@login_required
+def eliminar_municipio(request, municipio_id):
+    try:
+        municipio = Municipio.objects.get(id=municipio_id)
+        nombre_municipio = municipio.nombre
+        municipio.delete()
+        messages.success(request, f'El municipio {nombre_municipio} ha sido eliminado exitosamente.')
+    except Municipio.DoesNotExist:
+        messages.error(request, 'El municipio no existe.')
+    except Exception as e:
+        messages.error(request, f'Error al eliminar el municipio: {str(e)}')
+    return redirect('regiones_y_municipios')
+
+@login_required
+def estadisticas_municipios(request):
+    """Obtiene estadísticas de encuestas por municipio"""
+    try:
+        now = timezone.now()
+        municipios = Municipio.objects.select_related('region').all()
+        data = {}
+        
+        for municipio in municipios:
+            # Obtener encuestas activas para este municipio
+            encuestas_activas = Encuesta.objects.filter(
+                region=municipio.region
+            )
+            
+            # Obtener respuestas para este municipio
+            respuestas = RespuestaEncuesta.objects.filter(
+                municipio=municipio
+            )
+            
+            # Contar respuestas únicas por encuesta
+            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+            
+            # Calcular estadísticas
+            total_encuestas = encuestas_activas.count()
+            total_respuestas = respuestas.count()
+
+            print(Encuesta.objects.all())
+
+            print(f"Total encuestas: {total_encuestas}")
+            print(f"Total respuestas: {total_respuestas}")
+            print(f"Encuestas respondidas: {encuestas_respondidas}")
+            print(f"Municipio: {municipio.nombre}")
+            print(f"Region: {municipio.region.nombre if municipio.region else 'No asignada'}")
+            print(f"Encuestas activas: {encuestas_activas}")
+            
+            # Calcular tasa de finalización
+            tasa_finalizacion = 0
+            if total_encuestas > 0:
+                tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
+            
+            # Usar el nombre del municipio en mayúsculas como clave
+            data[municipio.nombre.upper()] = {
+                'nombre': municipio.nombre,
+                'region': municipio.region.nombre if municipio.region else 'No asignada',
+                'totalEncuestas': total_encuestas,
+                'totalRespuestas': total_respuestas,
+                'encuestasRespondidas': encuestas_respondidas,
+                'tasaFinalizacion': round(tasa_finalizacion, 2)
+            }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
