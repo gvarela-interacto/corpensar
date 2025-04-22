@@ -1227,20 +1227,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
+            const noFinalizados = 100 - datos.tasaFinalizacion;
+
             // Gráfico de Tasa de Finalización
             const ctxFinalizacion = document.getElementById('estadisticasFinalizacionMunicipio').getContext('2d');
             if (window.municipioChartFinalizacion) {
                 window.municipioChartFinalizacion.destroy();
             }
             window.municipioChartFinalizacion = new Chart(ctxFinalizacion, {
-                type: 'bar',
+                type: 'pie',
                 data: {
-                    labels: ['Tasa Finalización'],
+                    labels: ['Tasa Finalización', 'No Finalizados'],
                     datasets: [{
                         label: 'Tasa Finalización',
-                        data: [datos.tasaFinalizacion],
-                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
-                        borderColor: 'rgb(255, 193, 7)',
+                        data: [datos.tasaFinalizacion, noFinalizados],
+                        backgroundColor: ['rgba(76, 175, 80, 0.7)', 'rgba(255, 99, 71, 0.7) ('],
+                        borderColor: ['rgb(76, 175, 80) ', 'rgb(255, 99, 71) '],
                         borderWidth: 1
                     }]
                 },
@@ -1252,16 +1254,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         title: {
                             display: true,
                             text: 'Tasa de Finalización (%)'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
                         }
                     }
                 }
