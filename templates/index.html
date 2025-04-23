@@ -1,6 +1,6 @@
-{% extends 'base.html' %}
-{% load humanize %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load humanize %} 
+{% load static %} 
 {% block content %}
 
 <style>
@@ -12,69 +12,79 @@
     position: relative;
     overflow: hidden;
   }
-  
+
   .alert-clickable:hover {
     transform: translateY(-2px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
   }
-  
+
   .alert-clickable:active {
     transform: translateY(1px);
   }
-  
+
   /* Efecto "pulsado" al hacer clic */
   .alert-clickable.active {
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-  
+
   /* Contenedor de la lista de tiquetera */
   .product-list-container {
     margin-top: -5px; /* Solapa ligeramente con la alerta */
     padding: 15px;
     border-radius: 0 0 5px 5px;
     background-color: #f8f9fa;
-    border: 1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     border-top: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     animation: fadeIn 0.3s ease-out;
   }
-  
+
   /* Estilos para la lista de tiquetera */
   .product-list-container .list-group {
     margin-bottom: 0;
   }
-  
+
   .product-list-container .list-group-item {
     border-left: none;
     border-right: none;
     padding: 8px 15px;
     font-size: 0.9rem;
   }
-  
+
   .product-list-container .list-group-item:first-child {
     border-top: none;
   }
-  
+
   /* Animación de carga */
   @keyframes fadeIn {
-    from { opacity: 0; max-height: 0; }
-    to { opacity: 1; max-height: 500px; }
+    from {
+      opacity: 0;
+      max-height: 0;
+    }
+    to {
+      opacity: 1;
+      max-height: 500px;
+    }
   }
-  
+
   /* Estilo para el mensaje de carga */
   .text-center {
     text-align: center;
     padding: 10px;
     color: #6c757d;
   }
-  
+
   .text-center .bi-hourglass {
     animation: spin 1s linear infinite;
   }
-  
+
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Nuevos estilos para las tarjetas de KPI */
@@ -90,7 +100,7 @@
     height: 300px;
     margin-bottom: 1rem;
   }
-  
+
   /* Estilos para el grid personalizable */
   .bento-grid {
     display: grid;
@@ -98,83 +108,83 @@
     grid-gap: 15px;
     margin-bottom: 20px;
   }
-  
+
   .grid-item {
     background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     cursor: move;
     overflow: hidden;
   }
-  
+
   .grid-item.dragging {
     opacity: 0.8;
     transform: scale(1.02);
     z-index: 10;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
-  
+
   .grid-item .card {
     height: 100%;
     border: none;
     border-radius: 10px;
     overflow: hidden;
   }
-  
+
   .grid-item .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1rem;
   }
-  
+
   .grid-item .handle {
     display: flex;
     align-items: center;
     cursor: move;
   }
-  
+
   .grid-item .handle .mdi-drag {
     margin-right: 0.5rem;
     color: #888;
     font-size: 1.2rem;
   }
-  
+
   .grid-item .handle:hover .mdi-drag {
     color: #333;
   }
-  
+
   /* Botones de cambio de tamaño */
   .resize-item {
     padding: 0.15rem 0.4rem;
     font-size: 0.75rem;
   }
-  
+
   .resize-item.active {
     background-color: #6c757d;
     color: white;
     border-color: #6c757d;
   }
-  
+
   /* Transición suave para cambios de tamaño */
   .grid-item {
     transition: grid-column 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   }
-  
+
   /* Tamaños predefinidos para los elementos del grid */
   .grid-item.col-span-4 {
     grid-column: span 4;
   }
-  
+
   .grid-item.col-span-6 {
     grid-column: span 6;
   }
-  
+
   .grid-item.col-span-12 {
     grid-column: span 12;
   }
-  
+
   /* Botón guardar distribución */
   #saveLayout {
     display: flex;
@@ -182,33 +192,33 @@
     gap: 0.25rem;
     transition: all 0.2s ease;
   }
-  
+
   #saveLayout:hover {
     background-color: #e9ecef;
     transform: translateY(-2px);
   }
-  
+
   #saveLayout:active {
     transform: translateY(0);
   }
-  
+
   /* Responsive */
   @media (max-width: 768px) {
     .bento-grid {
       grid-template-columns: repeat(6, 1fr);
     }
-    
+
     .grid-item.col-span-4,
     .grid-item.col-span-6 {
       grid-column: span 6;
     }
   }
-  
+
   @media (max-width: 576px) {
     .bento-grid {
       grid-template-columns: repeat(1, 1fr);
     }
-    
+
     .grid-item.col-span-4,
     .grid-item.col-span-6,
     .grid-item.col-span-12 {
@@ -245,12 +255,14 @@
 </style>
 
 <div class="container-fluid py-4">
-  
   <!-- KPIs Principales -->
   <div class="row mb-4">
     <div class="col-md-3 col-sm-6 mb-3">
       <div class="card kpi-card h-100 border-0 shadow-sm">
-        <div class="position-absolute w-100" style="height: 6px; background-color: #0d6efd; top: 0; left: 0;"></div>
+        <div
+          class="position-absolute w-100"
+          style="height: 6px; background-color: #0d6efd; top: 0; left: 0"
+        ></div>
         <div class="card-body">
           <h5 class="card-title text-muted">Total Encuestas</h5>
           <h2 class="display-4">{{ total_encuestas }}</h2>
@@ -261,10 +273,13 @@
         </div>
       </div>
     </div>
-    
+
     <div class="col-md-3 col-sm-6 mb-3">
       <div class="card kpi-card h-100 border-0 shadow-sm">
-        <div class="position-absolute w-100" style="height: 6px; background-color: #198754; top: 0; left: 0;"></div>
+        <div
+          class="position-absolute w-100"
+          style="height: 6px; background-color: #198754; top: 0; left: 0"
+        ></div>
         <div class="card-body">
           <h5 class="card-title text-muted">Total Respuestas</h5>
           <h2 class="display-4">{{ total_respuestas|intcomma }}</h2>
@@ -275,10 +290,13 @@
         </div>
       </div>
     </div>
-    
+
     <div class="col-md-3 col-sm-6 mb-3">
       <div class="card kpi-card h-100 border-0 shadow-sm">
-        <div class="position-absolute w-100" style="height: 6px; background-color: #ffc107; top: 0; left: 0;"></div>
+        <div
+          class="position-absolute w-100"
+          style="height: 6px; background-color: #ffc107; top: 0; left: 0"
+        ></div>
         <div class="card-body">
           <h5 class="card-title text-muted">Tasa de Finalización</h5>
           <h2 class="display-4">{{ tasa_finalizacion }}%</h2>
@@ -289,10 +307,13 @@
         </div>
       </div>
     </div>
-    
+
     <div class="col-md-3 col-sm-6 mb-3">
       <div class="card kpi-card h-100 border-0 shadow-sm">
-        <div class="position-absolute w-100" style="height: 6px; background-color: #dc3545; top: 0; left: 0;"></div>
+        <div
+          class="position-absolute w-100"
+          style="height: 6px; background-color: #dc3545; top: 0; left: 0"
+        ></div>
         <div class="card-body">
           <h5 class="card-title text-muted">Encuestas Sin Respuestas</h5>
           <h2 class="display-4">{{ encuestas_sin_respuestas }}</h2>
@@ -310,18 +331,29 @@
     <div class="col-md-6 mb-3">
       <div class="alert alert-warning alert-clickable">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>{{ encuestas_proximo_fin.count }}</strong> encuestas por finalizar en 3 días
+        <strong>{{ encuestas_proximo_fin.count }}</strong> encuestas por
+        finalizar en 3 días
       </div>
-      
-      <div id="reorden-products" class="product-list-container" style="display: none;">
+
+      <div
+        id="reorden-products"
+        class="product-list-container"
+        style="display: none"
+      >
         <ul class="list-group">
           {% for encuesta in encuestas_proximo_fin %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span class="text-truncate">{{ encuesta.titulo }}</span>
-              <span class="badge bg-warning">{{ encuesta.fecha_fin|date:"d M" }}</span>
-            </li>
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            <span class="text-truncate">{{ encuesta.titulo }}</span>
+            <span class="badge bg-warning"
+              >{{ encuesta.fecha_fin|date:"d M" }}</span
+            >
+          </li>
           {% empty %}
-            <li class="list-group-item text-muted">No hay encuestas próximas a finalizar</li>
+          <li class="list-group-item text-muted">
+            No hay encuestas próximas a finalizar
+          </li>
           {% endfor %}
         </ul>
       </div>
@@ -332,7 +364,9 @@
   <div class="row mb-4">
     <div class="col-12">
       <div class="card shadow-sm mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+        <div
+          class="card-header d-flex justify-content-between align-items-center bg-primary text-white"
+        >
           <h5 class="mb-0">Panel Personalizable</h5>
           <button id="saveLayout" class="btn btn-sm btn-light">
             <i class="mdi mdi-content-save"></i> Guardar Distribución
@@ -348,9 +382,27 @@
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="4">S</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="4"
+                      >
+                        S
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="6"
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="12"
+                      >
+                        L
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -361,18 +413,39 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Gráfico de Tendencia de Respuestas -->
-            <div class="grid-item col-span-4" data-id="tendenciaRespuestasChart">
+            <div
+              class="grid-item col-span-4"
+              data-id="tendenciaRespuestasChart"
+            >
               <div class="card h-100 shadow-sm">
                 <div class="card-header">
                   <h5 class="mb-0">Tendencia de Respuestas</h5>
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="4">S</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="4"
+                      >
+                        S
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="6"
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="12"
+                      >
+                        L
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -385,16 +458,37 @@
             </div>
 
             <!-- Gráfico de Distribución por Categoría -->
-            <div class="grid-item col-span-4" data-id="distribucionCategoriaChart">
+            <div
+              class="grid-item col-span-4"
+              data-id="distribucionCategoriaChart"
+            >
               <div class="card h-100 shadow-sm">
                 <div class="card-header">
                   <h5 class="mb-0">Distribución por Categoría</h5>
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="4">S</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="4"
+                      >
+                        S
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="6"
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="12"
+                      >
+                        L
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -410,7 +504,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Gráfico de Distribución por Región -->
             <div class="grid-item col-span-4" data-id="distribucionRegionChart">
               <div class="card h-100 shadow-sm">
@@ -419,9 +513,27 @@
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="4">S</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="4"
+                      >
+                        S
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="6"
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="12"
+                      >
+                        L
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -432,7 +544,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Top Municipios -->
             <div class="grid-item col-span-6" data-id="topMunicipios">
               <div class="card h-100 shadow-sm">
@@ -441,9 +553,27 @@
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="4">S</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="4"
+                      >
+                        S
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="6"
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="12"
+                      >
+                        L
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -459,12 +589,16 @@
                       <tbody>
                         {% for municipio in top_municipios %}
                         <tr>
-                          <td>{{ municipio.municipio__nombre|default:"Sin municipio" }}</td>
+                          <td>
+                            {{ municipio.municipio__nombre|default:"Sin municipio" }}
+                          </td>
                           <td class="text-end">{{ municipio.total }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                          <td colspan="2" class="text-center">No hay datos disponibles</td>
+                          <td colspan="2" class="text-center">
+                            No hay datos disponibles
+                          </td>
                         </tr>
                         {% endfor %}
                       </tbody>
@@ -473,50 +607,91 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Mapa de Colombia Interactivo -->
-            <div class="grid-item col-span-12" data-id="mapaColombiaInteractivo">
+            <div
+              class="grid-item col-span-12"
+              data-id="mapaColombiaInteractivo"
+            >
               <div class="card h-100 shadow-sm">
                 <div class="card-header">
-                  <h5 class="mb-0">Mapa de Colombia - Estadísticas por Municipio</h5>
+                  <h5 class="mb-0">
+                    Mapa de Colombia - Estadísticas por Municipio
+                  </h5>
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-primary" id="btnTotalEncuestas">Total Encuestas</button>
-                      <button type="button" class="btn btn-outline-success" id="btnTotalRespuestas">Total Respuestas</button>
-                      <button type="button" class="btn btn-outline-warning" id="btnTasaFinalizacion">Tasa de Finalización</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        id="btnTotalEncuestas"
+                      >
+                        Total Encuestas
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-success"
+                        id="btnTotalRespuestas"
+                      >
+                        Total Respuestas
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-warning"
+                        id="btnTasaFinalizacion"
+                      >
+                        Tasa de Finalización
+                      </button>
                     </div>
                   </div>
                 </div>
                 <div class="card-body">
-                  <div id="mapaColombia" style="height: 500px; width: 100%;"></div>
-                  <div id="infoMunicipio" class="mt-3 p-3 border rounded" style="display: none;">
+                  <div
+                    id="mapaColombia"
+                    style="height: 500px; width: 100%"
+                  ></div>
+                  <div
+                    id="infoMunicipio"
+                    class="mt-3 p-3 border rounded"
+                    style="display: none"
+                  >
                     <h5 id="nombreMunicipio" class="mb-2"></h5>
                     <div class="row">
                       <div class="col-md-4">
-                        <p><strong>Total Encuestas:</strong> <span id="totalEncuestasMunicipio">0</span></p>
+                        <p>
+                          <strong>Total Encuestas:</strong>
+                          <span id="totalEncuestasMunicipio">0</span>
+                        </p>
                       </div>
                       <div class="col-md-4">
-                        <p><strong>Total Respuestas:</strong> <span id="totalRespuestasMunicipio">0</span></p>
+                        <p>
+                          <strong>Total Respuestas:</strong>
+                          <span id="totalRespuestasMunicipio">0</span>
+                        </p>
                       </div>
                       <div class="col-md-4">
-                        <p><strong>Tasa de Finalización:</strong> <span id="tasaFinalizacionMunicipio">0%</span></p>
+                        <p>
+                          <strong>Tasa de Finalización:</strong>
+                          <span id="tasaFinalizacionMunicipio">0%</span>
+                        </p>
                       </div>
                     </div>
                     <div class="row">
                       <div class="col-md-4">
-                        <div class="chart-container" style="height: 200px;">
+                        <div class="chart-container" style="height: 200px">
                           <canvas id="estadisticasEncuestasMunicipio"></canvas>
                         </div>
                       </div>
                       <div class="col-md-4">
-                        <div class="chart-container" style="height: 200px;">
+                        <div class="chart-container" style="height: 200px">
                           <canvas id="estadisticasRespuestasMunicipio"></canvas>
                         </div>
                       </div>
                       <div class="col-md-4">
-                        <div class="chart-container" style="height: 200px;">
-                          <canvas id="estadisticasFinalizacionMunicipio"></canvas>
+                        <div class="chart-container" style="height: 200px">
+                          <canvas
+                            id="estadisticasFinalizacionMunicipio"
+                          ></canvas>
                         </div>
                       </div>
                     </div>
@@ -524,7 +699,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Últimas Respuestas -->
             <div class="grid-item col-span-6" data-id="ultimasRespuestas">
               <div class="card h-100 shadow-sm">
@@ -533,9 +708,27 @@
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="4">S</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="6">M</button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm resize-item" data-size="12">L</button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="4"
+                      >
+                        S
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="6"
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm resize-item"
+                        data-size="12"
+                      >
+                        L
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -558,13 +751,15 @@
                             </a>
                           </td>
                           <td>
-                            {% if respuesta.usuario %}
-                              {{ respuesta.usuario.username|truncatechars:15 }}
-                            {% else %}
-                              <span class="text-muted">Anónimo</span>
+                            {% if respuesta.usuario %} {{
+                            respuesta.usuario.username|truncatechars:15 }} {%
+                            else %}
+                            <span class="text-muted">Anónimo</span>
                             {% endif %}
                           </td>
-                          <td>{{ respuesta.fecha_respuesta|date:"d M H:i" }}</td>
+                          <td>
+                            {{ respuesta.fecha_respuesta|date:"d M H:i" }}
+                          </td>
                         </tr>
                         {% empty %}
                         <tr>
@@ -589,676 +784,492 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar grid personalizable
-    const sortableGrid = document.getElementById('sortableGrid');
-    if (sortableGrid) {
-        // Cargar configuración guardada si existe
-        loadGridLayout();
-        
-        // Inicializar SortableJS
-        const sortable = new Sortable(sortableGrid, {
-            animation: 150,
-            handle: '.handle',
-            draggable: '.grid-item',
-            onStart: function(evt) {
-                evt.item.classList.add('dragging');
-            },
-            onEnd: function(evt) {
-                evt.item.classList.remove('dragging');
-                
-                // Actualizar charts después de mover para asegurar que se rendericen correctamente
-                window.setTimeout(function() {
-                    updateCharts();
-                }, 100);
-            }
-        });
-        
-        // Configurar botón para guardar layout
-        const saveButton = document.getElementById('saveLayout');
-        if (saveButton) {
-            saveButton.addEventListener('click', function() {
-                saveGridLayout();
-                alert('Distribución guardada correctamente');
-            });
-        }
-        
-        // Configurar botones para cambiar tamaño
-        const resizeButtons = document.querySelectorAll('.resize-item');
-        resizeButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const size = this.getAttribute('data-size');
-                const gridItem = this.closest('.grid-item');
-                
-                // Remover todas las clases de tamaño
-                gridItem.classList.remove('col-span-4', 'col-span-6', 'col-span-12');
-                
-                // Añadir la clase de tamaño seleccionada
-                gridItem.classList.add(`col-span-${size}`);
-                
-                // Actualizar los botones para mostrar cuál está activo
-                const buttons = gridItem.querySelectorAll('.resize-item');
-                buttons.forEach(btn => {
-                    btn.classList.remove('active');
-                    if (btn.getAttribute('data-size') === size) {
-                        btn.classList.add('active');
-                    }
-                });
-                
-                // Actualizar charts después de cambiar el tamaño
-                window.setTimeout(function() {
-                    updateCharts();
-                }, 100);
-            });
-        });
-        
-        // Establecer los botones activos según el tamaño actual de cada elemento
-        const gridItems = document.querySelectorAll('.grid-item');
-        gridItems.forEach(item => {
-            let currentSize = '4'; // tamaño por defecto
-            
-            if (item.classList.contains('col-span-12')) {
-                currentSize = '12';
-            } else if (item.classList.contains('col-span-6')) {
-                currentSize = '6';
-            }
-            
-            // Marcar el botón correspondiente como activo
-            const button = item.querySelector(`.resize-item[data-size="${currentSize}"]`);
-            if (button) {
-                button.classList.add('active');
-            }
-        });
-    }
-    
-    function loadGridLayout() {
-        try {
-            const savedLayout = localStorage.getItem('dashboardLayout');
-            if (savedLayout) {
-                const layout = JSON.parse(savedLayout);
-                
-                // Aplicar orden
-                if (layout.order && layout.order.length > 0) {
-                    for (let i = 0; i < layout.order.length; i++) {
-                        const itemId = layout.order[i];
-                        const item = document.querySelector(`.grid-item[data-id="${itemId}"]`);
-                        if (item) {
-                            sortableGrid.appendChild(item);
-                        }
-                    }
-                }
-                
-                // Aplicar tamaños
-                if (layout.sizes) {
-                    for (const itemId in layout.sizes) {
-                        const item = document.querySelector(`.grid-item[data-id="${itemId}"]`);
-                        if (item) {
-                            // Remover clases de tamaño existentes
-                            item.classList.remove('col-span-4', 'col-span-6', 'col-span-12');
-                            // Añadir nueva clase de tamaño
-                            item.classList.add(`col-span-${layout.sizes[itemId]}`);
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error al cargar la configuración del dashboard:', error);
-        }
-    }
-    
-    function saveGridLayout() {
-        try {
-            // Guardar orden actual
-            const items = sortableGrid.querySelectorAll('.grid-item');
-            const order = [];
-            const sizes = {};
-            
-            items.forEach(item => {
-                const itemId = item.getAttribute('data-id');
-                order.push(itemId);
-                
-                // Determinar tamaño
-                let size = 4; // Tamaño predeterminado
-                if (item.classList.contains('col-span-12')) {
-                    size = 12;
-                } else if (item.classList.contains('col-span-6')) {
-                    size = 6;
-                }
-                
-                sizes[itemId] = size;
-            });
-            
-            const layout = {
-                order: order,
-                sizes: sizes
-            };
-            
-            localStorage.setItem('dashboardLayout', JSON.stringify(layout));
-        } catch (error) {
-            console.error('Error al guardar la configuración del dashboard:', error);
-        }
-    }
-    
-    function updateCharts() {
-        // Reconstruir gráficos si es necesario
-        if (window.categoriaChartObj) {
-            window.categoriaChartObj.resize();
-        }
-        if (window.regionChartObj) {
-            window.regionChartObj.resize();
-        }
-    }
+  document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar grid personalizable
+      const sortableGrid = document.getElementById('sortableGrid');
+      if (sortableGrid) {
+          // Cargar configuración guardada si existe
+          loadGridLayout();
 
-    // Gráfico de Tipos de Preguntas
-    const tipoPreguntasData = {
-      labels: [
-        {% for tipo in tipos_preguntas %}
-          "{{ tipo.tipo }}"{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ],
-      datasets: [{
-        data: [
+          // Inicializar SortableJS
+          const sortable = new Sortable(sortableGrid, {
+              animation: 150,
+              handle: '.handle',
+              draggable: '.grid-item',
+              onStart: function(evt) {
+                  evt.item.classList.add('dragging');
+              },
+              onEnd: function(evt) {
+                  evt.item.classList.remove('dragging');
+
+                  // Actualizar charts después de mover para asegurar que se rendericen correctamente
+                  window.setTimeout(function() {
+                      updateCharts();
+                  }, 100);
+              }
+          });
+
+          // Configurar botón para guardar layout
+          const saveButton = document.getElementById('saveLayout');
+          if (saveButton) {
+              saveButton.addEventListener('click', function() {
+                  saveGridLayout();
+                  alert('Distribución guardada correctamente');
+              });
+          }
+
+          // Configurar botones para cambiar tamaño
+          const resizeButtons = document.querySelectorAll('.resize-item');
+          resizeButtons.forEach(button => {
+              button.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  const size = this.getAttribute('data-size');
+                  const gridItem = this.closest('.grid-item');
+
+                  // Remover todas las clases de tamaño
+                  gridItem.classList.remove('col-span-4', 'col-span-6', 'col-span-12');
+
+                  // Añadir la clase de tamaño seleccionada
+                  gridItem.classList.add(`col-span-${size}`);
+
+                  // Actualizar los botones para mostrar cuál está activo
+                  const buttons = gridItem.querySelectorAll('.resize-item');
+                  buttons.forEach(btn => {
+                      btn.classList.remove('active');
+                      if (btn.getAttribute('data-size') === size) {
+                          btn.classList.add('active');
+                      }
+                  });
+
+                  // Actualizar charts después de cambiar el tamaño
+                  window.setTimeout(function() {
+                      updateCharts();
+                  }, 100);
+              });
+          });
+
+          // Establecer los botones activos según el tamaño actual de cada elemento
+          const gridItems = document.querySelectorAll('.grid-item');
+          gridItems.forEach(item => {
+              let currentSize = '4'; // tamaño por defecto
+
+              if (item.classList.contains('col-span-12')) {
+                  currentSize = '12';
+              } else if (item.classList.contains('col-span-6')) {
+                  currentSize = '6';
+              }
+
+              // Marcar el botón correspondiente como activo
+              const button = item.querySelector(`.resize-item[data-size="${currentSize}"]`);
+              if (button) {
+                  button.classList.add('active');
+              }
+          });
+      }
+
+      function loadGridLayout() {
+          try {
+              const savedLayout = localStorage.getItem('dashboardLayout');
+              if (savedLayout) {
+                  const layout = JSON.parse(savedLayout);
+
+                  // Aplicar orden
+                  if (layout.order && layout.order.length > 0) {
+                      for (let i = 0; i < layout.order.length; i++) {
+                          const itemId = layout.order[i];
+                          const item = document.querySelector(`.grid-item[data-id="${itemId}"]`);
+                          if (item) {
+                              sortableGrid.appendChild(item);
+                          }
+                      }
+                  }
+
+                  // Aplicar tamaños
+                  if (layout.sizes) {
+                      for (const itemId in layout.sizes) {
+                          const item = document.querySelector(`.grid-item[data-id="${itemId}"]`);
+                          if (item) {
+                              // Remover clases de tamaño existentes
+                              item.classList.remove('col-span-4', 'col-span-6', 'col-span-12');
+                              // Añadir nueva clase de tamaño
+                              item.classList.add(`col-span-${layout.sizes[itemId]}`);
+                          }
+                      }
+                  }
+              }
+          } catch (error) {
+              console.error('Error al cargar la configuración del dashboard:', error);
+          }
+      }
+
+      function saveGridLayout() {
+          try {
+              // Guardar orden actual
+              const items = sortableGrid.querySelectorAll('.grid-item');
+              const order = [];
+              const sizes = {};
+
+              items.forEach(item => {
+                  const itemId = item.getAttribute('data-id');
+                  order.push(itemId);
+
+                  // Determinar tamaño
+                  let size = 4; // Tamaño predeterminado
+                  if (item.classList.contains('col-span-12')) {
+                      size = 12;
+                  } else if (item.classList.contains('col-span-6')) {
+                      size = 6;
+                  }
+
+                  sizes[itemId] = size;
+              });
+
+              const layout = {
+                  order: order,
+                  sizes: sizes
+              };
+
+              localStorage.setItem('dashboardLayout', JSON.stringify(layout));
+          } catch (error) {
+              console.error('Error al guardar la configuración del dashboard:', error);
+          }
+      }
+
+      function updateCharts() {
+          // Reconstruir gráficos si es necesario
+          if (window.categoriaChartObj) {
+              window.categoriaChartObj.resize();
+          }
+          if (window.regionChartObj) {
+              window.regionChartObj.resize();
+          }
+      }
+
+      // Gráfico de Tipos de Preguntas
+      const tipoPreguntasData = {
+        labels: [
           {% for tipo in tipos_preguntas %}
-            {{ tipo.total }}{% if not forloop.last %},{% endif %}
+            "{{ tipo.tipo }}"{% if not forloop.last %},{% endif %}
           {% endfor %}
         ],
-        backgroundColor: [
-          '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
-          '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997'
-        ],
-        hoverOffset: 10
-      }]
-    };
+        datasets: [{
+          data: [
+            {% for tipo in tipos_preguntas %}
+              {{ tipo.total }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ],
+          backgroundColor: [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+            '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997'
+          ],
+          hoverOffset: 10
+        }]
+      };
 
-    new Chart(document.getElementById('tipoPreguntasChart').getContext('2d'), {
-      type: 'doughnut',
-      data: tipoPreguntasData,
-      options: {
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: { boxWidth: 15, padding: 20 }
+      new Chart(document.getElementById('tipoPreguntasChart').getContext('2d'), {
+        type: 'doughnut',
+        data: tipoPreguntasData,
+        options: {
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { boxWidth: 15, padding: 20 }
+            }
           }
         }
-      }
-    });
+      });
 
-    // Gráfico de Tendencia de Respuestas
-    const tendenciaData = {
-      labels: [
-        {% for item in tendencia_respuestas %}
-          "{{ item.fecha|date:'d M' }}"{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ],
-      datasets: [{
-        label: 'Respuestas',
-        data: [
+      // Gráfico de Tendencia de Respuestas
+      const tendenciaData = {
+        labels: [
           {% for item in tendencia_respuestas %}
-            {{ item.total }}{% if not forloop.last %},{% endif %}
+            "{{ item.fecha|date:'d M' }}"{% if not forloop.last %},{% endif %}
           {% endfor %}
         ],
-        borderColor: '#4e73df',
-        backgroundColor: 'rgba(78, 115, 223, 0.1)',
-        fill: true,
-        tension: 0.4
-      }]
-    };
+        datasets: [{
+          label: 'Respuestas',
+          data: [
+            {% for item in tendencia_respuestas %}
+              {{ item.total }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ],
+          borderColor: '#4e73df',
+          backgroundColor: 'rgba(78, 115, 223, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      };
 
-    new Chart(document.getElementById('tendenciaRespuestasChart').getContext('2d'), {
-      type: 'line',
-      data: tendenciaData,
-      options: {
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              drawBorder: false
+      new Chart(document.getElementById('tendenciaRespuestasChart').getContext('2d'), {
+        type: 'line',
+        data: tendenciaData,
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                drawBorder: false
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
             }
           },
-          x: {
-            grid: {
+          plugins: {
+            legend: {
               display: false
             }
           }
-        },
-        plugins: {
-          legend: {
-            display: false
-          }
-        }
-      }
-    });
-
-    // Gráfico de Distribución por Categoría
-    const categoriaData = {
-      labels: [
-        {% for item in distribucion_categoria %}
-          "{{ item.categoria__nombre|default:'Sin categoría' }}"{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ],
-      datasets: [{
-        label: 'Encuestas por Categoría',
-        data: [
-          {% for item in distribucion_categoria %}
-            {{ item.total }}{% if not forloop.last %},{% endif %}
-          {% endfor %}
-        ],
-        backgroundColor: [
-          '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
-          '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997',
-          '#6610f2', '#fd7e14', '#dc3545', '#6c757d', '#28a745'
-        ],
-        borderColor: 'rgba(255, 255, 255, 0.8)',
-        borderWidth: 1
-      }]
-    };
-
-    // Inicializar gráfico de categorías como circular (pie)
-    window.categoriaChartObj = new Chart(document.getElementById('distribucionCategoriaChart').getContext('2d'), {
-      type: 'pie',
-      data: categoriaData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: { 
-              boxWidth: 15, 
-              padding: 20 
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const label = context.label || '';
-                const value = context.raw || 0;
-                if (label.includes('Tasa Finalización')) {
-                  return `${label}: ${value}%`;
-                }
-                return `${label}: ${value}`;
-              }
-            }
-          }
-        }
-      }
-    });
-
-    // Gráfico de Distribución por Región
-    const regionData = {
-      labels: [
-        {% for region in distribucion_region %}
-          "{{ region.region__nombre|default:'Sin región' }}"{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ],
-      datasets: [{
-        label: 'Encuestas por Región',
-        data: [
-          {% for region in distribucion_region %}
-            {{ region.total }}{% if not forloop.last %},{% endif %}
-          {% endfor %}
-        ],
-        backgroundColor: [
-          '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
-          '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997',
-          '#6610f2', '#fd7e14', '#dc3545', '#6c757d', '#28a745'
-        ],
-        borderColor: 'rgba(255, 255, 255, 0.8)',
-        borderWidth: 1
-      }]
-    };
-
-    window.regionChartObj = new Chart(document.getElementById('distribucionRegionChart').getContext('2d'), {
-      type: 'pie',
-      data: regionData,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: { 
-              boxWidth: 15, 
-              padding: 20 
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const label = context.label || '';
-                const value = context.raw || 0;
-                if (label.includes('Tasa Finalización')) {
-                  return `${label}: ${value}%`;
-                }
-                return `${label}: ${value}`;
-              }
-            }
-          }
-        }
-      }
-    });
-
-    // Funcionalidad para mostrar/ocultar las listas de alertas
-    document.querySelectorAll('.alert-clickable').forEach(alert => {
-      alert.addEventListener('click', function() {
-        const targetId = this.dataset.target;
-        const targetElement = document.getElementById(targetId);
-        if (targetElement) {
-          targetElement.style.display = targetElement.style.display === 'none' ? 'block' : 'none';
         }
       });
-    });
-});
+
+      // Gráfico de Distribución por Categoría
+      const categoriaData = {
+        labels: [
+          {% for item in distribucion_categoria %}
+            "{{ item.categoria__nombre|default:'Sin categoría' }}"{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ],
+        datasets: [{
+          label: 'Encuestas por Categoría',
+          data: [
+            {% for item in distribucion_categoria %}
+              {{ item.total }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ],
+          backgroundColor: [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+            '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997',
+            '#6610f2', '#fd7e14', '#dc3545', '#6c757d', '#28a745'
+          ],
+          borderColor: 'rgba(255, 255, 255, 0.8)',
+          borderWidth: 1
+        }]
+      };
+
+      // Inicializar gráfico de categorías como circular (pie)
+      window.categoriaChartObj = new Chart(document.getElementById('distribucionCategoriaChart').getContext('2d'), {
+        type: 'pie',
+        data: categoriaData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 15,
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  if (label.includes('Tasa Finalización')) {
+                    return `${label}: ${value}%`;
+                  }
+                  return `${label}: ${value}`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Gráfico de Distribución por Región
+      const regionData = {
+        labels: [
+          {% for region in distribucion_region %}
+            "{{ region.region__nombre|default:'Sin región' }}"{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ],
+        datasets: [{
+          label: 'Encuestas por Región',
+          data: [
+            {% for region in distribucion_region %}
+              {{ region.total }}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          ],
+          backgroundColor: [
+            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e',
+            '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997',
+            '#6610f2', '#fd7e14', '#dc3545', '#6c757d', '#28a745'
+          ],
+          borderColor: 'rgba(255, 255, 255, 0.8)',
+          borderWidth: 1
+        }]
+      };
+
+      window.regionChartObj = new Chart(document.getElementById('distribucionRegionChart').getContext('2d'), {
+        type: 'pie',
+        data: regionData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 15,
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  if (label.includes('Tasa Finalización')) {
+                    return `${label}: ${value}%`;
+                  }
+                  return `${label}: ${value}`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Funcionalidad para mostrar/ocultar las listas de alertas
+      document.querySelectorAll('.alert-clickable').forEach(alert => {
+        alert.addEventListener('click', function() {
+          const targetId = this.dataset.target;
+          const targetElement = document.getElementById(targetId);
+          if (targetElement) {
+            targetElement.style.display = targetElement.style.display === 'none' ? 'block' : 'none';
+          }
+        });
+      });
+  });
 </script>
 
 <!-- CSS de Leaflet para mapas -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
 
-<!-- JavaScript de Leaflet -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Asegúrate de haber cargado antes Leaflet y Omnivore -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
 
-<!-- Script para el mapa interactivo de Colombia -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const mapaContainer = document.getElementById('mapaColombia');
-        if (!mapaContainer) return;
-        
-        // Inicializar el mapa centrado en Colombia
-        const map = L.map('mapaColombia').setView([4.5709, -74.2973], 6);
-        
-        // Agregar capa base de OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Variables para los datos
-        let municipiosLayer;
-        let datosEstadisticas = {};
-        let tipoEstadisticaActual = 'totalEncuestas';
-        
-        // Función para obtener color basado en el valor y tipo
-        function getColorForValue(value, tipo) {
-            const scales = {
-                totalEncuestas: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c'],
-                totalRespuestas: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#005a32'],
-                tasaFinalizacion: ['#fff5eb', '#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d94801', '#8c2d04']
-            };
-            
-            const colors = scales[tipo] || scales.totalEncuestas;
-            
-            let index;
-            if (tipo === 'tasaFinalizacion') {
-                index = Math.min(Math.floor(value / 12.5), colors.length - 1);
+document.addEventListener('DOMContentLoaded', function() {
+  const mapaContainer = document.getElementById('mapaColombia');
+  if (!mapaContainer) return;
+
+  const map = L.map('mapaColombia').setView([4.5709, -74.2973], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let datosEstadisticas = {};
+  let tipoEstadisticaActual = 'totalEncuestas';
+
+  function getColorForValue(value, tipo) {
+    const scales = {
+      totalEncuestas: ['#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#08519c'],
+      totalRespuestas: ['#f7fcf5','#e5f5e0','#c7e9c0','#a1d99b','#74c476','#41ab5d','#238b45','#005a32'],
+      tasaFinalizacion: ['#fff5eb','#fee6ce','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04']
+    };
+    const colors = scales[tipo] || scales.totalEncuestas;
+    let idx = tipo === 'tasaFinalizacion'
+      ? Math.min(Math.floor(value/12.5), colors.length-1)
+      : Math.min(Math.floor(Math.log2(value+1)), colors.length-1);
+    return colors[idx];
+  }
+
+  // 1) Traigo estadísticas
+  fetch('/api/estadisticas-municipios/')
+    .then(res => res.json())
+    .then(estadisticas => {
+      datosEstadisticas = estadisticas;
+
+      // 2) Cargo el KML
+      const kmlUrl = "{% static 'kml/Trazado oleoducto Cenit.kml' %}";
+      const kmlLayer = omnivore.kml(kmlUrl)
+        .on('ready', function() {
+
+          console.log('🔍 KML cargado, capas:', this.getLayers().length);
+          
+          // 3) Pinta cada feature según datos
+          this.eachLayer(layer => {
+            const geom = layer.feature.geometry.type;
+            const isLine = geom.includes('LineString');
+
+            if (layer.setStyle) {
+            if (isLine) {
+              // líneas visibles siempre
+              layer.setStyle({ color:'#006837', weight:4, dashArray:'8,4' });
             } else {
-                index = Math.min(Math.floor(Math.log2(value + 1)), colors.length - 1);
+              // polígonos (si hay), usando datos
+              const props = layer.feature.properties;
+              const key   = (props.nombre||props.name).toUpperCase();
+              const d     = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
+              layer.setStyle({
+                fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual),
+                color:'white', weight:1, fillOpacity:0.7
+              });
             }
-            
-            return colors[index];
-        }
-        
-        // Cargar datos de estadísticas y GeoJSON
-        Promise.all([
-            fetch("{% static 'js/colombia.geojson' %}").then(response => response.json()),
-            fetch('/api/estadisticas-municipios/').then(response => response.json())
-        ]).then(([geoJson, estadisticas]) => {
-            datosEstadisticas = estadisticas;
-            
-            municipiosLayer = L.geoJSON(geoJson, {
-                style: function(feature) {
-                    const nombreMunicipio = feature.properties.nombre.toUpperCase();
-                    const datos = datosEstadisticas[nombreMunicipio] || {
-                        totalEncuestas: 0,
-                        totalRespuestas: 0,
-                        tasaFinalizacion: 0,
-                        region: 'No asignada'
-                    };
-                    
-                    return {
-                        fillColor: getColorForValue(datos[tipoEstadisticaActual], tipoEstadisticaActual),
-                        weight: 1,
-                        opacity: 1,
-                        color: 'white',
-                        fillOpacity: 0.7
-                    };
-                },
-                onEachFeature: function(feature, layer) {
-                    const nombreMunicipio = feature.properties.nombre.toUpperCase();
-                    const datos = datosEstadisticas[nombreMunicipio] || {
-                        totalEncuestas: 0,
-                        totalRespuestas: 0,
-                        tasaFinalizacion: 0,
-                        region: 'No asignada'
-                    };
-                    
-                    layer.bindPopup(`
-                        <div class="popup-content">
-                            <h6 class="mb-2">${feature.properties.nombre}</h6>
-                            <p class="mb-1"><small>Región: ${datos.region}</small></p>
-                            <hr class="my-2">
-                            <p class="mb-1">Total Encuestas: <strong>${datos.totalEncuestas}</strong></p>
-                            <p class="mb-1">Total Respuestas: <strong>${datos.totalRespuestas}</strong></p>
-                            <p class="mb-0">Tasa Finalización: <strong>${datos.tasaFinalizacion}%</strong></p>
-                        </div>
-                    `);
-                    
-                    layer.on({
-                        mouseover: function() {
-                            layer.setStyle({
-                                fillOpacity: 0.9,
-                                weight: 2
-                            });
-                        },
-                        mouseout: function() {
-                            layer.setStyle({
-                                fillOpacity: 0.7,
-                                weight: 1
-                            });
-                        },
-                        click: function() {
-                            mostrarInfoMunicipio(nombreMunicipio);
-                        }
-                    });
-                }
-            }).addTo(map);
-            
-            const leyenda = L.control({position: 'bottomright'});
-            leyenda.onAdd = function() {
-                const div = L.DomUtil.create('div', 'info legend');
-                div.style.backgroundColor = 'white';
-                div.style.padding = '10px';
-                div.style.borderRadius = '5px';
-                div.style.boxShadow = '0 1px 5px rgba(0,0,0,0.2)';
-                
-                actualizarLeyenda(div);
-                return div;
-            };
-            leyenda.addTo(map);
-            
-            function actualizarLeyenda(div) {
-                const grades = tipoEstadisticaActual === 'tasaFinalizacion' 
-                    ? [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5]
-                    : [0, 1, 2, 4, 8, 16, 32, 64];
-                
-                let labels = ['<strong>Valores</strong><br>'];
-                
-                for (let i = 0; i < grades.length; i++) {
-                    const from = grades[i];
-                    const to = grades[i + 1];
-                    
-                    labels.push(
-                        '<i style="background:' + getColorForValue(from, tipoEstadisticaActual) + '"></i> ' +
-                        from + (to ? '&ndash;' + to : '+')
-                    );
-                }
-                
-                div.innerHTML = labels.join('<br>');
-            }
-            
-            document.querySelectorAll('#btnTotalEncuestas, #btnTotalRespuestas, #btnTasaFinalizacion').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    const tipo = this.id.replace('btn', '');
-                    tipoEstadisticaActual = tipo.charAt(0).toLowerCase() + tipo.slice(1);
-                    
-                    municipiosLayer.setStyle(function(feature) {
-                        const datos = datosEstadisticas[feature.properties.id] || {
-                            totalEncuestas: 0,
-                            totalRespuestas: 0,
-                            tasaFinalizacion: 0
-                        };
-                        
-                        return {
-                            fillColor: getColorForValue(datos[tipoEstadisticaActual], tipoEstadisticaActual)
-                        };
-                    });
-                    
-                    const legendDiv = document.querySelector('.legend');
-                    if (legendDiv) {
-                        actualizarLeyenda(legendDiv);
-                    }
-                    
-                    document.querySelectorAll('#btnTotalEncuestas, #btnTotalRespuestas, #btnTasaFinalizacion')
-                        .forEach(function(b) {
-                            b.classList.remove('active');
-                        });
-                    this.classList.add('active');
-                });
+          }
+
+            // pop-up
+            layer.bindPopup(`
+              <strong>${props.nombre||props.name}</strong><br>
+              Región: ${d.region}<br>
+              Encuestas: ${d.totalEncuestas}<br>
+              Respuestas: ${d.totalRespuestas}<br>
+              Finalización: ${d.tasaFinalizacion}%
+            `);
+
+            // interactividad
+            layer.on({
+              mouseover()  { if (layer.setStyle) layer.setStyle({ fillOpacity:0.9, weight:2 }); },
+              mouseout()   { if (layer.setStyle) layer.setStyle({ fillOpacity:0.7, weight:1 }); },
+              click()      { mostrarInfoMunicipio(key); }
             });
-            
-            document.getElementById('btnTotalEncuestas').click();
+          });
+
+          const bounds = this.getBounds();
+          if (bounds.isValid && bounds.isValid()) {
+            map.fitBounds(bounds);
+          } else {
+            console.warn('Bounds inválidos, uso vista por defecto');
+            map.setView([4.5709, -74.2973], 6);
+          }
         })
-        .catch(function(error) {
-            console.error('Error al cargar los datos:', error);
-            mapaContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    Error al cargar los datos del mapa
-                </div>
-            `;
-        });
-        
-        function mostrarInfoMunicipio(nombreMunicipio) {
-            const datos = datosEstadisticas[nombreMunicipio];
-            if (!datos) return;
-            
-            const infoPanel = document.getElementById('infoMunicipio');
-            infoPanel.style.display = 'block';
-            
-            document.getElementById('nombreMunicipio').textContent = `${datos.nombre} (${datos.region})`;
-            document.getElementById('totalEncuestasMunicipio').textContent = datos.totalEncuestas;
-            document.getElementById('totalRespuestasMunicipio').textContent = datos.totalRespuestas;
-            document.getElementById('tasaFinalizacionMunicipio').textContent = `${datos.tasaFinalizacion}%`;
-            
-            crearGraficoMunicipio(datos);
-        }
-        
-        function crearGraficoMunicipio(datos) {
-            // Gráfico de Total Encuestas
-            const ctxEncuestas = document.getElementById('estadisticasEncuestasMunicipio').getContext('2d');
-            if (window.municipioChartEncuestas) {
-                window.municipioChartEncuestas.destroy();
-            }
-            window.municipioChartEncuestas = new Chart(ctxEncuestas, {
-                type: 'bar',
-                data: {
-                    labels: ['Total Encuestas'],
-                    datasets: [{
-                        label: 'Total Encuestas',
-                        data: [datos.totalEncuestas],
-                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                        borderColor: 'rgb(13, 110, 253)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Total Encuestas'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+        .on('error', err => console.error('Error cargando KML:', err))
+        .addTo(map);
 
-            // Gráfico de Total Respuestas
-            const ctxRespuestas = document.getElementById('estadisticasRespuestasMunicipio').getContext('2d');
-            if (window.municipioChartRespuestas) {
-                window.municipioChartRespuestas.destroy();
+      // 5) Botones para cambiar estadística
+      document.querySelectorAll('#btnTotalEncuestas, #btnTotalRespuestas, #btnTasaFinalizacion')
+        .forEach(btn => btn.addEventListener('click', function() {
+          tipoEstadisticaActual = this.id.replace('btn','').toLowerCase();
+          kmlLayer.eachLayer(layer => {
+            const props = layer.feature.properties;
+            const key = (props.nombre || props.name).toUpperCase();
+            const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
+            if (layer.setStyle) {
+              layer.setStyle({ fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual) });
             }
-            window.municipioChartRespuestas = new Chart(ctxRespuestas, {
-                type: 'bar',
-                data: {
-                    labels: ['Total Respuestas'],
-                    datasets: [{
-                        label: 'Total Respuestas',
-                        data: [datos.totalRespuestas],
-                        backgroundColor: 'rgba(25, 135, 84, 0.7)',
-                        borderColor: 'rgb(25, 135, 84)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Total Respuestas'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            const noFinalizados = 100 - datos.tasaFinalizacion;
-
-            // Gráfico de Tasa de Finalización
-            const ctxFinalizacion = document.getElementById('estadisticasFinalizacionMunicipio').getContext('2d');
-            if (window.municipioChartFinalizacion) {
-                window.municipioChartFinalizacion.destroy();
-            }
-            window.municipioChartFinalizacion = new Chart(ctxFinalizacion, {
-                type: 'pie',
-                data: {
-                    labels: ['Tasa Finalización', 'No Finalizados'],
-                    datasets: [{
-                        label: 'Tasa Finalización',
-                        data: [datos.tasaFinalizacion, noFinalizados],
-                        backgroundColor: ['rgba(76, 175, 80, 0.7)', 'rgba(255, 99, 71, 0.7)'],
-                        borderColor: ['rgb(76, 175, 80) ', 'rgb(255, 99, 71) '],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Tasa de Finalización (%)'
-                        }
-                    }
-                }
-            });
-        }
-    });
+          });
+          // actualizar leyenda aquí...
+          document.querySelectorAll('.btn-group button').forEach(b=>b.classList.remove('active'));
+          this.classList.add('active');
+        }));
+    })
+    .catch(err => console.error('Error al cargar estadísticas:', err));
+});
 </script>
-{% endblock %} 
+
+{% endblock %}
