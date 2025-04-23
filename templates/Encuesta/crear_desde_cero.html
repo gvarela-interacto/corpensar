@@ -2,6 +2,8 @@
 {% load static %}
 
 {% block content %}
+    <!-- Agregar referencia al nuevo archivo CSS -->
+    <link rel="stylesheet" href="{% static 'css/encuesta/crear_encuesta.css' %}">
     
     <div class="container mt-4">
         <div class="row">
@@ -93,7 +95,7 @@
                             <!-- Switches centrados -->
                             <div class="text-center mt-3 mb-2">
                                 <div class="d-inline-flex gap-5 justify-content-center">
-                                    <div class="form-check form-switch">
+                                    <div class="form-check blue-sidebar-checkbox">
                                         <input class="form-check-input" type="checkbox" id="activa" name="activa" checked>
                                         <label class="form-check-label" for="activa">
                                             <i class="fas fa-toggle-on me-1"></i>
@@ -101,7 +103,7 @@
                                         </label>
                                     </div>
                                     
-                                    <div class="form-check form-switch">
+                                    <div class="form-check blue-sidebar-checkbox">
                                         <input class="form-check-input" type="checkbox" id="es_publica" name="es_publica">
                                         <label class="form-check-label" for="es_publica">
                                             <i class="fas fa-globe me-1"></i>
@@ -224,7 +226,7 @@
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <div class="form-check">
+                        <div class="form-check blue-sidebar-checkbox">
                             <input class="form-check-input question-required" type="checkbox" name="questions[{id}][required]" id="required-{id}" checked>
                             <label class="form-check-label" for="required-{id}">
                                 Respuesta obligatoria
@@ -340,7 +342,7 @@
                 </div>
             </div>
             <div class="mb-3">
-                <div class="form-check">
+                <div class="form-check blue-sidebar-checkbox">
                     <input class="form-check-input include-other" type="checkbox" name="questions[{id}][option_other]" id="other-option-check-{id}">
                     <label class="form-check-label" for="other-option-check-{id}">
                         Incluir opción "Otro"
@@ -373,7 +375,7 @@
                 </button>
             </div>
             <div class="mb-3">
-                <div class="form-check">
+                <div class="form-check blue-sidebar-checkbox">
                     <input class="form-check-input" type="checkbox" name="questions[{id}][empty_option]" id="empty-option-{id}" checked>
                     <label class="form-check-label" for="empty-option-{id}">
                         Incluir opción vacía inicial
@@ -526,7 +528,7 @@
     <template id="date-options-template">
         <div class="date-options">
             <div class="mb-3">
-                <div class="form-check">
+                <div class="form-check blue-sidebar-checkbox">
                     <input class="form-check-input" type="checkbox" name="questions[{id}][include_time]" id="include-time-{id}">
                     <label class="form-check-label" for="include-time-{id}">
                         Incluir hora

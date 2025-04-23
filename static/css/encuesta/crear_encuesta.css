@@ -1,0 +1,1038 @@
+/* Estilos específicos para corregir problemas en la creación de encuestas */
+
+/* Corregir el problema con las opciones múltiples y los checks */
+.radio-options .option-row,
+.check-options .option-row,
+.select-options .option-row,
+.matrix-options .option-row {
+    margin-bottom: 10px !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.radio-options .input-group,
+.check-options .input-group,
+.select-options .input-group,
+.matrix-options .input-group {
+    width: 100% !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: stretch !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+}
+
+.radio-options .input-group-text,
+.check-options .input-group-text,
+.select-options .input-group-text,
+.matrix-options .input-group-text {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+    background-color: #f8f9fa !important;
+    border-color: #e0e0e0 !important;
+    color: #6c757d !important;
+    width: 40px !important;
+    justify-content: center !important;
+    border-right: none !important;
+    height: 38px !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 1rem !important;
+}
+
+.radio-options .form-control,
+.check-options .form-control,
+.select-options .form-control,
+.matrix-options .form-control {
+    flex: 1 !important;
+    border-left: none !important;
+    border-color: #e0e0e0 !important;
+    border-radius: 0 !important;
+    height: 38px !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 1rem !important;
+}
+
+.radio-options .btn-outline-danger,
+.check-options .btn-outline-danger,
+.select-options .btn-outline-danger,
+.matrix-options .btn-outline-danger {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    border-color: #e0e0e0 !important;
+    color: #dc3545 !important;
+    background-color: #fff !important;
+    width: 42px !important;
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-left: none !important;
+}
+
+.radio-options .btn-outline-danger:hover,
+.check-options .btn-outline-danger:hover,
+.select-options .btn-outline-danger:hover,
+.matrix-options .btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+/* Corregir estilo para la sección de opciones */
+.radio-options, 
+.check-options,
+.select-options,
+.scale-options,
+.matrix-options,
+.star-options,
+.text-options,
+.mtext-options,
+.date-options {
+    padding: 15px !important;
+    background-color: #f9f9f9 !important;
+    border-radius: 8px !important;
+    margin-top: 10px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    border: 1px solid #eee !important;
+}
+
+/* Estilizar el botón para agregar opciones */
+.add-option,
+.add-item {
+    margin-top: 8px !important;
+    border-radius: 8px !important;
+    border: 1px dashed #ced4da !important;
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+    transition: all 0.3s ease !important;
+    width: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 16px !important;
+}
+
+.add-option:hover,
+.add-item:hover {
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+    color: #212529 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Corregir estilos para el checkbox que incluye la opción "Otro" */
+.form-check-input.include-other {
+    margin-top: 0.25rem !important;
+    margin-left: 0 !important;
+}
+
+/* Estilizar otros contenedores de texto */
+.other-text-container {
+    padding: 10px !important;
+    background-color: #f0f0f0 !important;
+    border-radius: 8px !important;
+    margin-top: 10px !important;
+}
+
+/* Ajustes adicionales para asegurar consistencia */
+.form-check {
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 0 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.form-check-input {
+    margin-right: 0.5rem !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+}
+
+.form-check-label {
+    margin-bottom: 0 !important;
+    cursor: pointer !important;
+}
+
+/* Forzar un tamaño coherente para los elementos del formulario */
+.option-row input,
+.option-row button,
+.option-row span {
+    box-sizing: border-box !important;
+}
+
+/* Eliminar flexibilidad inconsistente */
+.question-options-container .row {
+    align-items: flex-start !important;
+}
+
+/* Refinar bordes para asegurar continuidad */
+.input-group > :not(:first-child):not(:last-child) {
+    border-radius: 0 !important;
+}
+
+/* Corregir problemas con el checkbox de respuesta obligatoria */
+.question-card .row.mb-3 .col-md-6 {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Estilo para el container de pregunta-campo */
+.question-card .row.mb-3 .col-md-6:first-child {
+    align-items: flex-start !important;
+}
+
+/* Asegurar que el check de respuesta obligatoria está bien alineado */
+.question-card .row.mb-3 .col-md-6 .form-check {
+    width: 100% !important;
+    background-color: #f8f9fa !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    margin-top: 5px !important;
+    margin-bottom: 0 !important;
+}
+
+/* Mejora visual de la matriz */
+.matrix-preview {
+    background-color: white !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    margin-top: 20px !important;
+}
+
+.matrix-preview table {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+}
+
+.matrix-preview th {
+    background-color: #f8f9fa !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+}
+
+/* Mejora de estrellas de valoración */
+.star-rating-preview {
+    display: flex !important;
+    justify-content: center !important;
+    margin-top: 15px !important;
+    margin-bottom: 10px !important;
+}
+
+.star-rating-preview i {
+    color: gold !important;
+    font-size: 24px !important;
+    margin: 0 5px !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+}
+
+/* Estilos para range slider */
+.form-range {
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+input[type="range"] {
+    height: 8px !important;
+    border-radius: 4px !important;
+    background-color: #e9ecef !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    background-color: #4361ee !important;
+}
+
+/* Mejorar textarea en preguntas */
+.question-text {
+    border-radius: 8px !important;
+    resize: vertical !important;
+    min-height: 60px !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.question-text:focus {
+    border-color: #4361ee !important;
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25) !important;
+}
+
+/* Mejorar selects en preguntas */
+.question-type, 
+.question-section {
+    border-radius: 8px !important;
+    height: 40px !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+}
+
+/* Estilos para inputs numéricos */
+input[type="number"] {
+    border-radius: 8px !important;
+    height: 40px !important;
+}
+
+/* Mejorar contraste en etiquetas */
+.form-label {
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    color: #495057 !important;
+}
+
+/* Estilo para campos requeridos */
+.required-asterisk {
+    color: #dc3545 !important;
+    font-weight: bold !important;
+    margin-left: 3px !important;
+}
+
+/* Alinear elementos en los containers de opciones */
+.radio-options .mb-3,
+.check-options .mb-3,
+.select-options .mb-3 {
+    margin-bottom: 1.5rem !important;
+}
+
+/* Evitar que los botones se desborden en móvil */
+@media (max-width: 768px) {
+    .add-option, 
+    .add-item {
+        width: 100% !important;
+    }
+    
+    .question-card .row.mb-3 {
+        flex-direction: column !important;
+    }
+    
+    .question-card .row.mb-3 .col-md-6 {
+        width: 100% !important;
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* Estilo específico para los items de matriz */
+.items-list {
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+    border: 1px solid #eeeeee !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    background-color: #ffffff !important;
+}
+
+.items-list .option-row {
+    margin-bottom: 8px !important;
+}
+
+.items-list .option-row:last-child {
+    margin-bottom: 0 !important;
+}
+
+.remove-item {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    border-color: #e0e0e0 !important;
+    color: #dc3545 !important;
+    background-color: #fff !important;
+    width: 42px !important;
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-left: none !important;
+}
+
+.remove-item:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+/* Mejorar visualización de escalas */
+.scale-container {
+    background-color: #fff !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    margin-bottom: 20px !important;
+    border: 1px solid #eeeeee !important;
+}
+
+/* Mejora visual para botones de pregunta */
+.preview-btn, .delete-question {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-left: 5px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+.preview-btn:hover {
+    background-color: #4361ee !important;
+    color: white !important;
+    border-color: #4361ee !important;
+}
+
+.delete-question:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+}
+
+/* Mejorar las tarjetas de pregunta */
+.question-card {
+    transition: all 0.3s ease !important;
+    overflow: hidden !important;
+}
+
+.question-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+.question-card .card-header {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+    padding: 12px 16px !important;
+}
+
+.question-card .card-body {
+    padding: 20px !important;
+}
+
+/* Estilo para el número de pregunta */
+.question-number {
+    font-weight: 600 !important;
+    color: #4361ee !important;
+}
+
+/* Cuadro de texto de ayuda más elegante */
+.question-help {
+    border-radius: 8px !important;
+    border: 1px solid #e0e0e0 !important;
+    padding: 10px !important;
+    transition: all 0.3s ease !important;
+}
+
+.question-help:focus {
+    border-color: #4361ee !important;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15) !important;
+}
+
+/* Mejorar estilos para los contenedores de las opciones tipo radio y check */
+.option-row .input-group {
+    transition: all 0.3s ease !important;
+}
+
+.option-row:hover .input-group {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* Mejorar el aspecto del switch de respuesta obligatoria */
+.form-switch {
+    padding-left: 2.5em !important;
+    min-height: 30px !important;
+}
+
+.form-switch .form-check-input {
+    margin-left: -2.5em !important;
+    width: 2em !important;
+    height: 1em !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e") !important;
+    background-color: #e9ecef !important;
+    border-color: #ced4da !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #4361ee !important;
+    border-color: #4361ee !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e") !important;
+}
+
+/* Mejorar los radio buttons en la matriz */
+.matrix-preview table input[type="radio"] {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 auto !important;
+    display: block !important;
+    border: 2px solid #ced4da !important;
+    cursor: pointer !important;
+}
+
+.matrix-preview table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+    height: 45px !important;
+}
+
+.matrix-preview table td:first-child {
+    text-align: left !important;
+    font-weight: 500 !important;
+}
+
+/* Mejora de los textos de ayuda */
+.form-text {
+    display: block !important;
+    margin-top: 0.25rem !important;
+    font-size: 0.8rem !important;
+    color: #6c757d !important;
+}
+
+/* Mejores inputs numéricos */
+input[type="number"] {
+    text-align: center !important;
+}
+
+input[type="number"]:focus {
+    border-color: #4361ee !important;
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25) !important;
+}
+
+/* Añadir estilos al icono de la matriz */
+.fa-star {
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+/* Estilizar los placeholders */
+::placeholder {
+    color: #adb5bd !important;
+    opacity: 0.7 !important;
+}
+
+/* Secciones para las preguntas */
+.section-divider {
+    background-color: #f0f7ff !important;
+    border-radius: 8px !important;
+    border-left: 4px solid #4361ee !important;
+    padding: 15px !important;
+    margin-bottom: 20px !important;
+    transition: all 0.3s ease !important;
+}
+
+.section-divider:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;
+    transform: translateY(-3px) !important;
+}
+
+.section-divider .section-title {
+    border: 1px solid #d0e1fd !important;
+    background-color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    height: 40px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.section-divider .section-title:focus {
+    border-color: #4361ee !important;
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15) !important;
+}
+
+.section-divider .btn-outline-danger {
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+}
+
+.section-divider .btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+/* Mejora para respuesta obligatoria */
+.question-required {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    margin-top: 0 !important;
+}
+
+/* Corregir específicamente el checkmark desfasado */
+.col-md-6 .form-check {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+}
+
+.col-md-6 .form-check .form-check-input {
+    flex: 0 0 auto !important;
+    margin-right: 10px !important;
+}
+
+.col-md-6 .form-check .form-check-label {
+    flex: 1 1 auto !important;
+}
+
+/* Mejora estética general de los botones */
+.btn {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+}
+
+.btn:active {
+    transform: translateY(0) !important;
+}
+
+/* Espaciado vertical entre cards */
+.card {
+    margin-bottom: 2rem !important;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+}
+
+/* NUEVAS CORRECCIONES */
+
+/* Corregir los select que se ven cortados */
+.form-select,
+select.form-control,
+select.question-type,
+select.question-section {
+    height: auto !important; /* Eliminar altura fija */
+    min-height: 40px !important; /* Altura mínima */
+    padding: 8px 12px !important; /* Espaciado interno adecuado */
+    white-space: normal !important; /* Permitir que el texto se ajuste */
+    text-overflow: clip !important; /* No recortar texto */
+    line-height: 1.5 !important; /* Espaciado de línea normal */
+    font-size: 0.95rem !important; /* Tamaño de fuente ligeramente reducido */
+    overflow: visible !important; /* Permitir que el contenido sea visible */
+}
+
+/* Corregir el contenedor row-mb-3 que contiene el checkbox problemático */
+.question-card .row.mb-3 {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    margin-right: -10px !important;
+    margin-left: -10px !important;
+}
+
+.question-card .row.mb-3 .col-md-6 {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Cambiar completamente cómo se maneja el check de respuesta obligatoria */
+.question-card .form-check {
+    background-color: #f8f9fa !important;
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #e0e0e0 !important;
+    display: flex !important;
+    align-items: center !important;
+    min-height: 42px !important; /* Altura fija para alinearse con otros elementos */
+}
+
+/* Para asegurar que el input check de respuesta obligatoria se posicione correctamente */
+.question-required {
+    margin-right: 10px !important;
+    flex: 0 0 auto !important;
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer !important;
+}
+
+/* Para verificar que la etiqueta asociada al check también esté bien posicionada */
+.question-card label.form-check-label {
+    margin: 0 !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    color: #495057 !important;
+}
+
+/* Estilo mejorado para los select */
+.question-type,
+.question-section {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+    padding-right: 30px !important; /* Espacio adicional para el ícono */
+}
+
+/* Más espacio para la sección "Respuesta obligatoria" */
+.respuesta-obligatoria-container {
+    width: 100% !important;
+    padding: 10px !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Corrección específica para radio y check azul del switch */
+input[type="checkbox"].form-check-input,
+input[type="radio"].form-check-input {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    margin-top: 0 !important;
+}
+
+input[type="checkbox"].form-check-input:checked,
+input[type="radio"].form-check-input:checked {
+    background-color: #4361ee !important;
+    border-color: #4361ee !important;
+}
+
+/* Corregir espaciado entre los elementos de la tarjeta de pregunta */
+.question-card .card-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important; /* Espaciado uniforme entre elementos */
+}
+
+/* Ajuste a los textos largos en los select */
+.question-type option,
+.question-section option {
+    padding: 5px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+
+/* Estilos para el checkbox con barra azul vertical */
+.form-check.custom-checkbox {
+    position: relative !important;
+    padding-left: 10px !important;
+    border-left: 4px solid #4361ee !important;
+}
+
+.form-check.custom-checkbox .form-check-input {
+    position: static !important;
+}
+
+/* Corregir el container de respuesta obligatoria */
+.respuesta-obligatoria {
+    position: relative !important;
+    padding-left: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    background-color: #f8f9fa !important;
+    border-left: 4px solid #4361ee !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 10px 15px !important;
+    height: 50px !important;
+}
+
+/* Tratar casos específicos de respuesta obligatoria */
+.checkbox-row {
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px !important;
+    background: #f8f9fa !important;
+    border-radius: 8px !important;
+    border-left: 3px solid #4361ee !important;
+    margin-bottom: 15px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+.checkbox-row input[type="checkbox"] {
+    margin-right: 10px !important;
+    flex: 0 0 auto !important;
+}
+
+/* Corregir los select tipo matriz */
+.scale-container select,
+.matrix-options select {
+    height: auto !important;
+    min-height: 38px !important;
+    appearance: auto !important; /* Restaurar apariencia nativa */
+}
+
+/* Mejorar la apariencia del texto dentro de los select */
+select option {
+    padding: 5px !important;
+}
+
+/* Elimina problema de desbordamiento */
+.question-type, 
+.question-section {
+    overflow-x: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* Fijar altura para los inputs numéricos */
+.scale-container input[type="number"],
+.matrix-options input[type="number"],
+.star-options input[type="number"] {
+    height: 38px !important;
+}
+
+/* Estilos para el checkbox con barra azul que aparece en tipo independiente */
+.blue-checkbox-container {
+    position: relative !important;
+    display: block !important;
+}
+
+/* Estilos para el checkbox vertical con la barra azul como se ve en la segunda imagen */
+.blue-checkbox {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 40px !important;
+}
+
+.blue-checkbox::before {
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 4px !important;
+    background-color: #4361ee !important;
+    border-radius: 2px 0 0 2px !important;
+}
+
+/* Selector específico para resolver el problema del checkbox en la imagen */
+.question-type + div .form-check {
+    position: relative !important;
+    border-left: 4px solid #4361ee !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    border-radius: 0 8px 8px 0 !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    background-color: #f8f9fa !important;
+    padding: 10px 15px !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+.question-type + div .form-check .form-check-input {
+    margin-right: 10px !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.question-type + div .form-check .form-check-label {
+    font-weight: 500 !important;
+}
+
+/* Para cambiar todos los checkbox a un estilo consistente */
+input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    margin-top: 0 !important;
+    margin-right: 10px !important;
+    cursor: pointer !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #4361ee !important;
+    border-color: #4361ee !important;
+}
+
+/* Estilo específico para el checkbox vertical que se muestra en las imágenes */
+.vertical-checkbox-container {
+    display: flex !important;
+    align-items: stretch !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+.vertical-checkbox-bar {
+    width: 4px !important;
+    background-color: #4361ee !important;
+    border-radius: 2px 0 0 2px !important;
+    margin-right: 0 !important;
+}
+
+.vertical-checkbox-content {
+    flex: 1 !important;
+    background-color: #f8f9fa !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 10px 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+/* Sobrescribe estilos para cualquier checkbox inline que pueda estar causando problemas */
+.form-check-inline {
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 0 !important;
+    margin-right: 0.75rem !important;
+}
+
+/* CORRECCIONES FINALES */
+
+/* Asegurar que los select no recorten texto */
+select.form-select {
+    padding-right: 2rem !important; /* Espacio para el ícono de flecha */
+    white-space: normal !important; /* Permitir múltiples líneas */
+    height: auto !important; /* Altura automática */
+    min-height: 40px !important; /* Altura mínima */
+    text-overflow: unset !important; /* Evitar recorte */
+    width: 100% !important; /* Ancho completo */
+    overflow: visible !important; /* Permitir visibilidad del contenido */
+}
+
+/* Estilos específicos para los selects de tipo de pregunta y sección */
+.question-type-container select,
+.question-section-container select {
+    height: auto !important;
+    min-height: 40px !important;
+    padding: 8px 30px 8px 12px !important; /* Aumentar padding derecho para la flecha */
+    appearance: none !important; /* Eliminar apariencia nativa */
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 16px 12px !important;
+    position: relative !important;
+}
+
+/* Mejoras para el checkbox de respuesta obligatoria */
+.checkbox-obligatorio {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    height: 42px !important;
+    background-color: #f8f9fa !important;
+    border-radius: 8px !important;
+    border-left: 4px solid #4361ee !important;
+    padding: 0 15px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+.checkbox-obligatorio input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 10px !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+.checkbox-obligatorio label {
+    margin: 0 !important;
+    font-weight: 500 !important;
+}
+
+/* Sobreescribir las propiedades del campo de respuesta obligatoria */
+[for="required-1"] {
+    margin-top: 0 !important; /* Eliminar margen superior */
+    padding: 0 !important; /* Eliminar padding */
+}
+
+#required-1 {
+    margin-right: 10px !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+
+/* Manejo de todos los casos para checkbox verticales */
+.form-check:has(.form-check-input[type="checkbox"]) {
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 15px !important;
+    background-color: #f8f9fa !important;
+    border-radius: 8px !important;
+    border-left: 4px solid #4361ee !important;
+    margin-bottom: 15px !important;
+    min-height: 42px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+/* Estilos específicos para el caso de los checkboxes en RADIO, CHECK y SELECT */
+.radio-options .form-check,
+.check-options .form-check,
+.select-options .form-check {
+    margin-top: 5px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Estilo específico para el checkbox con barra lateral azul */
+.blue-sidebar-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    background-color: #f8f9fa !important;
+    border-radius: 0 8px 8px 0 !important;
+    border-left: 4px solid #4361ee !important;
+    padding: 10px 15px !important;
+    margin: 0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    min-height: 42px !important;
+}
+
+.blue-sidebar-checkbox .form-check-input {
+    margin-right: 10px !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin-top: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+.blue-sidebar-checkbox .form-check-label {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 500 !important;
+    color: #495057 !important;
+}
+
+/* ESTILOS ESPECÍFICOS PARA OVERRIDES */
+
+/* Para los select cortados en tipo pregunta y sección */
+select[name="questions[{id}][type]"],
+select[name="questions[{id}][section]"] {
+    height: auto !important;
+    min-height: 40px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: unset !important;
+}
+
+/* Override general para todos los select */
+select {
+    text-overflow: ellipsis !important;
+    padding-right: 30px !important;
+}
+
+/* Estilo para el container que tiene el checkbox de "Respuesta obligatoria" */
+.col-md-6:has(.blue-sidebar-checkbox) {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+/* Estilo específico para el checkbox independiente que aparece en las segundas imágenes */
+.row > div > .form-check {
+    display: flex !important;
+    align-items: center !important;
+    background-color: #f8f9fa !important;
+    border-radius: 0 8px 8px 0 !important;
+    border-left: 4px solid #4361ee !important;
+    padding: 10px 15px !important;
+    margin: 0 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    min-height: 42px !important;
+} 

@@ -2,11 +2,13 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
+<link rel="stylesheet" href="{% static 'css/regiones_municipios.css' %}">
+
+<div class="container-fluid px-4 mt-4">
     <div class="row mb-4">
-        <div class="col-md-12">
+        <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h2 class="mb-0"><i class="mdi mdi-map-marker-radius"></i> Regiones y Municipios</h2>
+                <h2 class="mb-0"><i class="mdi mdi-map-marker-radius me-2"></i> Regiones y Municipios</h2>
                 <div>
                     <a href="{% url 'crear_region' %}" class="btn-modern btn-primary-modern me-2">
                         <i class="mdi mdi-map-marker-plus me-1"></i> Nueva Región
@@ -22,7 +24,7 @@
 
     {% if messages %}
     <div class="row mb-4">
-        <div class="col-md-12">
+        <div class="col-12">
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                 {{ message }}
@@ -33,37 +35,36 @@
     </div>
     {% endif %}
 
-    <div class="row">
+    <div class="row g-3">
         {% for region in regiones %}
-        <div class="col-md-6 mb-4">
-            <div class="card-modern h-100 fade-in-card">
-                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white;">
+        <div class="col-md-4 col-lg-4 mb-3 fade-in-card">
+            <div class="card-modern h-100 region-card">
+                <div class="card-header region-header d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
                         <i class="mdi mdi-earth me-2" style="font-size: 20px;"></i>
-                        <h5 class="mb-0">{{ region.nombre }}</h5>
+                        <h5 class="mb-0 text-truncate region-title">{{ region.nombre }}</h5>
                     </div>
-                    <div>
-                        <span class="badge-modern badge-light-modern me-2" style="background-color: rgba(255,255,255,0.2); color: white;">
+                    <div class="d-flex align-items-center">
+                        <span class="region-badge me-2">
                             {{ region.municipios.count }} municipios
                         </span>
-                        <button class="btn btn-sm btn-icon-only" 
-                                style="background-color: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 8px; border: none; transition: all 0.2s ease;"
+                        <button class="delete-btn" 
                                 onclick="confirmarEliminarRegion('{{ region.id }}', '{{ region.nombre }}')"
-                                {% if region.municipios.exists %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}
+                                {% if region.municipios.exists %}disabled{% endif %}
                                 title="{% if region.municipios.exists %}No se puede eliminar una región con municipios{% else %}Eliminar región{% endif %}">
-                            <i class="mdi mdi-delete"></i>
+                            <i class="mdi mdi-delete" style="font-size: 16px;"></i>
                         </button>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if region.municipios.all %}
                     <div class="table-responsive custom-scrollbar">
-                        <table class="table-modern">
+                        <table class="table-modern mb-0">
                             <thead>
                                 <tr>
-                                    <th style="width: 40px;">#</th>
+                                    <th style="width: 30px;">#</th>
                                     <th>Municipio</th>
-                                    <th class="text-end" style="width: 80px;">Acciones</th>
+                                    <th class="text-end" style="width: 50px;">Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -73,7 +74,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <i class="mdi mdi-city me-2 text-muted"></i>
-                                            <span>{{ municipio.nombre }}</span>
+                                            <span class="text-truncate municipio-nombre">{{ municipio.nombre }}</span>
                                         </div>
                                     </td>
                                     <td class="text-end">
@@ -88,13 +89,13 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="empty-state">
+                    <div class="empty-state compact">
                         <div class="empty-state-icon">
                             <i class="mdi mdi-information-outline"></i>
                         </div>
-                        <p class="empty-state-text">No hay municipios registrados en esta región.</p>
+                        <p class="empty-state-text">No hay municipios registrados</p>
                         <a href="{% url 'crear_municipio' %}" class="btn-modern btn-primary-modern btn-sm mt-2">
-                            <i class="mdi mdi-plus me-1"></i> Agregar municipio
+                            <i class="mdi mdi-plus me-1"></i> Agregar
                         </a>
                     </div>
                     {% endif %}
@@ -177,100 +178,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .fade-in-card {
-        animation: fadeInUp 0.5s ease forwards;
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .custom-scrollbar {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 10px;
-    }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }
-    
-    .btn-icon-action {
-        background: none;
-        border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    
-    .btn-icon-action:hover {
-        background-color: rgba(0,0,0,0.05);
-    }
-    
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        text-align: center;
-    }
-    
-    .empty-state-icon {
-        font-size: 3rem;
-        color: #c1c1c1;
-        margin-bottom: 1rem;
-    }
-    
-    .empty-state-text {
-        color: #6c757d;
-        margin-bottom: 0;
-    }
-    
-    .empty-state.large {
-        padding: 4rem 2rem;
-    }
-    
-    .empty-state-icon.large {
-        font-size: 5rem;
-    }
-    
-    .empty-state-title {
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-    }
-    
-    .empty-state-card {
-        border: 2px dashed #e0e0e0;
-        background-color: rgba(0,0,0,0.01);
-    }
-</style>
 
 {% block javascript %}
 <script>

@@ -5,44 +5,49 @@
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-lg-6 col-md-8">
-            <div class="card-modern">
-                <div class="card-header d-flex align-items-center">
+            <div class="card-modern" style="border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                <div class="card-header d-flex align-items-center" style="background: linear-gradient(to right, #f8f9fa, #ffffff); border-radius: 16px 16px 0 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
                     <i class="mdi mdi-city-variant-outline me-2" style="font-size: 24px; color: var(--primary-color);"></i>
-                    <h4 class="mb-0">Crear Nuevo Municipio</h4>
+                    <h4 class="mb-0" style="color: #333; font-weight: 600;">Crear Nuevo Municipio</h4>
                 </div>
                 <div class="card-body p-4">
                     <form method="post" id="municipioForm">
                         {% csrf_token %}
                         
-                        <div class="form-group-modern">
-                            <label for="nombre" class="form-label-modern">Nombre del Municipio</label>
+                        <div class="form-group-modern mb-4">
+                            <label for="nombre" class="form-label-modern" style="margin-bottom: 10px; color: #444; font-weight: 500;">Nombre del Municipio</label>
                             <input type="text" class="form-control-modern" id="nombre" name="nombre" required 
-                                placeholder="Ingrese el nombre del municipio" autocomplete="off">
-                            <div class="form-text mt-1">Ingrese el nombre oficial del municipio.</div>
+                                placeholder="Ingrese el nombre del municipio" autocomplete="off"
+                                style="border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <div class="form-text mt-2" style="color: #6c757d; font-size: 0.85rem; padding-left: 5px;">Ingrese el nombre oficial del municipio.</div>
                         </div>
                         
-                        <div class="form-group-modern mt-3">
-                            <label for="region" class="form-label-modern">Región</label>
-                            <select class="select-modern form-control-modern" id="region" name="region" required>
+                        <div class="form-group-modern mb-4">
+                            <label for="region" class="form-label-modern" style="margin-bottom: 10px; color: #444; font-weight: 500;">Región</label>
+                            <select class="form-control-modern select-region" id="region" name="region" required
+                                   style="border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); appearance: none;">
                                 <option value="">Seleccione una región</option>
                                 {% for region in regiones %}
                                 <option value="{{ region.id }}">{{ region.nombre }}</option>
                                 {% endfor %}
                             </select>
-                            <div class="form-text mt-1">Seleccione la región a la que pertenece este municipio.</div>
+                            <div class="form-text mt-2" style="color: #6c757d; font-size: 0.85rem; padding-left: 5px;">Seleccione la región a la que pertenece este municipio.</div>
                             
                             {% if regiones|length == 0 %}
-                            <div class="alert-modern alert-warning-modern mt-2">
-                                <small>No hay regiones disponibles. <a href="{% url 'crear_region' %}" class="alert-link">Crear una región</a> primero.</small>
+                            <div class="alert mt-3" style="border-radius: 12px; padding: 15px; background-color: rgba(255, 152, 0, 0.1); border-left: 4px solid #FF9800; color: #855100;">
+                                <div class="d-flex align-items-center">
+                                    <i class="mdi mdi-alert-circle me-2" style="font-size: 20px;"></i>
+                                    <small>No hay regiones disponibles. <a href="{% url 'crear_region' %}" style="color: #FF9800; text-decoration: none; font-weight: 500;">Crear una región</a> primero.</small>
+                                </div>
                             </div>
                             {% endif %}
                         </div>
                         
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'regiones_y_municipios' %}" class="btn-modern btn-secondary-modern">
+                            <a href="{% url 'regiones_y_municipios' %}" class="btn-soft btn-secondary-soft" style="padding: 10px 20px; border-radius: 12px; font-weight: 500; text-decoration: none; color: #6c757d; background-color: #f8f9fa; border: 1px solid #e0e0e0; transition: all 0.3s ease;">
                                 <i class="mdi mdi-arrow-left me-1"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn-modern btn-primary-modern" {% if regiones|length == 0 %}disabled{% endif %}>
+                            <button type="submit" class="btn-soft btn-primary-soft" {% if regiones|length == 0 %}disabled style="opacity: 0.6; cursor: not-allowed;"{% endif %} style="padding: 10px 24px; border-radius: 12px; font-weight: 500; color: #fff; background: linear-gradient(135deg, #4361ee, #3f37c9); border: none; box-shadow: 0 3px 10px rgba(67, 97, 238, 0.2); transition: all 0.3s ease;">
                                 <i class="mdi mdi-content-save me-1"></i> Crear Municipio
                             </button>
                         </div>
@@ -52,6 +57,40 @@
         </div>
     </div>
 </div>
+
+<style>
+    .btn-soft:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .btn-primary-soft:hover {
+        background: linear-gradient(135deg, #3f37c9, #4361ee);
+    }
+    
+    .btn-secondary-soft:hover {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    .form-control-modern:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    
+    .select-region {
+        background-image: url('{% static "images/chevron-down.svg" %}');
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 15px;
+    }
+    
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 1.5rem !important;
+        }
+    }
+</style>
 
 {% block javascript %}
 <script>
@@ -77,6 +116,25 @@
                 showSystemMessage('Debe seleccionar una región', 'warning');
                 regionSelect.focus();
             }
+        });
+        
+        // Efecto de pulsación en botones
+        const buttons = document.querySelectorAll('.btn-soft');
+        buttons.forEach(button => {
+            if (button.hasAttribute('disabled')) return;
+            
+            button.addEventListener('mousedown', function() {
+                this.style.transform = 'translateY(1px)';
+                this.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+            });
+            button.addEventListener('mouseup', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
         });
     });
 </script>
