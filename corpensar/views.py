@@ -208,8 +208,13 @@ from .models import *
 from .forms import *
 
 # Vista para la página de selección de método de creación
+@login_required
 def seleccionar_metodo_creacion(request):
-    return render(request, 'Encuesta/seleccionar_metodo.html')
+    # Obtener las encuestas del usuario actual
+    encuestas = Encuesta.objects.filter(creador=request.user).order_by('-fecha_creacion')
+    return render(request, 'Encuesta/seleccionar_metodo.html', {
+        'encuestas': encuestas
+    })
 
 # Vista para crear encuesta desde cero
 @login_required
@@ -545,28 +550,75 @@ def crear_con_ia(request):
     return render(request, 'Encuesta/crear_con_ia.html')
 
 # Vista para duplicar encuesta
-def duplicar_encuesta(request):
+@login_required
+def duplicar_encuesta(request, encuesta_id):
+    encuesta_original = get_object_or_404(Encuesta, id=encuesta_id)
+    
     if request.method == 'POST':
-        encuesta_id = request.POST.get('encuesta_a_duplicar')
-        encuesta_original = get_object_or_404(Encuesta, id=encuesta_id)
-        
-        # Duplicar la encuesta
-        nueva_encuesta = Encuesta(
-            titulo=f"Copia de {encuesta_original.titulo}",
-            descripcion=encuesta_original.descripcion,
+        # Crear nueva encuesta con los datos del formulario
+        nueva_encuesta = Encuesta.objects.create(
+            titulo=request.POST.get('titulo'),
+            region_id=request.POST.get('region'),
+            categoria_id=request.POST.get('categoria'),
             creador=request.user,
-            es_publica=False
+            activa=request.POST.get('activa') == 'on',
+            es_publica=request.POST.get('es_publica') == 'on',
+            tema=encuesta_original.tema,
+            imagen_encabezado=encuesta_original.imagen_encabezado,
+            color_principal=encuesta_original.color_principal,
+            color_secundario=encuesta_original.color_secundario,
+            color_fondo=encuesta_original.color_fondo
         )
-        nueva_encuesta.save()
         
-        # Aquí deberías también duplicar las preguntas y opciones
+        # Duplicar todas las preguntas
+        for pregunta in encuesta_original.preguntas.all():
+            # Crear nueva pregunta con los mismos datos
+            nueva_pregunta = Pregunta.objects.create(
+                encuesta=nueva_encuesta,
+                texto=pregunta.texto,
+                tipo=pregunta.tipo,
+                orden=pregunta.orden,
+                requerida=pregunta.requerida,
+                ayuda=pregunta.ayuda
+            )
+            
+            # Si la pregunta tiene opciones, duplicarlas también
+            if hasattr(pregunta, 'opciones'):
+                for opcion in pregunta.opciones.all():
+                    Opcion.objects.create(
+                        pregunta=nueva_pregunta,
+                        texto=opcion.texto,
+                        valor=opcion.valor,
+                        orden=opcion.orden
+                    )
+            
+            # Si es una pregunta de matriz, duplicar las filas y columnas
+            if hasattr(pregunta, 'filas'):
+                for fila in pregunta.filas.all():
+                    FilaMatriz.objects.create(
+                        pregunta=nueva_pregunta,
+                        texto=fila.texto,
+                        orden=fila.orden
+                    )
+                for columna in pregunta.columnas.all():
+                    ColumnaMatriz.objects.create(
+                        pregunta=nueva_pregunta,
+                        texto=columna.texto,
+                        orden=columna.orden
+                    )
         
         messages.success(request, 'Encuesta duplicada exitosamente!')
         return redirect('editar_encuesta', encuesta_id=nueva_encuesta.id)
     
-    # Mostrar listado de encuestas para seleccionar cuál duplicar
-    encuestas = Encuesta.objects.filter(creador=request.user)
-    return render(request, 'Encuesta/seleccionar_para_duplicar.html', {'encuestas': encuestas})
+    # Si es GET, mostrar el formulario de duplicación
+    regiones = Region.objects.all()
+    categorias = Categoria.objects.all()
+    
+    return render(request, 'Encuesta/duplicar_encuesta.html', {
+        'encuesta_original': encuesta_original,
+        'regiones': regiones,
+        'categorias': categorias
+    })
 
 # Vista para editar encuesta (común para todos los métodos)
 @login_required
