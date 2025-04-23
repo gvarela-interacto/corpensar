@@ -1,6 +1,62 @@
 {% load grupo_tags %}
 
-<nav class="sidebar sidebar-offcanvas" id="sidebar">
+<nav class="sidebar sidebar-offcanvas" id="sidebar" style="background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); box-shadow: 0 0 20px rgba(0,0,0,0.2);">
+    <style>
+        .sidebar .nav .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar .nav .nav-item .nav-link {
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin: 0 15px;
+            padding: 12px 15px;
+        }
+        
+        .sidebar .nav .nav-item .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav .nav-item.active .nav-link {
+            background: rgba(67, 97, 238, 0.3);
+            border-left: 4px solid #4361ee;
+        }
+        
+        .sidebar .nav .nav-item .menu-icon {
+            color: rgba(255, 255, 255, 0.7);
+            background: transparent;
+            margin-right: 10px;
+            font-size: 1.1rem;
+            width: 30px;
+            text-align: center;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav .nav-item .nav-link:hover .menu-icon {
+            color: #fff;
+            transform: scale(1.1);
+        }
+        
+        .sidebar .nav .nav-item .menu-title {
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+        
+        .sidebar .nav .nav-category {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 20px 15px 5px;
+            padding-left: 10px;
+        }
+    </style>
     <ul class="nav">
 
         <li class="nav-item nav-category">Encuestas</li>

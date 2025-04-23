@@ -1,0 +1,117 @@
+{
+  "regiones": [
+    {
+      "nombre": "REGIÓN ANDINA",
+      "municipios": [
+        "MEDELLÍN",
+        "BOGOTÁ D.C.",
+        "BUCARAMANGA",
+        "CÚCUTA",
+        "TUNJA",
+        "MANIZALES",
+        "PEREIRA",
+        "ARMENIA",
+        "IBAGUÉ",
+        "NEIVA",
+        "POPAYÁN",
+        "PASTO"
+      ]
+    },
+    {
+      "nombre": "REGIÓN CARIBE",
+      "municipios": [
+        "BARRANQUILLA",
+        "CARTAGENA",
+        "SANTA MARTA",
+        "RIOHACHA",
+        "VALLEDUPAR",
+        "MONTERÍA",
+        "SINCELEJO",
+        "SAN ANDRÉS"
+      ]
+    },
+    {
+      "nombre": "REGIÓN PACÍFICA",
+      "municipios": [
+        "CALI",
+        "BUENAVENTURA",
+        "TUMACO",
+        "QUIBDÓ",
+        "GUAPI",
+        "TIMBIQUÍ"
+      ]
+    },
+    {
+      "nombre": "REGIÓN ORINOQUÍA",
+      "municipios": [
+        "VILLAVICENCIO",
+        "YOPAL",
+        "ARAUCA",
+        "PUERTO CARREÑO",
+        "INÍRIDA",
+        "PUERTO GAITÁN",
+        "ACACÍAS"
+      ]
+    },
+    {
+      "nombre": "REGIÓN AMAZONÍA",
+      "municipios": [
+        "LETICIA",
+        "FLORENCIA",
+        "MOCOA",
+        "MITÚ",
+        "SAN JOSÉ DEL GUAVIARE",
+        "PUERTO LEGUÍZAMO"
+      ]
+    },
+    {
+      "nombre": "REGIÓN OLEODUCTO NORTE",
+      "municipios": [
+        "BARRANCABERMEJA",
+        "PUERTO BOYACÁ",
+        "LA DORADA",
+        "PUERTO SALGAR",
+        "PUERTO TRIUNFO",
+        "PUERTO NARE",
+        "YONDÓ"
+      ]
+    },
+    {
+      "nombre": "REGIÓN OLEODUCTO SUR",
+      "municipios": [
+        "ORITO",
+        "VALLE DEL GUAMUEZ",
+        "PUERTO ASÍS",
+        "PUERTO CAICEDO",
+        "VILLAGARZÓN",
+        "HORMIGA"
+      ]
+    },
+    {
+      "nombre": "REGIÓN OLEODUCTO CENTRAL",
+      "municipios": [
+        "AGUAZUL",
+        "MONTERREY",
+        "TAURAMENA",
+        "SABANALARGA",
+        "CUMARAL",
+        "RESTREPO",
+        "ACACÍAS"
+      ]
+    }
+  ],
+  "notas": [
+    "Los nombres de municipios están en MAYÚSCULAS para coincidir con el formato del backend",
+    "Las regiones están organizadas geográficamente y por zonas de influencia del oleoducto",
+    "Se incluyen las principales ciudades y municipios relevantes para el proyecto",
+    "Se pueden agregar más municipios según sea necesario",
+    "Cada municipio debe pertenecer a una única región para evitar duplicados en las estadísticas"
+  ],
+  "recomendaciones": [
+    "Mantener la consistencia en el uso de mayúsculas para los nombres",
+    "Verificar que los nombres coincidan exactamente con los del GeoJSON",
+    "Actualizar la lista según las necesidades específicas del proyecto",
+    "Considerar agregar más municipios en las zonas de influencia del oleoducto",
+    "Mantener actualizada la base de datos con los nuevos municipios que se agreguen"
+  ]
+} 

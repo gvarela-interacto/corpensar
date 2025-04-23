@@ -555,60 +555,147 @@ def duplicar_encuesta(request, encuesta_id):
     encuesta_original = get_object_or_404(Encuesta, id=encuesta_id)
     
     if request.method == 'POST':
-        # Crear nueva encuesta con los datos del formulario
-        nueva_encuesta = Encuesta.objects.create(
-            titulo=request.POST.get('titulo'),
-            region_id=request.POST.get('region'),
-            categoria_id=request.POST.get('categoria'),
-            creador=request.user,
-            activa=request.POST.get('activa') == 'on',
-            es_publica=request.POST.get('es_publica') == 'on',
-            tema=encuesta_original.tema,
-            imagen_encabezado=encuesta_original.imagen_encabezado,
-            color_principal=encuesta_original.color_principal,
-            color_secundario=encuesta_original.color_secundario,
-            color_fondo=encuesta_original.color_fondo
-        )
-        
-        # Duplicar todas las preguntas
-        for pregunta in encuesta_original.preguntas.all():
-            # Crear nueva pregunta con los mismos datos
-            nueva_pregunta = Pregunta.objects.create(
-                encuesta=nueva_encuesta,
-                texto=pregunta.texto,
-                tipo=pregunta.tipo,
-                orden=pregunta.orden,
-                requerida=pregunta.requerida,
-                ayuda=pregunta.ayuda
+        try:
+            # Crear nueva encuesta con todos los campos necesarios
+            nueva_encuesta = Encuesta.objects.create(
+                titulo=request.POST.get('titulo', f"{encuesta_original.titulo} (Copia)"),
+                creador=request.user,
+                region_id=request.POST.get('region'),
+                categoria_id=request.POST.get('categoria'),
+                activa=request.POST.get('activa') == 'on',
+                es_publica=request.POST.get('es_publica') == 'on',
+                fecha_inicio=timezone.now(),  # Fecha actual como fecha de inicio
+                fecha_fin=encuesta_original.fecha_fin,  # Copiar fecha de fin
+                tema=encuesta_original.tema,
+                imagen_encabezado=encuesta_original.imagen_encabezado,
+                logotipo=encuesta_original.logotipo,
+                mostrar_logo=encuesta_original.mostrar_logo,
+                estilo_fuente=encuesta_original.estilo_fuente,
+                tamano_fuente=encuesta_original.tamano_fuente,
+                estilo_bordes=encuesta_original.estilo_bordes,
+                tipo_fondo=encuesta_original.tipo_fondo,
+                color_fondo=encuesta_original.color_fondo,
+                color_gradiente_1=encuesta_original.color_gradiente_1,
+                color_gradiente_2=encuesta_original.color_gradiente_2,
+                imagen_fondo=encuesta_original.imagen_fondo,
+                patron_fondo=encuesta_original.patron_fondo
             )
             
-            # Si la pregunta tiene opciones, duplicarlas también
-            if hasattr(pregunta, 'opciones'):
+            # Duplicar preguntas de texto
+            for pregunta in encuesta_original.preguntatexto_relacionadas.all():
+                PreguntaTexto.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida
+                )
+            
+            # Duplicar preguntas de texto múltiple
+            for pregunta in encuesta_original.preguntatextomultiple_relacionadas.all():
+                PreguntaTextoMultiple.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida
+                )
+            
+            # Duplicar preguntas de opción múltiple
+            for pregunta in encuesta_original.preguntaopcionmultiple_relacionadas.all():
+                nueva_pregunta = PreguntaOpcionMultiple.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida,
+                    permite_otro=pregunta.permite_otro
+                )
+                
+                # Duplicar opciones
                 for opcion in pregunta.opciones.all():
                     Opcion.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
-                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
-            # Si es una pregunta de matriz, duplicar las filas y columnas
-            if hasattr(pregunta, 'filas'):
+            # Duplicar preguntas de casillas de verificación
+            for pregunta in encuesta_original.preguntacasillasverificacion_relacionadas.all():
+                nueva_pregunta = PreguntaCasillasVerificacion.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida,
+                    permite_otro=pregunta.permite_otro
+                )
+                
+                # Duplicar opciones
+                for opcion in pregunta.opciones.all():
+                    Opcion.objects.create(
+                        pregunta=nueva_pregunta,
+                        texto=opcion.texto,
+                        orden=opcion.orden
+                    )
+            
+            # Duplicar preguntas de menú desplegable
+            for pregunta in encuesta_original.preguntamenudesplegable_relacionadas.all():
+                nueva_pregunta = PreguntaMenuDesplegable.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida
+                )
+                
+                # Duplicar opciones
+                for opcion in pregunta.opciones.all():
+                    Opcion.objects.create(
+                        pregunta=nueva_pregunta,
+                        texto=opcion.texto,
+                        orden=opcion.orden
+                    )
+            
+            # Duplicar preguntas de escala
+            for pregunta in encuesta_original.preguntaescala_relacionadas.all():
+                PreguntaEscala.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida,
+                    valor_minimo=pregunta.valor_minimo,
+                    valor_maximo=pregunta.valor_maximo,
+                    etiqueta_minima=pregunta.etiqueta_minima,
+                    etiqueta_maxima=pregunta.etiqueta_maxima
+                )
+            
+            # Duplicar preguntas de matriz
+            for pregunta in encuesta_original.preguntamatriz_relacionadas.all():
+                nueva_pregunta = PreguntaMatriz.objects.create(
+                    encuesta=nueva_encuesta,
+                    texto=pregunta.texto,
+                    orden=pregunta.orden,
+                    requerida=pregunta.requerida
+                )
+                
+                # Duplicar filas
                 for fila in pregunta.filas.all():
                     FilaMatriz.objects.create(
                         pregunta=nueva_pregunta,
                         texto=fila.texto,
                         orden=fila.orden
                     )
+                
+                # Duplicar columnas
                 for columna in pregunta.columnas.all():
                     ColumnaMatriz.objects.create(
                         pregunta=nueva_pregunta,
                         texto=columna.texto,
                         orden=columna.orden
                     )
-        
-        messages.success(request, 'Encuesta duplicada exitosamente!')
-        return redirect('editar_encuesta', encuesta_id=nueva_encuesta.id)
+            
+            messages.success(request, 'Encuesta duplicada exitosamente!')
+            return redirect('editar_encuesta', encuesta_id=nueva_encuesta.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error al duplicar la encuesta: {str(e)}')
+            return redirect('editar_encuesta', encuesta_id=encuesta_original.id)
     
     # Si es GET, mostrar el formulario de duplicación
     regiones = Region.objects.all()
@@ -1841,14 +1928,14 @@ def estadisticas_municipios(request):
             total_encuestas = encuestas_activas.count()
             total_respuestas = respuestas.count()
 
-            print(Encuesta.objects.all())
+            # print(Encuesta.objects.all())
 
-            print(f"Total encuestas: {total_encuestas}")
-            print(f"Total respuestas: {total_respuestas}")
-            print(f"Encuestas respondidas: {encuestas_respondidas}")
-            print(f"Municipio: {municipio.nombre}")
-            print(f"Region: {municipio.region.nombre if municipio.region else 'No asignada'}")
-            print(f"Encuestas activas: {encuestas_activas}")
+            # print(f"Total encuestas: {total_encuestas}")
+            # print(f"Total respuestas: {total_respuestas}")
+            # print(f"Encuestas respondidas: {encuestas_respondidas}")
+            # print(f"Municipio: {municipio.nombre}")
+            # print(f"Region: {municipio.region.nombre if municipio.region else 'No asignada'}")
+            # print(f"Encuestas activas: {encuestas_activas}")
             
             # Calcular tasa de finalización
             tasa_finalizacion = 0

@@ -1291,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function mostrarInfoMunicipio(key) {
     const info = datosEstadisticas[key];
+    console.log(info);
     if (!info) return;
 
     document.getElementById('nombreMunicipio').textContent = info.nombre;

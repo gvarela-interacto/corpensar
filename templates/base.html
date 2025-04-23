@@ -8,6 +8,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Corpensar</title>
 
+  <!-- Fuentes de Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Hojas de estilo -->
   <link rel="stylesheet" href="{% static 'vendors/feather/feather.css' %}">
   <link rel="stylesheet" href="{% static 'vendors/mdi/css/materialdesignicons.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendors/ti-icons/css/themify-icons.css' %}">
@@ -21,6 +27,134 @@
   <link rel="shortcut icon" type="image/png" href="http://72.14.187.231/corpensar/images/logoappw.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4cc9f0;
+      --success-color: #4CAF50;
+      --info-color: #2196F3;
+      --warning-color: #FF9800;
+      --danger-color: #f72585;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --transition-speed: 0.3s;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      transition: background-color var(--transition-speed) ease;
+    }
+    
+    .container-scroller {
+      transition: all var(--transition-speed) ease;
+    }
+    
+    .card {
+      border-radius: 0.8rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: all var(--transition-speed) ease;
+      border: none;
+      overflow: hidden;
+    }
+    
+    .card:hover {
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .card-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    .btn {
+      border-radius: 0.5rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      text-transform: none;
+      letter-spacing: 0.3px;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      transform: translateY(-1px);
+    }
+    
+    .form-control {
+      border-radius: 0.5rem;
+      border: 1px solid #e0e0e0;
+      padding: 0.6rem 1rem;
+      transition: all var(--transition-speed) ease;
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.15);
+    }
+    
+    .nav-link {
+      transition: all var(--transition-speed) ease;
+    }
+    
+    .table {
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    
+    .table thead th {
+      border-top: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+    
+    .content-wrapper {
+      padding: 2rem 1.5rem;
+      transition: all var(--transition-speed) ease;
+      border-radius: 0.8rem;
+      margin: 0.8rem;
+      background-color: #fff;
+    }
+
+    /* Animaciones para carga de página */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Mejorar scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  </style>
+
 </head>
 
 <body class="sidebar-dark">
@@ -32,7 +166,7 @@
       
       <div class="main-panel">
         
-        <div class="content-wrapper interContenido">
+        <div class="content-wrapper interContenido fade-in">
           {% block content %}{% endblock %}
         </div>
         {% include 'includes/footer.html' %}
@@ -60,5 +194,25 @@
   <script src="{% static 'js/general.js' %}"></script>
   
   {% block javascript %}{% endblock %}
+  
+  <script>
+    // Añadir efecto de carga suave a la página
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        document.querySelector('.content-wrapper').classList.remove('fade-in');
+      }, 500);
+    });
+    
+    // Añadir efecto hover a los botones
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+      });
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+  </script>
 </body>
 </html>
