@@ -1,34 +1,56 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Crear Nueva Región</h4>
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card-modern">
+                <div class="card-header d-flex align-items-center">
+                    <i class="mdi mdi-map-marker-plus me-2" style="font-size: 24px; color: var(--primary-color);"></i>
+                    <h4 class="mb-0">Crear Nueva Región</h4>
                 </div>
-                <div class="card-body">
-                    <form method="post">
+                <div class="card-body p-4">
+                    <form method="post" id="regionForm">
                         {% csrf_token %}
-                        <div class="form-group">
-                            <label for="nombre">Nombre de la Región</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        <div class="form-group-modern">
+                            <label for="nombre" class="form-label-modern">Nombre de la Región</label>
+                            <input type="text" class="form-control-modern" id="nombre" name="nombre" required 
+                                  placeholder="Ingrese el nombre de la región" autocomplete="off">
+                            <div class="form-text mt-1">El nombre de la región debe ser único y descriptivo.</div>
                         </div>
-                        <div class="form-group mt-3">
-                            <button type="submit" class="btn btn-primary">Crear Región</button>
-                            <a href="{% url 'regiones_y_municipios' %}" class="btn btn-secondary">Cancelar</a>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'regiones_y_municipios' %}" class="btn-modern btn-secondary-modern">
+                                <i class="mdi mdi-arrow-left me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn-modern btn-primary-modern">
+                                <i class="mdi mdi-content-save me-1"></i> Crear Región
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    {% if messages %}
-        <div class="mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
 </div>
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enfocar automáticamente en el campo de nombre
+        document.getElementById('nombre').focus();
+        
+        // Validación del formulario
+        const form = document.getElementById('regionForm');
+        form.addEventListener('submit', function(event) {
+            const nombreInput = document.getElementById('nombre');
+            if (!nombreInput.value.trim()) {
+                event.preventDefault();
+                showSystemMessage('El nombre de la región no puede estar vacío', 'warning');
+                nombreInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

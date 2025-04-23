@@ -1,43 +1,84 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Crear Nuevo Municipio</h4>
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card-modern">
+                <div class="card-header d-flex align-items-center">
+                    <i class="mdi mdi-city-variant-outline me-2" style="font-size: 24px; color: var(--primary-color);"></i>
+                    <h4 class="mb-0">Crear Nuevo Municipio</h4>
                 </div>
-                <div class="card-body">
-                    <form method="post">
+                <div class="card-body p-4">
+                    <form method="post" id="municipioForm">
                         {% csrf_token %}
-                        <div class="form-group">
-                            <label for="nombre">Nombre del Municipio</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        
+                        <div class="form-group-modern">
+                            <label for="nombre" class="form-label-modern">Nombre del Municipio</label>
+                            <input type="text" class="form-control-modern" id="nombre" name="nombre" required 
+                                placeholder="Ingrese el nombre del municipio" autocomplete="off">
+                            <div class="form-text mt-1">Ingrese el nombre oficial del municipio.</div>
                         </div>
-                        <div class="form-group mt-3">
-                            <label for="region">Región</label>
-                            <select class="form-control" id="region" name="region" required>
+                        
+                        <div class="form-group-modern mt-3">
+                            <label for="region" class="form-label-modern">Región</label>
+                            <select class="select-modern form-control-modern" id="region" name="region" required>
                                 <option value="">Seleccione una región</option>
                                 {% for region in regiones %}
                                 <option value="{{ region.id }}">{{ region.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="form-text mt-1">Seleccione la región a la que pertenece este municipio.</div>
+                            
+                            {% if regiones|length == 0 %}
+                            <div class="alert-modern alert-warning-modern mt-2">
+                                <small>No hay regiones disponibles. <a href="{% url 'crear_region' %}" class="alert-link">Crear una región</a> primero.</small>
+                            </div>
+                            {% endif %}
                         </div>
-                        <div class="form-group mt-3">
-                            <button type="submit" class="btn btn-primary">Crear Municipio</button>
-                            <a href="{% url 'regiones_y_municipios' %}" class="btn btn-secondary">Cancelar</a>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'regiones_y_municipios' %}" class="btn-modern btn-secondary-modern">
+                                <i class="mdi mdi-arrow-left me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn-modern btn-primary-modern" {% if regiones|length == 0 %}disabled{% endif %}>
+                                <i class="mdi mdi-content-save me-1"></i> Crear Municipio
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    {% if messages %}
-        <div class="mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div> 
-    {% endif %}
 </div>
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enfocar automáticamente en el campo de nombre
+        document.getElementById('nombre').focus();
+        
+        // Validación del formulario
+        const form = document.getElementById('municipioForm');
+        form.addEventListener('submit', function(event) {
+            const nombreInput = document.getElementById('nombre');
+            const regionSelect = document.getElementById('region');
+            
+            if (!nombreInput.value.trim()) {
+                event.preventDefault();
+                showSystemMessage('El nombre del municipio no puede estar vacío', 'warning');
+                nombreInput.focus();
+                return;
+            }
+            
+            if (!regionSelect.value) {
+                event.preventDefault();
+                showSystemMessage('Debe seleccionar una región', 'warning');
+                regionSelect.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

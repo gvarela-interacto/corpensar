@@ -6,17 +6,17 @@
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center">
-                <h2><i class="fas fa-map-marker-alt"></i> Regiones y Municipios</h2>
+                <h2 class="mb-0"><i class="mdi mdi-map-marker-radius"></i> Regiones y Municipios</h2>
                 <div>
-                    <a href="{% url 'crear_region' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Nueva Región
+                    <a href="{% url 'crear_region' %}" class="btn-modern btn-primary-modern me-2">
+                        <i class="mdi mdi-map-marker-plus me-1"></i> Nueva Región
                     </a>
-                    <a href="{% url 'crear_municipio' %}" class="btn btn-success">
-                        <i class="fas fa-plus"></i> Nuevo Municipio
+                    <a href="{% url 'crear_municipio' %}" class="btn-modern btn-success-modern">
+                        <i class="mdi mdi-city-variant-outline me-1"></i> Nuevo Municipio
                     </a>
                 </div>
             </div>
-            <hr>
+            <hr class="my-3" style="opacity: 0.1;">
         </div>
     </div>
 
@@ -36,30 +36,34 @@
     <div class="row">
         {% for region in regiones %}
         <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-globe-americas"></i> {{ region.nombre }}</h5>
-                        <div>
-                            <span class="badge bg-light text-primary me-2">{{ region.municipios.count }} municipios</span>
-                            <button class="btn btn-sm btn-outline-light" 
-                                    onclick="confirmarEliminarRegion('{{ region.id }}', '{{ region.nombre }}')"
-                                    {% if region.municipios.exists %}disabled{% endif %}
-                                    title="{% if region.municipios.exists %}No se puede eliminar una región con municipios{% else %}Eliminar región{% endif %}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+            <div class="card-modern h-100 fade-in-card">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="mdi mdi-earth me-2" style="font-size: 20px;"></i>
+                        <h5 class="mb-0">{{ region.nombre }}</h5>
+                    </div>
+                    <div>
+                        <span class="badge-modern badge-light-modern me-2" style="background-color: rgba(255,255,255,0.2); color: white;">
+                            {{ region.municipios.count }} municipios
+                        </span>
+                        <button class="btn btn-sm btn-icon-only" 
+                                style="background-color: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 8px; border: none; transition: all 0.2s ease;"
+                                onclick="confirmarEliminarRegion('{{ region.id }}', '{{ region.nombre }}')"
+                                {% if region.municipios.exists %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}
+                                title="{% if region.municipios.exists %}No se puede eliminar una región con municipios{% else %}Eliminar región{% endif %}">
+                            <i class="mdi mdi-delete"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
                     {% if region.municipios.all %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
+                    <div class="table-responsive custom-scrollbar">
+                        <table class="table-modern">
+                            <thead>
                                 <tr>
-                                    <th>#</th>
-                                    <th>Nombre del Municipio</th>
-                                    <th class="text-end">Acciones</th>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Municipio</th>
+                                    <th class="text-end" style="width: 80px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -67,13 +71,15 @@
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>
-                                        <i class="fas fa-city text-secondary"></i> 
-                                        {{ municipio.nombre }}
+                                        <div class="d-flex align-items-center">
+                                            <i class="mdi mdi-city me-2 text-muted"></i>
+                                            <span>{{ municipio.nombre }}</span>
+                                        </div>
                                     </td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-danger" 
+                                        <button class="btn-icon-action" 
                                                 onclick="confirmarEliminarMunicipio('{{ municipio.id }}', '{{ municipio.nombre }}')">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="mdi mdi-delete text-danger"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -82,11 +88,13 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
-                        <p class="mb-0">No hay municipios registrados en esta región.</p>
-                        <a href="{% url 'crear_municipio' %}" class="btn btn-sm btn-outline-primary mt-2">
-                            Agregar municipio
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="mdi mdi-information-outline"></i>
+                        </div>
+                        <p class="empty-state-text">No hay municipios registrados en esta región.</p>
+                        <a href="{% url 'crear_municipio' %}" class="btn-modern btn-primary-modern btn-sm mt-2">
+                            <i class="mdi mdi-plus me-1"></i> Agregar municipio
                         </a>
                     </div>
                     {% endif %}
@@ -95,13 +103,15 @@
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="alert alert-info">
-                <div class="text-center py-5">
-                    <i class="fas fa-map fa-3x mb-3"></i>
-                    <h4>No hay regiones registradas</h4>
-                    <p>Para comenzar, crea una nueva región.</p>
-                    <a href="{% url 'crear_region' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Crear primera región
+            <div class="card-modern empty-state-card">
+                <div class="empty-state large">
+                    <div class="empty-state-icon large">
+                        <i class="mdi mdi-map"></i>
+                    </div>
+                    <h4 class="empty-state-title">No hay regiones registradas</h4>
+                    <p class="empty-state-text">Para comenzar, crea una nueva región.</p>
+                    <a href="{% url 'crear_region' %}" class="btn-modern btn-primary-modern mt-3">
+                        <i class="mdi mdi-plus me-1"></i> Crear primera región
                     </a>
                 </div>
             </div>
@@ -112,24 +122,27 @@
 
 <!-- Modal de confirmación para eliminar región -->
 <div class="modal fade" id="confirmarEliminarRegionModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f72585 0%, #dc2f6a 100%); color: white; border: none;">
                 <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    <i class="mdi mdi-alert-circle-outline me-2"></i> Confirmar Eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p class="mb-0">¿Está seguro que desea eliminar la región <strong><span id="nombreRegion"></span></strong>?</p>
-                <p class="text-muted small mt-2">Esta acción no se puede deshacer.</p>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <i class="mdi mdi-map-marker-remove" style="font-size: 48px; color: #f72585;"></i>
+                </div>
+                <p class="text-center mb-0">¿Está seguro que desea eliminar la región <strong><span id="nombreRegion"></span></strong>?</p>
+                <p class="text-muted small text-center mt-2">Esta acción no se puede deshacer.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times-circle"></i> Cancelar
+            <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05);">
+                <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                    <i class="mdi mdi-close me-1"></i> Cancelar
                 </button>
-                <a href="#" id="confirmarEliminarRegionBtn" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Eliminar
+                <a href="#" id="confirmarEliminarRegionBtn" class="btn-modern btn-danger-modern">
+                    <i class="mdi mdi-delete me-1"></i> Eliminar
                 </a>
             </div>
         </div>
@@ -138,72 +151,162 @@
 
 <!-- Modal de confirmación para eliminar municipio -->
 <div class="modal fade" id="confirmarEliminarMunicipioModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f72585 0%, #dc2f6a 100%); color: white; border: none;">
                 <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    <i class="mdi mdi-alert-circle-outline me-2"></i> Confirmar Eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p class="mb-0">¿Está seguro que desea eliminar el municipio <strong><span id="nombreMunicipio"></span></strong>?</p>
-                <p class="text-muted small mt-2">Esta acción no se puede deshacer.</p>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <i class="mdi mdi-city-remove" style="font-size: 48px; color: #f72585;"></i>
+                </div>
+                <p class="text-center mb-0">¿Está seguro que desea eliminar el municipio <strong><span id="nombreMunicipio"></span></strong>?</p>
+                <p class="text-muted small text-center mt-2">Esta acción no se puede deshacer.</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times-circle"></i> Cancelar
+            <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05);">
+                <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
+                    <i class="mdi mdi-close me-1"></i> Cancelar
                 </button>
-                <a href="#" id="confirmarEliminarMunicipioBtn" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Eliminar
+                <a href="#" id="confirmarEliminarMunicipioBtn" class="btn-modern btn-danger-modern">
+                    <i class="mdi mdi-delete me-1"></i> Eliminar
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-{% block extra_js %}
+<style>
+    .fade-in-card {
+        animation: fadeInUp 0.5s ease forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .custom-scrollbar {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    .btn-icon-action {
+        background: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .btn-icon-action:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #c1c1c1;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state-text {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    
+    .empty-state.large {
+        padding: 4rem 2rem;
+    }
+    
+    .empty-state-icon.large {
+        font-size: 5rem;
+    }
+    
+    .empty-state-title {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .empty-state-card {
+        border: 2px dashed #e0e0e0;
+        background-color: rgba(0,0,0,0.01);
+    }
+</style>
+
+{% block javascript %}
 <script>
-    // Animación al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.card');
+        // Animación escalonada para las tarjetas
+        const cards = document.querySelectorAll('.fade-in-card');
         cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 100 * index);
+            card.style.animationDelay = `${index * 0.1}s`;
         });
+        
+        // Inicializar tooltips de Bootstrap si se usan
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            const tooltips = document.querySelectorAll('[title]');
+            tooltips.forEach(tooltip => {
+                new bootstrap.Tooltip(tooltip);
+            });
+        }
     });
 
     // Función para confirmar eliminación de región
     function confirmarEliminarRegion(regionId, nombreRegion) {
         document.getElementById('nombreRegion').textContent = nombreRegion;
         document.getElementById('confirmarEliminarRegionBtn').href = `/region/eliminar/${regionId}/`;
-        new bootstrap.Modal(document.getElementById('confirmarEliminarRegionModal')).show();
+        
+        const modal = new bootstrap.Modal(document.getElementById('confirmarEliminarRegionModal'));
+        modal.show();
     }
 
     // Función para confirmar eliminación de municipio
     function confirmarEliminarMunicipio(municipioId, nombreMunicipio) {
         document.getElementById('nombreMunicipio').textContent = nombreMunicipio;
         document.getElementById('confirmarEliminarMunicipioBtn').href = `/municipio/eliminar/${municipioId}/`;
-        new bootstrap.Modal(document.getElementById('confirmarEliminarMunicipioModal')).show();
+        
+        const modal = new bootstrap.Modal(document.getElementById('confirmarEliminarMunicipioModal'));
+        modal.show();
     }
 </script>
 {% endblock %}
-
-<style>
-    .card {
-        transition: all 0.3s ease;
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-    }
-    .table-responsive {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-</style>
 {% endblock %}
