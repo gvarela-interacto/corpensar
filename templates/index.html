@@ -252,6 +252,96 @@
     margin: 5px 0;
     border-color: #eee;
   }
+
+  /* Estilos mejorados para el mapa */
+  #mapaColombia {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .custom-div-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .custom-div-icon:hover {
+    transform: scale(1.2);
+    z-index: 1000;
+  }
+
+  .popup-content {
+    min-width: 250px;
+    padding: 10px;
+  }
+
+  .popup-content h6 {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 5px;
+  }
+
+  .popup-content p {
+    margin: 5px 0;
+    color: #495057;
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .popup-content hr {
+    margin: 8px 0;
+    border-color: #f8f9fa;
+  }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .leaflet-popup-tip {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Estilos para los botones de control del mapa */
+  .btn-group .btn {
+    padding: 8px 16px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .btn-group .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-group .btn.active {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Panel de información del municipio */
+  #infoMunicipio {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+  }
+
+  #infoMunicipio h5 {
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+
+  #infoMunicipio .row p {
+    margin: 8px 0;
+    color: #495057;
+  }
+
+  #infoMunicipio .row p strong {
+    color: #2c3e50;
+    margin-right: 8px;
+  }
 </style>
 
 <div class="container-fluid py-4">
@@ -1161,7 +1251,7 @@
 
 <!-- Asegúrate de haber cargado antes Leaflet y Omnivore -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1175,6 +1265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   let datosEstadisticas = {};
   let tipoEstadisticaActual = 'totalEncuestas';
+  let markerLayer = L.layerGroup().addTo(map);
 
   function getColorForValue(value, tipo) {
     const scales = {
@@ -1189,73 +1280,129 @@ document.addEventListener('DOMContentLoaded', function() {
     return colors[idx];
   }
 
+  function createCustomIcon(color) {
+    return L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+      iconSize: [10, 10],
+      iconAnchor: [5, 5]
+    });
+  }
+
+  function mostrarInfoMunicipio(key) {
+    const info = datosEstadisticas[key];
+    if (!info) return;
+
+    document.getElementById('nombreMunicipio').textContent = info.nombre;
+    document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas;
+    document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas;
+    document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion + '%';
+    document.getElementById('infoMunicipio').style.display = 'block';
+  }
+
   // 1) Traigo estadísticas
   fetch('/api/estadisticas-municipios/')
     .then(res => res.json())
     .then(estadisticas => {
       datosEstadisticas = estadisticas;
 
-      // 2) Cargo el KML
-      const kmlUrl = "{% static 'kml/Trazado oleoducto Cenit.kml' %}";
-      const kmlLayer = omnivore.kml(kmlUrl)
-        .on('ready', function() {
-
-          console.log('🔍 KML cargado, capas:', this.getLayers().length);
-          
-          // 3) Pinta cada feature según datos
-          this.eachLayer(layer => {
-            const geom = layer.feature.geometry.type;
-            const isLine = geom.includes('LineString');
-
-            if (layer.setStyle) {
-            if (isLine) {
-              // líneas visibles siempre
-              layer.setStyle({ color:'#006837', weight:4, dashArray:'8,4' });
-            } else {
-              // polígonos (si hay), usando datos
-              const props = layer.feature.properties;
-              const key   = (props.nombre||props.name).toUpperCase();
-              const d     = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
-              layer.setStyle({
+      // 2) Traigo GeoJSON ya convertido
+      fetch("{% static 'kml/Trazado_oleoducto_Cenit.geojson' %}")
+        .then(res => res.json())
+        .then(geoJson => {
+          // 3) Creo layer
+          const oleoLayer = L.geoJSON(geoJson, {
+            style(feature) {
+              // Si es línea (LineString) la pinto fija
+              if (feature.geometry.type.includes('LineString')) {
+                return { color: '#006837', weight: 4, dashArray: '8,4' };
+              }
+              // Polígonos (si hubiera), con escala:
+              const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
+              const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
+              return {
                 fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual),
-                color:'white', weight:1, fillOpacity:0.7
+                color: 'white', weight:1, fillOpacity:0.7
+              };
+            },
+            onEachFeature(feature, layer) {
+              const p = feature.properties;
+              const key = (p.nombre || p.name || '').toUpperCase();
+              const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
+              
+              // Si es un LineString, agregar markers en los puntos clave
+              if (feature.geometry.type === 'LineString') {
+                const coords = feature.geometry.coordinates;
+                // Agregar markers al inicio y fin de cada línea
+                const startPoint = coords[0];
+                const endPoint = coords[coords.length - 1];
+                
+                // Color basado en las estadísticas
+                const color = getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual);
+                
+                // Crear markers con iconos personalizados
+                L.marker([startPoint[1], startPoint[0]], {
+                  icon: createCustomIcon(color)
+                }).bindPopup(`
+                  <div class="popup-content">
+                    <h6>Inicio: ${p.nombre || p.name}</h6>
+                    <p>Región: ${d.region}</p>
+                    <hr>
+                    <p>Encuestas: ${d.totalEncuestas}</p>
+                    <p>Respuestas: ${d.totalRespuestas}</p>
+                    <p>Finalización: ${d.tasaFinalizacion}%</p>
+                  </div>
+                `).addTo(markerLayer);
+                
+                L.marker([endPoint[1], endPoint[0]], {
+                  icon: createCustomIcon(color)
+                }).bindPopup(`
+                  <div class="popup-content">
+                    <h6>Fin: ${p.nombre || p.name}</h6>
+                    <p>Región: ${d.region}</p>
+                    <hr>
+                    <p>Encuestas: ${d.totalEncuestas}</p>
+                    <p>Respuestas: ${d.totalRespuestas}</p>
+                    <p>Finalización: ${d.tasaFinalizacion}%</p>
+                  </div>
+                `).addTo(markerLayer);
+              }
+
+              layer.bindPopup(`
+                <div class="popup-content">
+                  <h6>${p.nombre || p.name}</h6>
+                  <p>Región: ${d.region}</p>
+                  <hr>
+                  <p>Encuestas: ${d.totalEncuestas}</p>
+                  <p>Respuestas: ${d.totalRespuestas}</p>
+                  <p>Finalización: ${d.tasaFinalizacion}%</p>
+                </div>
+              `);
+              
+              layer.on({
+                mouseover() { layer.setStyle({ weight:5 }); },
+                mouseout()  { layer.setStyle({ weight:4 }); },
+                click()     { mostrarInfoMunicipio(key); }
               });
             }
-          }
+          }).addTo(map);
 
-            // pop-up
-            layer.bindPopup(`
-              <strong>${props.nombre||props.name}</strong><br>
-              Región: ${d.region}<br>
-              Encuestas: ${d.totalEncuestas}<br>
-              Respuestas: ${d.totalRespuestas}<br>
-              Finalización: ${d.tasaFinalizacion}%
-            `);
-
-            // interactividad
-            layer.on({
-              mouseover()  { if (layer.setStyle) layer.setStyle({ fillOpacity:0.9, weight:2 }); },
-              mouseout()   { if (layer.setStyle) layer.setStyle({ fillOpacity:0.7, weight:1 }); },
-              click()      { mostrarInfoMunicipio(key); }
-            });
-          });
-
-          const bounds = this.getBounds();
-          if (bounds.isValid && bounds.isValid()) {
-            map.fitBounds(bounds);
-          } else {
-            console.warn('Bounds inválidos, uso vista por defecto');
-            map.setView([4.5709, -74.2973], 6);
-          }
+          // 4) Ajusto vista a bounds
+          const b = oleoLayer.getBounds();
+          if (b.isValid && b.isValid()) map.fitBounds(b);
+          else map.setView([4.5709, -74.2973], 6);
         })
-        .on('error', err => console.error('Error cargando KML:', err))
-        .addTo(map);
+        .catch(err => {
+          console.error('Error cargando GeoJSON:', err);
+          map.setView([4.5709, -74.2973], 6);
+        });
 
       // 5) Botones para cambiar estadística
       document.querySelectorAll('#btnTotalEncuestas, #btnTotalRespuestas, #btnTasaFinalizacion')
         .forEach(btn => btn.addEventListener('click', function() {
           tipoEstadisticaActual = this.id.replace('btn','').toLowerCase();
-          kmlLayer.eachLayer(layer => {
+          markerLayer.clearLayers(); // Limpiar markers existentes
+          oleoLayer.eachLayer(layer => {
             const props = layer.feature.properties;
             const key = (props.nombre || props.name).toUpperCase();
             const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
@@ -1263,7 +1410,6 @@ document.addEventListener('DOMContentLoaded', function() {
               layer.setStyle({ fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual) });
             }
           });
-          // actualizar leyenda aquí...
           document.querySelectorAll('.btn-group button').forEach(b=>b.classList.remove('active'));
           this.classList.add('active');
         }));
