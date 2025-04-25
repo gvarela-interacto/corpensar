@@ -841,9 +841,9 @@
                             </a>
                           </td>
                           <td>
-                            {% if respuesta.usuario %} {{
-                            respuesta.usuario.username|truncatechars:15 }} {%
-                            else %}
+                            {% if respuesta.usuario %} 
+                            {{ respuesta.usuario.username|truncatechars:15 }} 
+                            {% else %}
                             <span class="text-muted">Anónimo</span>
                             {% endif %}
                           </td>
