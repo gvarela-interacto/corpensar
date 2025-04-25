@@ -8,7 +8,7 @@ from .models import (
     PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
     RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
-    RespuestaMatriz, RespuestaFecha,Region, Municipio
+    RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD
 )
 
 
@@ -424,3 +424,24 @@ admin.site.register(PreguntaEscala, PreguntaEscalaAdmin)
 admin.site.register(PreguntaMatriz, PreguntaMatrizAdmin)
 admin.site.register(PreguntaFecha, PreguntaFechaAdmin)
 admin.site.register(RespuestaEncuesta, RespuestaEncuestaAdmin)
+
+@admin.register(PQRSFD)
+class PQRSFDAdmin(admin.ModelAdmin):
+    list_display = ['asunto', 'tipo', 'estado', 'fecha_creacion', 'es_anonimo']
+    list_filter = ['tipo', 'estado', 'fecha_creacion', 'es_anonimo']
+    search_fields = ['asunto', 'descripcion', 'nombre', 'email']
+    readonly_fields = ['fecha_creacion']
+    fieldsets = (
+        (None, {
+            'fields': ('tipo', 'asunto', 'descripcion', 'estado')
+        }),
+        ('Información de contacto', {
+            'fields': ('nombre', 'email', 'telefono', 'es_anonimo')
+        }),
+        ('Respuesta', {
+            'fields': ('respuesta', 'fecha_respuesta')
+        }),
+        ('Fechas', {
+            'fields': ('fecha_creacion',)
+        }),
+    )

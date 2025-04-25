@@ -109,7 +109,26 @@
             </a>
         </li>
         
-        
+        <!-- Sección PQRSFD -->
+        <li class="nav-item nav-category">PQRSFD</li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'listar_pqrsfd' %}">
+                <i class="menu-icon mdi mdi-message-text-outline"></i>
+                <span class="menu-title">Gestionar PQRSFD</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=P">
+                <i class="menu-icon mdi mdi-clock-outline"></i>
+                <span class="menu-title">Pendientes</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=E">
+                <i class="menu-icon mdi mdi-progress-clock"></i>
+                <span class="menu-title">En proceso</span>
+            </a>
+        </li>
         
 {% comment %}     
         {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Comunicaciones' or user|in_group:'Enlace_Comunicaciones' %}

@@ -437,3 +437,41 @@ class RespuestaOpcionMenuDesplegable(RespuestaBase):
     class Meta:
         verbose_name = _("Respuesta a menú desplegable")
         verbose_name_plural = _("Respuestas a menú desplegable")
+
+class PQRSFD(models.Model):
+    TIPO_CHOICES = [
+        ('P', 'Petición'),
+        ('Q', 'Queja'),
+        ('R', 'Reclamo'),
+        ('S', 'Sugerencia'),
+        ('F', 'Felicitación'),
+        ('D', 'Denuncia'),
+    ]
+
+    ESTADO_CHOICES = [
+        ('P', 'Pendiente'),
+        ('E', 'En Proceso'),
+        ('R', 'Resuelto'),
+        ('C', 'Cerrado'),
+    ]
+
+    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES)
+    nombre = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    asunto = models.CharField(max_length=200)
+    descripcion = models.TextField()
+    estado = models.CharField(max_length=1, choices=ESTADO_CHOICES, default='P')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    respuesta = models.TextField(blank=True, null=True)
+    fecha_respuesta = models.DateTimeField(null=True, blank=True)
+    es_anonimo = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'PQRSFD'
+        verbose_name_plural = 'PQRSFDs'
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.asunto}"

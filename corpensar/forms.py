@@ -161,3 +161,48 @@ class RespuestaForm(forms.Form):
                     widget=forms.DateInput(attrs={'type': 'date'}),
                     required=pregunta.requerida
                     )
+
+class PQRSFDForm(forms.ModelForm):
+    """Formulario para crear un nuevo PQRSFD"""
+    
+    class Meta:
+        model = PQRSFD
+        fields = ['tipo', 'nombre', 'email', 'telefono', 'asunto', 'descripcion', 'es_anonimo']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Su nombre completo'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Su correo electrónico'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Su número de teléfono'}),
+            'asunto': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Asunto de su solicitud'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Describa detalladamente su solicitud'}),
+            'es_anonimo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Añadir clases de Bootstrap y hacer que algunos campos no sean requeridos
+        self.fields['nombre'].required = False
+        self.fields['email'].required = False
+        self.fields['telefono'].required = False
+        
+        # Cambiar las etiquetas para mejor UX
+        self.fields['tipo'].label = "Tipo de solicitud"
+        self.fields['es_anonimo'].label = "Enviar de forma anónima"
+        
+        # Añadir help_text
+        self.fields['es_anonimo'].help_text = "Si marca esta opción, no se guardará su información personal"
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        es_anonimo = cleaned_data.get('es_anonimo')
+        nombre = cleaned_data.get('nombre')
+        email = cleaned_data.get('email')
+        
+        # Si no es anónimo, validar que nombre y email estén presentes
+        if not es_anonimo:
+            if not nombre:
+                self.add_error('nombre', 'El nombre es requerido cuando no es anónimo.')
+            if not email:
+                self.add_error('email', 'El correo electrónico es requerido cuando no es anónimo.')
+        
+        return cleaned_data

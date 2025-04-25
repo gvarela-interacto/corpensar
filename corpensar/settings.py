@@ -100,9 +100,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
-LOGIN_REDIRECT_URL = '/' 
-LOGOUT_REDIRECT_URL = 'accounts/login/' 
-
+# Login URLs
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'index'  # Redirige al dashboard después del login
+LOGOUT_REDIRECT_URL = 'public_home'  # Redirige a la página principal después del logout
 
 # settings.py
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache' 

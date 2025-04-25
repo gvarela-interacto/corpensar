@@ -29,7 +29,8 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaEncuesta, RespuestaTexto, RespuestaTextoMultiple,
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
-                    RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria)
+                    RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
+                    PQRSFD)
 from .decorators import *
 import locale
 import re
@@ -2159,3 +2160,92 @@ def respuestas_historicas_municipio(request, municipio_nombre):
             'error': str(e),
             'info': 'Datos de muestra debido a error general'
         })
+
+def public_home(request):
+    """
+    Vista pública que sirve como página principal del sitio.
+    Muestra encuestas públicas y permite crear PQRSFD.
+    """
+    # Obtener encuestas públicas activas
+    encuestas_publicas = Encuesta.objects.filter(
+        es_publica=True,
+        activa=True,
+        fecha_inicio__lte=timezone.now(),
+        fecha_fin__gte=timezone.now()
+    ).order_by('-fecha_creacion')
+
+    context = {
+        'encuestas_publicas': encuestas_publicas,
+    }
+    return render(request, 'public/home.html', context)
+
+def crear_pqrsfd(request):
+    if request.method == 'POST':
+        form = PQRSFDForm(request.POST)
+        if form.is_valid():
+            try:
+                pqrsfd = form.save(commit=False)
+                
+                # Si es anónimo, aseguramos que no se guarden datos personales
+                if pqrsfd.es_anonimo:
+                    pqrsfd.nombre = None
+                    pqrsfd.email = None
+                    pqrsfd.telefono = None
+                
+                # Guardar el objeto usando el ORM de Django
+                pqrsfd.save()
+                
+                messages.success(request, 'Su PQRSFD ha sido registrado exitosamente. Le agradecemos por su contribución.')
+                return redirect('public_home')
+            except Exception as e:
+                # Capturar errores y mostrar mensaje de error específico
+                messages.error(request, f'Error al guardar PQRSFD: {str(e)}')
+    else:
+        form = PQRSFDForm()
+    
+    return render(request, 'public/crear_pqrsfd.html', {'form': form})
+
+@login_required
+def listar_pqrsfd(request):
+    estado_filtro = request.GET.get('estado', None)
+    
+    if estado_filtro and estado_filtro in dict(PQRSFD.ESTADO_CHOICES):
+        pqrsfds = PQRSFD.objects.filter(estado=estado_filtro).order_by('-fecha_creacion')
+    else:
+        pqrsfds = PQRSFD.objects.all().order_by('-fecha_creacion')
+    
+    # Contar PQRSFD por estado para mostrar en la interfaz
+    conteo_estados = {
+        'P': PQRSFD.objects.filter(estado='P').count(),
+        'E': PQRSFD.objects.filter(estado='E').count(),
+        'R': PQRSFD.objects.filter(estado='R').count(),
+        'C': PQRSFD.objects.filter(estado='C').count(),
+        'total': PQRSFD.objects.count()
+    }
+    
+    context = {
+        'pqrsfds': pqrsfds,
+        'estado_actual': estado_filtro,
+        'conteo_estados': conteo_estados,
+        'ESTADO_CHOICES': dict(PQRSFD.ESTADO_CHOICES)
+    }
+    
+    return render(request, 'admin/listar_pqrsfd.html', context)
+
+@login_required
+def responder_pqrsfd(request, pqrsfd_id):
+    pqrsfd = get_object_or_404(PQRSFD, id=pqrsfd_id)
+    
+    if request.method == 'POST':
+        respuesta = request.POST.get('respuesta')
+        estado = request.POST.get('estado')
+        
+        pqrsfd.respuesta = respuesta
+        pqrsfd.estado = estado
+        pqrsfd.fecha_respuesta = timezone.now()
+        pqrsfd.save()
+        
+        messages.success(request, 'La respuesta ha sido guardada exitosamente.')
+        return redirect('listar_pqrsfd')
+    
+    return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})

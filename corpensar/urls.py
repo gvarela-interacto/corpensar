@@ -9,7 +9,16 @@ from .views import estadisticas_municipios
 urlpatterns = [
   path('admin/', admin.site.urls),
 
-  path('', views.index_view, name='index'), 
+  # Vista pública principal
+  path('', views.public_home, name='public_home'),
+  
+  # PQRSFD
+  path('pqrsfd/crear/', views.crear_pqrsfd, name='crear_pqrsfd'),
+  path('dashboard/pqrsfd/', views.listar_pqrsfd, name='listar_pqrsfd'),
+  path('dashboard/pqrsfd/responder/<int:pqrsfd_id>/', views.responder_pqrsfd, name='responder_pqrsfd'),
+  
+  # Panel de administración (requiere login)
+  path('dashboard/', views.index_view, name='index'), 
   #encuesta
   path('encuestas/nueva/', views.seleccionar_metodo_creacion, name='seleccionar_metodo'),
   path('encuestas/crear/desde-cero/', views.crear_desde_cero, name='crear_desde_cero'),
