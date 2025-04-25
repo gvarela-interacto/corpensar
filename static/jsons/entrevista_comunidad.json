@@ -1,0 +1,54 @@
+{
+    "titulo": "Entrevista a Comunidad – Impacto de la operación de Cenit",
+    "descripcion": "Entrevista semiestructurada para recoger percepciones de miembros de la comunidad sobre beneficios, afectaciones y riesgos vinculados a la operación de Cenit.",
+    "slug": "entrevista-comunidad",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo describiría la presencia de Cenit en su territorio?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué beneficios ha percibido en su comunidad asociados a la operación de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué afectaciones o impactos negativos ha identificado en su comunidad asociados a la operación de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Han existido espacios de diálogo entre Cenit y la comunidad? ¿Cómo los describiría?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Conoce mecanismos para reportar quejas, inquietudes o reclamos a Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Ha utilizado alguno de estos mecanismos? ¿Qué tan efectiva fue la respuesta?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué riesgos considera que existen en su territorio relacionados con la operación de empresas como Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Considera que se respeta la participación de su comunidad en decisiones que les afectan?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea compartir alguna situación específica o recomendación para mejorar la relación entre Cenit y la comunidad?",
+        "requerida": false
+      }
+    ]
+  }
+  

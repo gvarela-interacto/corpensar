@@ -1,0 +1,54 @@
+{
+    "titulo": "Entrevista a Trabajadores de Cenit – Condiciones laborales y percepción DDHH",
+    "descripcion": "Entrevista semiestructurada para conocer la experiencia, condiciones laborales y percepción sobre la gestión de DDHH dentro de Cenit por parte de sus trabajadores.",
+    "slug": "entrevista-trabajadores-cenit",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo describiría su experiencia general trabajando en Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Considera que las condiciones laborales ofrecidas por Cenit son adecuadas y justas?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Ha sentido que sus derechos laborales han sido respetados dentro de la empresa?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué mecanismos conoce usted dentro de la empresa para reportar situaciones de acoso, discriminación o riesgos?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Se han presentado situaciones de riesgo en su trabajo relacionadas con seguridad, comunidades o condiciones del entorno?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué tan clara considera usted que es la política de Derechos Humanos de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Ha recibido capacitación o información sobre cómo actuar ante una posible vulneración de DDHH o DIH?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cuál considera usted que es el principal reto para fortalecer la cultura de respeto a los DDHH dentro de la empresa?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea compartir alguna experiencia o recomendación para mejorar el ambiente laboral y la protección de derechos?",
+        "requerida": false
+      }
+    ]
+  }
+  

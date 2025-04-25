@@ -1,0 +1,171 @@
+{
+    "titulo": "Encuesta para Autoridades Locales – DDHH, DIH y Relacionamiento con Cenit",
+    "descripcion": "Recoger la percepción de autoridades locales sobre la operación de Cenit en su territorio, los proyectos de inversión social, mecanismos institucionales y posibles riesgos a los derechos humanos.",
+    "slug": "encuesta-autoridades-locales-cenit",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "tipo": "SELECT",
+        "texto": "¿Cuál es su cargo actual?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Alcalde/sa", "valor": "a"},
+          {"texto": "Personero/a", "valor": "b"},
+          {"texto": "Secretario/a de Gobierno", "valor": "c"},
+          {"texto": "Secretario/a de Planeación", "valor": "d"},
+          {"texto": "Policía Nacional", "valor": "e"},
+          {"texto": "Defensoría del Pueblo", "valor": "f"},
+          {"texto": "Otro", "valor": "g"}
+        ]
+      },
+      {
+        "tipo": "SELECT",
+        "texto": "¿En qué municipio desempeña su labor actualmente?",
+        "requerida": true
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Cómo calificaría la percepción de la comunidad frente a la presencia de Cenit en su territorio?",
+        "requerida": true,
+        "etiqueta_min": "Muy negativa",
+        "etiqueta_max": "Muy positiva",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Considera que Cenit ha desarrollado proyectos de inversión social alineados con las necesidades de la comunidad?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, de manera consistente", "valor": "a"},
+          {"texto": "Sí, parcialmente", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Qué mecanismos se utilizan en su municipio para priorizar estos proyectos?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Mesas de participación comunitaria", "valor": "a"},
+          {"texto": "Articulación con planes de desarrollo", "valor": "b"},
+          {"texto": "Solicitudes directas de la comunidad", "valor": "c"},
+          {"texto": "Decisión de la empresa sin consulta", "valor": "d"},
+          {"texto": "Otro", "valor": "e"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Se han presentado conflictos o tensiones sociales vinculadas con la operación de Cenit en su municipio?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, frecuentemente", "valor": "a"},
+          {"texto": "Sí, ocasionalmente", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Tiene conocimiento de situaciones donde se hayan vulnerado derechos humanos por parte de la empresa o sus contratistas?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "Prefiero no responder", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Existen alertas activas o reportes sobre afectaciones a líderes sociales, defensores de DDHH o comunidades étnicas en su municipio?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, reportes formales", "valor": "a"},
+          {"texto": "Sí, conocimiento informal", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No aplica", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué tan efectivos considera los mecanismos institucionales para canalizar quejas o situaciones de riesgo relacionadas con la operación?",
+        "requerida": true,
+        "etiqueta_min": "No efectivos",
+        "etiqueta_max": "Muy efectivos",
+        "min_valor": 1,
+        "max_valor": 4
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha participado su entidad en espacios de articulación directa con Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, frecuentemente", "valor": "a"},
+          {"texto": "Sí, de manera esporádica", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué tan claro le resulta el enfoque de Cenit en derechos humanos en el relacionamiento con su municipio?",
+        "requerida": true,
+        "etiqueta_min": "Nada claro",
+        "etiqueta_max": "Muy claro",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles de los siguientes riesgos a los derechos humanos considera que están presentes en su municipio en relación con la operación de Cenit o su contexto territorial?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Amenazas o agresiones contra líderes sociales o defensores de DDHH", "valor": "a"},
+          {"texto": "Riesgo de contaminación ambiental", "valor": "b"},
+          {"texto": "Riesgo por presencia de grupos armados ilegales o economías criminales", "valor": "c"},
+          {"texto": "Conflictos por contratación o exclusión de población vulnerable", "valor": "d"},
+          {"texto": "Afectación al derecho de participación o consulta previa", "valor": "e"},
+          {"texto": "Uso excesivo de la fuerza en protestas sociales", "valor": "f"},
+          {"texto": "Afectaciones a medios de vida", "valor": "g"},
+          {"texto": "Riesgos para la seguridad del personal de la empresa o contratistas", "valor": "h"},
+          {"texto": "No se han identificado riesgos relevantes", "valor": "i"},
+          {"texto": "Otro", "valor": "j"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cuál de estos riesgos considera prioritario abordar en su territorio?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Amenazas a líderes sociales", "valor": "a"},
+          {"texto": "Riesgos ambientales", "valor": "b"},
+          {"texto": "Exclusión o discriminación en empleo", "valor": "c"},
+          {"texto": "Riesgos por actores armados", "valor": "d"},
+          {"texto": "Uso de la fuerza pública en conflictos", "valor": "e"},
+          {"texto": "Afectación a medios de vida", "valor": "f"},
+          {"texto": "Otro", "valor": "g"},
+          {"texto": "No aplica / No sabe", "valor": "h"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles son las tres acciones clave que Cenit debería priorizar para mejorar el respeto a los DDHH y el relacionamiento con su municipio?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Incrementar diálogo con comunidades", "valor": "a"},
+          {"texto": "Fortalecer inversión social territorial", "valor": "b"},
+          {"texto": "Garantizar inclusión de grupos étnicos y mujeres", "valor": "c"},
+          {"texto": "Capacitar contratistas en DDHH", "valor": "d"},
+          {"texto": "Mejorar canales de quejas y reclamos", "valor": "e"},
+          {"texto": "Otro", "valor": "f"}
+        ]
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea dejar alguna recomendación adicional para mejorar la articulación entre su institución, la comunidad y Cenit?",
+        "requerida": false
+      }
+    ]
+  }
+  

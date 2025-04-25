@@ -1,0 +1,164 @@
+{
+    "titulo": "Encuesta para Fuerza Pública – Seguridad, DDHH y Relacionamiento con Cenit",
+    "descripcion": "Recoger la percepción de la Fuerza Pública sobre la seguridad territorial, coordinación con Cenit y gestión de riesgos en derechos humanos.",
+    "slug": "encuesta-fuerza-publica-cenit",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "tipo": "SELECT",
+        "texto": "¿A qué institución pertenece?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Policía Nacional", "valor": "a"},
+          {"texto": "Ejército Nacional", "valor": "b"},
+          {"texto": "Armada Nacional", "valor": "c"},
+          {"texto": "GAULA", "valor": "d"},
+          {"texto": "Otra", "valor": "e"}
+        ]
+      },
+      {
+        "tipo": "SELECT",
+        "texto": "¿En qué municipio se encuentra destacado/a actualmente?",
+        "requerida": true
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Cómo describiría la situación de seguridad actual en su zona de operación?",
+        "requerida": true,
+        "etiqueta_min": "Muy crítica",
+        "etiqueta_max": "Muy buena",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Existen actualmente en el municipio presencia de alguno de los siguientes actores?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Grupos armados ilegales", "valor": "a"},
+          {"texto": "Economías ilícitas", "valor": "b"},
+          {"texto": "Disidencias u organizaciones criminales", "valor": "c"},
+          {"texto": "Ninguno", "valor": "d"},
+          {"texto": "No sabe / Prefiere no responder", "valor": "e"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Su unidad ha estado involucrada en actividades de protección de infraestructura de Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, de forma constante", "valor": "a"},
+          {"texto": "Sí, de forma ocasional", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Con qué frecuencia se realizan coordinaciones directas entre Cenit y su institución para protección o seguridad?",
+        "requerida": true,
+        "etiqueta_min": "Nunca",
+        "etiqueta_max": "Siempre",
+        "min_valor": 1,
+        "max_valor": 4
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Existen protocolos establecidos sobre el uso de la fuerza durante operaciones relacionadas con infraestructura crítica?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, específicos para protección de infraestructura energética", "valor": "a"},
+          {"texto": "Sí, generales de la institución", "valor": "b"},
+          {"texto": "No existen protocolos conocidos", "valor": "c"},
+          {"texto": "No sabe / Prefiere no responder", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha recibido formación específica sobre derechos humanos aplicables a contextos de infraestructura y protesta social?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, recientemente", "valor": "a"},
+          {"texto": "Sí, pero hace más de un año", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No recuerda", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Se han presentado en su zona manifestaciones o bloqueos relacionados con la operación de Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, frecuentemente", "valor": "a"},
+          {"texto": "Sí, en ocasiones", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Cómo califica la relación entre su institución y las comunidades vecinas a la infraestructura de Cenit?",
+        "requerida": true,
+        "etiqueta_min": "Muy tensa",
+        "etiqueta_max": "Muy positiva",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Conoce casos donde se hayan reportado quejas por exceso de fuerza, vulneración de derechos o conflictos con la comunidad en el marco del relacionamiento con Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "Prefiero no responder", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Con qué frecuencia se reportan incidentes de seguridad relacionados con Cenit a su unidad?",
+        "requerida": true,
+        "etiqueta_min": "Nunca",
+        "etiqueta_max": "Frecuentemente",
+        "min_valor": 1,
+        "max_valor": 3
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles de los siguientes riesgos considera más relevantes en su zona de operación respecto a la protección de infraestructura y DDHH?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Presencia de grupos armados ilegales", "valor": "a"},
+          {"texto": "Ataques a infraestructura energética", "valor": "b"},
+          {"texto": "Amenazas a trabajadores o contratistas", "valor": "c"},
+          {"texto": "Riesgos durante protestas sociales", "valor": "d"},
+          {"texto": "Dificultades de coordinación interinstitucional", "valor": "e"},
+          {"texto": "Ninguno / No aplica", "valor": "f"},
+          {"texto": "Otro", "valor": "g"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué nivel de confianza tiene en los protocolos existentes para garantizar un relacionamiento respetuoso de los DDHH en el contexto de su labor con empresas como Cenit?",
+        "requerida": true,
+        "etiqueta_min": "Nulo / No los conoce",
+        "etiqueta_max": "Muy alto",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Qué sugerencias tiene para mejorar el trabajo conjunto entre Cenit, su institución y las comunidades en temas de seguridad y DDHH?",
+        "requerida": false,
+        "opciones": [
+          {"texto": "Mayor capacitación conjunta", "valor": "a"},
+          {"texto": "Protocolos de comunicación claros", "valor": "b"},
+          {"texto": "Espacios regulares de coordinación interinstitucional", "valor": "c"},
+          {"texto": "Participación en procesos comunitarios", "valor": "d"},
+          {"texto": "Otro", "valor": "e"},
+          {"texto": "Ninguna", "valor": "f"}
+        ]
+      }
+    ]
+}
+  

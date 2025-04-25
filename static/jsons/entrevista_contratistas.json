@@ -1,0 +1,54 @@
+{
+    "titulo": "Entrevista a Cadena de Suministro – Contratistas y Proveedores de Cenit",
+    "descripcion": "Entrevista semiestructurada dirigida a proveedores y contratistas para conocer los retos operativos, riesgos contextuales y percepción sobre la relación con Cenit en materia de DDHH y DIH.",
+    "slug": "entrevista-cadena-suministro",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué retos enfrenta su empresa para operar en las zonas donde tiene contratos con Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Ha identificado riesgos que puedan afectar la seguridad de su personal o de las comunidades locales?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué tipo de medidas adopta su empresa para prevenir afectaciones a derechos humanos durante la operación?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Conoce la política de Derechos Humanos de Cenit y su aplicación dentro de los contratos?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Ha recibido capacitación o instrucciones por parte de Cenit sobre cómo relacionarse con comunidades?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué mecanismos conoce para reportar incidentes o riesgos relacionados con DDHH o DIH en el marco del contrato?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Se ha presentado alguna situación de tensión o conflicto con comunidades o actores externos durante la ejecución del contrato?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo fue gestionada esa situación y qué rol tuvo Cenit en su resolución?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué acciones considera prioritarias para fortalecer la gestión de DDHH y el relacionamiento territorial por parte de Cenit?",
+        "requerida": false
+      }
+    ]
+  }
+  

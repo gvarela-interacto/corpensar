@@ -1,0 +1,49 @@
+{
+    "titulo": "Entrevista a Líderes Sociales – Riesgos, Relacionamiento y Percepción DDHH",
+    "descripcion": "Entrevista semiestructurada dirigida a líderes sociales y defensores de DDHH para conocer su percepción sobre el impacto de la operación de Cenit en sus territorios.",
+    "slug": "entrevista-lideres-sociales",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cuál es su percepción sobre la presencia de Cenit en su comunidad?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Considera que la operación de Cenit ha generado beneficios, afectaciones o ambos en su territorio?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué tipo de afectaciones o riesgos a los derechos humanos identifica en su comunidad relacionados con la operación de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Existen mecanismos efectivos en su comunidad para reportar situaciones de riesgo, quejas o vulneraciones relacionadas con la empresa o sus contratistas?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo califica el relacionamiento de Cenit y sus contratistas con su comunidad y sus líderes?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Considera que la empresa reconoce y respeta el rol de los líderes sociales y defensores de DDHH en su territorio?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué acciones recomendaría para fortalecer el respeto de los derechos humanos y la protección de líderes sociales en el contexto de operación de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea compartir algún caso o situación particular que considere relevante en relación con su experiencia como líder social frente a Cenit?",
+        "requerida": false
+      }
+    ]
+  }
+  
