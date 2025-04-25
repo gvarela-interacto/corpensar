@@ -1,0 +1,161 @@
+{% extends 'public/base_public.html' %}
+
+{% block title %}Crear PQRSFD - Corpensar{% endblock %}
+
+{% block hero %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-3">PQRSFD</h1>
+                <p class="lead">Peticiones, Quejas, Reclamos, Sugerencias, Felicitaciones y Denuncias</p>
+            </div>
+            <div class="col-md-4 d-none d-md-block text-center">
+                <i class="fas fa-comments fa-6x text-white opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="card-title text-center mb-0">Formulario PQRSFD</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Puede enviar su PQRSFD de forma anónima o incluir sus datos de contacto para recibir una respuesta personalizada.
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="needs-validation" novalidate id="pqrsfdForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                {{ form.es_anonimo }}
+                                <label class="form-check-label" for="{{ form.es_anonimo.id_for_label }}">
+                                    Enviar de forma anónima
+                                </label>
+                                {% if form.es_anonimo.help_text %}
+                                <small class="form-text text-muted">{{ form.es_anonimo.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.tipo.id_for_label }}" class="form-label">Tipo de solicitud *</label>
+                            {{ form.tipo }}
+                            {% if form.tipo.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.tipo.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="datos-contacto">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre completo <span class="text-danger datos-requeridos">*</span></label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}
+                                        <div class="alert alert-danger mt-2">
+                                            {{ form.nombre.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email <span class="text-danger datos-requeridos">*</span></label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="alert alert-danger mt-2">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono</label>
+                                    {{ form.telefono }}
+                                    {% if form.telefono.errors %}
+                                        <div class="alert alert-danger mt-2">
+                                            {{ form.telefono.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.asunto.id_for_label }}" class="form-label">Asunto *</label>
+                                {{ form.asunto }}
+                                {% if form.asunto.errors %}
+                                    <div class="alert alert-danger mt-2">
+                                        {{ form.asunto.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción *</label>
+                                {{ form.descripcion }}
+                                {% if form.descripcion.errors %}
+                                    <div class="alert alert-danger mt-2">
+                                        {{ form.descripcion.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-paper-plane me-2"></i> Enviar PQRSFD
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const esAnonimoCheckbox = document.getElementById('{{ form.es_anonimo.id_for_label }}');
+        const datosContacto = document.getElementById('datos-contacto');
+        const camposRequeridos = document.querySelectorAll('.datos-requeridos');
+        
+        function toggleDatosContacto() {
+            if (esAnonimoCheckbox.checked) {
+                datosContacto.style.display = 'none';
+                // Hacer los campos opcionales cuando es anónimo
+                camposRequeridos.forEach(campo => {
+                    campo.style.display = 'none';
+                });
+            } else {
+                datosContacto.style.display = 'block';
+                // Hacer los campos requeridos cuando no es anónimo
+                camposRequeridos.forEach(campo => {
+                    campo.style.display = 'inline';
+                });
+            }
+        }
+        
+        esAnonimoCheckbox.addEventListener('change', toggleDatosContacto);
+        
+        // Inicializar el estado de los campos
+        toggleDatosContacto();
+    });
+</script>
+{% endblock %} 

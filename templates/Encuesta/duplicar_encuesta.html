@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Duplicar Encuesta</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="titulo" class="form-label">Nuevo Título <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="titulo" name="titulo" 
+                                   value="{{ encuesta_original.titulo }} (Copia)" required>
+                            <div class="form-text">Ingresa un nuevo título para la encuesta duplicada.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="region" class="form-label">Región <span class="text-danger">*</span></label>
+                            <select class="form-select" id="region" name="region" required>
+                                <option value="">Seleccione una región</option>
+                                {% for region in regiones %}
+                                    <option value="{{ region.id }}" 
+                                            {% if region.id == encuesta_original.region.id %}selected{% endif %}>
+                                        {{ region.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Selecciona la región para la nueva encuesta.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label">Categoría</label>
+                            <select class="form-select" id="categoria" name="categoria">
+                                <option value="">Seleccione una categoría</option>
+                                {% for categoria in categorias %}
+                                    <option value="{{ categoria.id }}" 
+                                            {% if categoria.id == encuesta_original.categoria.id %}selected{% endif %}>
+                                        {{ categoria.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Selecciona la categoría para la nueva encuesta.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex align-items-center">
+                                        <input class="form-check-input" type="checkbox" id="activa" name="activa" checked>
+                                        <label class="form-check-label ms-2" for="activa">
+                                            Encuesta activa
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4 mt-1">
+                                        Si está activa, los usuarios podrán responder la encuesta.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <div class="d-flex flex-column">
+                                    <div class="d-flex align-items-center">
+                                        <input class="form-check-input" type="checkbox" id="es_publica" name="es_publica">
+                                        <label class="form-check-label ms-2" for="es_publica">
+                                            Encuesta pública
+                                        </label>
+                                    </div>
+                                    <div class="form-text ms-4 mt-1">
+                                        Si es pública, cualquiera podrá responder sin iniciar sesión.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            La nueva encuesta incluirá todas las preguntas y configuraciones de la encuesta original.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'editar_encuesta' encuesta_original.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-copy"></i> Duplicar Encuesta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos para los switches */
+    .form-switch {
+        padding-left: 0;
+    }
+    
+    .form-switch .form-check-input {
+        margin-left: 0;
+        margin-right: 0.5rem;
+        width: 2.5em;
+        height: 1.25em;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280, 0, 0, 0.25%29'/%3e%3c/svg%3e");
+        background-position: left center;
+        border-radius: 2em;
+        transition: background-position .15s ease-in-out;
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-position: right center;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+    
+    .form-switch .form-check-input:focus {
+        border-color: rgba(67, 97, 238, 0.25);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: #4361ee;
+        border-color: #4361ee;
+    }
+    
+    /* Mejoras generales */
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    .card {
+        border-radius: 0.5rem;
+        border: none;
+    }
+    
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+    }
+    
+    .btn {
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.375rem;
+    }
+    
+    .alert {
+        border-radius: 0.375rem;
+    }
+</style>
+{% endblock %}

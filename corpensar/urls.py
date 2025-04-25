@@ -9,12 +9,21 @@ from .views import estadisticas_municipios
 urlpatterns = [
   path('admin/', admin.site.urls),
 
-  path('', views.index_view, name='index'), 
+  # Vista pública principal
+  path('', views.public_home, name='public_home'),
+  
+  # PQRSFD
+  path('pqrsfd/crear/', views.crear_pqrsfd, name='crear_pqrsfd'),
+  path('dashboard/pqrsfd/', views.listar_pqrsfd, name='listar_pqrsfd'),
+  path('dashboard/pqrsfd/responder/<int:pqrsfd_id>/', views.responder_pqrsfd, name='responder_pqrsfd'),
+  
+  # Panel de administración (requiere login)
+  path('dashboard/', views.index_view, name='index'), 
   #encuesta
   path('encuestas/nueva/', views.seleccionar_metodo_creacion, name='seleccionar_metodo'),
   path('encuestas/crear/desde-cero/', views.crear_desde_cero, name='crear_desde_cero'),
   path('encuestas/crear/con-ia/', views.crear_con_ia, name='crear_con_ia'),
-  path('encuestas/duplicar/', views.duplicar_encuesta, name='duplicar_encuesta'),
+  path('encuestas/duplicar/<int:encuesta_id>/', views.duplicar_encuesta, name='duplicar_encuesta'),
   path('encuestas/editar/<int:encuesta_id>/', views.editar_encuesta, name='editar_encuesta'),
   path('encuestas/eliminar/<int:encuesta_id>/', views.eliminar_encuesta, name='eliminar_encuesta'),
   path('encuestas/mis-encuestas/', views.ListaEncuestasView.as_view(), name='lista_encuestas'),
@@ -32,7 +41,8 @@ urlpatterns = [
   path('api/municipios/', views.municipios_por_region, name='municipios_por_region'),
   path('encuestas/<int:encuesta_id>/diseno/', views.actualizar_diseno, name='actualizar_diseno'),
   path('encuestas/<int:encuesta_id>/preview-diseno/', views.preview_diseno, name='preview_diseno'),
-  path('api/estadisticas-municipios/', estadisticas_municipios, name='estadisticas_municipios'),
+  path('api/estadisticas-municipios/', views.estadisticas_municipios, name='api_estadisticas_municipios'),
+  path('api/municipio/<str:municipio_nombre>/respuestas-historicas/', views.respuestas_historicas_municipio, name='respuestas_historicas_municipio'),
 
   #Inicio Sesion y Registro
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),

@@ -1,0 +1,59 @@
+{
+    "titulo": "Entrevista a Autoridades Locales – Opinión sobre Cenit y Derechos Humanos",
+    "descripcion": "Entrevista semiestructurada para recoger percepción de las autoridades locales sobre la operación de Cenit, inversión social, gestión de riesgos en DDHH y articulación institucional.",
+    "slug": "entrevista-autoridades-locales",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo ha sido la percepción general de las comunidades frente a la operación de Cenit en su territorio?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Considera que la empresa ha contribuido con obras o proyectos de inversión social pertinentes y sostenibles?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué mecanismos se han utilizado para definir o priorizar estos proyectos en articulación con la institucionalidad local?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Ha identificado usted situaciones de conflicto o tensión relacionadas con la operación de Cenit en su municipio?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Existen reportes o alertas tempranas sobre riesgos o afectaciones a líderes sociales, comunidades étnicas o defensores de DDHH en el territorio?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo califica el relacionamiento entre Cenit y su entidad o despacho?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Considera usted que hay canales efectivos para atender quejas, reclamos o situaciones de riesgo relacionadas con la operación de la empresa?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué tan informada está su entidad sobre los compromisos de Cenit en materia de derechos humanos?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué acciones considera prioritarias para fortalecer el respeto de los derechos humanos en el marco del relacionamiento territorial con Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea dejar alguna recomendación adicional?",
+        "requerida": false
+      }
+    ]
+  }
+  

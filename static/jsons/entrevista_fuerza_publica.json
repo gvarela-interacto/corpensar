@@ -1,0 +1,54 @@
+{
+    "titulo": "Entrevista a Fuerza Pública – Seguridad y Relacionamiento con Cenit",
+    "descripcion": "Entrevista semiestructurada dirigida a miembros de la Fuerza Pública para conocer su percepción sobre la seguridad territorial, relación con Cenit y gestión de riesgos en DDHH.",
+    "slug": "entrevista-fuerza-publica",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cómo describiría la situación de seguridad actual en la zona donde opera?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Existen grupos armados ilegales o economías criminales que puedan representar un riesgo para la infraestructura de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué tipo de actividades realiza su unidad en relación con la protección de la infraestructura de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Existe una coordinación directa y clara entre su unidad y la empresa Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Se han presentado conflictos o tensiones con comunidades durante actividades de protección?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué protocolos existen para el uso de la fuerza o actuación en el marco de protección de infraestructura energética?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Su unidad ha recibido formación en derechos humanos relacionada con la protección de infraestructura o el manejo de protestas sociales?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Existen reportes o quejas por presuntos abusos o excesos de fuerza en el marco de su relación con comunidades cercanas a la infraestructura de Cenit?",
+        "requerida": false
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué sugerencias tiene para mejorar el trabajo conjunto entre Cenit, su institución y las comunidades en temas de seguridad y derechos humanos?",
+        "requerida": false
+      }
+    ]
+  }
+  

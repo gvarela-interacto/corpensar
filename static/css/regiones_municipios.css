@@ -1,0 +1,319 @@
+/* Estilos para la página de Regiones y Municipios */
+
+.fade-in-card {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.custom-scrollbar {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.btn-icon-action {
+    background: none;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    padding: 0;
+}
+
+.btn-icon-action:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+}
+
+.empty-state.compact {
+    padding: 1.5rem 1rem;
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    color: #c1c1c1;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state-text {
+    color: #6c757d;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.empty-state.large {
+    padding: 4rem 2rem;
+}
+
+.empty-state-icon.large {
+    font-size: 5rem;
+}
+
+.empty-state-title {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.empty-state-card {
+    border: 2px dashed #e0e0e0;
+    background-color: rgba(0,0,0,0.01);
+}
+
+.region-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.region-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.region-title {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.municipio-nombre {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.table-modern {
+    font-size: 0.85rem;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-modern th {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: rgba(0,0,0,0.02);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.table-modern td {
+    padding: 0.5rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    transition: background-color 0.2s ease;
+}
+
+.table-modern tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-modern tbody tr:hover td {
+    background-color: rgba(0,0,0,0.01);
+}
+
+.card-modern {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.region-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border: none;
+    position: relative;
+}
+
+.region-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+}
+
+.region-badge {
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.delete-btn {
+    background-color: rgba(255,255,255,0.2);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    transition: all 0.2s ease;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-btn:not([disabled]):hover {
+    background-color: rgba(255,255,255,0.3);
+    transform: scale(1.05);
+}
+
+.delete-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Estilo para pantallas pequeñas */
+@media (max-width: 767.98px) {
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .region-title {
+        max-width: 120px;
+    }
+    
+    .municipio-nombre {
+        max-width: 120px;
+    }
+
+    .btn-modern {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Transiciones suaves */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Botones modernos */
+.btn-modern {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+}
+
+.btn-primary-modern:hover {
+    color: white;
+}
+
+.btn-success-modern {
+    background: linear-gradient(135deg, #20c997 0%, #0ca678 100%);
+    color: white;
+}
+
+.btn-success-modern:hover {
+    color: white;
+}
+
+.btn-secondary-modern {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+.btn-secondary-modern:hover {
+    color: white;
+}
+
+.btn-danger-modern {
+    background: linear-gradient(135deg, #f72585 0%, #dc2f6a 100%);
+    color: white;
+}
+
+.btn-danger-modern:hover {
+    color: white;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* Efectos visuales adicionales */
+.card-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+} 

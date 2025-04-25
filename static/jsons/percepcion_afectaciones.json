@@ -1,0 +1,141 @@
+{
+    "titulo": "Encuesta para Comunidad – Percepción y Afectaciones por Operación de Cenit",
+    "descripcion": "Recoger la percepción de la comunidad sobre la operación de Cenit en su territorio, posibles afectaciones, beneficios recibidos y riesgos identificados en DDHH.",
+    "slug": "encuesta-comunidad-cenit",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha escuchado hablar de la empresa Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿La infraestructura o presencia de Cenit está cerca del lugar donde usted vive?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Considera que la presencia de Cenit ha traído beneficios a su comunidad?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Qué tipo de beneficios ha observado?",
+        "requerida": false,
+        "opciones": [
+          {"texto": "Obras de infraestructura (vías, escuelas, acueducto, etc.)", "valor": "a"},
+          {"texto": "Apoyo en salud o educación", "valor": "b"},
+          {"texto": "Generación de empleo", "valor": "c"},
+          {"texto": "Mejoras en seguridad", "valor": "d"},
+          {"texto": "Otro", "valor": "e"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha sentido que la operación de Cenit ha generado alguna afectación negativa en su comunidad?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Qué tipo de afectaciones ha identificado?",
+        "requerida": false,
+        "opciones": [
+          {"texto": "Contaminación ambiental (agua, aire, suelo)", "valor": "a"},
+          {"texto": "Daños en vías o infraestructura local", "valor": "b"},
+          {"texto": "Ruido o molestias por operación", "valor": "c"},
+          {"texto": "Conflictos con la empresa o contratistas", "valor": "d"},
+          {"texto": "Desplazamiento o pérdida de acceso a recursos", "valor": "e"},
+          {"texto": "Otro", "valor": "f"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha intentado comunicar alguna queja o inquietud a la empresa Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Recibió respuesta o solución a su queja o inquietud?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, fue oportuna y efectiva", "valor": "a"},
+          {"texto": "Sí, pero no fue clara ni satisfactoria", "valor": "b"},
+          {"texto": "No recibió respuesta", "valor": "c"},
+          {"texto": "No aplica", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué tan accesibles considera los canales de comunicación con Cenit?",
+        "requerida": true,
+        "etiqueta_min": "Nada accesibles",
+        "etiqueta_max": "Muy accesibles",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Conoce si en su comunidad hay líderes sociales o defensores de derechos humanos activos?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Sabe si alguno de estos líderes ha sido amenazado o afectado en el contexto de operación de empresas como Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe / Prefiere no responder", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles de los siguientes derechos considera usted que podrían estar en riesgo por la operación de una empresa como Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Acceso al agua", "valor": "a"},
+          {"texto": "Salud", "valor": "b"},
+          {"texto": "Medio ambiente sano", "valor": "c"},
+          {"texto": "Trabajo digno", "valor": "d"},
+          {"texto": "Consulta previa o participación", "valor": "e"},
+          {"texto": "Seguridad personal", "valor": "f"},
+          {"texto": "Ninguno", "valor": "g"},
+          {"texto": "Otro", "valor": "h"}
+        ]
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea compartir alguna situación o recomendación adicional sobre la presencia de Cenit en su comunidad?",
+        "requerida": false
+      }
+    ]
+  }

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}PQRSFD - Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Gestión de PQRSFD</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12">
+                    <p>Filtrar por estado:</p>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <a href="{% url 'listar_pqrsfd' %}" class="btn {% if not estado_actual %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                            Todos ({{ conteo_estados.total }})
+                        </a>
+                        <a href="{% url 'listar_pqrsfd' %}?estado=P" class="btn {% if estado_actual == 'P' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+                            Pendientes ({{ conteo_estados.P }})
+                        </a>
+                        <a href="{% url 'listar_pqrsfd' %}?estado=E" class="btn {% if estado_actual == 'E' %}btn-info{% else %}btn-outline-info{% endif %}">
+                            En Proceso ({{ conteo_estados.E }})
+                        </a>
+                        <a href="{% url 'listar_pqrsfd' %}?estado=R" class="btn {% if estado_actual == 'R' %}btn-success{% else %}btn-outline-success{% endif %}">
+                            Resueltos ({{ conteo_estados.R }})
+                        </a>
+                        <a href="{% url 'listar_pqrsfd' %}?estado=C" class="btn {% if estado_actual == 'C' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                            Cerrados ({{ conteo_estados.C }})
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>Asunto</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pqrsfd in pqrsfds %}
+                            <tr>
+                                <td>{{ pqrsfd.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if pqrsfd.tipo == 'P' %}bg-primary
+                                        {% elif pqrsfd.tipo == 'Q' %}bg-danger
+                                        {% elif pqrsfd.tipo == 'R' %}bg-warning
+                                        {% elif pqrsfd.tipo == 'S' %}bg-info
+                                        {% elif pqrsfd.tipo == 'F' %}bg-success
+                                        {% elif pqrsfd.tipo == 'D' %}bg-dark
+                                        {% endif %}">
+                                        {{ pqrsfd.get_tipo_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if pqrsfd.es_anonimo %}
+                                        <span class="badge bg-secondary">Anónimo</span>
+                                    {% else %}
+                                        {{ pqrsfd.nombre }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ pqrsfd.asunto }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if pqrsfd.estado == 'P' %}bg-warning
+                                        {% elif pqrsfd.estado == 'E' %}bg-info
+                                        {% elif pqrsfd.estado == 'R' %}bg-success
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ pqrsfd.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'responder_pqrsfd' pqrsfd.id %}" class="btn btn-sm btn-primary">
+                                        {% if pqrsfd.respuesta %}Editar{% else %}Responder{% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                                    <p>No hay PQRSFD {% if estado_actual %}en estado "{{ ESTADO_CHOICES|get_item:estado_actual }}"{% else %}registrados{% endif %}</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

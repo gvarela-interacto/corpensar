@@ -1,0 +1,90 @@
+{
+    "titulo": "Encuesta para Líderes Sociales – Percepción, Riesgos y Protección",
+    "descripcion": "Identificar percepciones, riesgos y mecanismos de protección para líderes sociales y defensores de DDHH frente a la operación de Cenit en el territorio.",
+    "slug": "encuesta-lideres-sociales-cenit",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "tipo": "RADIO",
+        "texto": "¿Se reconoce usted como líder social o defensor/a de derechos humanos?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "Prefiero no responder", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles de los siguientes riesgos ha identificado en su territorio relacionados con su labor como líder o la de otros líderes sociales?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Amenazas verbales o intimidaciones", "valor": "a"},
+          {"texto": "Seguimientos o vigilancia ilegal", "valor": "b"},
+          {"texto": "Estigmatización institucional o empresarial", "valor": "c"},
+          {"texto": "Obstaculización a la participación comunitaria", "valor": "d"},
+          {"texto": "Exclusión en procesos de consulta o contratación", "valor": "e"},
+          {"texto": "Ninguno", "valor": "f"},
+          {"texto": "Otro", "valor": "g"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha sentido que su labor como líder ha sido tenida en cuenta por parte de Cenit o sus contratistas?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "Parcialmente", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No aplica", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Considera que existen espacios institucionales o comunitarios seguros para ejercer su liderazgo?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Qué acciones considera importantes para mejorar la protección de líderes sociales en su territorio?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Mayor presencia institucional", "valor": "a"},
+          {"texto": "Espacios de diálogo con empresas", "valor": "b"},
+          {"texto": "Acceso a rutas de protección", "valor": "c"},
+          {"texto": "Fortalecimiento de organizaciones sociales", "valor": "d"},
+          {"texto": "Apoyo psicosocial y jurídico", "valor": "e"},
+          {"texto": "Otro", "valor": "f"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué tan respetuoso considera que ha sido el relacionamiento de Cenit con su comunidad?",
+        "requerida": true,
+        "etiqueta_min": "Nada respetuoso",
+        "etiqueta_max": "Muy respetuoso",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Considera que Cenit debería establecer un protocolo específico para relacionarse con líderes sociales?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe / Prefiere no responder", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Desea compartir alguna experiencia o propuesta relacionada con el respeto y la protección de los derechos humanos en su territorio?",
+        "requerida": false
+      }
+    ]
+  }  

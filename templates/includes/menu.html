@@ -1,6 +1,156 @@
 {% load grupo_tags %}
 
-<nav class="sidebar sidebar-offcanvas" id="sidebar">
+<nav class="sidebar sidebar-offcanvas" id="sidebar" style="background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%); box-shadow: 0 0 20px rgba(0,0,0,0.2);">
+    <style>
+        .sidebar {
+            min-height: calc(100vh - 50px);
+            width: 255px;
+            z-index: 11;
+            transition: all 0.25s ease;
+            position: fixed;
+            left: 0;
+            top: 50px;
+        }
+        
+        .sidebar .nav {
+            overflow-y: auto;
+            flex-wrap: nowrap;
+            flex-direction: column;
+            margin-bottom: 60px;
+            padding-bottom: 60px;
+            height: calc(100vh - 120px);
+            width: 100%;
+        }
+        
+        .sidebar .nav .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar .nav .nav-item .nav-link {
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin: 0 15px;
+            padding: 12px 15px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar .nav .nav-item .nav-link:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav .nav-item.active .nav-link {
+            background: rgba(255, 215, 0, 0.3);
+            border-left: 4px solid #ffd700;
+        }
+        
+        .sidebar .nav .nav-item .menu-icon {
+            color: rgba(255, 255, 255, 0.8);
+            background: transparent;
+            margin-right: 10px;
+            font-size: 1.1rem;
+            width: 30px;
+            text-align: center;
+            height: 30px;
+            line-height: 30px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .sidebar .nav .nav-item .nav-link:hover .menu-icon {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+        
+        .sidebar .nav .nav-item .menu-title {
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            color: rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .sidebar .nav .nav-category {
+            color: #ffd700;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 25px 15px 8px;
+            padding-left: 10px;
+            text-shadow: 0 0 3px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 15px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        .sidebar-logo img {
+            height: 70px;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+        }
+        
+        /* Mejoras para dispositivos móviles */
+        @media (max-width: 991px) {
+            .sidebar {
+                width: 255px;
+                position: fixed;
+                left: -255px;
+                height: 100vh;
+                top: 50px;
+                z-index: 999;
+                box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+            }
+            
+            .sidebar-open .sidebar {
+                left: 0;
+            }
+            
+            .sidebar .nav {
+                height: calc(100vh - 120px);
+                padding-bottom: 100px;
+            }
+            
+            /* Desactiva la transformación en móvil para evitar problemas */
+            .sidebar .nav .nav-item .nav-link:hover {
+                transform: none;
+            }
+        }
+        
+        /* Añadir una capa de oscurecimiento cuando el menú está abierto en móvil */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+        
+        @media (max-width: 991px) {
+            .sidebar-open .sidebar-backdrop {
+                display: block;
+            }
+        }
+    </style>
+
+    <div class="sidebar-logo">
+        <img src="/static/images/logo corpensar-12.webp" alt="Corpensar Logo">
+    </div>
+
     <ul class="nav">
 
         <li class="nav-item nav-category">Encuestas</li>
@@ -53,7 +203,26 @@
             </a>
         </li>
         
-        
+        <!-- Sección PQRSFD -->
+        <li class="nav-item nav-category">PQRSFD</li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'listar_pqrsfd' %}">
+                <i class="menu-icon mdi mdi-message-text-outline"></i>
+                <span class="menu-title">Gestionar PQRSFD</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=P">
+                <i class="menu-icon mdi mdi-clock-outline"></i>
+                <span class="menu-title">Pendientes</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=E">
+                <i class="menu-icon mdi mdi-progress-clock"></i>
+                <span class="menu-title">En proceso</span>
+            </a>
+        </li>
         
 {% comment %}     
         {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Comunicaciones' or user|in_group:'Enlace_Comunicaciones' %}
@@ -139,3 +308,30 @@
         </li>
     </ul>
 </nav>
+
+<!-- Backdrop para móviles -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const backdrop = document.getElementById('sidebarBackdrop');
+    
+    if (backdrop) {
+        backdrop.addEventListener('click', function() {
+            document.body.classList.remove('sidebar-open');
+        });
+    }
+    
+    // Cerrar menú al hacer clic en enlaces en dispositivos móviles
+    if (window.innerWidth <= 991) {
+        const menuLinks = document.querySelectorAll('.sidebar .nav .nav-item .nav-link');
+        menuLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                setTimeout(() => {
+                    document.body.classList.remove('sidebar-open');
+                }, 150);
+            });
+        });
+    }
+});
+</script>

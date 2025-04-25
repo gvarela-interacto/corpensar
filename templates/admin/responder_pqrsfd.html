@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Responder PQRSFD - Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Responder PQRSFD</h2>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>Información del PQRSFD</h4>
+                    <p><strong>Tipo:</strong> {{ pqrsfd.get_tipo_display }}</p>
+                    {% if pqrsfd.es_anonimo %}
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-user-secret me-2"></i> Esta solicitud fue enviada de forma anónima.
+                        </div>
+                    {% else %}
+                        <p><strong>Nombre:</strong> {{ pqrsfd.nombre }}</p>
+                        <p><strong>Email:</strong> {{ pqrsfd.email }}</p>
+                        {% if pqrsfd.telefono %}
+                            <p><strong>Teléfono:</strong> {{ pqrsfd.telefono }}</p>
+                        {% endif %}
+                    {% endif %}
+                    <p><strong>Asunto:</strong> {{ pqrsfd.asunto }}</p>
+                    <p><strong>Fecha de creación:</strong> {{ pqrsfd.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    <p><strong>Descripción:</strong></p>
+                    <div class="border p-3 bg-light">
+                        {{ pqrsfd.descripcion|linebreaks }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4>Responder</h4>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select name="estado" id="estado" class="form-select">
+                                <option value="P" {% if pqrsfd.estado == 'P' %}selected{% endif %}>Pendiente</option>
+                                <option value="E" {% if pqrsfd.estado == 'E' %}selected{% endif %}>En Proceso</option>
+                                <option value="R" {% if pqrsfd.estado == 'R' %}selected{% endif %}>Resuelto</option>
+                                <option value="C" {% if pqrsfd.estado == 'C' %}selected{% endif %}>Cerrado</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="respuesta" class="form-label">Respuesta</label>
+                            <textarea name="respuesta" id="respuesta" class="form-control" rows="10">{{ pqrsfd.respuesta|default:'' }}</textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Guardar Respuesta</button>
+                            <a href="{% url 'listar_pqrsfd' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

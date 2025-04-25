@@ -63,10 +63,19 @@
                             </div>
                             <h3 class="card-title">Duplicar Encuesta</h3>
                             <p class="card-text flex-grow-1">Selecciona una encuesta existente para crear una copia editable.</p>
-                            <a href="{% url 'duplicar_encuesta' %}" class="btn btn-info mt-3">
-                                <span class="btn-text">Seleccionar</span>
-                                <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
+                            
+                            <div class="mt-3">
+                                <select class="form-select mb-3" id="encuesta_a_duplicar">
+                                    <option value="">Selecciona una encuesta...</option>
+                                    {% for encuesta in encuestas %}
+                                        <option value="{{ encuesta.id }}">{{ encuesta.titulo }}</option>
+                                    {% endfor %}
+                                </select>
+                                
+                                <button type="button" class="btn btn-info w-100" id="btnDuplicar" disabled>
+                                    <i class="fas fa-copy me-2"></i> Duplicar Encuesta
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -319,5 +328,25 @@
         }
     }
 </style>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectEncuesta = document.getElementById('encuesta_a_duplicar');
+    const btnDuplicar = document.getElementById('btnDuplicar');
+    
+    selectEncuesta.addEventListener('change', function() {
+        btnDuplicar.disabled = !this.value;
+    });
+    
+    btnDuplicar.addEventListener('click', function() {
+        const encuestaId = selectEncuesta.value;
+        if (encuestaId) {
+            window.location.href = `/encuestas/duplicar/${encuestaId}/`;
+        }
+    });
+});
+</script>
+{% endblock %}
 
 {% endblock %}

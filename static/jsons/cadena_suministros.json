@@ -1,0 +1,179 @@
+{
+    "titulo": "Encuesta para Cadena de Suministro – Proveedores y Contratistas Cenit",
+    "descripcion": "Identificar riesgos en DDHH y DIH en el marco del relacionamiento contractual con Cenit, y valorar la percepción de los proveedores sobre los mecanismos de prevención, atención y mejora continua.",
+    "slug": "encuesta-cadena-suministro-cenit",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha enfrentado dificultades para operar en las zonas donde trabaja con Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, frecuentemente", "valor": "a"},
+          {"texto": "Sí, en algunas ocasiones", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No aplica", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles han sido las principales dificultades?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Riesgos de seguridad", "valor": "a"},
+          {"texto": "Conflictos con la comunidad", "valor": "b"},
+          {"texto": "Problemas logísticos", "valor": "c"},
+          {"texto": "Dificultades climáticas o ambientales", "valor": "d"},
+          {"texto": "Riesgos relacionados con presencia de actores armados ilegales", "valor": "e"},
+          {"texto": "Otro", "valor": "f"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Su empresa implementa medidas para prevenir afectaciones a sus trabajadores o a las comunidades?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, de manera sistemática", "valor": "a"},
+          {"texto": "Sí, parcialmente", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Qué tipo de medidas aplica su empresa?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Capacitaciones en DDHH y DIH", "valor": "a"},
+          {"texto": "Protocolo para relacionamiento con comunidades", "valor": "b"},
+          {"texto": "Supervisión en campo", "valor": "c"},
+          {"texto": "Protocolos de seguridad y evacuación", "valor": "d"},
+          {"texto": "Evaluación de riesgos contextuales antes de intervenir en campo", "valor": "e"},
+          {"texto": "Otro", "valor": "f"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Conoce la política de Derechos Humanos de Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No estoy seguro/a", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha recibido orientación sobre cómo aplicarla dentro de su contrato?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, mediante capacitación formal", "valor": "a"},
+          {"texto": "Sí, a través de los documentos contractuales", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha recibido instrucciones sobre cómo relacionarse respetuosamente con las comunidades?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, y fueron claras y útiles", "valor": "a"},
+          {"texto": "Sí, pero no fueron claras", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe / No responde", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Considera que su relación con las comunidades ha sido respetuosa y libre de conflictos?",
+        "requerida": true,
+        "etiqueta_min": "Nunca",
+        "etiqueta_max": "Siempre",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Conoce algún canal para reportar incidentes relacionados con DDHH o DIH en el marco de su contrato con Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe / No responde", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cómo califica la respuesta que ha recibido cuando ha reportado alguna situación?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Muy buena", "valor": "a"},
+          {"texto": "Buena", "valor": "b"},
+          {"texto": "Regular", "valor": "c"},
+          {"texto": "Mala", "valor": "d"},
+          {"texto": "No he reportado ningún caso", "valor": "e"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha vivido alguna situación de riesgo o tensión con comunidades, actores armados, o por afectaciones ambientales durante su contrato con Cenit?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "Prefiero no responder", "valor": "c"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cómo fue manejada esta situación?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Con apoyo institucional de Cenit", "valor": "a"},
+          {"texto": "Por cuenta propia", "valor": "b"},
+          {"texto": "No se resolvió adecuadamente", "valor": "c"},
+          {"texto": "Otro", "valor": "d"}
+        ]
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué tan claro considera que es el compromiso de Cenit con la protección de los derechos humanos en la operación?",
+        "requerida": true,
+        "etiqueta_min": "Nada claro",
+        "etiqueta_max": "Muy claro",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "SCALE",
+        "texto": "¿Qué tan seguro se siente usted de que Cenit respondería adecuadamente ante un riesgo de violación a los derechos humanos?",
+        "requerida": true,
+        "etiqueta_min": "Muy inseguro",
+        "etiqueta_max": "Muy seguro",
+        "min_valor": 1,
+        "max_valor": 5
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Cuáles de los siguientes riesgos ha identificado como potenciales o reales durante su contrato?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Riesgos para la seguridad del personal por conflicto armado o violencia", "valor": "a"},
+          {"texto": "Riesgos de afectación a comunidades por daños ambientales", "valor": "b"},
+          {"texto": "Riesgos de discriminación o maltrato en campo", "valor": "c"},
+          {"texto": "Riesgos por falta de consulta o comunicación con comunidades", "valor": "d"},
+          {"texto": "Riesgos reputacionales por acciones de terceros", "valor": "e"},
+          {"texto": "Riesgos para los derechos laborales de su personal", "valor": "f"},
+          {"texto": "Ninguno", "valor": "g"},
+          {"texto": "Otro", "valor": "h"}
+        ]
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué acciones considera prioritarias para mejorar la gestión de DDHH en su relación con Cenit?",
+        "requerida": false
+      }
+    ]
+  }
+  
