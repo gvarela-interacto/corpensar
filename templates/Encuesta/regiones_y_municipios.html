@@ -50,8 +50,7 @@
                         </span>
                         <button class="delete-btn" 
                                 onclick="confirmarEliminarRegion('{{ region.id }}', '{{ region.nombre }}')"
-                                {% if region.municipios.exists %}disabled{% endif %}
-                                title="{% if region.municipios.exists %}No se puede eliminar una región con municipios{% else %}Eliminar región{% endif %}">
+                                title="Eliminar región">
                             <i class="mdi mdi-delete" style="font-size: 16px;"></i>
                         </button>
                     </div>
@@ -137,6 +136,15 @@
                 </div>
                 <p class="text-center mb-0">¿Está seguro que desea eliminar la región <strong><span id="nombreRegion"></span></strong>?</p>
                 <p class="text-muted small text-center mt-2">Esta acción no se puede deshacer.</p>
+                
+                <div class="mt-3 d-flex align-items-center justify-content-center" id="eliminarMunicipiosContainer">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="eliminarMunicipiosCheck">
+                        <label class="form-check-label" for="eliminarMunicipiosCheck">
+                            Eliminar también todos los municipios de esta región
+                        </label>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer" style="border-top: 1px solid rgba(0,0,0,0.05);">
                 <button type="button" class="btn-modern btn-secondary-modern" data-bs-dismiss="modal">
@@ -200,7 +208,24 @@
     // Función para confirmar eliminación de región
     function confirmarEliminarRegion(regionId, nombreRegion) {
         document.getElementById('nombreRegion').textContent = nombreRegion;
-        document.getElementById('confirmarEliminarRegionBtn').href = `/region/eliminar/${regionId}/`;
+        
+        // Obtenemos referencia al checkbox
+        const eliminarMunicipiosCheck = document.getElementById('eliminarMunicipiosCheck');
+        const eliminarMunicipiosContainer = document.getElementById('eliminarMunicipiosContainer');
+        
+        // Configuramos la URL del botón de confirmación
+        const confirmarBtn = document.getElementById('confirmarEliminarRegionBtn');
+        confirmarBtn.href = `/region/eliminar/${regionId}/`;
+        
+        // Añadimos el evento para modificar la URL cuando se marque/desmarque el checkbox
+        eliminarMunicipiosCheck.checked = false; // Reset checkbox
+        eliminarMunicipiosCheck.addEventListener('change', function() {
+            if (this.checked) {
+                confirmarBtn.href = `/region/eliminar/${regionId}/?eliminar_municipios=true`;
+            } else {
+                confirmarBtn.href = `/region/eliminar/${regionId}/`;
+            }
+        });
         
         const modal = new bootstrap.Modal(document.getElementById('confirmarEliminarRegionModal'));
         modal.show();

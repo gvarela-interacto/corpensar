@@ -1878,11 +1878,20 @@ def eliminar_region(request, region_id):
     try:
         region = Region.objects.get(id=region_id)
         nombre_region = region.nombre
+        eliminar_municipios = request.GET.get('eliminar_municipios', 'false')
+        
         # Verificar si hay municipios asociados
         municipios = Municipio.objects.filter(region=region)
-        if municipios.exists():
-            messages.error(request, f'No se puede eliminar la región {nombre_region} porque tiene municipios asociados. Elimine primero los municipios.')
+        
+        if municipios.exists() and eliminar_municipios != 'true':
+            messages.error(request, f'No se puede eliminar la región {nombre_region} porque tiene municipios asociados. Elimine primero los municipios o use la opción para eliminar todo.')
             return redirect('regiones_y_municipios')
+        
+        # Si se solicita eliminar los municipios también
+        if eliminar_municipios == 'true':
+            # Eliminar todos los municipios de esta región
+            municipios.delete()
+            messages.success(request, f'Se han eliminado todos los municipios asociados a la región {nombre_region}.')
         
         region.delete()
         messages.success(request, f'La región {nombre_region} ha sido eliminada exitosamente.')
