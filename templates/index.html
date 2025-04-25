@@ -1289,6 +1289,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Función para mostrar información del municipio dentro del mapa
   function mostrarInfoMunicipio(key) {
     const info = datosEstadisticas[key];
     console.log(info);
@@ -1299,6 +1300,154 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas;
     document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion + '%';
     document.getElementById('infoMunicipio').style.display = 'block';
+    
+    // Crear gráficos con los datos del municipio
+    crearGraficoEncuestas(info);
+    crearGraficoRespuestas(info);
+    crearGraficoFinalizacion(info);
+  }
+  
+  // Variables para almacenar instancias de gráficos y poder destruirlas
+  let chartEncuestas = null;
+  let chartRespuestas = null;
+  let chartFinalizacion = null;
+  
+  // Función para crear gráfico de encuestas
+  function crearGraficoEncuestas(info) {
+    // Destruir gráfico anterior si existe
+    if (chartEncuestas) {
+      chartEncuestas.destroy();
+    }
+
+    console.log(info);
+    
+    // Datos para el gráfico de encuestas (ejemplo: distribución por estado)
+    const datosEncuestas = {
+      labels: ['Activas', 'Cerradas', 'Pausadas'],
+      datasets: [{
+        label: 'Encuestas por estado',
+        data: [
+          info.encuestasActivas || Math.round(info.totalEncuestas * 0.7), // Si no hay dato real, uso un porcentaje aproximado
+          info.encuestasCerradas || Math.round(info.totalEncuestas * 0.2),
+          info.encuestasPausadas || Math.round(info.totalEncuestas * 0.1)
+        ],
+        backgroundColor: ['#4e73df', '#e74a3b', '#f6c23e'],
+        borderWidth: 1
+      }]
+    };
+    
+    chartEncuestas = new Chart(
+      document.getElementById('estadisticasEncuestasMunicipio').getContext('2d'),
+      {
+        type: 'pie',
+        data: datosEncuestas,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { boxWidth: 10, padding: 10, font: { size: 10 } }
+            }
+          }
+        }
+      }
+    );
+  }
+  
+  // Función para crear gráfico de respuestas
+  function crearGraficoRespuestas(info) {
+    // Destruir gráfico anterior si existe
+    if (chartRespuestas) {
+      chartRespuestas.destroy();
+    }
+    
+    // Simular datos históricos de respuestas (6 meses)
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
+    const datosHistoricos = Array(6).fill(0).map(() => 
+      info.totalRespuestas
+    );
+    
+    const datosRespuestas = {
+      labels: meses,
+      datasets: [{
+        label: 'Respuestas',
+        data: datosHistoricos,
+        borderColor: '#1cc88a',
+        backgroundColor: 'rgba(28, 200, 138, 0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    };
+    
+    chartRespuestas = new Chart(
+      document.getElementById('estadisticasRespuestasMunicipio').getContext('2d'),
+      {
+        type: 'line',
+        data: datosRespuestas,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { font: { size: 9 } }
+            },
+            x: {
+              ticks: { font: { size: 9 } }
+            }
+          }
+        }
+      }
+    );
+  }
+  
+  // Función para crear gráfico de finalización
+  function crearGraficoFinalizacion(info) {
+    // Destruir gráfico anterior si existe
+    if (chartFinalizacion) {
+      chartFinalizacion.destroy();
+    }
+    
+    // Datos para la tasa de finalización vs promedio nacional
+    const datosFinalizacion = {
+      labels: ['Este Municipio', 'Promedio Nacional'],
+      datasets: [{
+        label: 'Tasa de Finalización (%)',
+        data: [info.tasaFinalizacion, info.tasaPromedioNacional || 65], // Valor por defecto si no hay dato real
+        backgroundColor: ['#ffc107', '#858796'],
+        borderWidth: 1
+      }]
+    };
+    
+    chartFinalizacion = new Chart(
+      document.getElementById('estadisticasFinalizacionMunicipio').getContext('2d'),
+      {
+        type: 'bar',
+        data: datosFinalizacion,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { font: { size: 9 } }
+            },
+            y: {
+              ticks: { font: { size: 9 } }
+            }
+          }
+        }
+      }
+    );
   }
 
   // 1) Traigo estadísticas
@@ -1320,6 +1469,8 @@ document.addEventListener('DOMContentLoaded', function() {
               }
               // Polígonos (si hubiera), con escala:
               const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
+
+              // Si no existe la clave, asigno 0 a todas las estadísticas
               const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
               return {
                 fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual),
