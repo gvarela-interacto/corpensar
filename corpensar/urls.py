@@ -32,7 +32,8 @@ urlpatterns = [
   path('api/municipios/', views.municipios_por_region, name='municipios_por_region'),
   path('encuestas/<int:encuesta_id>/diseno/', views.actualizar_diseno, name='actualizar_diseno'),
   path('encuestas/<int:encuesta_id>/preview-diseno/', views.preview_diseno, name='preview_diseno'),
-  path('api/estadisticas-municipios/', estadisticas_municipios, name='estadisticas_municipios'),
+  path('api/estadisticas-municipios/', views.estadisticas_municipios, name='api_estadisticas_municipios'),
+  path('api/municipio/<str:municipio_nombre>/respuestas-historicas/', views.respuestas_historicas_municipio, name='respuestas_historicas_municipio'),
 
   #Inicio Sesion y Registro
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
