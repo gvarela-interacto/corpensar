@@ -1,115 +1,64 @@
 {% extends 'public/base_public.html' %}
+{% load static %}
 
-{% block title %}Iniciar Sesión - Corpensar{% endblock %}
+{% block title %}Iniciar Sesión | CORPENSAR{% endblock %}
 
-{% block hero %}
-<div class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="display-4 mb-3">Iniciar Sesión</h1>
-                <p class="lead">Accede a tu cuenta para gestionar encuestas y más</p>
-            </div>
-            <div class="col-md-4 d-none d-md-block text-center">
-                <i class="fas fa-user-circle fa-6x text-white opacity-75"></i>
-            </div>
-        </div>
-    </div>
-</div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Iniciar Sesión</h2>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <img src="http://72.14.187.231/corpensar/images/logoappw.png" alt="Logo Corpensar" class="login-logo">
+            <h3>Bienvenido a Corpensar</h3>
+            <p>Ingresa tus credenciales para acceder</p>
+        </div>
 
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        Usuario o contraseña incorrectos. Por favor, intente nuevamente.
-                    </div>
-                    {% endif %}
-
-                    {% if next %}
-                        {% if user.is_authenticated %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            No tienes permisos para acceder a esa página. Para continuar, inicia sesión con una cuenta que tenga los permisos necesarios.
-                        </div>
-                        {% endif %}
-                    {% endif %}
-
-                    <form method="post" action="{% url 'login' %}" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ next }}">
-                        
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Usuario</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <input type="text" name="username" id="id_username" class="form-control" required>
-                            </div>
-                            {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.username.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="id_password" class="form-label">Contraseña</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                <input type="password" name="password" id="id_password" class="form-control" required>
-                            </div>
-                            {% if form.password.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.password.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                            </button>
-                            <a href="{% url 'registro' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-user-plus me-2"></i>Crear cuenta
-                            </a>
-                        </div>
-                    </form>
-                </div>
+        {% if form.errors %}
+        <div class="alert-box alert-danger">
+            <div class="alert-icon">
+                <i class="bi bi-exclamation-circle"></i>
             </div>
-
-            <!-- Información adicional -->
-            <div class="row mt-4">
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
-                            <h5 class="card-title">Acceso Seguro</h5>
-                            <p class="card-text">Tu información está protegida con los más altos estándares de seguridad.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <i class="fas fa-question-circle fa-2x text-primary mb-3"></i>
-                            <h5 class="card-title">¿Necesitas ayuda?</h5>
-                            <p class="card-text">Contacta con nuestro equipo de soporte si tienes problemas para acceder.</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="alert-content">
+                <span class="alert-title">Notificación</span>
+                <p class="alert-message">Usuario o contraseña incorrectos. Por favor intenta nuevamente.</p>
             </div>
         </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_username">Usuario</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-person icon-left"></i>
+                    <input type="text" name="username" id="id_username" placeholder="Ingrese su nombre de usuario" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_password">Contraseña</label>
+                <div class="input-with-icon">
+                    <i class="bi bi-lock icon-left"></i>
+                    <input type="password" name="password" id="id_password" placeholder="Ingrese su contraseña" required>
+                </div>
+            </div>
+            
+            <div class="form-group checkbox-wrapper">
+                <input type="checkbox" name="remember_me" id="id_remember_me">
+                <label for="id_remember_me">Recordarme</label>
+            </div>
+            
+            <input type="hidden" name="next" value="{{ next }}">
+            
+            <button type="submit" class="login-button">
+                <i class="bi bi-box-arrow-in-right"></i>
+                Iniciar Sesión
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}

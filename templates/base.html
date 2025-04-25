@@ -44,10 +44,15 @@
     body {
       font-family: 'Poppins', sans-serif;
       transition: background-color var(--transition-speed) ease;
+      overflow-x: hidden;
     }
     
     .container-scroller {
       transition: all var(--transition-speed) ease;
+      overflow-x: hidden;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
     }
     
     .card {
@@ -122,13 +127,14 @@
       border-radius: 0.8rem;
       margin: 0.8rem;
       background-color: #fff;
+      display: block;
+      opacity: 1;
+      flex: 1;
+      width: 100%;
+      overflow-x: hidden;
     }
 
     /* Animaciones para carga de página */
-    .fade-in {
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -252,6 +258,9 @@
       height: 100vh;
       overflow-y: auto;
       z-index: 10;
+      left: 0;
+      top: 50px;
+      width: 255px;
     }
     
     .sidebar::-webkit-scrollbar {
@@ -274,6 +283,18 @@
     .main-panel {
       margin-left: 255px;
       width: calc(100% - 255px);
+      padding-top: 10px;
+      min-height: calc(100vh - 60px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-wrapper {
+      flex: 1;
+      display: block;
+      padding: 20px;
+      background: #fff;
+      overflow-x: hidden;
     }
     
     @media (max-width: 991px) {
@@ -281,6 +302,68 @@
         margin-left: 0;
         width: 100%;
       }
+      
+      .sidebar {
+        left: -255px;
+        transition: left 0.3s ease;
+      }
+      
+      .sidebar-open .sidebar {
+        left: 0;
+      }
+    }
+
+    /* Mejoras para el layout principal y comportamiento del menú lateral */
+    .container-scroller {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    .page-body-wrapper {
+      min-height: 100vh !important;
+      display: flex;
+      flex-direction: row;
+      padding-left: 0;
+      padding-right: 0;
+      padding-top: 50px !important;
+      position: relative;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    /* Ajustes adicionales para mostrar correctamente el contenido */
+    .interContenido {
+      opacity: 1 !important;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Ajustes para mapa y gráficos */
+    .map-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    
+    .bento-grid {
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    
+    .grid-item {
+      margin-bottom: 1rem;
+    }
+
+    /* Mejora para transiciones suaves */
+    * {
+      transition-property: background-color, border-color, color, opacity, box-shadow, transform;
+      transition-duration: 0.3s;
+      transition-timing-function: ease;
+    }
+    
+    .card {
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     }
   </style>
 
@@ -295,7 +378,7 @@
       
       <div class="main-panel">
         
-        <div class="content-wrapper interContenido fade-in">
+        <div class="content-wrapper interContenido">
           <!-- Sistema de mensajes mejorado -->
           <div class="message-container" id="messageContainer">
             {% if messages %}
@@ -357,112 +440,102 @@
   
   {% block javascript %}{% endblock %}
   
+  <!-- JavaScript para gestionar eventos -->
   <script>
-    // Añadir efecto de carga suave a la página
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(function() {
-        document.querySelector('.content-wrapper').classList.remove('fade-in');
-      }, 500);
+    // Mostrar mensajes del sistema
+    function showSystemMessage(message, type = 'info') {
+      const messageContainer = document.getElementById('messageContainer');
+      if (!messageContainer) return;
+
+      const messageClasses = {
+        'success': { icon: 'fas fa-check-circle', title: 'Éxito' },
+        'info': { icon: 'fas fa-info-circle', title: 'Información' },
+        'warning': { icon: 'fas fa-exclamation-triangle', title: 'Advertencia' },
+        'error': { icon: 'fas fa-times-circle', title: 'Error' },
+        'danger': { icon: 'fas fa-times-circle', title: 'Error' }
+      };
       
-      // Gestión de mensajes
-      var messages = document.querySelectorAll('.message-toast');
-      messages.forEach(function(message, index) {
-        // Cierre automático después de 5 segundos (más para errores)
-        var delay = message.classList.contains('message-danger') || message.classList.contains('message-error') ? 10000 : 5000;
-        setTimeout(function() {
-          message.classList.add('hide');
-          setTimeout(function() {
-            message.remove();
-          }, 300);
-        }, delay + (index * 500)); // Escalonar el cierre de múltiples mensajes
-        
-        // Cierre manual al hacer clic en el botón cerrar
-        var closeBtn = message.querySelector('.close-btn');
-        if (closeBtn) {
-          closeBtn.addEventListener('click', function() {
-            message.classList.add('hide');
-            setTimeout(function() {
-              message.remove();
-            }, 300);
-          });
-        }
-      });
-    });
-    
-    // Añadir efecto hover a los botones
-    const buttons = document.querySelectorAll('.btn');
-    buttons.forEach(button => {
-      button.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-2px)';
-      });
-      button.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-      });
-    });
-    
-    // Función para mostrar mensajes de error del sistema
-    function showSystemMessage(message, type) {
-      const container = document.getElementById('messageContainer');
-      if (!container) return;
+      const messageInfo = messageClasses[type] || messageClasses['info'];
       
-      const toast = document.createElement('div');
-      toast.className = `message-toast message-${type || 'info'}`;
-      toast.setAttribute('role', 'alert');
-      toast.setAttribute('aria-live', 'assertive');
-      toast.setAttribute('aria-atomic', 'true');
+      // Crear elemento mensaje
+      const messageElement = document.createElement('div');
+      messageElement.className = `message-toast message-${type}`;
+      messageElement.setAttribute('role', 'alert');
+      messageElement.setAttribute('aria-live', 'assertive');
+      messageElement.setAttribute('aria-atomic', 'true');
       
-      let icon = 'bell';
-      let title = 'Notificación';
-      
-      if (type === 'success') {
-        icon = 'check-circle';
-        title = 'Éxito';
-      } else if (type === 'info') {
-        icon = 'info-circle';
-        title = 'Información';
-      } else if (type === 'warning') {
-        icon = 'exclamation-triangle';
-        title = 'Advertencia';
-      } else if (type === 'danger' || type === 'error') {
-        icon = 'times-circle';
-        title = 'Error';
-      }
-      
-      toast.innerHTML = `
+      // Estructura interna
+      messageElement.innerHTML = `
         <div class="message-header">
-          <strong class="me-auto"><i class="fas fa-${icon}"></i> ${title}</strong>
+          <strong class="me-auto">
+            <i class="${messageInfo.icon}"></i> ${messageInfo.title}
+          </strong>
           <button type="button" class="close-btn" data-dismiss="toast" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="message-body">${message}</div>
+        <div class="message-body">
+          ${message}
+        </div>
       `;
       
-      container.appendChild(toast);
+      // Añadir al contenedor
+      messageContainer.appendChild(messageElement);
       
-      // Configurar cierre automático
+      // Configurar auto-cierre
       setTimeout(() => {
-        toast.classList.add('hide');
+        messageElement.classList.add('fade-out');
         setTimeout(() => {
-          toast.remove();
-        }, 300);
-      }, type === 'error' || type === 'danger' ? 10000 : 5000);
+          messageContainer.removeChild(messageElement);
+        }, 500);
+      }, 5000);
       
-      // Configurar cierre manual
-      const closeBtn = toast.querySelector('.close-btn');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-          toast.classList.add('hide');
+      // Configurar botón de cierre
+      const closeButton = messageElement.querySelector('.close-btn');
+      if (closeButton) {
+        closeButton.addEventListener('click', () => {
+          messageElement.classList.add('fade-out');
           setTimeout(() => {
-            toast.remove();
-          }, 300);
+            messageContainer.removeChild(messageElement);
+          }, 500);
         });
       }
     }
-    
-    // Capturar errores no manejados y mostrarlos de forma elegante
+
+    // Manejar errores no controlados en la aplicación
     window.addEventListener('error', function(event) {
       showSystemMessage('Se ha producido un error en la aplicación: ' + event.message, 'error');
+    });
+
+    // Script para mejorar el comportamiento del menú lateral y contenido principal
+    document.addEventListener('DOMContentLoaded', function() {
+      // Asegurarse de que el contenido principal se muestre correctamente
+      setTimeout(function() {
+        const mainPanel = document.querySelector('.main-panel');
+        const contentWrapper = document.querySelector('.content-wrapper');
+        if (mainPanel && contentWrapper) {
+          contentWrapper.style.display = 'block';
+          contentWrapper.style.opacity = '1';
+        }
+      }, 100);
+
+      // Cerrar menú al hacer clic fuera de él en dispositivos móviles
+      const mainPanel = document.querySelector('.main-panel');
+      if (mainPanel && window.innerWidth <= 991) {
+        mainPanel.addEventListener('click', function() {
+          const body = document.querySelector('body');
+          if (body.classList.contains('sidebar-open')) {
+            body.classList.remove('sidebar-open');
+          }
+        });
+      }
+      
+      // Cerrar menú al cambiar tamaño de ventana a desktop
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 991) {
+          document.body.classList.remove('sidebar-open');
+        }
+      });
     });
   </script>
 </body>

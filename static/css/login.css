@@ -1,0 +1,226 @@
+/* Estilos para la página de login de Corpensar */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px);
+    padding: 2rem 1rem;
+    background-color: #f8f9fa;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 450px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.login-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    height: 60px;
+    margin-bottom: 1.5rem;
+}
+
+.login-header h3 {
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1.75rem;
+}
+
+.login-header p {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.alert-box {
+    display: flex;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-danger {
+    background-color: #fff5f5;
+    border-left: 4px solid #dc3545;
+}
+
+.alert-success {
+    background-color: #f0fff4;
+    border-left: 4px solid #28a745;
+}
+
+.alert-icon {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.alert-danger .alert-icon {
+    color: #dc3545;
+}
+
+.alert-success .alert-icon {
+    color: #28a745;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-title {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.alert-message {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.icon-left {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-size: 1rem;
+}
+
+.input-with-icon input:focus {
+    border-color: var(--primary-color, #0b5ed7);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb, 11, 94, 215), 0.25);
+    outline: none;
+}
+
+.input-with-icon input::placeholder {
+    color: #adb5bd;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-wrapper label {
+    margin-bottom: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+.login-button {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--primary-color, #0b5ed7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.login-button i {
+    margin-right: 0.5rem;
+}
+
+.login-button:hover {
+    background-color: var(--primary-dark, #0a53be);
+    transform: translateY(-2px);
+}
+
+.login-button:active {
+    transform: translateY(0);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.login-footer p {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.login-footer a {
+    color: var(--primary-color, #0b5ed7);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.login-footer a:hover {
+    color: var(--primary-dark, #0a53be);
+    text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .login-card {
+        padding: 1.5rem;
+    }
+    
+    .login-logo {
+        height: 50px;
+    }
+    
+    .login-header h3 {
+        font-size: 1.5rem;
+    }
+} 

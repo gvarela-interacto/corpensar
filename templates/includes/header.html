@@ -2,13 +2,13 @@
 <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row">
       <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start interHeader" style="box-shadow: 0 2px 15px rgba(0,0,0,0.05); backdrop-filter: blur(10px); background-color: rgba(255,255,255,0.95);">
         <div class="me-3">
-          <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-bs-toggle="minimize" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px;">
-            <span class="icon-menu"></span>
+          <button class="navbar-toggler navbar-toggler align-self-center toggle-sidebar" type="button" data-bs-toggle="minimize" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px; background: var(--primary-color);">
+            <span class="icon-menu" style="color: #000;"></span>
           </button>
         </div>
         <div class="d-lg-block d-none">
           <a class="navbar-brand brand-logo" href="{% url 'index' %}" style="transition: all 0.3s ease;">
-            <img src="http://72.14.187.231/corpensar/images/logoappw.png" style="width: 100px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
+            <img src="http://72.14.187.231/corpensar/images/logoappw.png" style="width: 110px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
           </a>
         </div>
       </div>
@@ -17,7 +17,7 @@
           <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
             <h1 class="welcome-text" style="font-size: 1.4rem; letter-spacing: -0.5px; margin-bottom: 0;">
                 Bienvenido, 
-                <span class="text-black fw-bold" style="background: linear-gradient(120deg, #4361ee, #4cc9f0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient 3s ease infinite;">
+                <span class="text-black fw-bold" style="background: linear-gradient(120deg, #ffd700, #f2c94c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient 3s ease infinite;">
                     {% if user.is_authenticated %}
                         {{ user.first_name }} {{ user.last_name }}
                     {% else %}
@@ -30,10 +30,10 @@
         
         <div class="d-lg-none d-flex align-items-center">
           <a class="navbar-brand brand-logo me-3" href="{% url 'index' %}" style="transition: all 0.3s ease;">
-            <img src="http://72.14.187.231/corpensar/images/logoappw.png" style="width: 80px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
+            <img src="/static/images/logo corpensar-12.webp" style="width: 90px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
           </a>
-          <button class="navbar-toggler navbar-toggler-right align-self-center" type="button" data-bs-toggle="offcanvas" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px;">
-            <span class="mdi mdi-menu"></span>
+          <button class="navbar-toggler navbar-toggler-right align-self-center toggle-sidebar" type="button" data-bs-toggle="offcanvas" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px; background: var(--primary-color);">
+            <span class="mdi mdi-menu" style="color: #000;"></span>
           </button>
         </div>
       </div>
@@ -51,3 +51,17 @@
         }
       </style>
     </nav>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener todos los botones de alternar sidebar
+    const toggleButtons = document.querySelectorAll('.toggle-sidebar');
+    
+    // Añadir el event listener a cada botón
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            document.body.classList.toggle('sidebar-open');
+        });
+    });
+});
+</script>
