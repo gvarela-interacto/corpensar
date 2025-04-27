@@ -60,5 +60,7 @@ urlpatterns = [
   path('categorias/subcategoria/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
   path('api/subcategorias/', views.get_subcategorias, name='get_subcategorias'),
 
+  path('qr-generator/', views.qr_generator, name='qr_generator'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

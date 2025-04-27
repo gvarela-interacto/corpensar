@@ -50,6 +50,7 @@
                         <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success mt-1">
                             <i class="fas fa-chart-bar"></i> Resultados
                         </a>
+                        <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-info btn-sm">Generar QR</button>
                     </td>
                 </tr>
                 {% empty %}
@@ -85,4 +86,66 @@
     </nav>
     {% endif %}
 </div>
+
+<!-- Agregar el modal para mostrar el QR -->
+<div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">Código QR de la Encuesta</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrcode">
+                    <img id="qrImage" src="" alt="QR Code" style="max-width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="descargarQR()">Descargar QR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agregar el script para generar el QR -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script>
+    let qrDataURL = '';
+
+    function generarQR(slug) {
+        const url = window.location.origin + '/encuestas/' + slug + '/responder/';
+        const qrImage = document.getElementById('qrImage');
+        
+        QRCode.toDataURL(url, {
+            width: 200,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function (error, dataURL) {
+            if (error) {
+                console.error(error);
+                return;
+            }
+            qrDataURL = dataURL;
+            qrImage.src = dataURL;
+            $('#qrModal').modal('show');
+        });
+    }
+
+    function descargarQR() {
+        if (qrDataURL) {
+            const link = document.createElement('a');
+            link.download = 'qr-encuesta.png';
+            link.href = qrDataURL;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+</script>
 {% endblock %}

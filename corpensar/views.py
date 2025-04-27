@@ -2399,3 +2399,9 @@ def get_subcategorias(request):
         subcategorias = Subcategoria.objects.filter(categoria_id=categoria_id).values('id', 'nombre')
         return JsonResponse(list(subcategorias), safe=False)
     return JsonResponse([], safe=False)
+
+def qr_generator(request):
+    """
+    Vista para generar códigos QR de formularios
+    """
+    return render(request, 'qr_generator.html')
