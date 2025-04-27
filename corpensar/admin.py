@@ -8,7 +8,8 @@ from .models import (
     PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
     RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
-    RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD
+    RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD,
+    Subcategoria
 )
 
 

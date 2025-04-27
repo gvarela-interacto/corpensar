@@ -4,7 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-from .views import estadisticas_municipios
+from .views import estadisticas_municipios, categorias_principales, crear_categoria_principal, crear_subcategoria, eliminar_categoria_principal, eliminar_subcategoria, get_subcategorias
 
 urlpatterns = [
   path('admin/', admin.site.urls),
@@ -52,6 +52,13 @@ urlpatterns = [
   path('pregunta/<int:pregunta_id>/editar/', views.editar_pregunta, name='editar_pregunta'),
   path('pregunta/<int:pregunta_id>/eliminar/', views.eliminar_pregunta, name='eliminar_pregunta'),
   path('encuesta/<int:encuesta_id>/agregar-pregunta/', views.agregar_pregunta, name='agregar_pregunta'),
+
+  path('categorias/', views.categorias_principales, name='categorias_principales'),
+  path('categorias/crear/', views.crear_categoria_principal, name='crear_categoria_principal'),
+  path('categorias/subcategoria/crear/', views.crear_subcategoria, name='crear_subcategoria'),
+  path('categorias/<int:categoria_id>/eliminar/', views.eliminar_categoria_principal, name='eliminar_categoria_principal'),
+  path('categorias/subcategoria/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
+  path('api/subcategorias/', views.get_subcategorias, name='get_subcategorias'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

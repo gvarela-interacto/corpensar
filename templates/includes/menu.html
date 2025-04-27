@@ -152,57 +152,68 @@
     </div>
 
     <ul class="nav">
-
         <li class="nav-item nav-category">Encuestas</li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
-                <i class="menu-icon mdi mdi-plus-circle-outline"></i> <!-- Icono de "más" -->
+                <i class="menu-icon mdi mdi-plus-circle-outline"></i>
                 <span class="menu-title">Nueva Encuesta</span>
             </a>
         </li>
         
         <li class="nav-item">
             <a class="nav-link" href="{% url 'lista_encuestas' %}">
-                <i class="menu-icon mdi mdi-account-outline"></i> <!-- Icono de muñequito -->
+                <i class="menu-icon mdi mdi-account-outline"></i>
                 <span class="menu-title">Mis encuestas</span>
             </a>
         </li>
         
         <li class="nav-item">
             <a class="nav-link" href="{% url 'todas_encuestas' %}">
-                <i class="menu-icon mdi mdi-file-multiple"></i> <!-- Alternativa segura -->
+                <i class="menu-icon mdi mdi-file-multiple"></i>
                 <span class="menu-title">Todas las encuestas</span>
             </a>
         </li>
+
+        <li class="nav-item nav-category">Gestión de Categorías</li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_categoria' %}">
-                <i class="menu-icon mdi mdi-tag-outline"></i>
-                <span class="menu-title">Categorías</span>
+            <a class="nav-link" href="{% url 'categorias_principales' %}">
+                <i class="menu-icon mdi mdi-folder-multiple"></i>
+                <span class="menu-title">Categorías y Subcategorías</span>
             </a>
         </li>
-        
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_region' %}">
-                <i class="menu-icon mdi mdi-map-marker-plus"></i>
-                <span class="menu-title">Crear Región</span>
+            <a class="nav-link" href="{% url 'crear_categoria_principal' %}">
+                <i class="menu-icon mdi mdi-folder-plus"></i>
+                <span class="menu-title">Nueva Categoría</span>
             </a>
         </li>
-        
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_municipio' %}">
-                <i class="menu-icon mdi mdi-city-variant-outline"></i>
-                <span class="menu-title">Crear Municipio</span>
+            <a class="nav-link" href="{% url 'crear_subcategoria' %}">
+                <i class="menu-icon mdi mdi-folder-plus-outline"></i>
+                <span class="menu-title">Nueva Subcategoría</span>
             </a>
         </li>
-        
-        
+
+        <li class="nav-item nav-category">Gestión de Ubicaciones</li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'regiones_y_municipios' %}">
-                <i class="menu-icon mdi mdi-map-outline"></i>
+                <i class="menu-icon mdi mdi-map-marker-multiple"></i>
                 <span class="menu-title">Regiones y Municipios</span>
             </a>
         </li>
-        
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'crear_region' %}">
+                <i class="menu-icon mdi mdi-map-marker-plus"></i>
+                <span class="menu-title">Nueva Región</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'crear_municipio' %}">
+                <i class="menu-icon mdi mdi-city-variant-outline"></i>
+                <span class="menu-title">Nuevo Municipio</span>
+            </a>
+        </li>
+
         <!-- Sección PQRSFD -->
         <li class="nav-item nav-category">PQRSFD</li>
         <li class="nav-item">
@@ -223,83 +234,8 @@
                 <span class="menu-title">En proceso</span>
             </a>
         </li>
-        
-{% comment %}     
-        {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Comunicaciones' or user|in_group:'Enlace_Comunicaciones' %}
-        <li class="nav-item nav-category">Comunicaciones</li>
-            
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="menu-icon mdi mdi-message-alert"></i>
-                    <span class="menu-title">Hacer Requerimiento</span>
-                </a>
-            </li>
-            
-            {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Comunicaciones' %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="menu-icon mdi mdi-format-list-checks"></i>
-                        <span class="menu-title">Lista de Requerimientos</span>
-                    </a>
-                </li>
-                
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="menu-icon mdi mdi-calendar-plus"></i>
-                        <span class="menu-title">Crear Evento</span>
-                    </a>
-                </li>
-                
-                {% if user|in_group:'Es_Super' or user|in_group:'Completar_Eventos' %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#" target="_blank">
-                        <i class="menu-icon mdi mdi-calendar-check"></i>
-                        <span class="menu-title">Asignar Evento</span>
-                    </a>
-                </li>
-                {% endif %}
-                
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="menu-icon mdi mdi-calendar-text"></i>
-                        <span class="menu-title">Lista Eventos</span>
-                    </a>
-                </li>
-                
-                {% if user|in_group:'Es_Super' or user|in_group:'Cargar_Comunicado_Interno' %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#" target="_blank">
-                        <i class="menu-icon mdi mdi-newspaper"></i>
-                        <span class="menu-title">Comunicados Internos</span>
-                    </a>
-                </li>
-                {% endif %}
-            {% endif %}
-        {% endif %}
-        {% if user|in_group:'Es_Super' or user|in_group:'Secretaria_Ti' %}
-        <li class="nav-item nav-category">TI</li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="menu-icon mdi mdi-account"></i>
-                <span class="menu-title">Usuarios</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'admin:index' %}">
-                <i class="menu-icon mdi mdi-database-settings"></i>
-                <span class="menu-title">Datos Generales</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="http://bootstrapdash.com/demo/star-admin2-free/docs/documentation.html" target="_blank">
-                <i class="menu-icon mdi mdi-file-document"></i>
-                <span class="menu-title">Documentación</span>
-            </a>
-        </li>
-        {% endif %} {% endcomment %}
 
         <li class="nav-item nav-category">Asistencia</li>
-        
         <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">
                 <i class="menu-icon mdi mdi-logout"></i>

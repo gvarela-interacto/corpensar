@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 from django import forms
 from smart_selects.db_fields import ChainedForeignKey
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -97,7 +98,7 @@ class Encuesta(models.Model):
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
     tema = models.CharField(max_length=20, choices=TEMAS, default='default', verbose_name=_("Tema"))
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Categoría")
-
+    subcategoria = models.ForeignKey('Subcategoria', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Subcategoría")
     municipio = models.ForeignKey(
         Municipio, 
         on_delete=models.SET_NULL, 
@@ -475,3 +476,33 @@ class PQRSFD(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.asunto}"
+
+class Subcategoria(models.Model):
+    """Modelo para las subcategorías (población, dirección de formulario, etc.)"""
+    categoria = models.ForeignKey(
+        Categoria, 
+        on_delete=models.CASCADE, 
+        related_name='subcategorias', 
+        verbose_name=_("Categoría")
+    )
+    nombre = models.CharField(max_length=100, verbose_name=_("Nombre de la subcategoría"))
+    descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de creación"))
+
+    class Meta:
+        verbose_name = _("Subcategoría")
+        verbose_name_plural = _("Subcategorías")
+        ordering = ['categoria', 'nombre']
+        unique_together = ['categoria', 'nombre']  # Evitar duplicados en la misma categoría
+
+    def __str__(self):
+        return f"{self.categoria.nombre} - {self.nombre}"
+
+    def clean(self):
+        """Validación personalizada para el modelo"""
+        # Verificar si ya existe una subcategoría con el mismo nombre en la misma categoría
+        if Subcategoria.objects.filter(
+            categoria=self.categoria,
+            nombre__iexact=self.nombre
+        ).exclude(id=self.id).exists():
+            raise ValidationError(_("Ya existe una subcategoría con este nombre en la categoría seleccionada."))

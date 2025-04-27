@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="mdi mdi-folder-plus me-2"></i>
+                    Crear Nueva Categoría Principal
+                </h2>
+                <a href="{% url 'categorias_principales' %}" class="btn-modern btn-secondary-modern">
+                    <i class="mdi mdi-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+            <hr class="my-3" style="opacity: 0.1;">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6 mx-auto">
+            <div class="card-modern">
+                <div class="card-header" style="background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%); color: white; border: none;">
+                    <h5 class="mb-0">Información de la Categoría</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group-modern mb-4">
+                            <label for="nombre" class="form-label-modern">Nombre de la Categoría</label>
+                            <input type="text" class="form-control-modern" id="nombre" name="nombre" required
+                                   placeholder="Ej: Encuesta, Entrevista, Grupo Focal">
+                            <div class="form-text">Ingrese un nombre descriptivo para la categoría principal.</div>
+                        </div>
+
+                        <div class="form-group-modern mb-4">
+                            <label for="descripcion" class="form-label-modern">Descripción</label>
+                            <textarea class="form-control-modern" id="descripcion" name="descripcion" rows="3"
+                                      placeholder="Describa el propósito y características de esta categoría"></textarea>
+                            <div class="form-text">Opcional: Agregue una descripción detallada de la categoría.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'categorias_principales' %}" class="btn-modern btn-secondary-modern">
+                                <i class="mdi mdi-close me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn-modern btn-primary-modern">
+                                <i class="mdi mdi-content-save me-1"></i> Crear Categoría
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control-modern {
+    border-radius: 12px;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.form-label-modern {
+    margin-bottom: 10px;
+    color: #444;
+    font-weight: 500;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding-left: 5px;
+    margin-top: 5px;
+}
+
+.btn-modern {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #4361ee, #3f37c9);
+    border: none;
+    color: white;
+}
+
+.btn-secondary-modern {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    color: #6c757d;
+}
+
+.btn-secondary-modern:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+</style>
+{% endblock %} 

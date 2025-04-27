@@ -30,7 +30,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
-                    PQRSFD)
+                    PQRSFD, Subcategoria)
 from .decorators import *
 import locale
 import re
@@ -754,17 +754,42 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        now = timezone.now()
-        # Usar select_related para cargar la región en la misma consulta
-        return Encuesta.objects.select_related('region').filter(
-            creador=self.request.user,
-            activa=True,
-            fecha_inicio__lte=now,
-            fecha_fin__gte=now
-        ).order_by('-fecha_creacion')
+        # Obtener todas las encuestas del usuario actual
+        queryset = Encuesta.objects.filter(creador=self.request.user).order_by('-fecha_creacion')
+        
+        # Obtener los filtros
+        categoria = self.request.GET.get('categoria')
+        subcategoria = self.request.GET.get('subcategoria')
+        region = self.request.GET.get('region')
+        
+        # Aplicar filtros si están presentes
+        if categoria:
+            queryset = queryset.filter(categoria_id=categoria)
+        if subcategoria:
+            queryset = queryset.filter(subcategoria_id=subcategoria)
+        if region:
+            queryset = queryset.filter(region_id=region)
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Agregar categorías y regiones al contexto
+        context['categorias'] = Categoria.objects.all()
+        context['regiones'] = Region.objects.all()
+        
+        # Obtener subcategorías si hay una categoría seleccionada
+        categoria_id = self.request.GET.get('categoria')
+        if categoria_id:
+            context['subcategorias'] = Subcategoria.objects.filter(categoria_id=categoria_id)
+        else:
+            context['subcategorias'] = Subcategoria.objects.all()
+        
+        # Mantener los filtros seleccionados en el contexto
+        context['categoria_seleccionada'] = self.request.GET.get('categoria')
+        context['subcategoria_seleccionada'] = self.request.GET.get('subcategoria')
+        context['region_seleccionada'] = self.request.GET.get('region')
+        
         return context
 
     
@@ -775,15 +800,42 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        now = timezone.now()
-        return Encuesta.objects.select_related('region', 'creador').filter(
-            activa=True,
-            fecha_inicio__lte=now,
-            fecha_fin__gte=now
-        ).order_by('-fecha_creacion')
+        # Obtener todas las encuestas públicas y activas
+        queryset = Encuesta.objects.filter(es_publica=True, activa=True).order_by('-fecha_creacion')
+        
+        # Obtener los filtros
+        categoria = self.request.GET.get('categoria')
+        subcategoria = self.request.GET.get('subcategoria')
+        region = self.request.GET.get('region')
+        
+        # Aplicar filtros si están presentes
+        if categoria:
+            queryset = queryset.filter(categoria_id=categoria)
+        if subcategoria:
+            queryset = queryset.filter(subcategoria_id=subcategoria)
+        if region:
+            queryset = queryset.filter(region_id=region)
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Agregar categorías y regiones al contexto
+        context['categorias'] = Categoria.objects.all()
+        context['regiones'] = Region.objects.all()
+        
+        # Obtener subcategorías si hay una categoría seleccionada
+        categoria_id = self.request.GET.get('categoria')
+        if categoria_id:
+            context['subcategorias'] = Subcategoria.objects.filter(categoria_id=categoria_id)
+        else:
+            context['subcategorias'] = Subcategoria.objects.all()
+        
+        # Mantener los filtros seleccionados en el contexto
+        context['categoria_seleccionada'] = self.request.GET.get('categoria')
+        context['subcategoria_seleccionada'] = self.request.GET.get('subcategoria')
+        context['region_seleccionada'] = self.request.GET.get('region')
+        
         return context
 
 class ResultadosEncuestaView(DetailView):
@@ -2258,3 +2310,92 @@ def responder_pqrsfd(request, pqrsfd_id):
         return redirect('listar_pqrsfd')
     
     return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})
+
+@login_required
+def categorias_principales(request):
+    """Vista para listar todas las categorías principales"""
+    categorias = Categoria.objects.all()
+    return render(request, 'categorias_principales.html', {
+        'categorias': categorias
+    })
+
+@login_required
+def crear_categoria_principal(request):
+    """Vista para crear una nueva categoría principal"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion', '')
+        
+        if Categoria.objects.filter(nombre=nombre).exists():
+            messages.error(request, 'Ya existe una categoría con ese nombre.')
+            return redirect('crear_categoria_principal')
+        
+        Categoria.objects.create(
+            nombre=nombre,
+            descripcion=descripcion
+        )
+        messages.success(request, 'Categoría principal creada exitosamente.')
+        return redirect('categorias_principales')
+    
+    return render(request, 'crear_categoria_principal.html')
+
+@login_required
+def crear_subcategoria(request):
+    """Vista para crear una nueva subcategoría"""
+    if request.method == 'POST':
+        categoria_id = request.POST.get('categoria_principal')  # Cambiado de 'categoria' a 'categoria_principal'
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion', '')
+        
+        categoria = get_object_or_404(Categoria, id=categoria_id)
+        
+        if Subcategoria.objects.filter(categoria=categoria, nombre__iexact=nombre).exists():
+            messages.error(request, 'Ya existe una subcategoría con ese nombre en la categoría seleccionada.')
+            return redirect('crear_subcategoria')
+        
+        Subcategoria.objects.create(
+            categoria=categoria,
+            nombre=nombre,
+            descripcion=descripcion
+        )
+        messages.success(request, 'Subcategoría creada exitosamente.')
+        return redirect('categorias_principales')
+    
+    categorias = Categoria.objects.all()
+    return render(request, 'crear_subcategoria.html', {'categorias': categorias})
+
+@login_required
+def eliminar_categoria_principal(request, categoria_id):
+    """Vista para eliminar una categoría principal"""
+    categoria = get_object_or_404(Categoria, id=categoria_id)
+    
+    if request.method == 'POST':
+        categoria.delete()
+        messages.success(request, 'Categoría eliminada exitosamente.')
+        return redirect('categorias_principales')
+    
+    return render(request, 'confirmar_eliminar_categoria.html', {
+        'categoria': categoria
+    })
+
+@login_required
+def eliminar_subcategoria(request, subcategoria_id):
+    """Vista para eliminar una subcategoría"""
+    subcategoria = get_object_or_404(Subcategoria, id=subcategoria_id)
+    
+    if request.method == 'POST':
+        subcategoria.delete()
+        messages.success(request, 'Subcategoría eliminada exitosamente.')
+        return redirect('categorias_principales')
+    
+    return render(request, 'confirmar_eliminar_subcategoria.html', {
+        'subcategoria': subcategoria
+    })
+
+def get_subcategorias(request):
+    """Vista para obtener subcategorías por categoría vía AJAX"""
+    categoria_id = request.GET.get('categoria')
+    if categoria_id:
+        subcategorias = Subcategoria.objects.filter(categoria_id=categoria_id).values('id', 'nombre')
+        return JsonResponse(list(subcategorias), safe=False)
+    return JsonResponse([], safe=False)

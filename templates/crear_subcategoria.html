@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="mdi mdi-folder-plus-outline me-2"></i>
+                    Crear Nueva Subcategoría
+                </h2>
+                <a href="{% url 'categorias_principales' %}" class="btn-modern btn-secondary-modern">
+                    <i class="mdi mdi-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+            <hr class="my-3" style="opacity: 0.1;">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6 mx-auto">
+            <div class="card-modern">
+                <div class="card-header" style="background: linear-gradient(135deg, #4caf50 0%, #43a047 100%); color: white; border: none;">
+                    <h5 class="mb-0">Información de la Subcategoría</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group-modern mb-4">
+                            <label for="categoria_principal" class="form-label-modern">Categoría Principal</label>
+                            <select class="form-control-modern select-categoria" id="categoria_principal" name="categoria_principal" required>
+                                <option value="">Seleccione una categoría principal</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Seleccione la categoría principal a la que pertenecerá esta subcategoría.</div>
+                            
+                            {% if categorias|length == 0 %}
+                            <div class="alert mt-3" style="border-radius: 12px; padding: 15px; background-color: rgba(255, 152, 0, 0.1); border-left: 4px solid #FF9800; color: #855100;">
+                                <div class="d-flex align-items-center">
+                                    <i class="mdi mdi-alert-circle me-2" style="font-size: 20px;"></i>
+                                    <small>No hay categorías principales disponibles. <a href="{% url 'crear_categoria_principal' %}" style="color: #FF9800; text-decoration: none; font-weight: 500;">Crear una categoría</a> primero.</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group-modern mb-4">
+                            <label for="nombre" class="form-label-modern">Nombre de la Subcategoría</label>
+                            <input type="text" class="form-control-modern" id="nombre" name="nombre" required
+                                   placeholder="Ej: Población, Dirección de Formulario">
+                            <div class="form-text">Ingrese un nombre descriptivo para la subcategoría.</div>
+                        </div>
+
+                        <div class="form-group-modern mb-4">
+                            <label for="descripcion" class="form-label-modern">Descripción</label>
+                            <textarea class="form-control-modern" id="descripcion" name="descripcion" rows="3"
+                                      placeholder="Describa el propósito y características de esta subcategoría"></textarea>
+                            <div class="form-text">Opcional: Agregue una descripción detallada de la subcategoría.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'categorias_principales' %}" class="btn-modern btn-secondary-modern">
+                                <i class="mdi mdi-close me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn-modern btn-success-modern" {% if categorias|length == 0 %}disabled style="opacity: 0.6; cursor: not-allowed;"{% endif %}>
+                                <i class="mdi mdi-content-save me-1"></i> Crear Subcategoría
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control-modern {
+    border-radius: 12px;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+}
+
+.form-label-modern {
+    margin-bottom: 10px;
+    color: #444;
+    font-weight: 500;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding-left: 5px;
+    margin-top: 5px;
+}
+
+.btn-modern {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.btn-success-modern {
+    background: linear-gradient(135deg, #4caf50, #43a047);
+    border: none;
+    color: white;
+}
+
+.btn-secondary-modern {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    color: #6c757d;
+}
+
+.btn-secondary-modern:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.select-categoria {
+    background-image: url('{% static "images/chevron-down.svg" %}');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 15px;
+}
+</style>
+{% endblock %} 

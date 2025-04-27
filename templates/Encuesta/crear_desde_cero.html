@@ -43,8 +43,15 @@
                                 </select>
                                 <div class="form-text">Seleccione la categoría para la encuesta.</div>
                             </div>
-                            
 
+                            <div class="mb-3">
+                                <label for="subcategoria" class="form-label">Subcategoría</label>
+                                <select class="form-select" id="subcategoria" name="subcategoria" disabled>
+                                    <option value="">Primero seleccione una categoría</option>
+                                </select>
+                                <div class="form-text">Seleccione la subcategoría específica para la encuesta.</div>
+                            </div>
+                            
                             <div class="mb-3">
                                 <label for="tema" class="form-label">Tema de la encuesta</label>
                                 <select class="form-select" id="tema" name="tema">
@@ -1399,6 +1406,40 @@
             
             // Actualizar los selectores de sección
             updateSectionSelects();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoriaSelect = document.getElementById('categoria');
+            const subcategoriaSelect = document.getElementById('subcategoria');
+
+            categoriaSelect.addEventListener('change', function() {
+                const categoriaId = this.value;
+                subcategoriaSelect.disabled = !categoriaId;
+                
+                if (categoriaId) {
+                    // Hacer la petición AJAX para obtener las subcategorías
+                    fetch(`/api/subcategorias/?categoria=${categoriaId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Limpiar las opciones actuales
+                            subcategoriaSelect.innerHTML = '<option value="">Seleccione una subcategoría</option>';
+                            
+                            // Agregar las nuevas opciones
+                            data.forEach(subcategoria => {
+                                const option = document.createElement('option');
+                                option.value = subcategoria.id;
+                                option.textContent = subcategoria.nombre;
+                                subcategoriaSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            subcategoriaSelect.innerHTML = '<option value="">Error al cargar subcategorías</option>';
+                        });
+                } else {
+                    subcategoriaSelect.innerHTML = '<option value="">Primero seleccione una categoría</option>';
+                }
+            });
         });
     </script>
 {% endblock %}

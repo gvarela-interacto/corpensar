@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/regiones_municipios.css' %}">
+
+<div class="container-fluid px-4 mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0"><i class="mdi mdi-folder-multiple me-2"></i> Categorías y Subcategorías</h2>
+                <div>
+                    <a href="{% url 'crear_categoria_principal' %}" class="btn-modern btn-primary-modern me-2">
+                        <i class="mdi mdi-folder-plus me-1"></i> Nueva Categoría
+                    </a>
+                    <a href="{% url 'crear_subcategoria' %}" class="btn-modern btn-success-modern">
+                        <i class="mdi mdi-folder-plus-outline me-1"></i> Nueva Subcategoría
+                    </a>
+                </div>
+            </div>
+            <hr class="my-3" style="opacity: 0.1;">
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-3">
+        {% for categoria in categorias %}
+        <div class="col-md-4 col-lg-4 mb-3 fade-in-card">
+            <div class="card-modern h-100 region-card">
+                <div class="card-header region-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="mdi mdi-folder me-2" style="font-size: 20px;"></i>
+                        <h5 class="mb-0 text-truncate region-title">{{ categoria.nombre }}</h5>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="region-badge me-2">
+                            {{ categoria.subcategorias.count }} subcategorías
+                        </span>
+                        <button class="delete-btn" 
+                                onclick="confirmarEliminarCategoria('{{ categoria.id }}', '{{ categoria.nombre }}')"
+                                title="Eliminar categoría">
+                            <i class="mdi mdi-delete" style="font-size: 16px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if categoria.subcategorias.all %}
+                    <div class="table-responsive custom-scrollbar">
+                        <table class="table-modern mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">#</th>
+                                    <th>Subcategoría</th>
+                                    <th class="text-end" style="width: 50px;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subcategoria in categoria.subcategorias.all %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="mdi mdi-folder-outline me-2 text-muted"></i>
+                                            <span class="text-truncate municipio-nombre">{{ subcategoria.nombre }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn-icon-action" 
+                                                onclick="confirmarEliminarSubcategoria('{{ subcategoria.id }}', '{{ subcategoria.nombre }}')">
+                                            <i class="mdi mdi-delete text-danger"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state compact">
+                        <div class="empty-state-icon">
+                            <i class="mdi mdi-information-outline"></i>
+                        </div>
+                        <p class="empty-state-text">No hay subcategorías registradas</p>
+                        <a href="{% url 'crear_subcategoria' %}" class="btn-modern btn-primary-modern btn-sm mt-2">
+                            <i class="mdi mdi-plus me-1"></i> Agregar
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card-modern empty-state-card">
+                <div class="empty-state large">
+                    <div class="empty-state-icon large">
+                        <i class="mdi mdi-folder"></i>
+                    </div>
+                    <h4 class="empty-state-title">No hay categorías registradas</h4>
+                    <p class="empty-state-text">Para comenzar, crea una nueva categoría principal.</p>
+                    <a href="{% url 'crear_categoria_principal' %}" class="btn-modern btn-primary-modern mt-3">
+                        <i class="mdi mdi-plus me-1"></i> Crear primera categoría
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar categoría -->
+<div class="modal fade" id="confirmarEliminarCategoriaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f72585 0%, #dc2f6a 100%); color: white; border: none;">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-alert-circle-outline me-2"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <i class="mdi mdi-folder-remove" style="font-size: 48px; color: #f72585;"></i>
+                </div>
+                <p class="text-center mb-0">¿Está seguro que desea eliminar la categoría <strong><span id="nombreCategoria"></span></strong>?</p>
+                <p class="text-muted small text-center mt-2">Esta acción no se puede deshacer.</p>
+                
+                <div class="mt-3 d-flex align-items-center justify-content-center" id="eliminarSubcategoriasContainer">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="eliminarSubcategoriasCheck">
+                        <label class="form-check-label" for="eliminarSubcategoriasCheck">
+                            Eliminar también todas las subcategorías de esta categoría
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="mdi mdi-close"></i> Cancelar
+                </button>
+                <a href="#" id="confirmarEliminarCategoriaBtn" class="btn btn-danger">
+                    <i class="mdi mdi-delete"></i> Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar subcategoría -->
+<div class="modal fade" id="confirmarEliminarSubcategoriaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f72585 0%, #dc2f6a 100%); color: white; border: none;">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-alert-circle-outline me-2"></i> Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <i class="mdi mdi-folder-remove-outline" style="font-size: 48px; color: #f72585;"></i>
+                </div>
+                <p class="text-center mb-0">¿Está seguro que desea eliminar la subcategoría <strong><span id="nombreSubcategoria"></span></strong>?</p>
+                <p class="text-muted small text-center mt-2">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="mdi mdi-close"></i> Cancelar
+                </button>
+                <a href="#" id="confirmarEliminarSubcategoriaBtn" class="btn btn-danger">
+                    <i class="mdi mdi-delete"></i> Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarEliminarCategoria(categoriaId, nombreCategoria) {
+    document.getElementById('nombreCategoria').textContent = nombreCategoria;
+    document.getElementById('confirmarEliminarCategoriaBtn').href = `/categorias/${categoriaId}/eliminar/`;
+    new bootstrap.Modal(document.getElementById('confirmarEliminarCategoriaModal')).show();
+}
+
+function confirmarEliminarSubcategoria(subcategoriaId, nombreSubcategoria) {
+    document.getElementById('nombreSubcategoria').textContent = nombreSubcategoria;
+    document.getElementById('confirmarEliminarSubcategoriaBtn').href = `/categorias/subcategoria/${subcategoriaId}/eliminar/`;
+    new bootstrap.Modal(document.getElementById('confirmarEliminarSubcategoriaModal')).show();
+}
+</script>
+{% endblock %} 
