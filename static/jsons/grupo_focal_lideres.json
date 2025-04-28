@@ -1,0 +1,111 @@
+{
+    "titulo": "Grupo Focal con Líderes Sociales y Ambientales - Miraflores",
+    "descripcion": "Recoger insumos para el diseño participativo de una guía/protocolo de relacionamiento seguro y respetuoso entre CENIT y personas defensoras de DDHH, en el marco del Acuerdo de Escazú e identificación y valoración de riesgos",
+    "slug": "grupo-focal-lideres-miraflores",
+    "region": "OLEODUCTO LLANOS",
+    "categoria": "Grupo focal",
+    "preguntas": [
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué vínculos podrían transformarse con un trabajo de confianza?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué estrategias personales o comunitarias ha usado para protegerse?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "Si tu rol como líder fuera un objeto o una imagen, ¿cuál sería? ¿Por qué?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué nuevas posibilidades se abren si estas experiencias son escuchadas y tenidas en cuenta por las empresas?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué instituciones han respondido con respeto y cuáles no?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Dónde surgen los principales conflictos relacionados con su liderazgo?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué espera de una empresa como CENIT en estos contextos?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "Una palabra o imagen que se lleva de este encuentro",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué espacios existen para su voz y cuáles son cerrados o excluyentes?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Quién o quiénes los han apoyado en momentos difíciles o de amenaza?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué situaciones deberían ser explícitamente consideradas en una guía de relacionamiento? (Por ejemplo, qué hacer ante una amenaza, una queja, una consulta mal gestionada).",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué rol puede jugar una empresa como Cenit para activar aliados y disminuir actores de presión?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué momento de su liderazgo ha sido más difícil en términos de seguridad o amenazas?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Cómo podemos cuidar el liderazgo sin que sea una carga peligrosa?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué actores dificultan su trabajo o generan presión?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "Si pudieran redactar una regla de oro para el relacionamiento respetuoso con CENIT, ¿cuál sería?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Cómo creen que se ve el liderazgo comunitario desde la perspectiva de esos actores?",
+            "requerida": true,
+            "seccion": "General"
+        }
+    ]
+} 

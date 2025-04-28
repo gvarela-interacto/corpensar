@@ -871,6 +871,7 @@ class TodasEncuestasView(ListView):
         creador = self.request.GET.get('creador')
         fecha_desde = self.request.GET.get('fecha_desde')
         fecha_hasta = self.request.GET.get('fecha_hasta')
+        temas = self.request.GET.get('temas')
         
         # Aplicar filtros si están presentes
         if categoria:
@@ -888,6 +889,8 @@ class TodasEncuestasView(ListView):
             queryset = queryset.filter(fecha_creacion__gte=fecha_desde)
         if fecha_hasta:
             queryset = queryset.filter(fecha_creacion__lte=fecha_hasta)
+        if temas:
+            queryset = queryset.filter(tema_id__in=temas)
         
         # Ordenar resultados
         orden = self.request.GET.get('orden', 'fecha_desc')
@@ -1673,9 +1676,13 @@ def eliminar_encuesta(request, encuesta_id):
     if request.method == 'POST':
         # Guardar el título para el mensaje
         titulo = encuesta.titulo
+        
+        # Eliminar todas las respuestas asociadas
+        RespuestaEncuesta.objects.filter(encuesta=encuesta).delete()
+        
         # Eliminar la encuesta
         encuesta.delete()
-        messages.success(request, f'La encuesta "{titulo}" ha sido eliminada exitosamente.')
+        messages.success(request, f'La encuesta "{titulo}" y todas sus respuestas han sido eliminadas exitosamente.')
         return redirect('lista_encuestas')
     
     return redirect('editar_encuesta', encuesta_id=encuesta_id)
@@ -2635,3 +2642,246 @@ def editar_multiples_preguntas(request, encuesta_id):
         messages.error(request, f"Error al actualizar las preguntas: {str(e)}")
     
     return redirect('editar_encuesta', encuesta_id=encuesta.id)
+
+@login_required
+def agregar_caracterizacion(request, encuesta_id):
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
+    
+    if request.method == 'POST':
+        requeridas = request.POST.get('requeridas', 'true').lower() == 'true'
+        
+        # Obtener el último orden de las preguntas existentes
+        ultimo_orden = 0
+        for pregunta in encuesta.obtener_preguntas():
+            if pregunta.orden > ultimo_orden:
+                ultimo_orden = pregunta.orden
+        
+        # Crear las preguntas de caracterización
+        preguntas = [
+            {
+                'tipo': 'TEXT',
+                'texto': '¿Cuál es su nombre completo?',
+                'orden': ultimo_orden + 1,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'RADIO',
+                'texto': '¿Cuál es su sexo?',
+                'orden': ultimo_orden + 2,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+                'opciones': [
+                    {'texto': 'Masculino', 'valor': 'a'},
+                    {'texto': 'Femenino', 'valor': 'b'},
+                    {'texto': 'Otro', 'valor': 'c'},
+                    {'texto': 'Prefiero no responder', 'valor': 'd'}
+                ]
+            },
+            {
+                'tipo': 'RADIO',
+                'texto': '¿Cuál es su rango de edad?',
+                'orden': ultimo_orden + 3,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+                'opciones': [
+                    {'texto': 'Menos de 18 años', 'valor': 'a'},
+                    {'texto': '18 a 25 años', 'valor': 'b'},
+                    {'texto': '26 a 35 años', 'valor': 'c'},
+                    {'texto': '36 a 45 años', 'valor': 'd'},
+                    {'texto': '46 a 60 años', 'valor': 'e'},
+                    {'texto': 'Más de 60 años', 'valor': 'f'}
+                ]
+            },
+            {
+                'tipo': 'CHECK',
+                'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
+                'orden': ultimo_orden + 4,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+                'opciones': [
+                    {'texto': 'Comunidad Indígena', 'valor': 'a'},
+                    {'texto': 'Comunidad Afrodescendiente', 'valor': 'b'},
+                    {'texto': 'Comunidad Campesina', 'valor': 'c'},
+                    {'texto': 'Persona con Discapacidad', 'valor': 'd'},
+                    {'texto': 'Ninguno', 'valor': 'e'}
+                ]
+            }
+        ]
+        
+        # Crear cada pregunta
+        for pregunta_data in preguntas:
+            if pregunta_data['tipo'] == 'TEXT':
+                pregunta = PreguntaTexto.objects.create(
+                    encuesta=encuesta,
+                    texto=pregunta_data['texto'],
+                    tipo=pregunta_data['tipo'],
+                    requerida=pregunta_data['requerida'],
+                    orden=pregunta_data['orden'],
+                    seccion=pregunta_data['seccion']
+                )
+            elif pregunta_data['tipo'] == 'RADIO':
+                pregunta = PreguntaOpcionMultiple.objects.create(
+                    encuesta=encuesta,
+                    texto=pregunta_data['texto'],
+                    tipo=pregunta_data['tipo'],
+                    requerida=pregunta_data['requerida'],
+                    orden=pregunta_data['orden'],
+                    seccion=pregunta_data['seccion']
+                )
+                # Agregar opciones
+                for opcion_data in pregunta_data['opciones']:
+                    OpcionMultiple.objects.create(
+                        pregunta=pregunta,
+                        texto=opcion_data['texto'],
+                        valor=opcion_data['valor']
+                    )
+            elif pregunta_data['tipo'] == 'CHECK':
+                pregunta = PreguntaCasillasVerificacion.objects.create(
+                    encuesta=encuesta,
+                    texto=pregunta_data['texto'],
+                    tipo=pregunta_data['tipo'],
+                    requerida=pregunta_data['requerida'],
+                    orden=pregunta_data['orden'],
+                    seccion=pregunta_data['seccion']
+                )
+                # Agregar opciones
+                for opcion_data in pregunta_data['opciones']:
+                    OpcionCasillaVerificacion.objects.create(
+                        pregunta=pregunta,
+                        texto=opcion_data['texto'],
+                        valor=opcion_data['valor']
+                    )
+        
+        messages.success(request, 'Preguntas de caracterización agregadas exitosamente.')
+        return redirect('editar_encuesta', encuesta_id=encuesta.id)
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta.id)
+
+@login_required
+def exportar_encuesta_json(request, encuesta_id):
+    # Obtener la encuesta
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id)
+    
+    # Verificar que el usuario tenga permiso para ver esta encuesta
+    if not request.user.is_staff and encuesta.usuario != request.user:
+        return HttpResponseForbidden("No tienes permiso para exportar esta encuesta")
+    
+    # Obtener todas las preguntas relacionadas
+    preguntas = []
+    
+    # Preguntas de texto
+    preguntas_texto = encuesta.preguntatexto_relacionadas.all()
+    for pregunta in preguntas_texto:
+        preguntas.append({
+            'tipo': 'texto',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida
+        })
+    
+    # Preguntas de texto múltiple
+    preguntas_texto_multiple = encuesta.preguntatextomultiple_relacionadas.all()
+    for pregunta in preguntas_texto_multiple:
+        preguntas.append({
+            'tipo': 'texto_multiple',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida
+        })
+    
+    # Preguntas de opción múltiple
+    preguntas_opcion_multiple = encuesta.preguntaopcionmultiple_relacionadas.all()
+    for pregunta in preguntas_opcion_multiple:
+        opciones = [opcion.texto for opcion in pregunta.opciones.all()]
+        preguntas.append({
+            'tipo': 'opcion_multiple',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida,
+            'opciones': opciones
+        })
+    
+    # Preguntas de casillas de verificación
+    preguntas_casillas = encuesta.preguntacasillasverificacion_relacionadas.all()
+    for pregunta in preguntas_casillas:
+        opciones = [opcion.texto for opcion in pregunta.opciones.all()]
+        preguntas.append({
+            'tipo': 'casillas_verificacion',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida,
+            'opciones': opciones
+        })
+    
+    # Preguntas de menú desplegable
+    preguntas_menu = encuesta.preguntamenudesplegable_relacionadas.all()
+    for pregunta in preguntas_menu:
+        opciones = [opcion.texto for opcion in pregunta.opciones.all()]
+        preguntas.append({
+            'tipo': 'menu_desplegable',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida,
+            'opciones': opciones
+        })
+    
+    # Preguntas de estrellas
+    preguntas_estrellas = encuesta.preguntaestrellas_relacionadas.all()
+    for pregunta in preguntas_estrellas:
+        preguntas.append({
+            'tipo': 'estrellas',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida,
+            'max_estrellas': pregunta.max_estrellas
+        })
+    
+    # Preguntas de escala
+    preguntas_escala = encuesta.preguntaescala_relacionadas.all()
+    for pregunta in preguntas_escala:
+        preguntas.append({
+            'tipo': 'escala',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida,
+            'min_valor': pregunta.min_valor,
+            'max_valor': pregunta.max_valor,
+            'etiqueta_min': pregunta.etiqueta_min,
+            'etiqueta_max': pregunta.etiqueta_max
+        })
+    
+    # Preguntas de matriz
+    preguntas_matriz = encuesta.preguntamatriz_relacionadas.all()
+    for pregunta in preguntas_matriz:
+        filas = [fila.texto for fila in pregunta.filas.all()]
+        columnas = [columna.texto for columna in pregunta.columnas.all()]
+        preguntas.append({
+            'tipo': 'matriz',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida,
+            'filas': filas,
+            'columnas': columnas
+        })
+    
+    # Preguntas de fecha
+    preguntas_fecha = encuesta.preguntafecha_relacionadas.all()
+    for pregunta in preguntas_fecha:
+        preguntas.append({
+            'tipo': 'fecha',
+            'texto': pregunta.texto,
+            'requerida': pregunta.requerida
+        })
+    
+    # Construir el JSON final
+    encuesta_json = {
+        'id': encuesta.id,
+        'titulo': encuesta.titulo,
+        'descripcion': encuesta.descripcion,
+        'fecha_creacion': encuesta.fecha_creacion.isoformat(),
+        'fecha_inicio': encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+        'fecha_fin': encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+        'activa': encuesta.activa,
+        'region': encuesta.region.nombre if encuesta.region else None,
+        'categoria': encuesta.categoria.nombre if encuesta.categoria else None,
+        'preguntas': preguntas
+    }
+    
+    # Crear la respuesta HTTP con el JSON
+    response = HttpResponse(json.dumps(encuesta_json, ensure_ascii=False, indent=2), content_type='application/json')
+    response['Content-Disposition'] = f'attachment; filename="encuesta_{encuesta.id}.json"'
+    
+    return response

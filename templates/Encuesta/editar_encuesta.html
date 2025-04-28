@@ -10,13 +10,13 @@
         <div class="card-header">
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#configuracion" data-toggle="tab">Configuración</a>
+                    <a class="nav-link active" href="#configuracion" data-bs-toggle="tab">Configuración</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#preguntas" data-toggle="tab">Preguntas</a>
+                    <a class="nav-link" href="#preguntas" data-bs-toggle="tab">Preguntas</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#diseno" data-toggle="tab">Diseño</a>
+                    <a class="nav-link" href="#diseno" data-bs-toggle="tab">Diseño</a>
                 </li>
             </ul>
         </div>
@@ -193,16 +193,21 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <button type="submit" class="btn btn-primary rounded-3 px-4">
-                                <i class="fas fa-save me-2"></i> Guardar Cambios
-                            </button>
                             <div>
-                                <a href="{% url 'duplicar_encuesta' encuesta.id %}" class="btn btn-info rounded-3 px-4 me-2">
-                                    <i class="fas fa-copy me-2"></i> Duplicar
-                                </a>
-                                <button type="button" class="btn btn-danger rounded-3 px-4" data-toggle="modal" data-target="#modalEliminarEncuesta">
-                                    <i class="fas fa-trash me-2"></i> Eliminar Encuesta
+                                <button type="submit" class="btn btn-primary rounded-3 px-4">
+                                    <i class="fas fa-save me-2"></i> Guardar Cambios
                                 </button>
+                                <a href="{% url 'exportar_encuesta_json' encuesta.id %}" class="btn btn-success rounded-3 px-4 ms-2">
+                                    <i class="fas fa-file-export me-2"></i> Exportar JSON
+                                </a>
+                                <button type="button" class="btn btn-danger rounded-3 px-4 ms-2" data-bs-toggle="modal" data-bs-target="#modalEliminarEncuesta">
+                                    <i class="fas fa-trash-alt me-2"></i> Eliminar Encuesta
+                                </button>
+                            </div>
+                            <div>
+                                <a href="{% url 'lista_encuestas' %}" class="btn btn-outline-secondary rounded-3 px-4">
+                                    <i class="fas fa-times me-2"></i> Cancelar
+                                </a>
                             </div>
                         </div>
                     </form>
@@ -211,10 +216,13 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0"><i class="fas fa-question-circle text-primary me-2"></i>Preguntas de la encuesta</h4>
                         <div>
-                            <button type="button" class="btn btn-outline-primary rounded-3 px-4 me-2" data-toggle="modal" data-target="#modalEditarMultiplesPreguntas">
+                            <button type="button" class="btn btn-outline-primary rounded-3 px-4 me-2" data-bs-toggle="modal" data-bs-target="#modalEditarMultiplesPreguntas">
                                 <i class="fas fa-edit me-2"></i> Editar Múltiples Preguntas
                             </button>
-                            <button type="button" class="btn btn-primary rounded-3 px-4" data-toggle="modal" data-target="#modalAgregarPregunta">
+                            <button type="button" class="btn btn-success rounded-3 px-4 me-2" data-bs-toggle="modal" data-bs-target="#modalAgregarCaracterizacion">
+                                <i class="fas fa-user-plus me-2"></i> Agregar Caracterización
+                            </button>
+                            <button type="button" class="btn btn-primary rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#modalAgregarPregunta">
                                 <i class="fas fa-plus me-2"></i> Agregar Pregunta
                             </button>
                         </div>
@@ -278,10 +286,10 @@
                                         </div>
                                         <div class="card-footer bg-white border-0">
                                             <div class="d-flex justify-content-end">
-                                                <button type="button" class="btn btn-outline-primary btn-sm me-2 rounded-3" data-toggle="modal" data-target="#modalEditarPregunta{{ pregunta.id }}">
+                                                <button type="button" class="btn btn-outline-primary btn-sm me-2 rounded-3" data-bs-toggle="modal" data-bs-target="#modalEditarPregunta{{ pregunta.id }}">
                                                     <i class="fas fa-edit me-1"></i> Editar
                                                 </button>
-                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-3" data-toggle="modal" data-target="#modalEliminarPregunta{{ pregunta.id }}">
+                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalEliminarPregunta{{ pregunta.id }}">
                                                     <i class="fas fa-trash me-1"></i> Eliminar
                                                 </button>
                                             </div>
@@ -296,7 +304,7 @@
                                 <i class="fas fa-info-circle fa-3x text-primary mb-3"></i>
                                 <h5 class="mb-3">No hay preguntas en esta encuesta</h5>
                                 <p class="text-muted mb-4">Agrega una pregunta para comenzar a crear tu encuesta.</p>
-                                <button type="button" class="btn btn-primary rounded-3 px-4" data-toggle="modal" data-target="#modalAgregarPregunta">
+                                <button type="button" class="btn btn-primary rounded-3 px-4" data-bs-toggle="modal" data-bs-target="#modalAgregarPregunta">
                                     <i class="fas fa-plus me-2"></i> Agregar Primera Pregunta
                                 </button>
                             </div>
@@ -585,6 +593,45 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Agregar Caracterización -->
+<div class="modal fade" id="modalAgregarCaracterizacion" tabindex="-1" aria-labelledby="modalAgregarCaracterizacionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAgregarCaracterizacionLabel">Agregar Preguntas de Caracterización</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'agregar_caracterizacion' encuesta.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Se agregarán las siguientes preguntas al inicio de tu encuesta:
+                        <ul class="mb-0 mt-2">
+                            <li>Nombre completo (texto)</li>
+                            <li>Género (opción múltiple)</li>
+                            <li>Rango de edad (opción múltiple)</li>
+                            <li>Grupo diferencial (casillas de verificación)</li>
+                        </ul>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="preguntasObligatorias" name="preguntas_obligatorias">
+                        <label class="form-check-label" for="preguntasObligatorias">
+                            Hacer todas las preguntas obligatorias
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Agregar Preguntas
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -1575,7 +1622,7 @@
     }
     
     .patron1 {
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
     
     .patron2 {

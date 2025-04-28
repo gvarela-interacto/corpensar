@@ -53,6 +53,7 @@ urlpatterns = [
   path('pregunta/<int:pregunta_id>/editar/', views.editar_pregunta, name='editar_pregunta'),
   path('pregunta/<int:pregunta_id>/eliminar/', views.eliminar_pregunta, name='eliminar_pregunta'),
   path('encuesta/<int:encuesta_id>/agregar-pregunta/', views.agregar_pregunta, name='agregar_pregunta'),
+  path('encuesta/<int:encuesta_id>/agregar-caracterizacion/', views.agregar_caracterizacion, name='agregar_caracterizacion'),
 
   path('categorias/', views.categorias_principales, name='categorias_principales'),
   path('categorias/crear/', views.crear_categoria_principal, name='crear_categoria_principal'),
@@ -62,6 +63,8 @@ urlpatterns = [
   path('api/subcategorias/', views.get_subcategorias, name='get_subcategorias'),
 
   path('qr-generator/', views.qr_generator, name='qr_generator'),
+
+  path('encuesta/<int:encuesta_id>/exportar-json/', views.exportar_encuesta_json, name='exportar_encuesta_json'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

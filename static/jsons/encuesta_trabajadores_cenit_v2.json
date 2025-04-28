@@ -1,0 +1,297 @@
+{
+  "titulo": "Encuesta Trabajadores Cenit",
+  "descripcion": "Identificar y valorar riesgos en DDHH y DIH que afecten a trabajadores, así como evaluar la eficacia de los mecanismos de debida diligencia implementados por Cenit.",
+  "slug": "encuesta-trabajadores-cenit-v2",
+  "region": "Oleoducto Llanos",
+  "categoria": "Encuesta",
+  "preguntas": [
+    {
+      "orden": 1,
+      "seccion": "General",
+      "tipo": "TEXT",
+      "texto": "Nombre",
+      "requerida": true
+    },
+    {
+      "orden": 2,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "Sexo",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Hombre", "valor": "a"},
+        {"texto": "Mujer", "valor": "b"},
+        {"texto": "Otro", "valor": "c"},
+        {"texto": "Prefiere no decirlo", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 3,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "Edad",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Menos de 18 años", "valor": "a"},
+        {"texto": "18 a 25 años", "valor": "b"},
+        {"texto": "26 a 35 años", "valor": "c"},
+        {"texto": "36 a 45 años", "valor": "d"},
+        {"texto": "46 a 60 años", "valor": "e"},
+        {"texto": "Más de 60 años", "valor": "f"}
+      ]
+    },
+    {
+      "orden": 4,
+      "seccion": "General",
+      "tipo": "CHECK",
+      "texto": "Grupo diferencial al que pertenece",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Persona indígena", "valor": "a"},
+        {"texto": "Persona afrodescendiente o negra", "valor": "b"},
+        {"texto": "Persona Rrom (gitana)", "valor": "c"},
+        {"texto": "Persona en situación de discapacidad", "valor": "d"},
+        {"texto": "Persona LGBTIQ+", "valor": "e"},
+        {"texto": "Víctima del conflicto armado", "valor": "f"},
+        {"texto": "Migrante o refugiado", "valor": "g"},
+        {"texto": "Ninguno", "valor": "h"}
+      ]
+    },
+    {
+      "orden": 5,
+      "seccion": "General",
+      "tipo": "CHECK",
+      "texto": "¿Cuáles de los siguientes riesgos a los derechos humanos ha enfrentado o conocido usted o sus compañeros en su lugar de trabajo? (Marque todas las que apliquen)",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Discriminación (género, etnia, edad, orientación sexual, discapacidad)", "valor": "a"},
+        {"texto": "Maltrato, acoso o abuso laboral", "valor": "b"},
+        {"texto": "Restricciones a la libertad de asociación o sindicalización", "valor": "c"},
+        {"texto": "Sobrecarga laboral o jornadas excesivas", "valor": "d"},
+        {"texto": "Inseguridad física por conflictos o actores armados", "valor": "e"},
+        {"texto": "Amenazas externas relacionadas con el contexto territorial", "valor": "f"},
+        {"texto": "Desigualdad de trato entre contratistas y directos", "valor": "g"},
+        {"texto": "Falta de acceso a mecanismos de denuncia", "valor": "h"},
+        {"texto": "Falta de protección frente a represalias", "valor": "i"},
+        {"texto": "Ninguno", "valor": "j"},
+        {"texto": "Otro", "valor": "k"}
+      ]
+    },
+    {
+      "orden": 6,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Considera que sus derechos laborales están plenamente garantizados en su lugar de trabajo?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Siempre", "valor": "a"},
+        {"texto": "Frecuentemente", "valor": "b"},
+        {"texto": "A veces", "valor": "c"},
+        {"texto": "Raramente", "valor": "d"},
+        {"texto": "Nunca", "valor": "e"}
+      ]
+    },
+    {
+      "orden": 7,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Ha presenciado o vivido situaciones que afecten su integridad física o emocional en el trabajo?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí, personalmente", "valor": "a"},
+        {"texto": "Sí, otros compañeros", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "Prefiero no responder", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 8,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Ha sido testigo de riesgos en salud y seguridad laboral que no hayan sido atendidos por la empresa?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí, varias veces", "valor": "a"},
+        {"texto": "Sí, alguna vez", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "No sabe", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 9,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Considera que hay discriminación en su entorno laboral (por género, edad, etnia, discapacidad u orientación sexual)?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí, frecuente", "valor": "a"},
+        {"texto": "A veces", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "No sabe", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 10,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Percibe diferencias injustificadas entre trabajadores directos y contratistas en condiciones laborales o derechos?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí, significativas", "valor": "a"},
+        {"texto": "Algunas diferencias", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "No sabe", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 11,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Tiene conocimiento de posibles abusos laborales por parte de contratistas o terceros que operan para Cenit?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "No", "valor": "b"},
+        {"texto": "No sabe", "valor": "c"}
+      ]
+    },
+    {
+      "orden": 12,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Ha sentido miedo de expresar una queja o denuncia por temor a represalias?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "No", "valor": "b"},
+        {"texto": "Prefiero no responder", "valor": "c"}
+      ]
+    },
+    {
+      "orden": 13,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Conoce los canales para reportar afectaciones a sus derechos humanos dentro de Cenit?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "No", "valor": "b"},
+        {"texto": "No recuerda", "valor": "c"}
+      ]
+    },
+    {
+      "orden": 14,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "Si ha usado esos canales, ¿considera que la respuesta fue oportuna y adecuada?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "Parcialmente", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "No los he usado", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 15,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Considera que la empresa toma medidas eficaces cuando se reportan afectaciones o riesgos?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Totalmente de acuerdo", "valor": "a"},
+        {"texto": "De acuerdo", "valor": "b"},
+        {"texto": "En desacuerdo", "valor": "c"},
+        {"texto": "Totalmente en desacuerdo", "valor": "d"},
+        {"texto": "No sabe", "valor": "e"}
+      ]
+    },
+    {
+      "orden": 16,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Ha recibido formación sobre prevención de riesgos, derechos laborales o derechos humanos en su trabajo?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí, varias veces", "valor": "a"},
+        {"texto": "Una vez", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "No recuerda", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 17,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿La empresa informa de forma clara y periódica sobre sus políticas y compromisos en derechos humanos?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Siempre", "valor": "a"},
+        {"texto": "A veces", "valor": "b"},
+        {"texto": "Raramente", "valor": "c"},
+        {"texto": "Nunca", "valor": "d"},
+        {"texto": "No sabe", "valor": "e"}
+      ]
+    },
+    {
+      "orden": 18,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Considera que existen mecanismos efectivos para prevenir riesgos de violación de derechos humanos en Cenit?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "Parcialmente", "valor": "b"},
+        {"texto": "No", "valor": "c"},
+        {"texto": "No sabe", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 19,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Ha conocido situaciones donde la presencia de actores armados, conflictos sociales o el contexto territorial hayan generado riesgos para los trabajadores?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "No", "valor": "b"},
+        {"texto": "No sabe", "valor": "c"},
+        {"texto": "Prefiero no responder", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 20,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿La empresa ha tomado medidas para proteger al personal en territorios con riesgos de seguridad?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Sí", "valor": "a"},
+        {"texto": "No", "valor": "b"},
+        {"texto": "No aplica", "valor": "c"},
+        {"texto": "No sabe", "valor": "d"}
+      ]
+    },
+    {
+      "orden": 21,
+      "seccion": "General",
+      "tipo": "RADIO",
+      "texto": "¿Qué tan preparado considera que está Cenit para identificar y prevenir riesgos a los derechos humanos en su operación?",
+      "requerida": true,
+      "opciones": [
+        {"texto": "Muy preparado", "valor": "a"},
+        {"texto": "Medianamente preparado", "valor": "b"},
+        {"texto": "Poco preparado", "valor": "c"},
+        {"texto": "No preparado", "valor": "d"},
+        {"texto": "No sabe", "valor": "e"}
+      ]
+    },
+    {
+      "orden": 22,
+      "seccion": "General",
+      "tipo": "MTEXT",
+      "texto": "¿Desea compartir alguna situación que considere importante para prevenir afectaciones a los derechos de los trabajadores?",
+      "requerida": true
+    }
+  ]
+} 

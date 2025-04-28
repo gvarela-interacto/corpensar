@@ -1,0 +1,99 @@
+{
+    "titulo": "Grupo focal Trabajadores Cenit - Miraflores",
+    "descripcion": "Indagar, desde la experiencia vivida de los colaboradores de Cenit, cuáles son las tensiones, preocupaciones, aprendizajes y dilemas éticos que surgen en el relacionamiento con líderes sociales, comunidades y personas defensoras de DDHH, con el fin de nutrir la construcción participativa del protocolo de relacionamiento seguro y respetuoso.",
+    "slug": "grupo-focal-trabajadores-miraflores",
+    "region": "OLEODUCTO LLANOS",
+    "categoria": "Grupo focal",
+    "preguntas": [
+        {
+            "tipo": "TEXT",
+            "texto": "¿Qué actores parecen tener más poder y cuáles más invisibilidad?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué te faltó (información, respaldo, herramientas)?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué debí hacer como trabajador, y qué quería hacer como persona?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué metáforas ayudan a explicar un buen relacionamiento?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Sentiste que actuar diferente podía poner en riesgo tu trabajo?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué relaciones son críticas para mejorar?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Cómo supiste que ese era un defensor de DDHH?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué historia cuenta este mapa?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué riesgo asumí al tomar esa decisión?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "Una frase que me gustaría ver escrita en ese protocolo es…",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué pilares se repiten entre los grupos?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué sentiste que estaba en juego para ti en esa situación?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué debemos evitar para que ese puente no se derrumbe?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "¿Qué me hubiera protegido mejor: una orden clara, un protocolo, una conversación?",
+            "requerida": false,
+            "seccion": "General"
+        },
+        {
+            "tipo": "MTEXT",
+            "texto": "Si yo hubiera tenido un protocolo claro en ese momento, me habría servido para…",
+            "requerida": false,
+            "seccion": "General"
+        }
+    ]
+} 
