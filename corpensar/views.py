@@ -559,9 +559,24 @@ def duplicar_encuesta(request, encuesta_id):
     
     if request.method == 'POST':
         try:
+            # Obtener el nuevo título y generar un slug único
+            nuevo_titulo = request.POST.get('titulo', f"{encuesta_original.titulo} (Copia)")
+            
+            # Generar un slug base desde el título
+            from django.utils.text import slugify
+            slug_base = slugify(nuevo_titulo)
+            
+            # Asegurarse de que el slug sea único
+            slug = slug_base
+            counter = 1
+            while Encuesta.objects.filter(slug=slug).exists():
+                slug = f"{slug_base}-{counter}"
+                counter += 1
+            
             # Crear nueva encuesta con todos los campos necesarios
             nueva_encuesta = Encuesta.objects.create(
-                titulo=request.POST.get('titulo', f"{encuesta_original.titulo} (Copia)"),
+                titulo=nuevo_titulo,
+                slug=slug,  # Usar el slug único generado
                 creador=request.user,
                 region_id=request.POST.get('region'),
                 categoria_id=request.POST.get('categoria'),
@@ -739,10 +754,16 @@ def editar_encuesta(request, encuesta_id):
     # Ordenar preguntas por orden
     preguntas.sort(key=lambda x: x.orden)
     
+    # Obtener regiones y categorías
+    regiones = Region.objects.all()
+    categorias = Categoria.objects.all()
+    
     return render(request, 'Encuesta/editar_encuesta.html', {
         'encuesta': encuesta,
         'form': form,
-        'preguntas': preguntas
+        'preguntas': preguntas,
+        'regiones': regiones,
+        'categorias': categorias
     })
 
 # Vista para listar encuestas del usuario
@@ -1765,7 +1786,7 @@ def agregar_pregunta(request, encuesta_id):
         encuesta = Encuesta.objects.get(id=encuesta_id)
         
         # Verificar que el usuario sea el propietario de la encuesta
-        if encuesta.usuario != request.user:
+        if encuesta.creador != request.user:
             return JsonResponse({'error': 'No tienes permiso para modificar esta encuesta'}, status=403)
         
         # Obtener datos del formulario

@@ -35,11 +35,11 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR('No existe el usuario amesa'))
                 return
 
-            # Buscar la región "Oleoducto Norte"
+            # Buscar la región "Oleoducto Llanos"
             try:
-                region = Region.objects.get(nombre__icontains='oleoducto norte')
+                region = Region.objects.get(nombre__icontains='oleoducto llanos')
             except Region.DoesNotExist:
-                self.stdout.write(self.style.ERROR('No existe la región "Oleoducto Norte"'))
+                self.stdout.write(self.style.ERROR('No existe la región "Oleoducto Llanos"'))
                 return
 
             # Buscar categoría o crear una por defecto si no existe

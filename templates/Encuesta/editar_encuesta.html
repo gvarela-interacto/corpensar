@@ -1092,7 +1092,32 @@
     if (formAgregarPregunta) {
         formAgregarPregunta.addEventListener('submit', function(e) {
             e.preventDefault();
-            // Lógica del formulario aquí
+            
+            const formData = new FormData(this);
+            const url = this.getAttribute('action');
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar el modal
+                    $('#modalAgregarPregunta').modal('hide');
+                    // Recargar la página para mostrar la nueva pregunta
+                    window.location.reload();
+                } else {
+                    alert('Error al agregar la pregunta: ' + (data.error || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al agregar la pregunta. Por favor, inténtalo de nuevo.');
+            });
         });
     }
 </script>
