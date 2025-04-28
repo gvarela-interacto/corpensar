@@ -6,13 +6,15 @@ from django.core.exceptions import ValidationError
 class EncuestaForm(forms.ModelForm):
     class Meta:
         model = Encuesta
-        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema', 'region']
+        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema', 'region', 'categoria', 'subcategoria']
         widgets = {
             'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}), 
             'fecha_fin': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'descripcion': forms.Textarea(attrs={'rows': 3}),
             'tema': forms.Select(attrs={'class': 'form-control'}),
             'region': forms.Select(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'subcategoria': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
             'titulo': 'Título de la encuesta',
@@ -23,10 +25,13 @@ class EncuestaForm(forms.ModelForm):
             'es_publica': 'Encuesta pública',
             'tema': 'Tema de la encuesta',
             'region': 'Región',
+            'categoria': 'Categoría',
+            'subcategoria': 'Subcategoría',
         }
         help_texts = {
             'es_publica': 'Si está marcada, cualquier usuario podrá responder sin necesidad de autenticarse',
             'region': 'Selecciona la región asociada a esta encuesta',
+            'subcategoria': 'Selecciona la subcategoría de la encuesta',
         }
 
     def clean(self):
@@ -167,6 +172,13 @@ class RespuestaForm(forms.Form):
 
 class PQRSFDForm(forms.ModelForm):
     """Formulario para crear un nuevo PQRSFD"""
+    
+    archivos = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label="Archivos adjuntos",
+        help_text="Seleccione los archivos a adjuntar (uno a la vez)"
+    )
     
     class Meta:
         model = PQRSFD

@@ -30,7 +30,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
-                    PQRSFD, Subcategoria, ArchivoRespuesta)
+                    PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD)
 from .decorators import *
 import locale
 import re
@@ -770,12 +770,18 @@ def editar_encuesta(request, encuesta_id):
     regiones = Region.objects.all()
     categorias = Categoria.objects.all()
     
+    # Obtener subcategorías si hay una categoría seleccionada
+    subcategorias = []
+    if encuesta.categoria:
+        subcategorias = Subcategoria.objects.filter(categoria=encuesta.categoria)
+    
     return render(request, 'Encuesta/editar_encuesta.html', {
         'encuesta': encuesta,
         'form': form,
         'preguntas': preguntas,
         'regiones': regiones,
-        'categorias': categorias
+        'categorias': categorias,
+        'subcategorias': subcategorias
     })
 
 # Vista para listar encuestas del usuario
@@ -2370,7 +2376,7 @@ def public_home(request):
 
 def crear_pqrsfd(request):
     if request.method == 'POST':
-        form = PQRSFDForm(request.POST)
+        form = PQRSFDForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 pqrsfd = form.save(commit=False)
@@ -2383,6 +2389,16 @@ def crear_pqrsfd(request):
                 
                 # Guardar el objeto usando el ORM de Django
                 pqrsfd.save()
+                
+                # Procesar archivo adjunto
+                if 'archivos' in request.FILES:
+                    archivo = request.FILES['archivos']
+                    ArchivoAdjuntoPQRSFD.objects.create(
+                        pqrsfd=pqrsfd,
+                        archivo=archivo,
+                        nombre_original=archivo.name,
+                        tipo_archivo=archivo.content_type
+                    )
                 
                 messages.success(request, 'Su PQRSFD ha sido registrado exitosamente. Le agradecemos por su contribución.')
                 return redirect('public_home')
@@ -2511,13 +2527,30 @@ def eliminar_subcategoria(request, subcategoria_id):
     """Vista para eliminar una subcategoría"""
     subcategoria = get_object_or_404(Subcategoria, id=subcategoria_id)
     
+    # Verificar si hay encuestas asociadas a esta subcategoría
+    encuestas_relacionadas = Encuesta.objects.filter(subcategoria=subcategoria).count()
+    
     if request.method == 'POST':
+        # Si hay encuestas relacionadas, cambiar su subcategoría a None
+        if encuestas_relacionadas:
+            Encuesta.objects.filter(subcategoria=subcategoria).update(subcategoria=None)
+        
+        nombre_subcategoria = subcategoria.nombre
         subcategoria.delete()
-        messages.success(request, 'Subcategoría eliminada exitosamente.')
+        messages.success(request, f'Subcategoría "{nombre_subcategoria}" eliminada exitosamente.')
         return redirect('categorias_principales')
     
+    # Si la solicitud es GET y proviene de JavaScript AJAX, devolvemos datos JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'encuestas_relacionadas': encuestas_relacionadas,
+            'nombre': subcategoria.nombre
+        })
+    
+    # Si es GET normal, seguimos mostrando la página de confirmación por compatibilidad
     return render(request, 'confirmar_eliminar_subcategoria.html', {
-        'subcategoria': subcategoria
+        'subcategoria': subcategoria,
+        'encuestas_relacionadas': encuestas_relacionadas
     })
 
 def get_subcategorias(request):

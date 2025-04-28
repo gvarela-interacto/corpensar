@@ -528,6 +528,20 @@ class PQRSFD(models.Model):
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.asunto}"
 
+class ArchivoAdjuntoPQRSFD(models.Model):
+    pqrsfd = models.ForeignKey(PQRSFD, on_delete=models.CASCADE, related_name='archivos_adjuntos')
+    archivo = models.FileField(upload_to='pqrsfd/adjuntos/%Y/%m/')
+    nombre_original = models.CharField(max_length=255)
+    tipo_archivo = models.CharField(max_length=100)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Archivo adjunto PQRSFD'
+        verbose_name_plural = 'Archivos adjuntos PQRSFD'
+
+    def __str__(self):
+        return f"Adjunto {self.nombre_original} - {self.pqrsfd}"
+
 class Subcategoria(models.Model):
     """Modelo para las subcategorías (población, dirección de formulario, etc.)"""
     categoria = models.ForeignKey(

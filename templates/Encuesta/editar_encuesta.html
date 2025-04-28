@@ -89,6 +89,14 @@
                                 </div>
 
                                 <div class="form-group mb-3">
+                                    <label for="id_subcategoria" class="form-label fw-bold">Subcategoría</label>
+                                    <select name="subcategoria" id="id_subcategoria" class="form-select rounded-3" {% if not form.categoria.value %}disabled{% endif %}>
+                                        <option value="">{% if form.categoria.value %}Selecciona una subcategoría{% else %}Primero selecciona una categoría{% endif %}</option>
+                                    </select>
+                                    <div class="form-text">Selecciona la subcategoría específica para la encuesta</div>
+                                </div>
+
+                                <div class="form-group mb-3">
                                     <label for="id_descripcion" class="form-label fw-bold">{{ form.descripcion.label }}</label>
                                     <textarea name="descripcion" id="id_descripcion" class="form-control rounded-3" rows="3" style="min-height: 100px;">{{ form.descripcion.value|default:'' }}</textarea>
                                     <div class="form-text">Añade detalles sobre el propósito de la encuesta y otra información relevante.</div>
@@ -1238,6 +1246,58 @@
                     alert('Error al agregar la pregunta. Por favor, inténtalo de nuevo.');
                 });
             });
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoriaSelect = document.getElementById('id_categoria');
+        const subcategoriaSelect = document.getElementById('id_subcategoria');
+        
+        // Cargar subcategorías al inicio si hay una categoría seleccionada
+        if (categoriaSelect && categoriaSelect.value) {
+            cargarSubcategorias(categoriaSelect.value, {% if form.subcategoria.value %}{{ form.subcategoria.value }}{% else %}null{% endif %});
+        }
+        
+        // Actualizar subcategorías cuando cambia la categoría
+        if (categoriaSelect) {
+            categoriaSelect.addEventListener('change', function() {
+                const categoriaId = this.value;
+                subcategoriaSelect.disabled = !categoriaId;
+                
+                if (categoriaId) {
+                    cargarSubcategorias(categoriaId);
+                } else {
+                    subcategoriaSelect.innerHTML = '<option value="">Primero selecciona una categoría</option>';
+                }
+            });
+        }
+        
+        // Función para cargar subcategorías
+        function cargarSubcategorias(categoriaId, subcategoriaSeleccionada = null) {
+            fetch(`/api/subcategorias/?categoria=${categoriaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Limpiar las opciones actuales
+                    subcategoriaSelect.innerHTML = '<option value="">Selecciona una subcategoría</option>';
+                    
+                    // Agregar las nuevas opciones
+                    data.forEach(subcategoria => {
+                        const option = document.createElement('option');
+                        option.value = subcategoria.id;
+                        option.textContent = subcategoria.nombre;
+                        
+                        // Seleccionar la subcategoría si coincide con la guardada
+                        if (subcategoriaSeleccionada && subcategoria.id == subcategoriaSeleccionada) {
+                            option.selected = true;
+                        }
+                        
+                        subcategoriaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    subcategoriaSelect.innerHTML = '<option value="">Error al cargar subcategorías</option>';
+                });
         }
     });
 </script>
