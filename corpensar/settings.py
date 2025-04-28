@@ -58,9 +58,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'corpensar',       
-        'USER': 'remote',
-        'PASSWORD': 'M@j0309!Mysql',
-        'HOST': '72.14.187.231',
+        'USER': 'zremote',
+        'PASSWORD': 'M@j0309!zremote',
+        'HOST': '45.33.15.67',
         'PORT': '3306',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
