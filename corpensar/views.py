@@ -1796,22 +1796,40 @@ def agregar_pregunta(request, encuesta_id):
         requerida = request.POST.get('requerida') == 'on'
         ayuda = request.POST.get('ayuda', '')
         
+        # Obtener sección (puede venir de un campo normal o del campo de nueva sección)
+        seccion = request.POST.get('seccion', 'General')
+        if not seccion or seccion == 'nueva_seccion':
+            seccion = request.POST.get('nueva_seccion_input', 'General')
+            
+        # Obtener el último orden si no se proporciona
+        if not orden:
+            preguntas = encuesta.obtener_preguntas()
+            if preguntas.exists():
+                ultimo_orden = max([p.orden for p in preguntas])
+                orden = ultimo_orden + 1
+            else:
+                orden = 1
+        
         # Crear la pregunta según el tipo
         if tipo == 'TEXT':
             pregunta = PreguntaTexto.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
         elif tipo == 'MTEXT':
             pregunta = PreguntaTextoMultiple.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
         elif tipo in ['RADIO', 'CHECK', 'SELECT']:
             # Crear pregunta de opción múltiple
@@ -1819,25 +1837,31 @@ def agregar_pregunta(request, encuesta_id):
                 pregunta = PreguntaOpcionMultiple.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    ayuda=ayuda,
+                    seccion=seccion
                 )
             elif tipo == 'CHECK':
                 pregunta = PreguntaCasillasVerificacion.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    ayuda=ayuda,
+                    seccion=seccion
                 )
             else:  # SELECT
                 pregunta = PreguntaMenuDesplegable.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    ayuda=ayuda,
+                    seccion=seccion
                 )
             
             # Agregar opciones
@@ -1872,9 +1896,11 @@ def agregar_pregunta(request, encuesta_id):
             pregunta = PreguntaEscala.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
                 ayuda=ayuda,
+                seccion=seccion,
                 valor_minimo=escala_min,
                 valor_maximo=escala_max,
                 paso=escala_paso
@@ -1885,9 +1911,11 @@ def agregar_pregunta(request, encuesta_id):
             pregunta = PreguntaMatriz.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
             
             # Agregar filas y columnas
@@ -1914,18 +1942,22 @@ def agregar_pregunta(request, encuesta_id):
             pregunta = PreguntaFecha.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
             
         elif tipo == 'STARS':
             pregunta = PreguntaEstrellas.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
             
         # Reordenar las preguntas si es necesario

@@ -131,6 +131,50 @@ class Encuesta(models.Model):
     def __str__(self):
         return self.titulo
     
+    def obtener_preguntas(self):
+        """
+        Obtiene todas las preguntas de la encuesta y las devuelve 
+        como un QuerySet combinado
+        """
+        from itertools import chain
+        from django.db.models import Q, QuerySet
+        
+        # Obtener todas las preguntas relacionadas con esta encuesta
+        preguntas = list(chain(
+            self.preguntatexto_relacionadas.all(),
+            self.preguntatextomultiple_relacionadas.all(),
+            self.preguntaopcionmultiple_relacionadas.all(),
+            self.preguntacasillasverificacion_relacionadas.all(),
+            self.preguntamenudesplegable_relacionadas.all(),
+            self.preguntaestrellas_relacionadas.all(),
+            self.preguntaescala_relacionadas.all(),
+            self.preguntamatriz_relacionadas.all(),
+            self.preguntafecha_relacionadas.all()
+        ))
+        
+        # Crear un QuerySet vacío del modelo PreguntaBase (aunque es abstracto)
+        # Solo para poder filtrar después
+        empty_qs = QuerySet(model=PreguntaBase).none()
+        
+        # Si tenemos preguntas, devolvemos un QuerySet combinado
+        if preguntas:
+            # Convertir la lista a un QuerySet utilizando Q objects para filtrar por id
+            ids_por_tipo = {}
+            for p in preguntas:
+                model_class = p.__class__
+                if model_class not in ids_por_tipo:
+                    ids_por_tipo[model_class] = []
+                ids_por_tipo[model_class].append(p.id)
+            
+            # Combinar todos los QuerySets
+            combined_qs = empty_qs
+            for model_class, ids in ids_por_tipo.items():
+                modelo_qs = model_class.objects.filter(id__in=ids)
+                combined_qs = combined_qs | modelo_qs
+            
+            return combined_qs
+        
+        return empty_qs
 
 
 

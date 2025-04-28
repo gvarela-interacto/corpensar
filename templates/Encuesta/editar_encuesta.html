@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
 <div class="container mt-4">
@@ -612,12 +613,30 @@
                                 <div class="form-text">Selecciona el tipo de respuesta que deseas recibir.</div>
                             </div>
                             
+                            <div class="form-group mb-3">
+                                <label for="seccion_nueva" class="form-label fw-bold">Sección</label>
+                                <div class="input-group">
+                                    <select class="form-select rounded-start" id="seccion_nueva" name="seccion">
+                                        <option value="General">General</option>
+                                        {% for seccion in preguntas|dictsort:"seccion"|dictsortreversed:"seccion"|unique:"seccion" %}
+                                            {% if seccion.seccion and seccion.seccion != "General" %}
+                                                <option value="{{ seccion.seccion }}">{{ seccion.seccion }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <option value="nueva_seccion">+ Nueva sección</option>
+                                    </select>
+                                    <input type="text" id="nueva_seccion_input" class="form-control rounded-end" 
+                                           style="display: none;" placeholder="Nombre de la nueva sección">
+                                </div>
+                                <div class="form-text">Sección a la que pertenece esta pregunta.</div>
+                            </div>
+                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="orden_nueva" class="form-label fw-bold">Orden</label>
                                         <input type="number" class="form-control rounded-3" id="orden_nueva" 
-                                               name="orden" value="{{ preguntas.count|add:"1" }}" required>
+                                               name="orden" value="{{ preguntas|length|add:"1" }}" required readonly>
                                         <div class="form-text">Posición de la pregunta en la encuesta.</div>
                                     </div>
                                 </div>
@@ -1087,39 +1106,73 @@
         actualizarSecciones();
     });
 
-    // Manejar el envío del formulario de agregar pregunta
-    const formAgregarPregunta = document.querySelector('.form-agregar-pregunta');
-    if (formAgregarPregunta) {
-        formAgregarPregunta.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const url = this.getAttribute('action');
-            
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Cerrar el modal
-                    $('#modalAgregarPregunta').modal('hide');
-                    // Recargar la página para mostrar la nueva pregunta
-                    window.location.reload();
+    // JavaScript para manejar nueva sección
+    document.addEventListener('DOMContentLoaded', function() {
+        const seccionSelect = document.getElementById('seccion_nueva');
+        const nuevaSeccionInput = document.getElementById('nueva_seccion_input');
+        
+        if (seccionSelect && nuevaSeccionInput) {
+            seccionSelect.addEventListener('change', function() {
+                if (this.value === 'nueva_seccion') {
+                    nuevaSeccionInput.style.display = 'block';
+                    nuevaSeccionInput.focus();
+                    nuevaSeccionInput.required = true;
+                    this.name = '_ignorar_seccion';
                 } else {
-                    alert('Error al agregar la pregunta: ' + (data.error || 'Error desconocido'));
+                    nuevaSeccionInput.style.display = 'none';
+                    nuevaSeccionInput.required = false;
+                    this.name = 'seccion';
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al agregar la pregunta. Por favor, inténtalo de nuevo.');
             });
-        });
-    }
+            
+            nuevaSeccionInput.addEventListener('input', function() {
+                if (this.value.trim() !== '') {
+                    this.name = 'seccion';
+                } else {
+                    this.name = '';
+                }
+            });
+        }
+        
+        // Manejo del envío del formulario para actualizar el orden automáticamente
+        const formAgregarPreguntaEl = document.querySelector('.form-agregar-pregunta');
+        if (formAgregarPreguntaEl) {
+            formAgregarPreguntaEl.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Obtener el último orden de las preguntas existentes
+                const numPreguntas = parseInt("{{ preguntas|length }}");
+                const ordenInput = document.getElementById('orden_nueva');
+                ordenInput.value = numPreguntas + 1;
+                
+                const formData = new FormData(this);
+                const url = this.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Cerrar el modal
+                        $('#modalAgregarPregunta').modal('hide');
+                        // Recargar la página para mostrar la nueva pregunta
+                        window.location.reload();
+                    } else {
+                        alert('Error al agregar la pregunta: ' + (data.error || 'Error desconocido'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al agregar la pregunta. Por favor, inténtalo de nuevo.');
+                });
+            });
+        }
+    });
 </script>
 
 <style>
