@@ -575,6 +575,11 @@ def duplicar_encuesta(request, encuesta_id):
             # Obtener el nuevo título y generar un slug único
             nuevo_titulo = request.POST.get('titulo', f"{encuesta_original.titulo} (Copia)")
             
+            # Verificar que el título no esté repetido
+            if Encuesta.objects.filter(titulo=nuevo_titulo).exists():
+                messages.error(request, 'Ya existe una encuesta con este título. Por favor, elige otro.')
+                return redirect('duplicar_encuesta', encuesta_id=encuesta_original.id)
+            
             # Generar un slug base desde el título
             from django.utils.text import slugify
             slug_base = slugify(nuevo_titulo)
@@ -586,6 +591,10 @@ def duplicar_encuesta(request, encuesta_id):
                 slug = f"{slug_base}-{counter}"
                 counter += 1
             
+            # Obtener fechas de inicio y fin desde el formulario
+            fecha_inicio = request.POST.get('fecha_inicio')
+            fecha_fin = request.POST.get('fecha_fin')
+            
             # Crear nueva encuesta con todos los campos necesarios
             nueva_encuesta = Encuesta.objects.create(
                 titulo=nuevo_titulo,
@@ -595,8 +604,8 @@ def duplicar_encuesta(request, encuesta_id):
                 categoria_id=request.POST.get('categoria'),
                 activa=request.POST.get('activa') == 'on',
                 es_publica=request.POST.get('es_publica') == 'on',
-                fecha_inicio=timezone.now(),  # Fecha actual como fecha de inicio
-                fecha_fin=encuesta_original.fecha_fin,  # Copiar fecha de fin
+                fecha_inicio=fecha_inicio,  # Usar la fecha proporcionada
+                fecha_fin=fecha_fin,  # Usar la fecha proporcionada
                 tema=encuesta_original.tema,
                 imagen_encabezado=encuesta_original.imagen_encabezado,
                 logotipo=encuesta_original.logotipo,
@@ -735,7 +744,8 @@ def duplicar_encuesta(request, encuesta_id):
     return render(request, 'Encuesta/duplicar_encuesta.html', {
         'encuesta_original': encuesta_original,
         'regiones': regiones,
-        'categorias': categorias
+        'categorias': categorias,
+        'now': timezone.now()  # Pasar la fecha actual para el campo fecha_inicio
     })
 
 # Vista para editar encuesta (común para todos los métodos)
@@ -2590,3 +2600,38 @@ def qr_generator(request):
     Vista para generar códigos QR de formularios
     """
     return render(request, 'qr_generator.html')
+
+@login_required
+@require_http_methods(["POST"])
+def editar_multiples_preguntas(request, encuesta_id):
+    encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
+    
+    try:
+        with transaction.atomic():
+            # Obtener todas las preguntas de la encuesta
+            preguntas = []
+            preguntas.extend(encuesta.preguntatexto_relacionadas.all())
+            preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
+            preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
+            preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
+            preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
+            preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
+            preguntas.extend(encuesta.preguntaescala_relacionadas.all())
+            preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
+            preguntas.extend(encuesta.preguntafecha_relacionadas.all())
+            
+            # Actualizar cada pregunta
+            for pregunta in preguntas:
+                requerida = request.POST.get(f'requerida_{pregunta.id}') == 'on'
+                permitir_archivos = request.POST.get(f'permitir_archivos_{pregunta.id}') == 'on'
+                
+                pregunta.requerida = requerida
+                pregunta.permitir_archivos = permitir_archivos
+                pregunta.save()
+            
+            messages.success(request, "Preguntas actualizadas exitosamente.")
+            
+    except Exception as e:
+        messages.error(request, f"Error al actualizar las preguntas: {str(e)}")
+    
+    return redirect('editar_encuesta', encuesta_id=encuesta.id)

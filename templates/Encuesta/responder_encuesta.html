@@ -502,6 +502,218 @@
                 </select>
             </div>
 
+            <!-- Mostrar preguntas sin sección primero -->
+            {% for pregunta in preguntas|dictsort:"orden" %}
+                {% if not pregunta.seccion %}
+                    <div class="question">
+                        <div class="question-title">
+                            <span>{{pregunta.orden}}. {{ pregunta.texto }}</span>
+                            {% if pregunta.requerida %}
+                                <span class="required-badge">Requerido</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if pregunta.ayuda %}
+                            <div class="question-help">
+                                <i class="fas fa-info-circle"></i> {{pregunta.ayuda}}
+                            </div>
+                        {% endif %}
+
+                        <!-- Para preguntas de texto simple -->
+                        {% if pregunta.tipo == 'TEXT' %}
+                        <input type="text" 
+                            class="form-control" 
+                            name="pregunta_texto_{{ pregunta.id }}" 
+                            placeholder="{{ pregunta.placeholder }}" 
+                            maxlength="{{ pregunta.max_longitud }}"
+                            {% if pregunta.requerida %}required{% endif %}>
+
+                        <!-- Para preguntas de texto múltiple -->
+                        {% elif pregunta.tipo == 'MTEXT' %}
+                        <textarea class="form-control" 
+                                name="pregunta_textomultiple_{{ pregunta.id }}" 
+                                rows="{{ pregunta.filas }}" 
+                                placeholder="{{ pregunta.placeholder }}" 
+                                maxlength="{{ pregunta.max_longitud }}"
+                                {% if pregunta.requerida %}required{% endif %}></textarea>
+                        
+                        {% elif pregunta.tipo == 'RADIO' %}
+                            {% for opcion in pregunta.opciones.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" 
+                                        type="radio" 
+                                        name="pregunta_{{ pregunta.id }}" 
+                                        id="opcion_{{ opcion.id}}"
+                                        value="{{ opcion.id }}"
+                                        {% if pregunta.requerida %}required{% endif %}>
+                                    <label class="form-check-label" for="opcion_{{ opcion.id }}">
+                                        {{ opcion.texto }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            
+                            {% if pregunta.opcion_otro %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" 
+                                        type="radio" 
+                                        name="pregunta_{{ pregunta.id }}" 
+                                        id="opcion_otro_{{ pregunta.id }}"
+                                        value="otro"
+                                        {% if pregunta.requerida %}required{% endif %}>
+                                    <label class="form-check-label" for="opcion_otro_{{ pregunta.id }}">
+                                        {{ pregunta.texto_otro|default:"Otro" }}
+                                    </label>
+                                </div>
+                                <div class="mt-2 ms-4" id="otro_texto_container_{{ pregunta.id }}" style="display:none;">
+                                    <input type="text" 
+                                        class="form-control" 
+                                        name="pregunta_otro_{{ pregunta.id }}"
+                                        placeholder="Especifique...">
+                                </div>
+                            {% endif %}
+                        
+                        {% elif pregunta.tipo == 'CHECK' %}
+                            {% for opcion in pregunta.opciones.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" 
+                                        type="checkbox" 
+                                        name="pregunta_{{ pregunta.id }}[]" 
+                                        id="check_{{ opcion.id }}"
+                                        value="{{ opcion.id }}"
+                                        data-pregunta-id="{{ pregunta.id }}"
+                                        data-min-selecciones="{{ pregunta.min_selecciones }}"
+                                        data-max-selecciones="{{ pregunta.max_selecciones|default:'' }}"
+                                        onchange="validarSelecciones('{{ pregunta.id }}')">
+                                    <label class="form-check-label" for="check_{{ opcion.id }}">
+                                        {{ opcion.texto }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            
+                            {% if pregunta.opcion_otro %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" 
+                                        type="checkbox" 
+                                        name="pregunta_{{ pregunta.id }}[]" 
+                                        id="check_otro_{{ pregunta.id }}"
+                                        value="otro"
+                                        data-pregunta-id="{{ pregunta.id }}"
+                                        data-min-selecciones="{{ pregunta.min_selecciones }}"
+                                        data-max-selecciones="{{ pregunta.max_selecciones|default:'' }}"
+                                        onchange="validarSelecciones('{{ pregunta.id }}')">
+                                    <label class="form-check-label" for="check_otro_{{ pregunta.id }}">
+                                        {{ pregunta.texto_otro|default:"Otro" }}
+                                    </label>
+                                </div>
+                                <div class="mt-2 ms-4" id="otro_texto_container_{{ pregunta.id }}" style="display:none;">
+                                    <input type="text" 
+                                        class="form-control" 
+                                        name="pregunta_otro_{{ pregunta.id }}"
+                                        placeholder="Especifique...">
+                                </div>
+                            {% endif %}
+                        
+                        {% elif pregunta.tipo == 'SELECT' %}
+                            <select class="form-select" 
+                                name="pregunta_{{ pregunta.id }}" 
+                                {% if pregunta.requerida %}required{% endif %}>
+                                <option value="" selected>{{ pregunta.texto_vacio|default:"Seleccione..." }}</option>
+                                {% for opcion in pregunta.opciones.all %}
+                                    <option value="{{ opcion.id }}">{{ opcion.texto }}</option>
+                                {% endfor %}
+                            </select>
+                        
+                        {% elif pregunta.tipo == 'STAR' %}
+                            <div class="star-rating">
+                                {% for i in pregunta.max_estrellas|times %}
+                                    <input type="radio" 
+                                        id="star{{ i }}" 
+                                        name="rating_{{ pregunta.id }}" 
+                                        value="{{ i }}" 
+                                        {% if pregunta.requerida %}required{% endif %}>
+                                    <label for="star{{ i }}" class="fas fa-star"></label>
+                                {% endfor %}
+                            </div>
+                            <div class="scale-labels">
+                                <span>{{ pregunta.etiqueta_inicio|default:"Muy malo" }}</span>
+                                <span>{{ pregunta.etiqueta_fin|default:"Excelente" }}</span>
+                            </div>
+                        
+                        {% elif pregunta.tipo == 'SCALE' %}
+                            <div class="range-container">
+                                <input type="range" 
+                                    class="form-range" 
+                                    name="scale_{{ pregunta.id }}"
+                                    min="{{ pregunta.min_valor }}" 
+                                    max="{{ pregunta.max_valor }}" 
+                                    step="{{ pregunta.paso }}" 
+                                    {% if pregunta.requerida %}required{% endif %}>
+                            </div>
+                            <div class="scale-labels">
+                                <span>{{ pregunta.etiqueta_min }}</span>
+                                <span>{{ pregunta.etiqueta_max }}</span>
+                            </div>
+                        
+                        {% elif pregunta.tipo == 'MATRIX' %}
+                            <table class="table matrix-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        {% for i in pregunta.escala.max_valor|times %}
+                                            <th>{{ i }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in pregunta.items.all %}
+                                        <tr>
+                                            <td>{{ item.texto }}</td>
+                                            {% for i in pregunta.escala.max_valor|times %}
+                                                <td>
+                                                    <input class="form-check-input" 
+                                                        type="radio" 
+                                                        name="matrix_{{ pregunta.id }}_{{ item.id }}" 
+                                                        value="{{ i }}"
+                                                        {% if pregunta.requerida %}required{% endif %}>
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="scale-labels">
+                                <span>{{ pregunta.escala.etiqueta_min }}</span>
+                                <span>{{ pregunta.escala.etiqueta_max }}</span>
+                            </div>
+                        
+                        {% elif pregunta.tipo == 'DATE' %}
+                            <input type="date" 
+                                class="form-control" 
+                                name="pregunta_{{ pregunta.id }}"
+                                {% if pregunta.requerida %}required{% endif %}>
+                        
+                        {% elif pregunta.tipo == 'DATETIME' %}
+                            <input type="datetime-local" 
+                                class="form-control" 
+                                name="pregunta_{{ pregunta.id }}" 
+                                {% if pregunta.requerida %}required{% endif %}>
+                        {% endif %}
+                        
+                        {% if pregunta.permitir_archivos %}
+                            <div class="file-upload-container mt-3">
+                                <label class="fw-bold mb-2">
+                                    <i class="fas fa-paperclip me-1"></i> Adjuntar archivos como evidencia
+                                </label>
+                                <input type="file" name="archivos_{{ pregunta.id }}[]" class="form-control" multiple>
+                                <div class="text-muted small mt-1">
+                                    Puede adjuntar archivos como evidencia (imágenes, documentos, audio, video, etc.)
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
             {% for seccion in secciones_unicas %}
                 {% if seccion %}
                     <h3 class="section-title mb-4 mt-5 pb-2 border-bottom">{{ seccion }}</h3>

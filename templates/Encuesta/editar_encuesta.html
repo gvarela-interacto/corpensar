@@ -210,9 +210,14 @@
                 <div class="tab-pane" id="preguntas">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0"><i class="fas fa-question-circle text-primary me-2"></i>Preguntas de la encuesta</h4>
-                        <button type="button" class="btn btn-primary rounded-3 px-4" data-toggle="modal" data-target="#modalAgregarPregunta">
-                            <i class="fas fa-plus me-2"></i> Agregar Pregunta
-                        </button>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary rounded-3 px-4 me-2" data-toggle="modal" data-target="#modalEditarMultiplesPreguntas">
+                                <i class="fas fa-edit me-2"></i> Editar Múltiples Preguntas
+                            </button>
+                            <button type="button" class="btn btn-primary rounded-3 px-4" data-toggle="modal" data-target="#modalAgregarPregunta">
+                                <i class="fas fa-plus me-2"></i> Agregar Pregunta
+                            </button>
+                        </div>
                     </div>
                     
                     {% if preguntas %}
@@ -964,6 +969,67 @@
     </div>
 </div>
 {% endfor %}
+
+<!-- Modal para editar múltiples preguntas -->
+<div class="modal fade" id="modalEditarMultiplesPreguntas" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Editar Múltiples Preguntas
+                </h5>
+                <button type="button" class="btn-close bg-white" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'editar_multiples_preguntas' encuesta.id %}" id="formEditarMultiplesPreguntas">
+                    {% csrf_token %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Pregunta</th>
+                                    <th class="text-center">Requerida</th>
+                                    <th class="text-center">Permitir Archivos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pregunta in preguntas %}
+                                <tr>
+                                    <td>{{ pregunta.texto }}</td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="requerida_{{ pregunta.id }}" 
+                                                   id="requerida_{{ pregunta.id }}"
+                                                   {% if pregunta.requerida %}checked{% endif %}>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="permitir_archivos_{{ pregunta.id }}" 
+                                                   id="permitir_archivos_{{ pregunta.id }}"
+                                                   {% if pregunta.permitir_archivos %}checked{% endif %}>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary rounded-3" data-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary rounded-3">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% block extra_js %}
 <script>

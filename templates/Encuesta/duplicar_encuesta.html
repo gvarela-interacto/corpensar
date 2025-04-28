@@ -20,6 +20,22 @@
                             <div class="form-text">Ingresa un nuevo título para la encuesta duplicada.</div>
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_inicio" class="form-label">Fecha de inicio <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" id="fecha_inicio" name="fecha_inicio" 
+                                       value="{{ now|date:'Y-m-d\TH:i' }}" required>
+                                <div class="form-text">Fecha y hora en que inicia la encuesta.</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_fin" class="form-label">Fecha de finalización <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control" id="fecha_fin" name="fecha_fin" 
+                                       value="{{ encuesta_original.fecha_fin|date:'Y-m-d\TH:i' }}" required>
+                                <div class="form-text">Fecha y hora en que finaliza la encuesta.</div>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="region" class="form-label">Región <span class="text-danger">*</span></label>
                             <select class="form-select" id="region" name="region" required>
@@ -81,8 +97,9 @@
                         </div>
 
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> 
-                            La nueva encuesta incluirá todas las preguntas y configuraciones de la encuesta original.
+                            <i class="fas fa-info-circle me-2"></i> 
+                            <p class="mb-1">La nueva encuesta incluirá todas las preguntas y configuraciones de la encuesta original.</p>
+                            <p class="mb-0">Una vez duplicada, podrás editar la encuesta completa: añadir preguntas nuevas, modificar o eliminar las existentes, y cambiar cualquier configuración desde la pantalla de edición.</p>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -162,4 +179,55 @@
         border-radius: 0.375rem;
     }
 </style>
+
+{% block extra_js %}
+<script>
+    // Inicializar los campos de fecha y hora
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatear las fechas al formato requerido por datetime-local
+        function formatDateForInput(date) {
+            return date.substring(0, 16); // Toma solo YYYY-MM-DDTHH:mm
+        }
+
+        // Establecer valores iniciales
+        var fechaInicio = document.querySelector('input[name="fecha_inicio"]');
+        var fechaFin = document.querySelector('input[name="fecha_fin"]');
+
+        if (fechaInicio.value) {
+            fechaInicio.value = formatDateForInput(fechaInicio.value);
+        }
+        if (fechaFin.value) {
+            fechaFin.value = formatDateForInput(fechaFin.value);
+        }
+
+        // Validar que la fecha de fin no sea anterior a la de inicio
+        fechaInicio.addEventListener('change', function() {
+            if (fechaFin.value && this.value > fechaFin.value) {
+                alert('La fecha de inicio no puede ser posterior a la fecha de finalización');
+                this.value = fechaFin.value;
+            }
+        });
+
+        fechaFin.addEventListener('change', function() {
+            if (fechaInicio.value && this.value < fechaInicio.value) {
+                alert('La fecha de finalización no puede ser anterior a la fecha de inicio');
+                this.value = fechaInicio.value;
+            }
+        });
+
+        // Validación de título único
+        const tituloInput = document.getElementById('titulo');
+        const form = document.querySelector('form');
+        
+        form.addEventListener('submit', function(e) {
+            const titulo = tituloInput.value.trim();
+            if (!titulo) {
+                e.preventDefault();
+                alert('El título no puede estar vacío');
+                tituloInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
