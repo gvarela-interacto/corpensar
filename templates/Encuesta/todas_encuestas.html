@@ -23,13 +23,13 @@
                 <form method="get" action="" class="row g-3">
                     <!-- Barra de búsqueda principal -->
                     <div class="col-12 mb-3">
-                        <div class="input-group input-group-lg shadow-sm">
+                        <div class="input-group shadow-sm">
                             <span class="input-group-text bg-white border-end-0">
                                 <i class="fas fa-search text-primary"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0 ps-0" id="search" name="search" 
+                            <input type="text" class="form-control form-control-lg border-start-0 ps-0" id="search" name="search" 
                                    placeholder="Buscar por título de encuesta..." value="{{ request.GET.search|default:'' }}">
-                            <button class="btn btn-primary" type="submit">
+                            <button class="btn btn-lg btn-primary" type="submit">
                                 Buscar
                             </button>
                         </div>
@@ -154,12 +154,12 @@
                 <thead class="table-light">
                     <tr>
                         <th class="border-0">Título</th>
-                        <th class="border-0">Estado</th>
-                        <th class="border-0">Región</th>
-                        <th class="border-0">Categoría</th>
-                        <th class="border-0">Fecha Creación</th>
-                        <th class="border-0">Creador</th>
-                        <th class="border-0">Acciones</th>
+                        <th class="border-0 text-center">Estado</th>
+                        <th class="border-0 d-none d-md-table-cell">Región</th>
+                        <th class="border-0 d-none d-md-table-cell">Categoría</th>
+                        <th class="border-0 d-none d-lg-table-cell">Fecha</th>
+                        <th class="border-0 d-none d-lg-table-cell">Creador</th>
+                        <th class="border-0 text-end">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -172,41 +172,81 @@
                                 </div>
                                 <div>
                                     <h6 class="mb-0">{{ encuesta.titulo }}</h6>
-                                    <small class="text-muted">ID: {{ encuesta.id }}</small>
+                                    <small class="text-muted d-none d-md-inline">ID: {{ encuesta.id }}</small>
+                                    <div class="d-block d-md-none">
+                                        <small class="d-block text-muted">{{ encuesta.region.nombre|default:"Sin región" }}</small>
+                                        <small class="d-block text-muted">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</small>
+                                        <small class="d-block text-muted">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</small>
+                                        <small class="d-block text-muted">{{ encuesta.creador.username }}</small>
+                                    </div>
                                 </div>
                             </div>
                         </td>
-                        <td class="align-middle">
+                        <td class="align-middle text-center">
                             {% if encuesta.activa %}
                             <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
                             {% else %}
                             <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
                             {% endif %}
                         </td>
-                        <td class="align-middle">{{ encuesta.region.nombre|default:"Sin región" }}</td>
-                        <td class="align-middle">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
-                        <td class="align-middle">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
-                        <td class="align-middle">{{ encuesta.creador.username }}</td>
-                        <td class="align-middle">
-                            <div class="btn-group">
-                                {% if encuesta.slug %}
-                                <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Ver encuesta">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                {% else %}
-                                <button class="btn btn-sm btn-outline-secondary" disabled>
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
-                                {% endif %}
-                                <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Editar encuesta">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Ver resultados">
-                                    <i class="fas fa-chart-bar"></i>
-                                </a>
-                                <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Generar código QR">
-                                    <i class="fas fa-qrcode"></i>
-                                </button>
+                        <td class="align-middle d-none d-md-table-cell">{{ encuesta.region.nombre|default:"Sin región" }}</td>
+                        <td class="align-middle d-none d-md-table-cell">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
+                        <td class="align-middle d-none d-lg-table-cell">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
+                        <td class="align-middle d-none d-lg-table-cell">{{ encuesta.creador.username }}</td>
+                        <td class="align-middle text-end">
+                            <div class="d-flex justify-content-end">
+                                <!-- Menú de acciones desplegable para móviles -->
+                                <div class="dropdown d-md-none">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="actionDropdown-{{ encuesta.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Acciones
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown-{{ encuesta.id }}">
+                                        {% if encuesta.slug %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank">
+                                                <i class="fas fa-eye me-2"></i> Ver encuesta
+                                            </a>
+                                        </li>
+                                        {% endif %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'editar_encuesta' encuesta.id %}">
+                                                <i class="fas fa-edit me-2"></i> Editar encuesta
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'resultados_encuesta' encuesta.id %}">
+                                                <i class="fas fa-chart-bar me-2"></i> Ver resultados
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="generarQR('{{ encuesta.slug }}'); return false;">
+                                                <i class="fas fa-qrcode me-2"></i> Generar QR
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Botones de acción para desktop -->
+                                <div class="d-none d-md-flex">
+                                    {% if encuesta.slug %}
+                                    <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="Ver encuesta">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary me-1" disabled data-bs-toggle="tooltip" title="Sin URL">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
+                                    {% endif %}
+                                    <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="Editar encuesta">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success me-1" data-bs-toggle="tooltip" title="Ver resultados">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </a>
+                                    <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Generar código QR">
+                                        <i class="fas fa-qrcode"></i>
+                                    </button>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -234,7 +274,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             {% for encuesta in encuestas %}
             <div class="col">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm card-hover">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <span class="text-muted small">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</span>
                         {% if encuesta.activa %}
@@ -265,27 +305,27 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-white border-top-0">
-                        <div class="d-flex justify-content-between">
-                            <div class="btn-group">
-                                {% if encuesta.slug %}
-                                <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Ver encuesta">
-                                    <i class="fas fa-eye"></i>
+                    <div class="card-footer bg-white border-top-0 pt-0">
+                        <div class="d-grid gap-2">
+                            {% if encuesta.slug %}
+                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-eye me-1"></i> Ver encuesta
+                            </a>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                <i class="fas fa-eye-slash me-1"></i> Sin URL
+                            </button>
+                            {% endif %}
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                    <i class="fas fa-edit me-1"></i> Editar
                                 </a>
-                                {% else %}
-                                <button class="btn btn-sm btn-outline-secondary" disabled>
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
-                                {% endif %}
-                                <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Editar encuesta">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Ver resultados">
-                                    <i class="fas fa-chart-bar"></i>
+                                <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success flex-grow-1">
+                                    <i class="fas fa-chart-bar me-1"></i> Resultados
                                 </a>
                             </div>
-                            <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Generar código QR">
-                                <i class="fas fa-qrcode"></i>
+                            <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-qrcode me-1"></i> Generar QR
                             </button>
                         </div>
                     </div>
@@ -423,42 +463,43 @@
         }
     }
     
-    // Alternar entre vista de tabla y tarjetas
+    // Cambiar entre vistas de tabla y tarjetas
     document.addEventListener('DOMContentLoaded', function() {
         const tablaView = document.getElementById('tablaView');
         const tarjetasView = document.getElementById('tarjetasView');
         const vistaTabla = document.getElementById('vistaTabla');
         const vistaTarjetas = document.getElementById('vistaTarjetas');
         
-        // Inicializar tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Cambiar vistas
-        tablaView.addEventListener('click', function() {
-            vistaTabla.style.display = 'block';
-            vistaTarjetas.style.display = 'none';
-            tablaView.classList.add('active');
-            tarjetasView.classList.remove('active');
-            // Guardar preferencia en localStorage
-            localStorage.setItem('vistaEncuestas', 'tabla');
-        });
-        
-        tarjetasView.addEventListener('click', function() {
-            vistaTabla.style.display = 'none';
-            vistaTarjetas.style.display = 'block';
-            tablaView.classList.remove('active');
-            tarjetasView.classList.add('active');
-            // Guardar preferencia en localStorage
-            localStorage.setItem('vistaEncuestas', 'tarjetas');
-        });
-        
-        // Cargar preferencia guardada
-        const vistaPreferida = localStorage.getItem('vistaEncuestas');
-        if (vistaPreferida === 'tarjetas') {
-            tarjetasView.click();
+        if (tablaView && tarjetasView && vistaTabla && vistaTarjetas) {
+            // Inicializar tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Cambiar a vista de tabla
+            tablaView.addEventListener('click', function() {
+                vistaTabla.style.display = 'block';
+                vistaTarjetas.style.display = 'none';
+                tablaView.classList.add('active');
+                tarjetasView.classList.remove('active');
+                localStorage.setItem('vistaEncuestas', 'tabla');
+            });
+            
+            // Cambiar a vista de tarjetas
+            tarjetasView.addEventListener('click', function() {
+                vistaTabla.style.display = 'none';
+                vistaTarjetas.style.display = 'block';
+                tablaView.classList.remove('active');
+                tarjetasView.classList.add('active');
+                localStorage.setItem('vistaEncuestas', 'tarjetas');
+            });
+            
+            // Cargar preferencia guardada
+            const vistaPreferida = localStorage.getItem('vistaEncuestas');
+            if (vistaPreferida === 'tarjetas') {
+                tarjetasView.click();
+            }
         }
     });
 </script>
@@ -487,10 +528,28 @@
         background-color: rgba(0, 123, 255, 0.03);
     }
     
+    /* Estilos para la barra de búsqueda */
+    .input-group .form-control-lg,
+    .input-group .btn-lg,
+    .input-group .input-group-text {
+        height: 48px;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    .input-group-text {
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Estilos para las tarjetas */
+    .card-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
     .card-hover:hover {
+        transform: translateY(-5px);
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
     }
     
     /* Mejoras para dispositivos móviles */
