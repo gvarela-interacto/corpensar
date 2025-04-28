@@ -37,40 +37,156 @@
             </div>
         </div>
 
-        <div class="row g-4">
-            {% if encuestas_publicas %}
-                {% for encuesta in encuestas_publicas %}
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:"1"|stringformat:"i"|slice:"1:"|add:"00" }}">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="badge bg-primary me-2">Activa</span>
-                                <small class="text-muted">Inicio: {{ encuesta.fecha_inicio|date:"d M, Y" }}</small>
-                            </div>
-                            <h5 class="card-title mb-3">{{ encuesta.titulo }}</h5>
-                            <p class="card-text text-muted">{{ encuesta.descripcion|truncatewords:20 }}</p>
-                            <p class="text-muted small">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                Cierre: {{ encuesta.fecha_fin|date:"d M, Y" }}
-                            </p>
-                        </div>
-                        <div class="card-footer bg-transparent border-0">
-                            <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-primary w-100">
-                                <i class="fas fa-clipboard-list me-2"></i>Participar
+        {% if encuestas_publicas %}
+            <!-- Filtrar y agrupar encuestas por categoría -->
+            {% regroup encuestas_publicas by categoria as encuestas_por_categoria %}
+            
+            <!-- Menú lateral con filtro de categorías -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="category-filter" data-aos="fade-up">
+                        <div class="d-flex flex-wrap">
+                            <a href="#all" class="btn btn-sm btn-outline-primary m-1 category-btn active" data-category="all">
+                                Todas
                             </a>
+                            {% for categoria_grupo in encuestas_por_categoria %}
+                                {% if categoria_grupo.grouper %}
+                                    <a href="#{{ categoria_grupo.grouper.id }}" class="btn btn-sm btn-outline-primary m-1 category-btn" data-category="{{ categoria_grupo.grouper.id }}">
+                                        {{ categoria_grupo.grouper.nombre }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Mostrar encuestas sin categoría al inicio -->
+                {% for categoria_grupo in encuestas_por_categoria %}
+                    {% if not categoria_grupo.grouper %}
+                        {% for encuesta in categoria_grupo.list %}
+                            <div class="col-md-6 col-lg-4 encuesta-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:"1"|stringformat:"i"|slice:"1:"|add:"00" }}" data-category="all">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge bg-primary me-2">Activa</span>
+                                            <small class="text-muted">Inicio: {{ encuesta.fecha_inicio|date:"d M, Y" }}</small>
+                                        </div>
+                                        <h5 class="card-title mb-3">{{ encuesta.titulo }}</h5>
+                                        <p class="card-text text-muted">{{ encuesta.descripcion|truncatewords:20 }}</p>
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <span class="badge bg-secondary">Sin categoría</span>
+                                        </div>
+                                        <p class="text-muted small">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Cierre: {{ encuesta.fecha_fin|date:"d M, Y" }}
+                                        </p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-0">
+                                        <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-primary w-100">
+                                            <i class="fas fa-clipboard-list me-2"></i>Participar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 {% endfor %}
-            {% else %}
-                <div class="col-12" data-aos="fade-up">
-                    <div class="alert alert-info text-center" role="alert">
-                        <i class="fas fa-info-circle me-2"></i>
-                        No hay encuestas disponibles en este momento. ¡Vuelve pronto!
-                    </div>
+
+                <!-- Mostrar encuestas agrupadas por categoría -->
+                {% for categoria_grupo in encuestas_por_categoria %}
+                    {% if categoria_grupo.grouper %}
+                        <!-- Título de la categoría -->
+                        <div class="col-12 category-header mt-4" data-category="{{ categoria_grupo.grouper.id }}" data-aos="fade-up">
+                            <h3 class="border-bottom pb-2">{{ categoria_grupo.grouper.nombre }}</h3>
+                        </div>
+                        
+                        {% for encuesta in categoria_grupo.list %}
+                            <div class="col-md-6 col-lg-4 encuesta-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:"1"|stringformat:"i"|slice:"1:"|add:"00" }}" data-category="{{ categoria_grupo.grouper.id }}">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <span class="badge bg-primary me-2">Activa</span>
+                                            <small class="text-muted">Inicio: {{ encuesta.fecha_inicio|date:"d M, Y" }}</small>
+                                        </div>
+                                        <h5 class="card-title mb-3">{{ encuesta.titulo }}</h5>
+                                        <p class="card-text text-muted">{{ encuesta.descripcion|truncatewords:20 }}</p>
+                                        <div class="d-flex flex-wrap gap-1 mb-2">
+                                            <span class="badge bg-primary">{{ categoria_grupo.grouper.nombre }}</span>
+                                            {% if encuesta.subcategoria %}
+                                                <span class="badge bg-info">{{ encuesta.subcategoria.nombre }}</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-muted small">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Cierre: {{ encuesta.fecha_fin|date:"d M, Y" }}
+                                        </p>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-0">
+                                        <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-primary w-100">
+                                            <i class="fas fa-clipboard-list me-2"></i>Participar
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Script para filtrar por categoría -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const categoryButtons = document.querySelectorAll('.category-btn');
+                    const encuestaCards = document.querySelectorAll('.encuesta-card');
+                    const categoryHeaders = document.querySelectorAll('.category-header');
+                    
+                    // Función para mostrar/ocultar encuestas según la categoría
+                    function filterByCategory(category) {
+                        encuestaCards.forEach(card => {
+                            const cardCategories = card.dataset.category.split(' ');
+                            if (category === 'all' || cardCategories.includes(category)) {
+                                card.style.display = 'block';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                        
+                        // Mostrar/ocultar cabeceras de categoría
+                        categoryHeaders.forEach(header => {
+                            if (category === 'all' || header.dataset.category === category) {
+                                header.style.display = 'block';
+                            } else {
+                                header.style.display = 'none';
+                            }
+                        });
+                    }
+                    
+                    // Event listeners para botones de categoría
+                    categoryButtons.forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const category = this.dataset.category;
+                            
+                            // Actualizar clases activas
+                            categoryButtons.forEach(btn => btn.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            // Filtrar encuestas
+                            filterByCategory(category);
+                        });
+                    });
+                });
+            </script>
+        {% else %}
+            <div class="col-12" data-aos="fade-up">
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay encuestas disponibles en este momento. ¡Vuelve pronto!
                 </div>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
     </div>
 </section>
 

@@ -509,6 +509,73 @@
         .login-footer a:hover {
             text-decoration: underline;
         }
+
+        /* Estilos para categorías y filtrado */
+        .category-filter {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .category-btn {
+            font-size: 0.85rem;
+            border-radius: 20px;
+            padding: 5px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .category-btn.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: var(--text-color);
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .category-header h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .encuesta-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .encuesta-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Estilos para badges/etiquetas */
+        .badge {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge.bg-primary {
+            background-color: var(--primary-color) !important;
+            color: var(--text-color);
+        }
+        
+        .badge.bg-info {
+            background-color: var(--accent-color) !important;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+        
+        .badge.bg-secondary {
+            background-color: #e9ecef !important;
+            color: #6c757d;
+        }
     </style>
     <link rel="icon" type="image/png" href="/static/images/logo corpensar-12.webp">
 </head>
