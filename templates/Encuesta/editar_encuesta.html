@@ -210,7 +210,7 @@
                     {% if preguntas %}
                         <div class="row">
                             {% for pregunta in preguntas %}
-                                <div class="col-md-6 mb-3 pregunta-{{ pregunta.id }}">
+                                <div class="col-md-6 mb-3 pregunta-{{ pregunta.id }}" data-seccion="{{ pregunta.seccion|default:'General' }}">
                                     <div class="card shadow-sm hover-card h-100">
                                         <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#4361ee ;">
                                             <h5 class="card-title mb-0" style="color: white; font-weight: bold;">{{ pregunta.texto }}</h5>
@@ -229,9 +229,14 @@
                                         </div>
                                         <div class="card-body">
                                             <h5 class="card-title mb-3 fw-bold text-truncate">{{ pregunta.texto }}</h5>
-                                            <p class="card-text text-muted small">
-                                                <i class="fas fa-sort-numeric-down me-1"></i> Orden: {{ pregunta.orden }}
-                                            </p>
+                                            <div class="d-flex justify-content-between">
+                                                <p class="card-text text-muted small">
+                                                    <i class="fas fa-sort-numeric-down me-1"></i> Orden: {{ pregunta.orden }}
+                                                </p>
+                                                <p class="card-text text-muted small">
+                                                    <i class="fas fa-layer-group me-1"></i> Sección: {{ pregunta.seccion|default:'General' }}
+                                                </p>
+                                            </div>
                                             
                                             {% if pregunta.ayuda %}
                                             <div class="alert alert-light mb-3 py-2 small">
@@ -1106,10 +1111,56 @@
         actualizarSecciones();
     });
 
+    // Función para actualizar las secciones en el desplegable
+    function actualizarSecciones() {
+        const seccionSelect = document.getElementById('seccion_nueva');
+        if (!seccionSelect) return; // Si no existe el elemento, salir
+        
+        // Obtener todas las secciones existentes de los elementos con el atributo data-seccion
+        const elementos = document.querySelectorAll('[data-seccion]');
+        const secciones = [];
+        elementos.forEach(el => {
+            const seccion = el.getAttribute('data-seccion');
+            if (seccion && !secciones.includes(seccion)) {
+                secciones.push(seccion);
+            }
+        });
+        
+        // Mantener solo las opciones por defecto: "General" y "+ Nueva sección"
+        while (seccionSelect.options.length > 0) {
+            seccionSelect.remove(0);
+        }
+        
+        // Agregar la opción "General"
+        const optionGeneral = document.createElement('option');
+        optionGeneral.value = 'General';
+        optionGeneral.textContent = 'General';
+        seccionSelect.appendChild(optionGeneral);
+        
+        // Agregar las secciones existentes
+        secciones.sort().forEach(seccion => {
+            if (seccion && seccion !== 'General') {
+                const option = document.createElement('option');
+                option.value = seccion;
+                option.textContent = seccion;
+                seccionSelect.appendChild(option);
+            }
+        });
+        
+        // Agregar la opción "+ Nueva sección"
+        const optionNueva = document.createElement('option');
+        optionNueva.value = 'nueva_seccion';
+        optionNueva.textContent = '+ Nueva sección';
+        seccionSelect.appendChild(optionNueva);
+    }
+
     // JavaScript para manejar nueva sección
     document.addEventListener('DOMContentLoaded', function() {
         const seccionSelect = document.getElementById('seccion_nueva');
         const nuevaSeccionInput = document.getElementById('nueva_seccion_input');
+        
+        // Inicializar secciones
+        actualizarSecciones();
         
         if (seccionSelect && nuevaSeccionInput) {
             seccionSelect.addEventListener('change', function() {
