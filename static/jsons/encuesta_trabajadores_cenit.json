@@ -1,0 +1,201 @@
+{
+    "titulo": "Entrevista Trabajadores Cenit",
+    "descripcion": "Identificar, desde la experiencia del personal trabajador de Cenit, los riesgos en derechos humanos, condiciones laborales, seguridad, trato equitativo y mecanismos de protección o reporte frente a vulneraciones.",
+    "slug": "encuesta-trabajadores-cenit",
+    "region": "OLEODUCTO LLANOS",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "orden": 1,
+        "seccion": "Caracterización",
+        "tipo": "TEXT",
+        "texto": "¿Cuál es su nombre completo?",
+        "requerida": true
+      },
+      {
+        "orden": 2,
+        "seccion": "Caracterización",
+        "tipo": "RADIO",
+        "texto": "¿Cuál es su sexo?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Hombre", "valor": "a"},
+          {"texto": "Mujer", "valor": "b"},
+          {"texto": "Otro", "valor": "c"},
+          {"texto": "Prefiere no decirlo", "valor": "d"}
+        ]
+      },
+      {
+        "orden": 3,
+        "seccion": "Caracterización",
+        "tipo": "RADIO",
+        "texto": "¿Cuál es su rango de edad?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Menos de 18 años", "valor": "a"},
+          {"texto": "18 a 25 años", "valor": "b"},
+          {"texto": "26 a 35 años", "valor": "c"},
+          {"texto": "36 a 45 años", "valor": "d"},
+          {"texto": "46 a 60 años", "valor": "e"},
+          {"texto": "Más de 60 años", "valor": "f"}
+        ]
+      },
+      {
+        "orden": 4,
+        "seccion": "Caracterización",
+        "tipo": "CHECK",
+        "texto": "¿A cuál(es) de los siguientes grupos diferenciales pertenece? (Marque todos los que apliquen)",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Persona indígena", "valor": "a"},
+          {"texto": "Persona afrodescendiente o negra", "valor": "b"},
+          {"texto": "Persona Rrom (gitana)", "valor": "c"},
+          {"texto": "Persona en situación de discapacidad", "valor": "d"},
+          {"texto": "Persona LGBTIQ+", "valor": "e"},
+          {"texto": "Víctima del conflicto armado", "valor": "f"},
+          {"texto": "Migrante o refugiado", "valor": "g"},
+          {"texto": "Ninguno", "valor": "h"}
+        ]
+      },
+      {
+        "orden": 5,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cómo describiría su experiencia general trabajando en Cenit?",
+        "requerida": true
+      },
+      {
+        "orden": 6,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha sentido que sus derechos laborales (salario justo, jornada, descansos, salud) han sido respetados?",
+        "requerida": true
+      },
+      {
+        "orden": 7,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha presenciado o vivido situaciones que pongan en riesgo su salud física o emocional en el entorno laboral?",
+        "requerida": true
+      },
+      {
+        "orden": 8,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Percibe un ambiente de trabajo saludable y colaborativo en su área?",
+        "requerida": true
+      },
+      {
+        "orden": 9,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cree que en la empresa hay un trato igualitario para todos los trabajadores, sin importar género, etnia, orientación sexual, edad u otro factor?",
+        "requerida": true
+      },
+      {
+        "orden": 10,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Conoce o ha presenciado casos de discriminación, acoso o exclusión dentro del entorno laboral? ¿Cómo se manejaron?",
+        "requerida": true
+      },
+      {
+        "orden": 11,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Nota diferencias en las condiciones laborales entre trabajadores directos y contratistas? ¿Considera que hay equidad en el trato y los derechos?",
+        "requerida": true
+      },
+      {
+        "orden": 12,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Se asegura Cenit de que los contratistas respeten los derechos de sus trabajadores?",
+        "requerida": true
+      },
+      {
+        "orden": 13,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha sentido que su seguridad personal se ve amenazada por el contexto del territorio donde opera?",
+        "requerida": true
+      },
+      {
+        "orden": 14,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Conoce compañeros que hayan vivido situaciones de riesgo (amenazas, extorsión, presencia de actores armados)?",
+        "requerida": true
+      },
+      {
+        "orden": 15,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Qué medidas adopta la empresa frente a este tipo de situaciones?",
+        "requerida": true
+      },
+      {
+        "orden": 16,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Conoce los canales internos para reportar una queja, maltrato, riesgo o situación de vulneración de derechos?",
+        "requerida": true
+      },
+      {
+        "orden": 17,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha hecho uso de estos canales? ¿Cómo fue la respuesta?",
+        "requerida": true
+      },
+      {
+        "orden": 18,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Confía en que los mecanismos institucionales protegen a quien reporta una situación?",
+        "requerida": true
+      },
+      {
+        "orden": 19,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha recibido capacitación sobre derechos humanos, igualdad de género, salud mental o prevención de riesgos laborales?",
+        "requerida": true
+      },
+      {
+        "orden": 20,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Siente que la empresa promueve una cultura de respeto a los derechos humanos y al trabajo decente?",
+        "requerida": true
+      },
+      {
+        "orden": 21,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cuál considera que es la principal fortaleza de Cenit en su trato hacia las y los trabajadores?",
+        "requerida": true
+      },
+      {
+        "orden": 22,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Qué cree que debería mejorar la empresa en relación con el bienestar y los derechos laborales?",
+        "requerida": true
+      },
+      {
+        "orden": 23,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Hay alguna situación no mencionada que considere importante para comprender los riesgos o condiciones en su lugar de trabajo?",
+        "requerida": true
+      },
+      {
+        "orden": 24,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Desea dejar algún comentario final?",
+        "requerida": true
+      }
+    ]
+} 

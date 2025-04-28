@@ -1,0 +1,196 @@
+{
+    "titulo": "Entrevista Líderes sociales y defensores de DDHH",
+    "descripcion": "Conocer la percepción, experiencias, preocupaciones y recomendaciones de los líderes sociales en relación con la presencia y operación de Cenit en sus territorios.",
+    "slug": "entrevista-lideres-sociales-ddhh",
+    "region": "OLEODUCTO LLANOS",
+    "categoria": "Entrevista",
+    "preguntas": [
+      {
+        "orden": 1,
+        "seccion": "Datos Demográficos",
+        "tipo": "TEXT",
+        "texto": "¿Cuál es su nombre completo?",
+        "requerida": true,
+        "max_longitud": 100,
+        "placeholder": "Ingrese su nombre completo"
+      },
+      {
+        "orden": 2,
+        "seccion": "Datos Demográficos",
+        "tipo": "SELECT",
+        "texto": "¿Cuál es su rango de edad?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "18-25 años", "valor": "a"},
+          {"texto": "26-35 años", "valor": "b"},
+          {"texto": "36-45 años", "valor": "c"},
+          {"texto": "46-55 años", "valor": "d"},
+          {"texto": "56-65 años", "valor": "e"},
+          {"texto": "Más de 65 años", "valor": "f"}
+        ]
+      },
+      {
+        "orden": 3,
+        "seccion": "Datos Demográficos",
+        "tipo": "RADIO",
+        "texto": "¿Cuál es su sexo?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Masculino", "valor": "a"},
+          {"texto": "Femenino", "valor": "b"},
+          {"texto": "Otro", "valor": "c"},
+          {"texto": "Prefiero no responder", "valor": "d"}
+        ]
+      },
+      {
+        "orden": 4,
+        "seccion": "Datos Demográficos",
+        "tipo": "CHECK",
+        "texto": "¿A qué grupo diferencial pertenece? (Marque todos los que apliquen)",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Persona indígena", "valor": "a"},
+          {"texto": "Persona afrodescendiente o negra", "valor": "b"},
+          {"texto": "Persona Rrom (gitana)", "valor": "c"},
+          {"texto": "Persona en situación de discapacidad", "valor": "d"},
+          {"texto": "Persona LGBTIQ+", "valor": "e"},
+          {"texto": "Víctima del conflicto armado", "valor": "f"},
+          {"texto": "Migrante o refugiado", "valor": "g"},
+          {"texto": "Ninguno", "valor": "h"}
+        ]
+      },
+      {
+        "orden": 5,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cuáles considera que son los principales riesgos que enfrentan actualmente las comunidades de su territorio?",
+        "requerida": true
+      },
+      {
+        "orden": 6,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cómo ha impactado, directa o indirectamente, la presencia o actividad de Cenit en estos riesgos?",
+        "requerida": true
+      },
+      {
+        "orden": 7,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Existen conflictos territoriales, ambientales o sociales relacionados con proyectos de infraestructura o actividades industriales?",
+        "requerida": true
+      },
+      {
+        "orden": 8,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Usted o algún otro líder ha recibido amenazas o ha enfrentado situaciones de riesgo por su labor?",
+        "requerida": true
+      },
+      {
+        "orden": 9,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Considera que en su territorio hay presencia de actores armados que puedan generar riesgos para la comunidad o para el liderazgo social?",
+        "requerida": true
+      },
+      {
+        "orden": 10,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Existen mecanismos comunitarios o institucionales de protección para los líderes? ¿Los ha utilizado o conoce a alguien que lo haya hecho?",
+        "requerida": true
+      },
+      {
+        "orden": 11,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cómo es la relación entre Cenit y su comunidad?",
+        "requerida": true
+      },
+      {
+        "orden": 12,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Han sido informados o consultados previamente sobre obras, proyectos o intervenciones?",
+        "requerida": true
+      },
+      {
+        "orden": 13,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Sabe si existen mecanismos para presentar quejas, reclamos o sugerencias a la empresa?",
+        "requerida": true
+      },
+      {
+        "orden": 14,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Cree que estos mecanismos funcionan adecuadamente?",
+        "requerida": true
+      },
+      {
+        "orden": 15,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Considera que su comunidad ha podido ejercer su derecho a la participación frente a decisiones que la afectan?",
+        "requerida": true
+      },
+      {
+        "orden": 16,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Existen procesos de consulta previa (si aplica) o diálogo social donde la voz de su comunidad sea tenida en cuenta?",
+        "requerida": true
+      },
+      {
+        "orden": 17,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha identificado exclusión o desigualdad en el acceso a beneficios, empleos u oportunidades asociadas a los proyectos?",
+        "requerida": true
+      },
+      {
+        "orden": 18,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Ha identificado impactos ambientales (agua, suelo, aire) relacionados con la operación?",
+        "requerida": true
+      },
+      {
+        "orden": 19,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Se han visto afectados medios de vida tradicionales como pesca, agricultura, recolección o movilidad?",
+        "requerida": true
+      },
+      {
+        "orden": 20,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Conoce casos en los que defensores ambientales o líderes sociales hayan sido amenazados o afectados por su labor?",
+        "requerida": true
+      },
+      {
+        "orden": 21,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Se han presentado bloqueos, protestas o acciones colectivas por parte de la comunidad? ¿Cómo fueron gestionadas?",
+        "requerida": true
+      },
+      {
+        "orden": 22,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Qué sugerencias o recomendaciones daría a Cenit para mejorar la relación con los líderes sociales y las comunidades?",
+        "requerida": true
+      },
+      {
+        "orden": 23,
+        "seccion": "General",
+        "tipo": "MTEXT",
+        "texto": "¿Desea compartir algún otro comentario que considere relevante?",
+        "requerida": true
+      }
+    ]
+} 
