@@ -174,13 +174,25 @@
                 </div>
                 <p class="text-center mb-0">¿Está seguro que desea eliminar la subcategoría <strong><span id="nombreSubcategoria"></span></strong>?</p>
                 <p class="text-muted small text-center mt-2">Esta acción no se puede deshacer.</p>
+                
+                <!-- Alerta para encuestas relacionadas (se mostrará dinámicamente) -->
+                <div id="alertaEncuestasRelacionadas" class="alert alert-warning mt-3" style="display: none;">
+                    <p class="mb-0">
+                        <i class="mdi mdi-alert me-2"></i>
+                        <strong>¡Advertencia!</strong> Hay <span id="numEncuestasRelacionadas"></span> encuesta(s) asociada(s) a esta subcategoría.
+                        Estas encuestas perderán su asociación con la subcategoría.
+                    </p>
+                </div>
+                
+                <!-- Añadimos el token CSRF -->
+                {% csrf_token %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="mdi mdi-close"></i> Cancelar
+                    <i class="mdi mdi-close me-1"></i> Cancelar
                 </button>
                 <a href="#" id="confirmarEliminarSubcategoriaBtn" class="btn btn-danger">
-                    <i class="mdi mdi-delete"></i> Eliminar
+                    <i class="mdi mdi-delete me-1"></i> Eliminar
                 </a>
             </div>
         </div>
@@ -196,7 +208,48 @@ function confirmarEliminarCategoria(categoriaId, nombreCategoria) {
 
 function confirmarEliminarSubcategoria(subcategoriaId, nombreSubcategoria) {
     document.getElementById('nombreSubcategoria').textContent = nombreSubcategoria;
-    document.getElementById('confirmarEliminarSubcategoriaBtn').href = `/categorias/subcategoria/${subcategoriaId}/eliminar/`;
+    
+    // Verificar si hay encuestas relacionadas
+    fetch(`/categorias/subcategoria/${subcategoriaId}/eliminar/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Mostrar alerta si hay encuestas relacionadas
+        const alertaEncuestas = document.getElementById('alertaEncuestasRelacionadas');
+        if (data.encuestas_relacionadas > 0) {
+            document.getElementById('numEncuestasRelacionadas').textContent = data.encuestas_relacionadas;
+            alertaEncuestas.style.display = 'block';
+        } else {
+            alertaEncuestas.style.display = 'none';
+        }
+    })
+    .catch(error => console.error('Error:', error));
+    
+    // Cambiar para usar un formulario en lugar de redirección
+    document.getElementById('confirmarEliminarSubcategoriaBtn').onclick = function(e) {
+        e.preventDefault();
+        
+        // Crear y enviar un formulario POST
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/categorias/subcategoria/${subcategoriaId}/eliminar/`;
+        
+        // Añadir CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Añadir el formulario al documento y enviarlo
+        document.body.appendChild(form);
+        form.submit();
+    };
+    
     new bootstrap.Modal(document.getElementById('confirmarEliminarSubcategoriaModal')).show();
 }
 </script>

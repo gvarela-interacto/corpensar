@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import modelform_factory, formset_factory, Form
-from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField
+from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField, Max
 from django.db.models.functions import TruncDate, Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
@@ -30,7 +30,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
-                    PQRSFD, Subcategoria)
+                    PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD)
 from .decorators import *
 import locale
 import re
@@ -207,6 +207,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.models import User
 from .models import *
 from .forms import *
 
@@ -318,6 +319,7 @@ def crear_desde_cero(request):
             texto = request.POST.get(f'questions[{pregunta_id}][text]', '')
             tipo = request.POST.get(f'questions[{pregunta_id}][type]', 'TEXT')
             requerida = request.POST.get(f'questions[{pregunta_id}][required]', 'true') == 'true'
+            permitir_archivos = request.POST.get(f'questions[{pregunta_id}][permitir_archivos]', '') == 'on'
             orden = int(request.POST.get(f'questions[{pregunta_id}][order]', pregunta_id))
             ayuda = request.POST.get(f'questions[{pregunta_id}][help]', '')
             seccion = request.POST.get(f'questions[{pregunta_id}][section]', 'General')  # Usar 'General' como valor por defecto
@@ -329,6 +331,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -341,6 +344,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -354,6 +358,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion
@@ -376,6 +381,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -400,6 +406,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -424,6 +431,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -438,6 +446,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -455,6 +464,7 @@ def crear_desde_cero(request):
                     texto="Escala para matriz",
                     tipo='SCALE',
                     requerida=True,
+                    permitir_archivos=False,
                     orden=0,
                     min_valor=int(request.POST.get(f'questions[{pregunta_id}][scale][min_valor]', '1')),
                     max_valor=int(request.POST.get(f'questions[{pregunta_id}][scale][max_valor]', '5')),
@@ -468,6 +478,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -492,6 +503,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -504,6 +516,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -758,12 +771,18 @@ def editar_encuesta(request, encuesta_id):
     regiones = Region.objects.all()
     categorias = Categoria.objects.all()
     
+    # Obtener subcategorías si hay una categoría seleccionada
+    subcategorias = []
+    if encuesta.categoria:
+        subcategorias = Subcategoria.objects.filter(categoria=encuesta.categoria)
+    
     return render(request, 'Encuesta/editar_encuesta.html', {
         'encuesta': encuesta,
         'form': form,
         'preguntas': preguntas,
         'regiones': regiones,
-        'categorias': categorias
+        'categorias': categorias,
+        'subcategorias': subcategorias
     })
 
 # Vista para listar encuestas del usuario
@@ -776,20 +795,39 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Obtener todas las encuestas del usuario actual
-        queryset = Encuesta.objects.filter(creador=self.request.user).order_by('-fecha_creacion')
+        queryset = Encuesta.objects.filter(creador=self.request.user)
+        
+        # Aplicar búsqueda por título
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(titulo__icontains=search)
         
         # Obtener los filtros
         categoria = self.request.GET.get('categoria')
-        subcategoria = self.request.GET.get('subcategoria')
         region = self.request.GET.get('region')
+        estado = self.request.GET.get('estado')
         
         # Aplicar filtros si están presentes
         if categoria:
             queryset = queryset.filter(categoria_id=categoria)
-        if subcategoria:
-            queryset = queryset.filter(subcategoria_id=subcategoria)
         if region:
             queryset = queryset.filter(region_id=region)
+        if estado:
+            if estado == 'activa':
+                queryset = queryset.filter(activa=True)
+            elif estado == 'inactiva':
+                queryset = queryset.filter(activa=False)
+        
+        # Ordenar resultados
+        orden = self.request.GET.get('orden', 'fecha_desc')
+        if orden == 'fecha_asc':
+            queryset = queryset.order_by('fecha_creacion')
+        elif orden == 'fecha_desc':
+            queryset = queryset.order_by('-fecha_creacion')
+        elif orden == 'titulo_asc':
+            queryset = queryset.order_by('titulo')
+        elif orden == 'titulo_desc':
+            queryset = queryset.order_by('-titulo')
         
         return queryset
 
@@ -799,20 +837,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
         context['categorias'] = Categoria.objects.all()
         context['regiones'] = Region.objects.all()
         
-        # Obtener subcategorías si hay una categoría seleccionada
-        categoria_id = self.request.GET.get('categoria')
-        if categoria_id:
-            context['subcategorias'] = Subcategoria.objects.filter(categoria_id=categoria_id)
-        else:
-            context['subcategorias'] = Subcategoria.objects.all()
-        
-        # Mantener los filtros seleccionados en el contexto
-        context['categoria_seleccionada'] = self.request.GET.get('categoria')
-        context['subcategoria_seleccionada'] = self.request.GET.get('subcategoria')
-        context['region_seleccionada'] = self.request.GET.get('region')
-        
         return context
-
     
 class TodasEncuestasView(ListView):
     model = Encuesta
@@ -821,41 +846,58 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Obtener todas las encuestas públicas y activas
-        queryset = Encuesta.objects.filter(es_publica=True, activa=True).order_by('-fecha_creacion')
+        # Obtener todas las encuestas públicas
+        queryset = Encuesta.objects.filter(es_publica=True)
+        
+        # Aplicar búsqueda por título
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(titulo__icontains=search)
         
         # Obtener los filtros
         categoria = self.request.GET.get('categoria')
-        subcategoria = self.request.GET.get('subcategoria')
         region = self.request.GET.get('region')
+        estado = self.request.GET.get('estado')
+        creador = self.request.GET.get('creador')
+        fecha_desde = self.request.GET.get('fecha_desde')
+        fecha_hasta = self.request.GET.get('fecha_hasta')
         
         # Aplicar filtros si están presentes
         if categoria:
             queryset = queryset.filter(categoria_id=categoria)
-        if subcategoria:
-            queryset = queryset.filter(subcategoria_id=subcategoria)
         if region:
             queryset = queryset.filter(region_id=region)
+        if estado:
+            if estado == 'activa':
+                queryset = queryset.filter(activa=True)
+            elif estado == 'inactiva':
+                queryset = queryset.filter(activa=False)
+        if creador:
+            queryset = queryset.filter(creador_id=creador)
+        if fecha_desde:
+            queryset = queryset.filter(fecha_creacion__gte=fecha_desde)
+        if fecha_hasta:
+            queryset = queryset.filter(fecha_creacion__lte=fecha_hasta)
+        
+        # Ordenar resultados
+        orden = self.request.GET.get('orden', 'fecha_desc')
+        if orden == 'fecha_asc':
+            queryset = queryset.order_by('fecha_creacion')
+        elif orden == 'fecha_desc':
+            queryset = queryset.order_by('-fecha_creacion')
+        elif orden == 'titulo_asc':
+            queryset = queryset.order_by('titulo')
+        elif orden == 'titulo_desc':
+            queryset = queryset.order_by('-titulo')
         
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Agregar categorías y regiones al contexto
+        # Agregar categorías, regiones y usuarios al contexto
         context['categorias'] = Categoria.objects.all()
         context['regiones'] = Region.objects.all()
-        
-        # Obtener subcategorías si hay una categoría seleccionada
-        categoria_id = self.request.GET.get('categoria')
-        if categoria_id:
-            context['subcategorias'] = Subcategoria.objects.filter(categoria_id=categoria_id)
-        else:
-            context['subcategorias'] = Subcategoria.objects.all()
-        
-        # Mantener los filtros seleccionados en el contexto
-        context['categoria_seleccionada'] = self.request.GET.get('categoria')
-        context['subcategoria_seleccionada'] = self.request.GET.get('subcategoria')
-        context['region_seleccionada'] = self.request.GET.get('region')
+        context['usuarios'] = User.objects.all()
         
         return context
 
@@ -891,7 +933,8 @@ class ResultadosEncuestaView(DetailView):
             datos_pregunta = {
                 'pregunta': pregunta,
                 'tipo': tipo,
-                'total_respuestas': total_respuestas
+                'total_respuestas': total_respuestas,
+                'encuesta': encuesta
             }
 
             if tipo == 'preguntaopcionmultiple':
@@ -1021,10 +1064,12 @@ class ResultadosEncuestaView(DetailView):
             elif tipo == 'preguntatexto':
                 respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
                 datos_pregunta['datos'] = [r.valor for r in respuestas]
+                datos_pregunta['respuestas'] = list(respuestas)
 
             elif tipo == 'preguntatextomultiple':
                 respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
                 datos_pregunta['datos'] = [r.valor for r in respuestas]
+                datos_pregunta['respuestas'] = list(respuestas)
 
             preguntas_con_datos.append(datos_pregunta)
 
@@ -1328,6 +1373,7 @@ def guardar_respuesta(request, encuesta_id):
         procesar_preguntas_matriz(request, respuesta)
         procesar_preguntas_fecha(request, respuesta)
         procesar_preguntas_estrellas(request, respuesta)
+        procesar_archivos_adjuntos(request, respuesta)
 
         return redirect('index')
 
@@ -1480,6 +1526,58 @@ def procesar_preguntas_estrellas(request, respuesta):
                 valor=int(valor)
             )
 
+def procesar_archivos_adjuntos(request, respuesta):
+    """Procesa los archivos adjuntos para cada pregunta que los permita"""
+    # Recopilar todos los tipos de preguntas que pueden tener archivos adjuntos
+    todas_preguntas = []
+    todas_preguntas.extend(PreguntaTexto.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaTextoMultiple.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaOpcionMultiple.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaCasillasVerificacion.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaMenuDesplegable.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaEstrellas.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaEscala.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaMatriz.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaFecha.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    
+    # Procesar cada pregunta
+    for pregunta in todas_preguntas:
+        # Identificar el tipo específico de respuesta para esta pregunta
+        respuesta_especifica = None
+        tipo_pregunta = pregunta.__class__.__name__
+        
+        if isinstance(pregunta, PreguntaTexto):
+            respuesta_especifica = RespuestaTexto.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaTextoMultiple):
+            respuesta_especifica = RespuestaTextoMultiple.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaOpcionMultiple):
+            respuesta_especifica = RespuestaOpcionMultiple.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaCasillasVerificacion):
+            respuesta_especifica = RespuestaCasillasVerificacion.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaMenuDesplegable):
+            respuesta_especifica = RespuestaOpcionMenuDesplegable.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaEstrellas):
+            respuesta_especifica = RespuestaEstrellas.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaEscala):
+            respuesta_especifica = RespuestaEscala.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaMatriz):
+            respuesta_especifica = RespuestaMatriz.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaFecha):
+            respuesta_especifica = RespuestaFecha.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+            
+        # Procesar archivos solo si hay una respuesta específica
+        if respuesta_especifica:
+            archivos = request.FILES.getlist(f'archivos_{pregunta.id}[]')
+            for archivo in archivos:
+                ArchivoRespuesta.objects.create(
+                    respuesta=respuesta,
+                    archivo=archivo,
+                    nombre_original=archivo.name,
+                    tipo_archivo=archivo.content_type,
+                    pregunta_id=pregunta.id,
+                    tipo_pregunta=tipo_pregunta
+                )
+
 
 def regiones_y_municipios(request):
     regiones = Region.objects.prefetch_related('municipios').all()
@@ -1588,20 +1686,27 @@ def editar_pregunta(request, pregunta_id):
     
     if not pregunta:
         messages.error(request, "Pregunta no encontrada.")
-        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+        return redirect('editar_encuesta', encuesta_id=request.POST.get('encuesta_id', 1))
     
-    # Verificar que el usuario es el creador de la encuesta
+    # Verificar que el usuario sea el dueño de la encuesta
     if pregunta.encuesta.creador != request.user:
         messages.error(request, "No tienes permiso para editar esta pregunta.")
-        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+        return redirect('lista_encuestas')
+    
+    # Actualizar campos comunes a todos los tipos de preguntas
+    texto = request.POST.get('texto', '').strip()
+    orden = request.POST.get('orden')
+    requerida = 'requerida' in request.POST
+    permitir_archivos = 'permitir_archivos' in request.POST
+    
+    if texto and orden:
+        pregunta.texto = texto
+        pregunta.orden = int(orden)
+        pregunta.requerida = requerida
+        pregunta.permitir_archivos = permitir_archivos
     
     try:
         with transaction.atomic():
-            # Actualizar campos comunes
-            pregunta.texto = request.POST.get('texto')
-            pregunta.orden = int(request.POST.get('orden'))
-            pregunta.requerida = request.POST.get('requerida') == 'on'
-            
             # Actualizar campos específicos según el tipo de pregunta
             if isinstance(pregunta, (PreguntaTexto, PreguntaTextoMultiple)):
                 pregunta.placeholder = request.POST.get('placeholder', '')
@@ -1783,35 +1888,49 @@ def preview_diseno(request, encuesta_id):
 @require_http_methods(["POST"])
 def agregar_pregunta(request, encuesta_id):
     try:
-        encuesta = Encuesta.objects.get(id=encuesta_id)
-        
-        # Verificar que el usuario sea el propietario de la encuesta
-        if encuesta.creador != request.user:
-            return JsonResponse({'error': 'No tienes permiso para modificar esta encuesta'}, status=403)
+        encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
         
         # Obtener datos del formulario
-        texto = request.POST.get('texto')
+        texto = request.POST.get('texto').strip()
         tipo = request.POST.get('tipo')
-        orden = request.POST.get('orden')
-        requerida = request.POST.get('requerida') == 'on'
+        requerida = 'requerida' in request.POST
+        permitir_archivos = 'permitir_archivos' in request.POST
         ayuda = request.POST.get('ayuda', '')
+        seccion = request.POST.get('seccion', '')
+        
+        # Calcular el siguiente orden automáticamente
+        # Obtener el máximo orden actual y sumar 1
+        ultimo_orden = 0
+        for modelo in [PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
+                      PreguntaCasillasVerificacion, PreguntaMenuDesplegable, 
+                      PreguntaEstrellas, PreguntaEscala, PreguntaMatriz, PreguntaFecha]:
+            max_orden = modelo.objects.filter(encuesta=encuesta).aggregate(Max('orden'))['orden__max'] or 0
+            ultimo_orden = max(ultimo_orden, max_orden)
+        
+        orden = ultimo_orden + 1
         
         # Crear la pregunta según el tipo
         if tipo == 'TEXT':
             pregunta = PreguntaTexto.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                permitir_archivos=permitir_archivos,
+                ayuda=ayuda,
+                seccion=seccion
             )
         elif tipo == 'MTEXT':
             pregunta = PreguntaTextoMultiple.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                permitir_archivos=permitir_archivos,
+                ayuda=ayuda,
+                seccion=seccion
             )
         elif tipo in ['RADIO', 'CHECK', 'SELECT']:
             # Crear pregunta de opción múltiple
@@ -1819,25 +1938,34 @@ def agregar_pregunta(request, encuesta_id):
                 pregunta = PreguntaOpcionMultiple.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    permitir_archivos=permitir_archivos,
+                    ayuda=ayuda,
+                    seccion=seccion
                 )
             elif tipo == 'CHECK':
                 pregunta = PreguntaCasillasVerificacion.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    permitir_archivos=permitir_archivos,
+                    ayuda=ayuda,
+                    seccion=seccion
                 )
             else:  # SELECT
                 pregunta = PreguntaMenuDesplegable.objects.create(
                     encuesta=encuesta,
                     texto=texto,
+                    tipo=tipo,
                     orden=orden,
                     requerida=requerida,
-                    ayuda=ayuda
+                    permitir_archivos=permitir_archivos,
+                    ayuda=ayuda,
+                    seccion=seccion
                 )
             
             # Agregar opciones
@@ -1872,9 +2000,12 @@ def agregar_pregunta(request, encuesta_id):
             pregunta = PreguntaEscala.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
+                seccion=seccion,
                 valor_minimo=escala_min,
                 valor_maximo=escala_max,
                 paso=escala_paso
@@ -1885,9 +2016,11 @@ def agregar_pregunta(request, encuesta_id):
             pregunta = PreguntaMatriz.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
             
             # Agregar filas y columnas
@@ -1914,18 +2047,22 @@ def agregar_pregunta(request, encuesta_id):
             pregunta = PreguntaFecha.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
             
         elif tipo == 'STARS':
             pregunta = PreguntaEstrellas.objects.create(
                 encuesta=encuesta,
                 texto=texto,
+                tipo=tipo,
                 orden=orden,
                 requerida=requerida,
-                ayuda=ayuda
+                ayuda=ayuda,
+                seccion=seccion
             )
             
         # Reordenar las preguntas si es necesario
@@ -2263,7 +2400,7 @@ def public_home(request):
 
 def crear_pqrsfd(request):
     if request.method == 'POST':
-        form = PQRSFDForm(request.POST)
+        form = PQRSFDForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 pqrsfd = form.save(commit=False)
@@ -2276,6 +2413,16 @@ def crear_pqrsfd(request):
                 
                 # Guardar el objeto usando el ORM de Django
                 pqrsfd.save()
+                
+                # Procesar archivo adjunto
+                if 'archivos' in request.FILES:
+                    archivo = request.FILES['archivos']
+                    ArchivoAdjuntoPQRSFD.objects.create(
+                        pqrsfd=pqrsfd,
+                        archivo=archivo,
+                        nombre_original=archivo.name,
+                        tipo_archivo=archivo.content_type
+                    )
                 
                 messages.success(request, 'Su PQRSFD ha sido registrado exitosamente. Le agradecemos por su contribución.')
                 return redirect('public_home')
@@ -2404,13 +2551,30 @@ def eliminar_subcategoria(request, subcategoria_id):
     """Vista para eliminar una subcategoría"""
     subcategoria = get_object_or_404(Subcategoria, id=subcategoria_id)
     
+    # Verificar si hay encuestas asociadas a esta subcategoría
+    encuestas_relacionadas = Encuesta.objects.filter(subcategoria=subcategoria).count()
+    
     if request.method == 'POST':
+        # Si hay encuestas relacionadas, cambiar su subcategoría a None
+        if encuestas_relacionadas:
+            Encuesta.objects.filter(subcategoria=subcategoria).update(subcategoria=None)
+        
+        nombre_subcategoria = subcategoria.nombre
         subcategoria.delete()
-        messages.success(request, 'Subcategoría eliminada exitosamente.')
+        messages.success(request, f'Subcategoría "{nombre_subcategoria}" eliminada exitosamente.')
         return redirect('categorias_principales')
     
+    # Si la solicitud es GET y proviene de JavaScript AJAX, devolvemos datos JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'encuestas_relacionadas': encuestas_relacionadas,
+            'nombre': subcategoria.nombre
+        })
+    
+    # Si es GET normal, seguimos mostrando la página de confirmación por compatibilidad
     return render(request, 'confirmar_eliminar_subcategoria.html', {
-        'subcategoria': subcategoria
+        'subcategoria': subcategoria,
+        'encuestas_relacionadas': encuestas_relacionadas
     })
 
 def get_subcategorias(request):
