@@ -3,89 +3,506 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Todas las Encuestas</h2>
-    <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary mb-3">
-        <i class="fas fa-plus"></i> Nueva Encuesta
-    </a>
-    
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="thead-light">
-                <tr>
-                    <th>Título</th>
-                    <th>Estado</th>
-                    <th>Región</th>
-                    <th>Categoría</th>
-                    <th>Fecha Creación</th>
-                    <th>Creador</th>
-                    <th>Url</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for encuesta in encuestas %}
-                <tr>
-                    <td class="text-wrap">{{ encuesta.titulo }}</td>
-                    <td>
-                        <span class="badge badge-{% if encuesta.activa %}success{% else %}warning{% endif %}">
-                            {% if encuesta.activa %}Activa{% else %}Inactiva{% endif %}
-                        </span>
-                    </td>
-                    <td>{{ encuesta.region.nombre|default:"Sin región" }}</td>
-                    <td>{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
-                    <td>{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
-                    <td>{{ encuesta.creador.username }}</td>
-                    <td class="text-wrap">{{ encuesta.slug }}</td>
-                    <td class="text-wrap gap-2">
-                        {% if encuesta.slug %}
-                        <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
-                            <i class="fas fa-link"></i> Ver
-                        </a>
-                        {% else %}
-                        <button class="btn btn-sm btn-outline-secondary" disabled>
-                            <i class="fas fa-link"></i> Sin URL
-                        </button>
-                        {% endif %}
-                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success mt-1">
-                            <i class="fas fa-chart-bar"></i> Resultados
-                        </a>
-                    </td>
-                  
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">No hay encuestas disponibles.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Todas las Encuestas</h2>
+        <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Encuesta
+        </a>
     </div>
     
+    <!-- Barra de búsqueda y filtros -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros y búsqueda</h5>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="false" aria-controls="collapseFilters">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="collapse show" id="collapseFilters">
+            <div class="card-body bg-white">
+                <form method="get" action="" class="row g-3">
+                    <!-- Barra de búsqueda principal -->
+                    <div class="col-12 mb-3">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-primary"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="search" name="search" 
+                                   placeholder="Buscar por título de encuesta..." value="{{ request.GET.search|default:'' }}">
+                            <button class="btn btn-primary" type="submit">
+                                Buscar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtros básicos - primera fila -->
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="estado" name="estado">
+                                <option value="">Todas</option>
+                                <option value="activa" {% if request.GET.estado == 'activa' %}selected{% endif %}>Activas</option>
+                                <option value="inactiva" {% if request.GET.estado == 'inactiva' %}selected{% endif %}>Inactivas</option>
+                            </select>
+                            <label for="estado"><i class="fas fa-toggle-on me-1"></i>Estado</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="categoria" name="categoria">
+                                <option value="">Todas</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if request.GET.categoria == cat.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="categoria"><i class="fas fa-tags me-1"></i>Categoría</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="region" name="region">
+                                <option value="">Todas</option>
+                                {% for reg in regiones %}
+                                <option value="{{ reg.id }}" {% if request.GET.region == reg.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ reg.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="region"><i class="fas fa-map-marker-alt me-1"></i>Región</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="creador" name="creador">
+                                <option value="">Todos</option>
+                                {% for usuario in usuarios %}
+                                <option value="{{ usuario.id }}" {% if request.GET.creador == usuario.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ usuario.username }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="creador"><i class="fas fa-user me-1"></i>Creador</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtros avanzados - segunda fila -->
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <select class="form-select" id="orden" name="orden">
+                                <option value="fecha_desc" {% if request.GET.orden == 'fecha_desc' %}selected{% endif %}>Más recientes</option>
+                                <option value="fecha_asc" {% if request.GET.orden == 'fecha_asc' %}selected{% endif %}>Más antiguas</option>
+                                <option value="titulo_asc" {% if request.GET.orden == 'titulo_asc' %}selected{% endif %}>Título A-Z</option>
+                                <option value="titulo_desc" {% if request.GET.orden == 'titulo_desc' %}selected{% endif %}>Título Z-A</option>
+                            </select>
+                            <label for="orden"><i class="fas fa-sort me-1"></i>Ordenar por</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" 
+                                   value="{{ request.GET.fecha_desde|default:'' }}">
+                            <label for="fecha_desde"><i class="fas fa-calendar-alt me-1"></i>Desde</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-floating">
+                            <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta"
+                                   value="{{ request.GET.fecha_hasta|default:'' }}">
+                            <label for="fecha_hasta"><i class="fas fa-calendar-alt me-1"></i>Hasta</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="col-12 mt-3 text-end">
+                        <a href="{% url 'todas_encuestas' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo me-1"></i> Restablecer
+                        </a>
+                        <button type="submit" class="btn btn-primary ms-2">
+                            <i class="fas fa-filter me-1"></i> Aplicar filtros
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultados y estadísticas -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <span class="text-muted">Mostrando {{ encuestas|length }} de {{ paginator.count|default:encuestas|length }} encuestas</span>
+        </div>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary active" id="tablaView">
+                <i class="fas fa-table"></i>
+            </button>
+            <button type="button" class="btn btn-outline-secondary" id="tarjetasView">
+                <i class="fas fa-th-large"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Vista de tabla -->
+    <div class="card shadow-sm mb-4" id="vistaTabla">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-0">Título</th>
+                        <th class="border-0">Estado</th>
+                        <th class="border-0">Región</th>
+                        <th class="border-0">Categoría</th>
+                        <th class="border-0">Fecha Creación</th>
+                        <th class="border-0">Creador</th>
+                        <th class="border-0">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for encuesta in encuestas %}
+                    <tr>
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-light rounded-circle text-center me-2">
+                                    <i class="fas fa-poll text-primary my-2"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ encuesta.titulo }}</h6>
+                                    <small class="text-muted">ID: {{ encuesta.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            {% if encuesta.activa %}
+                            <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
+                            {% else %}
+                            <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">{{ encuesta.region.nombre|default:"Sin región" }}</td>
+                        <td class="align-middle">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
+                        <td class="align-middle">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
+                        <td class="align-middle">{{ encuesta.creador.username }}</td>
+                        <td class="align-middle">
+                            <div class="btn-group">
+                                {% if encuesta.slug %}
+                                <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Ver encuesta">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Editar encuesta">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Ver resultados">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                                <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Generar código QR">
+                                    <i class="fas fa-qrcode"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                <h5>No hay encuestas disponibles</h5>
+                                <p class="text-muted">No se encontraron encuestas con los filtros seleccionados</p>
+                                <a href="{% url 'todas_encuestas' %}" class="btn btn-primary mt-2">
+                                    <i class="fas fa-undo me-1"></i> Ver todas las encuestas
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Vista de tarjetas -->
+    <div id="vistaTarjetas" class="mb-4" style="display: none;">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for encuesta in encuestas %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</span>
+                        {% if encuesta.activa %}
+                        <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
+                        {% else %}
+                        <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-sm bg-primary rounded-circle text-center me-3">
+                                <i class="fas fa-poll text-white my-2"></i>
+                            </div>
+                            <h5 class="card-title mb-0">{{ encuesta.titulo }}</h5>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>Región:</span>
+                                <span>{{ encuesta.region.nombre|default:"Sin región" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted"><i class="fas fa-tags me-1"></i>Categoría:</span>
+                                <span>{{ encuesta.categoria.nombre|default:"Sin categoría" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted"><i class="fas fa-user me-1"></i>Creador:</span>
+                                <span>{{ encuesta.creador.username }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <div class="d-flex justify-content-between">
+                            <div class="btn-group">
+                                {% if encuesta.slug %}
+                                <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Ver encuesta">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Editar encuesta">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Ver resultados">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                            </div>
+                            <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Generar código QR">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <h5>No hay encuestas disponibles</h5>
+                            <p class="text-muted">No se encontraron encuestas con los filtros seleccionados</p>
+                            <a href="{% url 'todas_encuestas' %}" class="btn btn-primary mt-2">
+                                <i class="fas fa-undo me-1"></i> Ver todas las encuestas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Paginación -->
     {% if is_paginated %}
-    <nav aria-label="Page navigation">
+    <nav aria-label="Paginación de encuestas" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
             </li>
             {% endif %}
             
             {% for num in page_obj.paginator.page_range %}
-            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-            </li>
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
             {% endfor %}
             
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Siguiente">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
             </li>
             {% endif %}
         </ul>
     </nav>
     {% endif %}
 </div>
+
+<!-- Agregar el modal para mostrar el QR -->
+<div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">Código QR de la Encuesta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrcode" class="p-3 border rounded bg-light">
+                    <img id="qrImage" src="" alt="QR Code" style="max-width: 100%;">
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">Escanea este código QR para acceder directamente a la encuesta</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="descargarQR()">
+                    <i class="fas fa-download me-1"></i> Descargar QR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Agregar el script para generar el QR y otras funcionalidades -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<script>
+    let qrDataURL = '';
+
+    function generarQR(slug) {
+        const url = window.location.origin + '/encuestas/' + slug + '/responder/';
+        const qrImage = document.getElementById('qrImage');
+        
+        QRCode.toDataURL(url, {
+            width: 300,
+            margin: 5,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function (error, dataURL) {
+            if (error) {
+                console.error(error);
+                return;
+            }
+            qrDataURL = dataURL;
+            qrImage.src = dataURL;
+            var qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
+            qrModal.show();
+        });
+    }
+
+    function descargarQR() {
+        if (qrDataURL) {
+            const link = document.createElement('a');
+            link.download = 'qr-encuesta.png';
+            link.href = qrDataURL;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+    
+    // Alternar entre vista de tabla y tarjetas
+    document.addEventListener('DOMContentLoaded', function() {
+        const tablaView = document.getElementById('tablaView');
+        const tarjetasView = document.getElementById('tarjetasView');
+        const vistaTabla = document.getElementById('vistaTabla');
+        const vistaTarjetas = document.getElementById('vistaTarjetas');
+        
+        // Inicializar tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Cambiar vistas
+        tablaView.addEventListener('click', function() {
+            vistaTabla.style.display = 'block';
+            vistaTarjetas.style.display = 'none';
+            tablaView.classList.add('active');
+            tarjetasView.classList.remove('active');
+            // Guardar preferencia en localStorage
+            localStorage.setItem('vistaEncuestas', 'tabla');
+        });
+        
+        tarjetasView.addEventListener('click', function() {
+            vistaTabla.style.display = 'none';
+            vistaTarjetas.style.display = 'block';
+            tablaView.classList.remove('active');
+            tarjetasView.classList.add('active');
+            // Guardar preferencia en localStorage
+            localStorage.setItem('vistaEncuestas', 'tarjetas');
+        });
+        
+        // Cargar preferencia guardada
+        const vistaPreferida = localStorage.getItem('vistaEncuestas');
+        if (vistaPreferida === 'tarjetas') {
+            tarjetasView.click();
+        }
+    });
+</script>
+
+<style>
+    .avatar-sm {
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+    
+    .table th {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.03);
+    }
+    
+    .card-hover:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Mejoras para dispositivos móviles */
+    @media (max-width: 768px) {
+        .table .btn {
+            padding: .25rem .4rem;
+            font-size: .75rem;
+        }
+        
+        .table th, .table td {
+            padding: .5rem;
+        }
+    }
+</style>
 {% endblock %}

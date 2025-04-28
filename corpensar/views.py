@@ -207,6 +207,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.models import User
 from .models import *
 from .forms import *
 
@@ -794,20 +795,39 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Obtener todas las encuestas del usuario actual
-        queryset = Encuesta.objects.filter(creador=self.request.user).order_by('-fecha_creacion')
+        queryset = Encuesta.objects.filter(creador=self.request.user)
+        
+        # Aplicar búsqueda por título
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(titulo__icontains=search)
         
         # Obtener los filtros
         categoria = self.request.GET.get('categoria')
-        subcategoria = self.request.GET.get('subcategoria')
         region = self.request.GET.get('region')
+        estado = self.request.GET.get('estado')
         
         # Aplicar filtros si están presentes
         if categoria:
             queryset = queryset.filter(categoria_id=categoria)
-        if subcategoria:
-            queryset = queryset.filter(subcategoria_id=subcategoria)
         if region:
             queryset = queryset.filter(region_id=region)
+        if estado:
+            if estado == 'activa':
+                queryset = queryset.filter(activa=True)
+            elif estado == 'inactiva':
+                queryset = queryset.filter(activa=False)
+        
+        # Ordenar resultados
+        orden = self.request.GET.get('orden', 'fecha_desc')
+        if orden == 'fecha_asc':
+            queryset = queryset.order_by('fecha_creacion')
+        elif orden == 'fecha_desc':
+            queryset = queryset.order_by('-fecha_creacion')
+        elif orden == 'titulo_asc':
+            queryset = queryset.order_by('titulo')
+        elif orden == 'titulo_desc':
+            queryset = queryset.order_by('-titulo')
         
         return queryset
 
@@ -817,20 +837,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
         context['categorias'] = Categoria.objects.all()
         context['regiones'] = Region.objects.all()
         
-        # Obtener subcategorías si hay una categoría seleccionada
-        categoria_id = self.request.GET.get('categoria')
-        if categoria_id:
-            context['subcategorias'] = Subcategoria.objects.filter(categoria_id=categoria_id)
-        else:
-            context['subcategorias'] = Subcategoria.objects.all()
-        
-        # Mantener los filtros seleccionados en el contexto
-        context['categoria_seleccionada'] = self.request.GET.get('categoria')
-        context['subcategoria_seleccionada'] = self.request.GET.get('subcategoria')
-        context['region_seleccionada'] = self.request.GET.get('region')
-        
         return context
-
     
 class TodasEncuestasView(ListView):
     model = Encuesta
@@ -839,41 +846,58 @@ class TodasEncuestasView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # Obtener todas las encuestas públicas y activas
-        queryset = Encuesta.objects.filter(es_publica=True, activa=True).order_by('-fecha_creacion')
+        # Obtener todas las encuestas públicas
+        queryset = Encuesta.objects.filter(es_publica=True)
+        
+        # Aplicar búsqueda por título
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(titulo__icontains=search)
         
         # Obtener los filtros
         categoria = self.request.GET.get('categoria')
-        subcategoria = self.request.GET.get('subcategoria')
         region = self.request.GET.get('region')
+        estado = self.request.GET.get('estado')
+        creador = self.request.GET.get('creador')
+        fecha_desde = self.request.GET.get('fecha_desde')
+        fecha_hasta = self.request.GET.get('fecha_hasta')
         
         # Aplicar filtros si están presentes
         if categoria:
             queryset = queryset.filter(categoria_id=categoria)
-        if subcategoria:
-            queryset = queryset.filter(subcategoria_id=subcategoria)
         if region:
             queryset = queryset.filter(region_id=region)
+        if estado:
+            if estado == 'activa':
+                queryset = queryset.filter(activa=True)
+            elif estado == 'inactiva':
+                queryset = queryset.filter(activa=False)
+        if creador:
+            queryset = queryset.filter(creador_id=creador)
+        if fecha_desde:
+            queryset = queryset.filter(fecha_creacion__gte=fecha_desde)
+        if fecha_hasta:
+            queryset = queryset.filter(fecha_creacion__lte=fecha_hasta)
+        
+        # Ordenar resultados
+        orden = self.request.GET.get('orden', 'fecha_desc')
+        if orden == 'fecha_asc':
+            queryset = queryset.order_by('fecha_creacion')
+        elif orden == 'fecha_desc':
+            queryset = queryset.order_by('-fecha_creacion')
+        elif orden == 'titulo_asc':
+            queryset = queryset.order_by('titulo')
+        elif orden == 'titulo_desc':
+            queryset = queryset.order_by('-titulo')
         
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Agregar categorías y regiones al contexto
+        # Agregar categorías, regiones y usuarios al contexto
         context['categorias'] = Categoria.objects.all()
         context['regiones'] = Region.objects.all()
-        
-        # Obtener subcategorías si hay una categoría seleccionada
-        categoria_id = self.request.GET.get('categoria')
-        if categoria_id:
-            context['subcategorias'] = Subcategoria.objects.filter(categoria_id=categoria_id)
-        else:
-            context['subcategorias'] = Subcategoria.objects.all()
-        
-        # Mantener los filtros seleccionados en el contexto
-        context['categoria_seleccionada'] = self.request.GET.get('categoria')
-        context['subcategoria_seleccionada'] = self.request.GET.get('subcategoria')
-        context['region_seleccionada'] = self.request.GET.get('region')
+        context['usuarios'] = User.objects.all()
         
         return context
 

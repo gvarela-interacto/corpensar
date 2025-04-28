@@ -319,22 +319,28 @@ class PreguntaFechaInline(StackedInline):
 
 # Admin principal para Encuesta
 class EncuestaAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'creador', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
-    list_filter = ['activa', 'es_publica', 'creador', 'fecha_creacion', 'tema']
-    search_fields = ['titulo', 'descripcion']
+    list_display = ['titulo', 'creador', 'region', 'categoria', 'fecha_creacion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
+    list_filter = ['activa', 'es_publica', 'region', 'categoria', 'creador', 'fecha_creacion', 'tema']
+    search_fields = ['titulo', 'descripcion', 'creador__username']
+    list_per_page = 20
     prepopulated_fields = {'slug': ('titulo',)}
     filter_horizontal = []
     readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
+    date_hierarchy = 'fecha_creacion'
+    list_editable = ['activa', 'es_publica']
     
     fieldsets = (
         (None, {
             'fields': ('titulo', 'slug', 'descripcion', 'creador')
         }),
+        ('Clasificación', {
+            'fields': ('region', 'categoria')
+        }),
         ('Fechas', {
             'fields': ('fecha_inicio', 'fecha_fin', 'fecha_creacion', 'fecha_actualizacion')
         }),
         ('Configuración', {
-            'fields': ('activa', 'es_publica', 'tema')
+            'fields': ('activa', 'es_publica', 'tema', 'tamano_fuente', 'estilo_bordes')
         }),
     )
     
