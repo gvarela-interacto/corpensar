@@ -1,0 +1,133 @@
+{
+    "titulo": "Encuesta Líderes sociales y defensores de DDHH",
+    "descripcion": "Identificar percepciones, riesgos, mecanismos y propuestas para fortalecer la protección de derechos humanos y el relacionamiento con Cenit en los territorios.",
+    "slug": "encuesta-lideres-sociales-ddhh",
+    "region": "OLEODUCTO LLANOS",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "orden": 1,
+        "seccion": "Caracterización",
+        "tipo": "TEXT",
+        "texto": "¿Cuál es su nombre completo?",
+        "requerida": true
+      },
+      {
+        "orden": 2,
+        "seccion": "Caracterización",
+        "tipo": "RADIO",
+        "texto": "¿Cuál es su sexo?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Masculino", "valor": "a"},
+          {"texto": "Femenino", "valor": "b"},
+          {"texto": "Otro", "valor": "c"},
+          {"texto": "Prefiero no responder", "valor": "d"}
+        ]
+      },
+      {
+        "orden": 3,
+        "seccion": "Caracterización",
+        "tipo": "NUMBER",
+        "texto": "¿Cuál es su edad?",
+        "requerida": true
+      },
+      {
+        "orden": 4,
+        "seccion": "Caracterización",
+        "tipo": "CHECK",
+        "texto": "¿A cuál(es) de los siguientes grupos diferenciales pertenece? (Marque todos los que apliquen)",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Comunidad Indígena", "valor": "a"},
+          {"texto": "Comunidad Afrodescendiente", "valor": "b"},
+          {"texto": "Comunidad Campesina", "valor": "c"},
+          {"texto": "Persona con Discapacidad", "valor": "d"},
+          {"texto": "Ninguno", "valor": "e"}
+        ]
+      },
+      {
+        "orden": 1,
+        "seccion": "General",
+        "tipo": "CHECK",
+        "texto": "¿Cuáles de los siguientes riesgos ha identificado en su territorio relacionados con su labor como líder o la de otros líderes sociales? (Marque todos los que apliquen)",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Amenazas verbales o intimidaciones", "valor": "a"},
+          {"texto": "Seguimientos o vigilancia ilegal", "valor": "b"},
+          {"texto": "Estigmatización por parte de actores institucionales o empresariales", "valor": "c"},
+          {"texto": "Obstaculización a la participación comunitaria", "valor": "d"},
+          {"texto": "Exclusión en procesos de consulta o contratación", "valor": "e"},
+          {"texto": "Falta de mecanismos de protección", "valor": "f"},
+          {"texto": "Presión de grupos armados ilegales", "valor": "g"},
+          {"texto": "Afectaciones por uso excesivo de la fuerza pública", "valor": "h"},
+          {"texto": "Otros", "valor": "i"},
+          {"texto": "Ninguno", "valor": "j"}
+        ]
+      },
+      {
+        "orden": 2,
+        "seccion": "General",
+        "tipo": "RADIO",
+        "texto": "¿Considera que la operación de Cenit ha contribuido directa o indirectamente a alguno de estos riesgos para el liderazgo social?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí", "valor": "a"},
+          {"texto": "No", "valor": "b"},
+          {"texto": "No sabe", "valor": "c"}
+        ]
+      },
+      {
+        "orden": 3,
+        "seccion": "General",
+        "tipo": "RADIO",
+        "texto": "¿Usted ha sido personalmente amenazado o agredido por su labor como defensor/a o líder social?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, con riesgo a la vida", "valor": "a"},
+          {"texto": "Sí, con hostigamientos o presiones", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "Prefiero no responder", "valor": "d"}
+        ]
+      },
+      {
+        "orden": 4,
+        "seccion": "General",
+        "tipo": "RADIO",
+        "texto": "¿Existen actualmente en su territorio actores armados ilegales o grupos que generen presión o riesgo sobre la comunidad o sus líderes?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, con presencia constante", "valor": "a"},
+          {"texto": "Sí, de forma intermitente", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe", "valor": "d"}
+        ]
+      },
+      {
+        "orden": 5,
+        "seccion": "General",
+        "tipo": "RADIO",
+        "texto": "¿Cuenta usted o su comunidad con mecanismos de protección frente a estos riesgos?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, institucionales (UNP, Fiscalía, Personería)", "valor": "a"},
+          {"texto": "Sí, comunitarios (redes solidarias, alertas)", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "No sabe", "valor": "d"}
+        ]
+      },
+      {
+        "orden": 6,
+        "seccion": "General",
+        "tipo": "RADIO",
+        "texto": "¿Conoce casos recientes en los que defensores ambientales o líderes sociales hayan sido amenazados o afectados por su labor en su comunidad o región?",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Sí, personalmente", "valor": "a"},
+          {"texto": "Sí, otros líderes de mi zona", "valor": "b"},
+          {"texto": "No", "valor": "c"},
+          {"texto": "Prefiero no responder", "valor": "d"}
+        ]
+      }
+    ]
+} 
