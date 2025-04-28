@@ -1,12 +1,18 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
 from django import forms
 from smart_selects.db_fields import ChainedForeignKey
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
+from django.utils.timezone import now
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+import os
 
-User = get_user_model()
+# Esta línea ya no es necesaria porque importamos User directamente
+# User = get_user_model()
 
 # Se aplica para categorizar si un formulario es una encuesta, entrevista, etc.
 class Categoria(models.Model):
@@ -205,6 +211,7 @@ class PreguntaBase(models.Model):
     orden = models.PositiveIntegerField(verbose_name=_("Orden"))
     ayuda = models.CharField(max_length=300, blank=True, verbose_name=_("Texto de ayuda"))
     seccion = models.CharField(max_length=100, blank=True, verbose_name=_("Sección"))
+    permitir_archivos = models.BooleanField(default=False, verbose_name=_("Permitir adjuntar archivos como evidencia"))
     
     class Meta:
         abstract = True
@@ -550,3 +557,26 @@ class Subcategoria(models.Model):
             nombre__iexact=self.nombre
         ).exclude(id=self.id).exists():
             raise ValidationError(_("Ya existe una subcategoría con este nombre en la categoría seleccionada."))
+
+class ArchivoRespuesta(models.Model):
+    """Modelo para almacenar archivos adjuntos a las respuestas de las encuestas"""
+    respuesta = models.ForeignKey(RespuestaEncuesta, on_delete=models.CASCADE, related_name='archivos_adjuntos')
+    archivo = models.FileField(upload_to='respuestas/archivos/', verbose_name=_("Archivo adjunto"))
+    nombre_original = models.CharField(max_length=255, verbose_name=_("Nombre original"))
+    tipo_archivo = models.CharField(max_length=100, verbose_name=_("Tipo de archivo"))
+    fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de subida"))
+    
+    # Campos para asociar a la respuesta específica (a nivel de pregunta)
+    pregunta_id = models.PositiveIntegerField(verbose_name=_("ID de pregunta"), null=True)
+    tipo_pregunta = models.CharField(max_length=20, verbose_name=_("Tipo de pregunta"), null=True)
+    
+    class Meta:
+        verbose_name = _("Archivo de respuesta")
+        verbose_name_plural = _("Archivos de respuestas")
+        
+    def __str__(self):
+        return f"Archivo para {self.respuesta} - {self.nombre_original}"
+        
+    def extension(self):
+        """Devuelve la extensión del archivo"""
+        return os.path.splitext(self.nombre_original)[1][1:].lower()

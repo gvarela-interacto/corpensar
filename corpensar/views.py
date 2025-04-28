@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import modelform_factory, formset_factory, Form
-from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField
+from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField, Max
 from django.db.models.functions import TruncDate, Coalesce
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
 from django.shortcuts import get_object_or_404, render, redirect
@@ -30,7 +30,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
-                    PQRSFD, Subcategoria)
+                    PQRSFD, Subcategoria, ArchivoRespuesta)
 from .decorators import *
 import locale
 import re
@@ -318,6 +318,7 @@ def crear_desde_cero(request):
             texto = request.POST.get(f'questions[{pregunta_id}][text]', '')
             tipo = request.POST.get(f'questions[{pregunta_id}][type]', 'TEXT')
             requerida = request.POST.get(f'questions[{pregunta_id}][required]', 'true') == 'true'
+            permitir_archivos = request.POST.get(f'questions[{pregunta_id}][permitir_archivos]', '') == 'on'
             orden = int(request.POST.get(f'questions[{pregunta_id}][order]', pregunta_id))
             ayuda = request.POST.get(f'questions[{pregunta_id}][help]', '')
             seccion = request.POST.get(f'questions[{pregunta_id}][section]', 'General')  # Usar 'General' como valor por defecto
@@ -329,6 +330,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -341,6 +343,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -354,6 +357,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion
@@ -376,6 +380,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -400,6 +405,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -424,6 +430,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -438,6 +445,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -455,6 +463,7 @@ def crear_desde_cero(request):
                     texto="Escala para matriz",
                     tipo='SCALE',
                     requerida=True,
+                    permitir_archivos=False,
                     orden=0,
                     min_valor=int(request.POST.get(f'questions[{pregunta_id}][scale][min_valor]', '1')),
                     max_valor=int(request.POST.get(f'questions[{pregunta_id}][scale][max_valor]', '5')),
@@ -468,6 +477,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -492,6 +502,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -504,6 +515,7 @@ def crear_desde_cero(request):
                     texto=texto,
                     tipo=tipo,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     orden=orden,
                     ayuda=ayuda,
                     seccion=seccion,
@@ -891,7 +903,8 @@ class ResultadosEncuestaView(DetailView):
             datos_pregunta = {
                 'pregunta': pregunta,
                 'tipo': tipo,
-                'total_respuestas': total_respuestas
+                'total_respuestas': total_respuestas,
+                'encuesta': encuesta
             }
 
             if tipo == 'preguntaopcionmultiple':
@@ -1021,10 +1034,12 @@ class ResultadosEncuestaView(DetailView):
             elif tipo == 'preguntatexto':
                 respuestas = RespuestaTexto.objects.filter(pregunta=pregunta)
                 datos_pregunta['datos'] = [r.valor for r in respuestas]
+                datos_pregunta['respuestas'] = list(respuestas)
 
             elif tipo == 'preguntatextomultiple':
                 respuestas = RespuestaTextoMultiple.objects.filter(pregunta=pregunta)
                 datos_pregunta['datos'] = [r.valor for r in respuestas]
+                datos_pregunta['respuestas'] = list(respuestas)
 
             preguntas_con_datos.append(datos_pregunta)
 
@@ -1328,6 +1343,7 @@ def guardar_respuesta(request, encuesta_id):
         procesar_preguntas_matriz(request, respuesta)
         procesar_preguntas_fecha(request, respuesta)
         procesar_preguntas_estrellas(request, respuesta)
+        procesar_archivos_adjuntos(request, respuesta)
 
         return redirect('index')
 
@@ -1480,6 +1496,58 @@ def procesar_preguntas_estrellas(request, respuesta):
                 valor=int(valor)
             )
 
+def procesar_archivos_adjuntos(request, respuesta):
+    """Procesa los archivos adjuntos para cada pregunta que los permita"""
+    # Recopilar todos los tipos de preguntas que pueden tener archivos adjuntos
+    todas_preguntas = []
+    todas_preguntas.extend(PreguntaTexto.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaTextoMultiple.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaOpcionMultiple.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaCasillasVerificacion.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaMenuDesplegable.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaEstrellas.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaEscala.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaMatriz.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    todas_preguntas.extend(PreguntaFecha.objects.filter(encuesta=respuesta.encuesta, permitir_archivos=True))
+    
+    # Procesar cada pregunta
+    for pregunta in todas_preguntas:
+        # Identificar el tipo específico de respuesta para esta pregunta
+        respuesta_especifica = None
+        tipo_pregunta = pregunta.__class__.__name__
+        
+        if isinstance(pregunta, PreguntaTexto):
+            respuesta_especifica = RespuestaTexto.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaTextoMultiple):
+            respuesta_especifica = RespuestaTextoMultiple.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaOpcionMultiple):
+            respuesta_especifica = RespuestaOpcionMultiple.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaCasillasVerificacion):
+            respuesta_especifica = RespuestaCasillasVerificacion.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaMenuDesplegable):
+            respuesta_especifica = RespuestaOpcionMenuDesplegable.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaEstrellas):
+            respuesta_especifica = RespuestaEstrellas.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaEscala):
+            respuesta_especifica = RespuestaEscala.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaMatriz):
+            respuesta_especifica = RespuestaMatriz.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+        elif isinstance(pregunta, PreguntaFecha):
+            respuesta_especifica = RespuestaFecha.objects.filter(respuesta_encuesta=respuesta, pregunta=pregunta).first()
+            
+        # Procesar archivos solo si hay una respuesta específica
+        if respuesta_especifica:
+            archivos = request.FILES.getlist(f'archivos_{pregunta.id}[]')
+            for archivo in archivos:
+                ArchivoRespuesta.objects.create(
+                    respuesta=respuesta,
+                    archivo=archivo,
+                    nombre_original=archivo.name,
+                    tipo_archivo=archivo.content_type,
+                    pregunta_id=pregunta.id,
+                    tipo_pregunta=tipo_pregunta
+                )
+
 
 def regiones_y_municipios(request):
     regiones = Region.objects.prefetch_related('municipios').all()
@@ -1588,20 +1656,27 @@ def editar_pregunta(request, pregunta_id):
     
     if not pregunta:
         messages.error(request, "Pregunta no encontrada.")
-        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+        return redirect('editar_encuesta', encuesta_id=request.POST.get('encuesta_id', 1))
     
-    # Verificar que el usuario es el creador de la encuesta
+    # Verificar que el usuario sea el dueño de la encuesta
     if pregunta.encuesta.creador != request.user:
         messages.error(request, "No tienes permiso para editar esta pregunta.")
-        return redirect('editar_encuesta', encuesta_id=pregunta.encuesta.id)
+        return redirect('lista_encuestas')
+    
+    # Actualizar campos comunes a todos los tipos de preguntas
+    texto = request.POST.get('texto', '').strip()
+    orden = request.POST.get('orden')
+    requerida = 'requerida' in request.POST
+    permitir_archivos = 'permitir_archivos' in request.POST
+    
+    if texto and orden:
+        pregunta.texto = texto
+        pregunta.orden = int(orden)
+        pregunta.requerida = requerida
+        pregunta.permitir_archivos = permitir_archivos
     
     try:
         with transaction.atomic():
-            # Actualizar campos comunes
-            pregunta.texto = request.POST.get('texto')
-            pregunta.orden = int(request.POST.get('orden'))
-            pregunta.requerida = request.POST.get('requerida') == 'on'
-            
             # Actualizar campos específicos según el tipo de pregunta
             if isinstance(pregunta, (PreguntaTexto, PreguntaTextoMultiple)):
                 pregunta.placeholder = request.POST.get('placeholder', '')
@@ -1783,32 +1858,26 @@ def preview_diseno(request, encuesta_id):
 @require_http_methods(["POST"])
 def agregar_pregunta(request, encuesta_id):
     try:
-        encuesta = Encuesta.objects.get(id=encuesta_id)
-        
-        # Verificar que el usuario sea el propietario de la encuesta
-        if encuesta.creador != request.user:
-            return JsonResponse({'error': 'No tienes permiso para modificar esta encuesta'}, status=403)
+        encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
         
         # Obtener datos del formulario
-        texto = request.POST.get('texto')
+        texto = request.POST.get('texto').strip()
         tipo = request.POST.get('tipo')
-        orden = request.POST.get('orden')
-        requerida = request.POST.get('requerida') == 'on'
+        requerida = 'requerida' in request.POST
+        permitir_archivos = 'permitir_archivos' in request.POST
         ayuda = request.POST.get('ayuda', '')
+        seccion = request.POST.get('seccion', '')
         
-        # Obtener sección (puede venir de un campo normal o del campo de nueva sección)
-        seccion = request.POST.get('seccion', 'General')
-        if not seccion or seccion == 'nueva_seccion':
-            seccion = request.POST.get('nueva_seccion_input', 'General')
-            
-        # Obtener el último orden si no se proporciona
-        if not orden:
-            preguntas = encuesta.obtener_preguntas()
-            if preguntas.exists():
-                ultimo_orden = max([p.orden for p in preguntas])
-                orden = ultimo_orden + 1
-            else:
-                orden = 1
+        # Calcular el siguiente orden automáticamente
+        # Obtener el máximo orden actual y sumar 1
+        ultimo_orden = 0
+        for modelo in [PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple, 
+                      PreguntaCasillasVerificacion, PreguntaMenuDesplegable, 
+                      PreguntaEstrellas, PreguntaEscala, PreguntaMatriz, PreguntaFecha]:
+            max_orden = modelo.objects.filter(encuesta=encuesta).aggregate(Max('orden'))['orden__max'] or 0
+            ultimo_orden = max(ultimo_orden, max_orden)
+        
+        orden = ultimo_orden + 1
         
         # Crear la pregunta según el tipo
         if tipo == 'TEXT':
@@ -1818,6 +1887,7 @@ def agregar_pregunta(request, encuesta_id):
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
                 seccion=seccion
             )
@@ -1828,6 +1898,7 @@ def agregar_pregunta(request, encuesta_id):
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
                 seccion=seccion
             )
@@ -1840,6 +1911,7 @@ def agregar_pregunta(request, encuesta_id):
                     tipo=tipo,
                     orden=orden,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     ayuda=ayuda,
                     seccion=seccion
                 )
@@ -1850,6 +1922,7 @@ def agregar_pregunta(request, encuesta_id):
                     tipo=tipo,
                     orden=orden,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     ayuda=ayuda,
                     seccion=seccion
                 )
@@ -1860,6 +1933,7 @@ def agregar_pregunta(request, encuesta_id):
                     tipo=tipo,
                     orden=orden,
                     requerida=requerida,
+                    permitir_archivos=permitir_archivos,
                     ayuda=ayuda,
                     seccion=seccion
                 )
@@ -1899,6 +1973,7 @@ def agregar_pregunta(request, encuesta_id):
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
                 seccion=seccion,
                 valor_minimo=escala_min,

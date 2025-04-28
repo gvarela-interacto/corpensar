@@ -48,6 +48,29 @@
                             <div class="text-muted fst-italic">No hay respuestas de texto</div>
                             {% endfor %}
                         </div>
+                        
+                        <!-- Mostrar archivos adjuntos si la pregunta permite archivos -->
+                        {% if pregunta_data.pregunta.permitir_archivos %}
+                            {% with pregunta_id=pregunta_data.pregunta.id tipo_pregunta='PreguntaTexto' %}
+                                <div class="archivos-container mt-3 pt-3 border-top">
+                                    <h6 class="fw-bold text-primary"><i class="fas fa-paperclip me-2"></i>Archivos adjuntos:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                    {% for respuesta in encuesta.respuestas.all %}
+                                        {% for archivo in respuesta.archivos_adjuntos.all %}
+                                            {% if archivo.pregunta_id == pregunta_id and archivo.tipo_pregunta == tipo_pregunta %}
+                                                <div class="attachment-card p-2 border rounded bg-light">
+                                                    <a href="{{ archivo.archivo.url }}" target="_blank" class="d-flex align-items-center">
+                                                        <i class="fas {% if archivo.tipo_archivo|slice:":5" == "image" %}fa-image{% elif archivo.tipo_archivo|slice:":5" == "video" %}fa-video{% elif archivo.tipo_archivo|slice:":11" == "application" %}fa-file-alt{% else %}fa-file{% endif %} me-2 text-primary"></i>
+                                                        <span>{{ archivo.nombre_original }}</span>
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endif %}
                     </div>
 
                 <!-- TEXTO MÚLTIPLE -->
@@ -63,6 +86,29 @@
                             <div class="text-muted fst-italic">No hay respuestas extensas</div>
                             {% endfor %}
                         </div>
+                        
+                        <!-- Mostrar archivos adjuntos si la pregunta permite archivos -->
+                        {% if pregunta_data.pregunta.permitir_archivos %}
+                            {% with pregunta_id=pregunta_data.pregunta.id tipo_pregunta='PreguntaTextoMultiple' %}
+                                <div class="archivos-container mt-3 pt-3 border-top">
+                                    <h6 class="fw-bold text-primary"><i class="fas fa-paperclip me-2"></i>Archivos adjuntos:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                    {% for respuesta in encuesta.respuestas.all %}
+                                        {% for archivo in respuesta.archivos_adjuntos.all %}
+                                            {% if archivo.pregunta_id == pregunta_id and archivo.tipo_pregunta == tipo_pregunta %}
+                                                <div class="attachment-card p-2 border rounded bg-light">
+                                                    <a href="{{ archivo.archivo.url }}" target="_blank" class="d-flex align-items-center">
+                                                        <i class="fas {% if archivo.tipo_archivo|slice:":5" == "image" %}fa-image{% elif archivo.tipo_archivo|slice:":5" == "video" %}fa-video{% elif archivo.tipo_archivo|slice:":11" == "application" %}fa-file-alt{% else %}fa-file{% endif %} me-2 text-primary"></i>
+                                                        <span>{{ archivo.nombre_original }}</span>
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endif %}
                     </div>
 
                 <!-- OPCIÓN MÚLTIPLE (RADIO) -->

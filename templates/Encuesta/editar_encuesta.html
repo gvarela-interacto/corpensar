@@ -647,18 +647,24 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch mb-3 mt-4">
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex align-items-center">
-                                                <input type="checkbox" class="form-check-input me-2" id="requerida_nueva" 
-                                                       name="requerida" role="switch">
-                                                <label class="form-check-label fw-bold mb-0" for="requerida_nueva">
-                                                    Pregunta requerida
-                                                </label>
-                                            </div>
-                                            <div class="form-text ms-4 mt-1">
-                                                Si está activa, el usuario deberá responderla obligatoriamente.
-                                            </div>
+                                        <div>
+                                            <label class="form-check-label fw-bold" for="requerida_{{ pregunta.id }}">
+                                                Pregunta requerida
+                                            </label>
+                                            <input type="checkbox" class="form-check-input" id="requerida_{{ pregunta.id }}" 
+                                            name="requerida" role="switch" {% if pregunta.requerida %}checked{% endif %}>
                                         </div>
+                                        <div class="form-text">Si está activa, el usuario deberá responderla obligatoriamente.</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <div>
+                                            <label class="form-check-label fw-bold" for="permitir_archivos_{{ pregunta.id }}">
+                                                Permitir adjuntar archivos
+                                            </label>
+                                            <input type="checkbox" class="form-check-input" id="permitir_archivos_{{ pregunta.id }}" 
+                                            name="permitir_archivos" role="switch" {% if pregunta.permitir_archivos %}checked{% endif %}>
+                                        </div>
+                                        <div class="form-text">Si está activa, el usuario podrá adjuntar archivos como evidencia.</div>
                                     </div>
                                 </div>
                             </div>
@@ -835,6 +841,16 @@
                                             name="requerida" role="switch" {% if pregunta.requerida %}checked{% endif %}>
                                         </div>
                                         <div class="form-text">Si está activa, el usuario deberá responderla obligatoriamente.</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <div>
+                                            <label class="form-check-label fw-bold" for="permitir_archivos_{{ pregunta.id }}">
+                                                Permitir adjuntar archivos
+                                            </label>
+                                            <input type="checkbox" class="form-check-input" id="permitir_archivos_{{ pregunta.id }}" 
+                                            name="permitir_archivos" role="switch" {% if pregunta.permitir_archivos %}checked{% endif %}>
+                                        </div>
+                                        <div class="form-text">Si está activa, el usuario podrá adjuntar archivos como evidencia.</div>
                                     </div>
                                 </div>
                             </div>

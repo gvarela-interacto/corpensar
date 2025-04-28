@@ -489,7 +489,7 @@
             {% endif %}
         </div>
         
-        <form method="POST" action="{% url 'guardar_respuesta' encuesta.id %}" class="survey-body">
+        <form method="post" action="{% url 'guardar_respuesta' encuesta.id %}" enctype="multipart/form-data" class="survey-body">
             {% csrf_token %}
             
             <div class="mb-4">
@@ -714,6 +714,18 @@
                                     {% elif pregunta.max_selecciones %}
                                         Seleccione hasta {{ pregunta.max_selecciones }} opciones
                                     {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if pregunta.permitir_archivos %}
+                                <div class="file-upload-container mt-3">
+                                    <label class="fw-bold mb-2">
+                                        <i class="fas fa-paperclip me-1"></i> Adjuntar archivos como evidencia
+                                    </label>
+                                    <input type="file" name="archivos_{{ pregunta.id }}[]" class="form-control" multiple>
+                                    <div class="text-muted small mt-1">
+                                        Puede adjuntar archivos como evidencia (imágenes, documentos, audio, video, etc.)
+                                    </div>
                                 </div>
                             {% endif %}
                         </div>
