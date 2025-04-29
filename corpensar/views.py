@@ -33,6 +33,7 @@ from .decorators import *
 import locale
 from datetime import timedelta
 from django.template.defaulttags import register
+import os
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -1632,12 +1633,41 @@ def eliminar_encuesta(request, encuesta_id):
         # Guardar el título para el mensaje
         titulo = encuesta.titulo
         
-        # Eliminar todas las respuestas asociadas
-        RespuestaEncuesta.objects.filter(encuesta=encuesta).delete()
+        try:
+            # Iniciar transacción para garantizar la integridad
+            with transaction.atomic():
+                # Obtener todas las respuestas asociadas a la encuesta
+                respuestas = RespuestaEncuesta.objects.filter(encuesta=encuesta)
+                
+                # Para cada respuesta, eliminar los archivos adjuntos primero
+                for respuesta in respuestas:
+                    # Eliminar archivos adjuntos físicos
+                    archivos = ArchivoRespuesta.objects.filter(respuesta=respuesta)
+                    for archivo in archivos:
+                        if archivo.archivo and os.path.isfile(archivo.archivo.path):
+                            os.remove(archivo.archivo.path)
+                    
+                    # Eliminar todos los tipos de respuestas específicas
+                    RespuestaTexto.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaTextoMultiple.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaOpcionMultiple.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaCasillasVerificacion.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaOpcionMenuDesplegable.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaEstrellas.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaEscala.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaMatriz.objects.filter(respuesta_encuesta=respuesta).delete()
+                    RespuestaFecha.objects.filter(respuesta_encuesta=respuesta).delete()
+                
+                # Eliminar todas las respuestas
+                respuestas.delete()
+                
+                # Eliminar la encuesta (esto eliminará en cascada las preguntas gracias a on_delete=CASCADE)
+                encuesta.delete()
+                
+            messages.success(request, f'La encuesta "{titulo}" y todas sus respuestas han sido eliminadas exitosamente.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la encuesta: {str(e)}')
         
-        # Eliminar la encuesta
-        encuesta.delete()
-        messages.success(request, f'La encuesta "{titulo}" y todas sus respuestas han sido eliminadas exitosamente.')
         return redirect('lista_encuestas')
     
     return redirect('editar_encuesta', encuesta_id=encuesta_id)
