@@ -5,6 +5,186 @@
 {% block title %}{% trans "Encuesta Completada" %} - {{ encuesta.titulo }}{% endblock %}
 
 {% block content %}
+
+<style>
+    .certificate-container {
+        width: 800px;
+        position: relative;
+        background-color: #ffffff;
+        border: 12px solid #ffd700;
+        padding: 50px 40px 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+    }
+    .certificate-header {
+        text-align: center;
+        margin-bottom: 40px;
+        margin-top: 15px;
+    }
+    .certificate-title {
+        font-size: 48px;
+        color: #333;
+        margin-bottom: 5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    .certificate-subtitle {
+        font-size: 22px;
+        color: #555;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+        font-weight: 300;
+        text-transform: uppercase;
+    }
+    .certificate-content {
+        margin: 40px 0;
+        position: relative;
+        text-align: center;
+        padding: 0 20px;
+    }
+    .certificate-text {
+        font-size: 24px;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        color: #444;
+    }
+    .certificate-name {
+        font-size: 40px;
+        font-weight: 700;
+        color: #222;
+        margin: 25px 0 10px;
+        border-bottom: 4px solid #ffd700;
+        display: inline-block;
+        padding: 0 30px 8px;
+        letter-spacing: 1px;
+        text-transform: capitalize;
+    }
+    .certificate-id {
+        font-size: 22px;
+        color: #555;
+        margin-bottom: 30px;
+        letter-spacing: 1px;
+        display: block;
+    }
+    .certificate-details {
+        margin-top: 50px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .detail-item {
+        text-align: left;
+        width: 45%;
+    }
+    .field-label {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+    .field-value {
+        font-size: 20px;
+        color: #333;
+        padding: 5px 0;
+        border-bottom: 2px solid #ffd700;
+        font-weight: 500;
+    }
+    .certificate-footer {
+        margin-top: 50px;
+        display: flex;
+        justify-content: center;
+    }
+    .signature-line {
+        width: 250px;
+        border-top: 2px solid #000;
+        margin-top: 10px;
+        padding-top: 5px;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+        font-weight: 500;
+    }
+    .certificate-logo {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        width: 120px;
+        height: 120px;
+        border-radius: 10px;
+        padding: 15px;
+        filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2)); 
+    }
+    .certificate-border {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 3px solid #333;
+        pointer-events: none;
+        margin: 15px;
+        border-radius: 3px;
+    }
+    .certificate-corner {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background-color: #ffd700;
+    }
+    .certificate-seal {
+        position: absolute;
+        bottom: 100px;
+        right: 40px;
+        width: 120px;
+        height: 120px;
+        background-color: transparent;
+        border: 2px solid #ffd700;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        color: #000;
+        text-align: center;
+        transform: rotate(-15deg);
+        font-weight: bold;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+    .seal-inner {
+        width: 110px;
+        height: 110px;
+        border: 1px dashed #333;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+    }
+    .course-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-top: 15px;
+        font-style: italic;
+        color: #222;
+        padding: 10px 20px;
+        background-color: rgba(255, 215, 0, 0.1);
+        display: inline-block;
+        border-radius: 3px;
+    }
+    @media print {
+        body {
+            background-color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .certificate-container {
+            box-shadow: none;
+        }
+    }
+</style>
 <div class="container my-5">
     <div class="row">
         <div class="col-md-8 mx-auto text-center">
@@ -30,9 +210,102 @@
                         </a>
                         {% endif %}
                     </div>
+
+                    <div class="mt-5">
+                        <form id="form-certificado" onsubmit="generarCertificado(event)" class="p-4 bg-light rounded shadow-sm border">
+                            <h4 class="mb-4 text-center">{% trans "Generar certificado de participación" %}</h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="nombre_completo" class="font-weight-bold">{% trans "Nombre completo" %}</label>
+                                        <input type="text" class="form-control form-control-lg" id="nombre_completo" name="nombre_completo" placeholder="{% trans 'Ingrese su nombre completo' %}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-group">
+                                        <label for="numero_identificacion" class="font-weight-bold">{% trans "Número de identificación" %}</label>
+                                        <input type="text" class="form-control form-control-lg" id="numero_identificacion" name="numero_identificacion" placeholder="{% trans 'Ingrese su número de documento' %}" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-certificate mr-2"></i> {% trans "Generar certificado" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div> 
+
+                    <div id="certificado" class="certificate-container" style="display: none;">
+                        <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo">
+                        <div class="certificate-border"></div>
+                        
+                        <div class="certificate-header">
+                            <div class="certificate-title">Certificado</div>
+                            <div class="certificate-subtitle">de Participación</div>
+                        </div>
+                        
+                        <div class="certificate-content">
+                            <div class="certificate-text">
+                                Corpensar certifica a:
+                            </div>
+                            <div id="nombre-certificado" class="certificate-name"></div>
+                            <div id="identificacion-certificado" class="certificate-id"></div>
+                            <div class="certificate-text">
+                                {% if encuesta.categoria.nombre == 'Grupo focal' %}
+                                    Por su valiosa participación en el {{ encuesta.categoria.nombre }}:
+                                {% else %}
+                                    Por su valiosa participación en la {{ encuesta.categoria.nombre }}:
+                                {% endif %}
+                            </div>
+                            <div class="course-title">
+                                "{{ encuesta.titulo }}"
+                            </div>
+                            
+                            <div class="certificate-details">
+                                <div class="detail-item">
+                                    <div class="field-label">Fecha de expedición</div>
+                                    <div id="fecha-certificado" class="field-value"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="certificate-seal">
+                            <div class="seal-inner">CERTIFICADO OFICIAL</div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+function generarCertificado(event) {
+    event.preventDefault();
+
+    const nombre = document.getElementById('nombre_completo').value;
+    const identificacion = document.getElementById('numero_identificacion').value;
+    const hoy = new Date().toLocaleDateString('es-CO');
+
+    document.getElementById('nombre-certificado').innerText = nombre;
+    document.getElementById('identificacion-certificado').innerText = "Identificación: " + identificacion;
+    document.getElementById('fecha-certificado').innerText = hoy;
+
+    const certificadoDiv = document.getElementById('certificado');
+    certificadoDiv.style.display = 'block';
+
+    html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
+        const enlace = document.createElement('a');
+        enlace.download = `certificado_${nombre}.png`;
+        enlace.href = canvas.toDataURL('image/png');
+        enlace.click();
+        certificadoDiv.style.display = 'none';
+    });
+}
+</script>
+
 {% endblock %}

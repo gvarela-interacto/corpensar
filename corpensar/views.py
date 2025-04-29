@@ -917,6 +917,10 @@ class ResultadosEncuestaView(DetailView):
         encuesta = self.object
         total_respuestas = encuesta.respuestas.count()
 
+        # Obtener todas las respuestas completas para esta encuesta
+        respuestas_completas = RespuestaEncuesta.objects.filter(encuesta=encuesta)
+        context['respuestas_completas'] = respuestas_completas
+
         preguntas = sorted(
             chain(
                 encuesta.preguntatexto_relacionadas.all(),
@@ -2893,3 +2897,25 @@ def mi_perfil(request):
 
 def configuracion(request):
     return render(request, 'perfil/configuracion.html')
+
+def eliminar_respuesta_encuesta(request, respuesta_id):
+    """
+    Elimina una respuesta de encuesta completa, incluyendo todas sus subrespuestas.
+    Solo permitido para administradores y creadores de la encuesta.
+    """
+    respuesta = get_object_or_404(RespuestaEncuesta, id=respuesta_id)
+    encuesta = respuesta.encuesta
+    
+    # Comprobar permisos: solo permitir al creador de la encuesta o administradores
+    if not request.user.is_authenticated or (request.user != encuesta.creador and not request.user.is_staff):
+        messages.error(request, "No tienes permiso para eliminar esta respuesta.")
+        return redirect('resultados_encuesta', pk=encuesta.id)
+    
+    # Guardar el ID de la encuesta antes de eliminar la respuesta
+    encuesta_id = encuesta.id
+    
+    # Eliminar la respuesta
+    respuesta.delete()
+    
+    messages.success(request, "La respuesta ha sido eliminada con éxito.")
+    return redirect('resultados_encuesta', pk=encuesta_id)
