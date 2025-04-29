@@ -1,4 +1,3 @@
-from decimal import Decimal
 from itertools import chain
 from collections import Counter, defaultdict
 import json
@@ -7,17 +6,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.forms import modelform_factory, formset_factory, Form
-from django.db.models import Count, Avg, F, Sum, ExpressionWrapper, FloatField, Max
-from django.db.models.functions import TruncDate, Coalesce
-from django.http import JsonResponse, HttpResponseForbidden, HttpResponse, Http404
+from django.forms import Form
+from django.db.models import Count, Avg, F, Max
+from django.db.models.functions import TruncDate
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.http import require_http_methods
 from django import forms
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
@@ -33,12 +31,8 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD)
 from .decorators import *
 import locale
-import re
-import csv
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.template.defaulttags import register
-import logging
-from django.conf import settings
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -202,11 +196,9 @@ def index_view(request):
     return render(request, 'index.html', context)
 
 #views del programa
-
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
 from django.contrib import messages
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView
 from django.contrib.auth.models import User
 from .models import *
 from .forms import *
@@ -545,6 +537,7 @@ def crear_desde_cero(request):
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
+@login_required
 def crear_con_ia(request):
     if request.method == 'POST':
         # Aquí procesarías la solicitud de IA
