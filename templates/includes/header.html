@@ -1,117 +1,589 @@
 {% load static %}
-<nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row">
-      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start interHeader" style="box-shadow: 0 2px 15px rgba(0,0,0,0.05); backdrop-filter: blur(10px); background-color: rgba(255,255,255,0.95);">
-        <div class="me-3">
-          <button class="navbar-toggler navbar-toggler align-self-center toggle-sidebar" type="button" data-bs-toggle="minimize" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px; background: var(--primary-color);">
-            <span class="icon-menu" style="color: #000;"></span>
-          </button>
-        </div>
-        <div class="d-lg-block d-none">
-          <a class="navbar-brand brand-logo" href="{% if user.is_authenticated %}{% url 'index' %}{% else %}{% url 'public_home' %}{% endif %}" style="transition: all 0.3s ease;">
-            <img src="http://72.14.187.231/corpensar/images/logoappw.png" style="width: 110px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
-          </a>
-        </div>
+
+<!-- Nuevo header mejorado y más espacioso -->
+<header class="fixed-top">
+  <nav class="navbar navbar-expand-lg py-2">
+    <div class="container-fluid px-4">
+      <!-- Logo y toggle para móvil -->
+      <div class="d-flex align-items-center">
+        <button type="button" class="btn btn-link sidebar-toggle me-3 d-lg-none" id="sidebarToggle" data-toggle="sidebar">
+          <i class="mdi mdi-menu fs-4 text-gold"></i>
+        </button>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
+          <img src="/static/images/logo corpensar-12.webp" alt="Logo" height="45" class="me-3">
+          <span class="fw-bold text-gold fs-4">Corpensar</span>
+        </a>
       </div>
-      <div class="navbar-menu-wrapper d-flex align-items-top justify-content-between interHeader" style="box-shadow: 0 2px 15px rgba(0,0,0,0.05); backdrop-filter: blur(10px); background-color: rgba(255,255,255,0.95);">
-        <ul class="navbar-nav">
-          <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
-            <h1 class="welcome-text" style="font-size: 1.4rem; letter-spacing: -0.5px; margin-bottom: 0;">
-                Bienvenido, 
-                <span class="text-black fw-bold" style="background: linear-gradient(120deg, #ffd700, #f2c94c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: gradient 3s ease infinite;">
-                    {% if user.is_authenticated %}
-                        {{ user.first_name }} {{ user.last_name }}
+
+      <!-- Elementos del navbar a la derecha -->
+      <div class="ms-auto d-flex align-items-center gap-3">
+        
+
+        <!-- Notificaciones dropdown -->
+        <div class="dropdown">
+          <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="mdi mdi-bell fs-4"></i>
+            <span class="notification-badge">3</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg notification-dropdown">
+            <li>
+              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                <h6 class="mb-0 fw-semibold text-gold">Notificaciones</h6>
+                <a href="#" class="text-decoration-none small text-gold">Marcar como leídas</a>
+              </div>
+            </li>
+            <li>
+              <a class="dropdown-item notification-item" href="#">
+                <div class="d-flex align-items-center">
+                  <div class="notification-icon bg-gold-light">
+                    <i class="mdi mdi-account-check text-gold"></i>
+                  </div>
+                  <div class="ms-3">
+                    <p class="mb-1 fw-medium">Nuevo registro completado</p>
+                    <small class="text-muted">Hace 30 minutos</small>
+                  </div>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item notification-item" href="#">
+                <div class="d-flex align-items-center">
+                  <div class="notification-icon bg-gold-light">
+                    <i class="mdi mdi-chart-line text-gold"></i>
+                  </div>
+                  <div class="ms-3">
+                    <p class="mb-1 fw-medium">Informe mensual disponible</p>
+                    <small class="text-muted">Hace 2 horas</small>
+                  </div>
+                </div>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item notification-item" href="#">
+                <div class="d-flex align-items-center">
+                  <div class="notification-icon bg-gold-light">
+                    <i class="mdi mdi-calendar-clock text-gold"></i>
+                  </div>
+                  <div class="ms-3">
+                    <p class="mb-1 fw-medium">Recordatorio de reunión</p>
+                    <small class="text-muted">Mañana, 10:00 AM</small>
+                  </div>
+                </div>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li class="text-center py-2">
+              <a href="#" class="text-decoration-none text-gold small">Ver todas las notificaciones</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Acceso rápido -->
+        <div class="dropdown d-none d-md-block">
+          <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="mdi mdi-apps fs-4"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 quick-access-dropdown">
+            <h6 class="dropdown-header px-1 fw-semibold text-gold">Acceso Rápido</h6>
+            <div class="row g-3 px-1">
+              <div class="col-6">
+                <a href="{% url 'seleccionar_metodo' %}" class="quick-action-item">
+                  <i class="mdi mdi-plus-circle-outline text-gold"></i>
+                  <span>Nueva Encuesta</span>
+                </a>
+              </div>
+              <div class="col-6">
+                <a href="{% url 'lista_encuestas' %}" class="quick-action-item">
+                  <i class="mdi mdi-account-outline text-gold"></i>
+                  <span>Mis Encuestas</span>
+                </a>
+              </div>
+              <div class="col-6">
+                <a href="{% url 'todas_encuestas' %}" class="quick-action-item">
+                  <i class="mdi mdi-file-multiple text-gold"></i>
+                  <span>Todas</span>
+                </a>
+              </div>
+              <div class="col-6">
+                <a href="{% url 'listar_pqrsfd' %}" class="quick-action-item">
+                  <i class="mdi mdi-message-text-outline text-gold"></i>
+                  <span>PQRSFD</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usuario dropdown -->
+        <div class="dropdown">
+          <a class="profile-dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {% if user.is_authenticated %}
+              {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Perfil" class="profile-image" width="40" height="40">
+              {% else %}
+                <div class="profile-avatar">
+                  {% if user.first_name %}
+                    {{ user.first_name|slice:":1"|upper }}
+                  {% else %}
+                    {{ user.username|slice:":1"|upper }}
+                  {% endif %}
+                </div>
+              {% endif %}
+              <div class="profile-info d-none d-sm-block">
+                <div class="profile-name">
+                  {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+                </div>
+                <div class="profile-role text-gold-light">
+                  {% if user.is_superuser %}
+                    Administrador
+                  {% else %}
+                    Usuario
+                  {% endif %}
+                </div>
+              </div>
+              <i class="mdi mdi-chevron-down ms-1 text-gold-light"></i>
+            {% else %}
+              <div class="profile-avatar guest">
+                <i class="mdi mdi-account"></i>
+              </div>
+              <div class="profile-info d-none d-sm-block">
+                <div class="profile-name">Invitado</div>
+                <div class="profile-role text-gold-light">Sin sesión</div>
+              </div>
+              <i class="mdi mdi-chevron-down ms-1 text-gold-light"></i>
+            {% endif %}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg profile-dropdown">
+            {% if user.is_authenticated %}
+              <li>
+                <div class="px-4 py-3 border-bottom">
+                  <div class="d-flex align-items-center">
+                    {% if user.profile_image %}
+                      <img src="{{ user.profile_image.url }}" alt="Perfil" class="profile-image-lg" width="60" height="60">
                     {% else %}
-                        Invitado
+                      <div class="profile-avatar-lg">
+                        {% if user.first_name %}
+                          {{ user.first_name|slice:":1"|upper }}
+                        {% else %}
+                          {{ user.username|slice:":1"|upper }}
+                        {% endif %}
+                      </div>
                     {% endif %}
-                </span>
-            </h1>
-          </li>
-        </ul>
-        
-        <ul class="navbar-nav ms-auto">
-          {% if user.is_authenticated %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #333; font-weight: 500;">
-              Mi Cuenta
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown" style="border-radius: 12px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.15); padding: 8px;">
-              <li><a class="dropdown-item" href="{% url 'index' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-view-dashboard me-2"></i> Dashboard</a></li>
-              <li><a class="dropdown-item" href="{% url 'lista_encuestas' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-file-document me-2"></i> Mis Encuestas</a></li>
-              <li><hr class="dropdown-divider" style="margin: 8px 0;"></li>
-              <li><a class="dropdown-item" href="{% url 'public_home' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-home me-2"></i> Página Pública</a></li>
-              <li><a class="dropdown-item" href="{% url 'logout' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-logout me-2"></i> Cerrar Sesión</a></li>
-            </ul>
-          </li>
-          {% else %}
-          <li class="nav-item">
-            <a href="{% url 'login' %}" class="nav-link btn" style="background-color: var(--primary-color); color: #000; font-weight: 600; padding: 8px 20px; border-radius: 10px; margin-right: 10px;">
-              <i class="mdi mdi-login me-1"></i> Iniciar Sesión
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'public_home' %}" class="nav-link" style="color: #333; font-weight: 500;">
-              <i class="mdi mdi-home me-1"></i> Inicio
-            </a>
-          </li>
-          {% endif %}
-        </ul>
-        
-        <div class="d-lg-none d-flex align-items-center">
-          <a class="navbar-brand brand-logo me-3" href="{% if user.is_authenticated %}{% url 'index' %}{% else %}{% url 'public_home' %}{% endif %}" style="transition: all 0.3s ease;">
-            <img src="/static/images/logo corpensar-12.webp" style="width: 90px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
-          </a>
-          <button class="navbar-toggler navbar-toggler-right align-self-center toggle-sidebar" type="button" data-bs-toggle="offcanvas" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px; background: var(--primary-color);">
-            <span class="mdi mdi-menu" style="color: #000;"></span>
-          </button>
+                    <div class="ms-3">
+                      <h6 class="mb-1 fw-semibold">
+                        {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
+                      </h6>
+                      <p class="mb-0 small text-muted">{{ user.email }}</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li><a class="dropdown-item py-2" href="#"><i class="mdi mdi-account me-2 text-gold"></i>Mi Perfil</a></li>
+              <li><a class="dropdown-item py-2" href="#"><i class="mdi mdi-cog me-2 text-gold"></i>Configuración</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'public_home' %}"><i class="mdi mdi-web me-2 text-gold"></i>Página Pública</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="mdi mdi-logout me-2"></i>Cerrar Sesión</a></li>
+            {% else %}
+              <li><a class="dropdown-item py-2" href="{% url 'login' %}"><i class="mdi mdi-login me-2 text-gold"></i>Iniciar Sesión</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'register' %}"><i class="mdi mdi-account-plus me-2 text-gold"></i>Registrarse</a></li>
+            {% endif %}
+          </ul>
         </div>
       </div>
-      <style>
-        @keyframes gradient {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-        
-        /* Estilos para dropdown */
-        .dropdown-menu {
-          animation: fadeIn 0.2s ease;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .dropdown-item:hover {
-          background-color: rgba(255, 215, 0, 0.15);
-          transform: translateX(3px);
-          transition: all 0.2s ease;
-        }
-      </style>
-    </nav>
+    </div>
+  </nav>
+</header>
+
+<style>
+  /* Variables globales */
+  :root {
+    --header-height: 70px;
+    --gold-color: #ffd700;
+    --gold-light: rgba(255, 215, 0, 0.15);
+    --gold-hover: rgba(255, 215, 0, 0.25);
+    --dark-bg: #1a1a1a;
+  }
+
+  /* Estilos del header */
+  header {
+    background: linear-gradient(180deg, #1a1a1a 0%, #222222 100%);
+    box-shadow: 0 2px 15px rgba(0,0,0,0.15);
+    height: var(--header-height);
+    z-index: 1030;
+  }
+
+  nav { 
+    background-color: rgba(255, 215, 0, 0.05) !important; 
+  }
+
+  .navbar {
+    height: var(--header-height);
+  }
+
+  /* Clases de utilidad para colores dorados */
+  .text-gold {
+    color: var(--gold-color) !important;
+  }
+
+  .text-gold-light {
+    color: rgba(255, 215, 0, 0.8) !important;
+  }
+
+  .bg-gold-light {
+    background-color: var(--gold-light) !important;
+  }
+
+  /* Logo y marca */
+  .navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+  }
+
+  .navbar-brand img {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    transition: transform 0.3s ease;
+  }
+
+  .navbar-brand:hover img {
+    transform: scale(1.05);
+  }
+
+  /* Botón de toggle del sidebar */
+  .sidebar-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gold-light);
+    color: var(--gold-color);
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-toggle:hover {
+    background-color: var(--gold-hover);
+    transform: scale(1.05);
+  }
+
+  /* Barra de búsqueda */
+  .search-bar {
+    min-width: 300px;
+  }
+
+  .search-input {
+    padding-left: 40px;
+    padding-right: 15px;
+    height: 42px;
+    border-radius: 21px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+  }
+
+  .search-input:focus {
+    background-color: #ffffff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.15);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+  }
+
+  /* Botones de iconos */
+  .btn-icon {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gold-light);
+    color: var(--gold-color);
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .btn-icon:hover {
+    background-color: var(--gold-hover);
+    color: var(--gold-color);
+    transform: translateY(-2px);
+  }
+
+  /* Badge de notificaciones */
+  .notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ff4081;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--dark-bg);
+  }
+
+  /* Dropdown de notificaciones */
+  .notification-dropdown {
+    width: 350px;
+    max-height: 450px;
+    overflow-y: auto;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background-color: #222222;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+  }
+
+  .notification-item {
+    padding: 1rem 1.25rem;
+    transition: all 0.3s ease;
+    color: #ffffff;
+  }
+
+  .notification-item:hover {
+    background-color: var(--gold-light);
+  }
+
+  .notification-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Accesos rápidos */
+  .quick-access-dropdown {
+    width: 400px;
+    background-color: #222222;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+  }
+
+  .quick-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 15px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #ffffff;
+    background-color: var(--gold-light);
+    transition: all 0.3s ease;
+    height: 100%;
+  }
+
+  .quick-action-item:hover {
+    background-color: var(--gold-hover);
+    transform: translateY(-2px);
+  }
+
+  .quick-action-item i {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .quick-action-item span {
+    font-size: 14px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  /* Perfil de usuario */
+  .profile-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #ffffff;
+    padding: 5px 15px;
+    border-radius: 25px;
+    background-color: var(--gold-light);
+    transition: all 0.3s ease;
+  }
+
+  .profile-dropdown-toggle:hover {
+    background-color: var(--gold-hover);
+    color: #ffffff;
+  }
+
+  .profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gold-light);
+    color: var(--gold-color);
+    font-weight: 600;
+    font-size: 1.2rem;
+    border: 2px solid var(--gold-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .profile-avatar.guest {
+    background-color: var(--secondary-color);
+  }
+
+  .profile-info {
+    margin: 0 10px;
+  }
+
+  .profile-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #ffffff;
+    line-height: 1.2;
+  }
+
+  .profile-role {
+    font-size: 0.75rem;
+    color: var(--secondary-color);
+  }
+
+  /* Dropdown del perfil */
+  .profile-dropdown {
+    min-width: 280px;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background-color: #222222;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+  }
+
+  .profile-image-lg {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold-color);
+  }
+
+  .profile-avatar-lg {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--gold-light);
+    color: var(--gold-color);
+    font-weight: 600;
+    font-size: 1.5rem;
+    border: 2px solid var(--gold-color);
+  }
+
+  .dropdown-menu {
+    border: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  }
+
+  .dropdown-item {
+    color: #ffffff;
+  }
+
+  .dropdown-item:hover {
+    background-color: var(--gold-light);
+    color: #ffffff;
+  }
+
+  .dropdown-divider {
+    border-color: rgba(255, 215, 0, 0.1);
+  }
+
+  /* Scrollbar personalizado */
+  .notification-dropdown::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .notification-dropdown::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  .notification-dropdown::-webkit-scrollbar-thumb {
+    background: var(--gold-light);
+    border-radius: 2px;
+  }
+
+  .notification-dropdown::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-hover);
+  }
+
+  /* Responsive */
+  @media (max-width: 991.98px) {
+    .search-bar {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .navbar-brand span {
+      display: none;
+    }
     
+    .quick-access-dropdown {
+      width: 300px;
+    }
+    
+    .notification-dropdown {
+      width: 300px;
+    }
+  }
+</style>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Obtener todos los botones de alternar sidebar
-    const toggleButtons = document.querySelectorAll('.toggle-sidebar');
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle para el menú lateral en móvil
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function() {
+        // Ahora manejado por el atributo data-toggle="sidebar" en template.js
+        // Solo mantener este evento por compatibilidad
+        document.body.classList.toggle('sidebar-open');
+      });
+    }
     
-    // Añadir el event listener a cada botón
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            document.body.classList.toggle('sidebar-open');
-        });
-    });
+    // Manejo del dropdown para dispositivos táctiles
+    const dropdownToggle = document.querySelectorAll('.dropdown-toggle');
+    if ('ontouchstart' in document.documentElement) {
+      dropdownToggle.forEach(item => {
+        item.setAttribute('data-bs-toggle', 'dropdown');
+      });
+    }
     
-    // Inicializar los dropdowns de Bootstrap
-    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
-    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-      return new bootstrap.Dropdown(dropdownToggleEl)
-    });
-});
+    // Agregar backdrop para cerrar el sidebar en móvil
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar && !document.getElementById('sidebarBackdrop')) {
+      const backdrop = document.createElement('div');
+      backdrop.id = 'sidebarBackdrop';
+      backdrop.className = 'sidebar-backdrop';
+      backdrop.addEventListener('click', function() {
+        document.body.classList.remove('sidebar-open');
+      });
+      document.body.appendChild(backdrop);
+    }
+  });
 </script>

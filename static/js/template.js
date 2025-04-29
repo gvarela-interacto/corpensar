@@ -65,6 +65,18 @@
       body.removeClass('sidebar-open');
     });
 
+    // Manejar el botón de toggle del sidebar
+    $(document).on('click', '[data-toggle="sidebar"]', function () {
+      body.toggleClass('sidebar-open');
+    });
+
+    // Manejar la adaptación de sidebar/main-panel en resize
+    $(window).on('resize', function () {
+      if (window.innerWidth > 991) {
+        body.removeClass('sidebar-open');
+      }
+    });
+
     // Inicializar dropdowns de Bootstrap
     var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
     dropdownElementList.map(function (dropdownToggleEl) {

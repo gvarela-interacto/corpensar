@@ -12,7 +12,7 @@
 }
 
 .zt_header{ 
-    height: 50px!important; 
+    height: 65px!important; 
     box-shadow: 0 2px 15px rgba(0,0,0,0.05);
     backdrop-filter: blur(10px);
     background-color: rgba(255,255,255,0.95);
@@ -726,7 +726,7 @@ option[value="link"] {
 
 .main-panel {
   margin-left: 255px;
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, width 0.3s ease;
   width: calc(100% - 255px);
 }
 
@@ -741,8 +741,13 @@ option[value="link"] {
     padding-top: 60px;
   }
   
-  .sidebar.active {
+  .sidebar.active, 
+  body.sidebar-open .sidebar {
     width: 255px;
+  }
+  
+  body.sidebar-open .main-panel {
+    margin-left: 0;
   }
 }
 
@@ -866,4 +871,23 @@ option[value="link"] {
 .empty-state-card {
   border: 2px dashed #e0e0e0;
   background-color: rgba(0,0,0,0.01);
+}
+
+/* Estilos para el backdrop del sidebar */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1010;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+body.sidebar-open .sidebar-backdrop {
+  display: block;
+  opacity: 1;
 }

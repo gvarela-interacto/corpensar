@@ -1,0 +1,452 @@
+{% load static %}
+
+<!-- Nuevo sidebar moderno y responsivo -->
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <div class="sidebar-wrapper">
+    <!-- Logo y toggle para cerrar en móvil -->
+    <div class="sidebar-header d-flex justify-content-between align-items-center p-3 mb-2">
+      <a href="{% url 'dashboard' %}" class="d-flex align-items-center">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" class="sidebar-logo" height="30">
+        <span class="sidebar-brand ms-2 fw-bold">Corpensar</span>
+      </a>
+      <button class="btn btn-link d-lg-none sidebar-close p-0" id="sidebarClose">
+        <i class="mdi mdi-close fs-5 text-muted"></i>
+      </button>
+    </div>
+
+    <!-- Perfil de usuario en el sidebar -->
+    {% if user.is_authenticated %}
+    <div class="sidebar-user p-3 mb-3">
+      <div class="d-flex align-items-center">
+        {% if user.profile_image %}
+          <img src="{{ user.profile_image.url }}" alt="Perfil" class="rounded-circle me-3" width="50" height="50">
+        {% else %}
+          <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white me-3" style="width: 50px; height: 50px;">
+            {{ user.first_name|slice:":1"|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <h6 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h6>
+          <p class="sidebar-user-designation mb-0">
+            {% if user.is_superuser %}
+              Administrador
+            {% else %}
+              Usuario
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Menú principal -->
+    <ul class="nav flex-column">
+      <!-- PANEL PRINCIPAL -->
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">Panel Principal</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'dashboard' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-view-dashboard"></i>
+          </div>
+          <span class="nav-text">Dashboard</span>
+        </a>
+      </li>
+      
+      <!-- ENCUESTAS -->
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">Encuestas</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-plus-circle-outline"></i>
+          </div>
+          <span class="nav-text">Nueva Encuesta</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'lista_encuestas' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-format-list-bulleted"></i>
+          </div>
+          <span class="nav-text">Mis encuestas</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'todas_encuestas' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-file-document-multiple-outline"></i>
+          </div>
+          <span class="nav-text">Todas las encuestas</span>
+          <span class="badge bg-danger rounded-pill ms-2">7</span>
+        </a>
+      </li>
+      
+      <!-- GESTIÓN DE CATEGORÍAS -->
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">Gestión de Categorías</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'categorias_principales' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-folder-outline"></i>
+          </div>
+          <span class="nav-text">Categorías y Subcategorías</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'crear_categoria_principal' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-folder-plus-outline"></i>
+          </div>
+          <span class="nav-text">Nueva Categoría</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'crear_subcategoria' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-folder-plus"></i>
+          </div>
+          <span class="nav-text">Nueva Subcategoría</span>
+        </a>
+      </li>
+      
+      <!-- GESTIÓN DE UBICACIONES -->
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">Gestión de Ubicaciones</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'regiones_y_municipios' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-map-marker-outline"></i>
+          </div>
+          <span class="nav-text">Regiones y Municipios</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'crear_region' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-map-marker-plus-outline"></i>
+          </div>
+          <span class="nav-text">Nueva Región</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'crear_municipio' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-city-variant-outline"></i>
+          </div>
+          <span class="nav-text">Nuevo Municipio</span>
+        </a>
+      </li>
+      
+      <!-- PQRSFD -->
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">PQRSFD</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'listar_pqrsfd' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-message-text-outline"></i>
+          </div>
+          <span class="nav-text">Gestionar PQRSFD</span>
+          <span class="badge bg-danger rounded-pill ms-2">3</span>
+        </a>
+      </li>
+      
+      {% if user.is_authenticated %}
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">Usuario</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="#">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-account-outline"></i>
+          </div>
+          <span class="nav-text">Mi Perfil</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-logout-variant"></i>
+          </div>
+          <span class="nav-text">Cerrar Sesión</span>
+        </a>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-login-variant"></i>
+          </div>
+          <span class="nav-text">Iniciar Sesión</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'register' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-account-plus-outline"></i>
+          </div>
+          <span class="nav-text">Registrarse</span>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+    
+    <!-- Banner promocional -->
+    <div class="sidebar-promo mt-4 p-3">
+      <div class="promo-card p-3 bg-primary-gradient rounded-3 text-white">
+        <h6 class="mb-2">¿Necesitas ayuda?</h6>
+        <p class="small mb-2">Contáctanos para soporte personalizado</p>
+        <a href="{% url 'contacto' %}" class="btn btn-sm btn-light text-primary">Contactar</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* Estilos personalizados para el sidebar */
+  .sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1020;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  }
+  
+  .sidebar-wrapper {
+    padding-top: var(--header-height);
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sidebar-header {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .sidebar-brand {
+    color: var(--dark-color);
+    font-size: 1.2rem;
+  }
+  
+  /* Estilo para los perfiles de usuario */
+  .sidebar-user {
+    background-color: rgba(var(--primary-rgb), 0.05);
+    border-radius: 12px;
+  }
+  
+  .sidebar-user-designation {
+    color: var(--muted-color);
+    font-size: 0.75rem;
+  }
+  
+  /* Estilos para ítems de navegación */
+  .nav-category {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .nav-category .nav-link {
+    padding: 0.5rem 1.5rem;
+    color: var(--muted-color);
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    pointer-events: none;
+  }
+  
+  .nav-item > .nav-link {
+    padding: 0.85rem 1.5rem;
+    color: var(--dark-color);
+    border-radius: 8px;
+    margin: 0.3rem 0.8rem;
+    position: relative;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+  }
+  
+  .nav-item > .nav-link:hover {
+    background-color: rgba(var(--primary-rgb), 0.08);
+    color: var(--primary-color);
+    transform: translateX(3px);
+  }
+  
+  .nav-icon-wrapper {
+    display: inline-block;
+    width: 24px;
+    margin-right: 12px;
+    text-align: center;
+  }
+  
+  .nav-icon-wrapper i {
+    font-size: 1.35rem;
+    vertical-align: middle;
+    color: rgba(var(--dark-rgb), 0.6);
+  }
+  
+  .nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.3);
+  }
+  
+  .nav-link.active i,
+  .nav-link.active .menu-arrow {
+    color: white !important;
+  }
+  
+  /* Estilos para submenús */
+  .menu-arrow {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+    color: rgba(var(--dark-rgb), 0.4);
+  }
+  
+  .nav-link[aria-expanded="true"] .menu-arrow {
+    transform: rotate(-180deg);
+  }
+  
+  .sub-menu {
+    padding-left: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .sub-menu .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: var(--dark-color);
+    opacity: 0.8;
+    transition: all 0.2s ease;
+  }
+  
+  .sub-menu .nav-link:hover {
+    opacity: 1;
+    color: var(--primary-color);
+    padding-left: 1.2rem;
+  }
+  
+  .sub-menu .nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: rgba(var(--dark-rgb), 0.3);
+    transition: all 0.2s ease;
+  }
+  
+  .sub-menu .nav-link:hover::before {
+    background-color: var(--primary-color);
+    width: 8px;
+    height: 8px;
+  }
+  
+  /* Banner promocional */
+  .sidebar-promo {
+    margin: 0.8rem;
+    margin-top: auto;
+  }
+  
+  .bg-primary-gradient {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  }
+  
+  /* Ajustes responsivos */
+  @media (max-width: 991px) {
+    .sidebar {
+      transform: translateX(-100%);
+      box-shadow: none;
+    }
+    
+    .sidebar.show, 
+    body.sidebar-open .sidebar {
+      transform: translateX(0);
+      box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .sidebar-wrapper {
+      padding-top: 0;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Marcar como activo el elemento de menú según la URL actual
+    const currentUrl = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && currentUrl === href) {
+        link.classList.add('active');
+        
+        // Si es un submenú, abrir el padre también
+        const parentCollapse = link.closest('.collapse');
+        if (parentCollapse) {
+          parentCollapse.classList.add('show');
+          const parentLink = document.querySelector(`[data-bs-toggle="collapse"][href="#${parentCollapse.id}"]`);
+          if (parentLink) {
+            parentLink.setAttribute('aria-expanded', 'true');
+            parentLink.classList.remove('collapsed');
+          }
+        }
+      }
+    });
+    
+    // Toggle del sidebar en móvil
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('show');
+      });
+    }
+    
+    if (sidebarClose) {
+      sidebarClose.addEventListener('click', function() {
+        sidebar.classList.remove('show');
+      });
+    }
+    
+    // Cerrar sidebar al hacer clic fuera en móvil
+    document.addEventListener('click', function(event) {
+      const isClickInside = sidebar.contains(event.target) || 
+                           (sidebarToggle && sidebarToggle.contains(event.target));
+      
+      if (!isClickInside && window.innerWidth < 992 && sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+      }
+    });
+  });
+</script> 

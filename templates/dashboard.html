@@ -1,0 +1,526 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | Corpensar{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Encabezado de bienvenida -->
+  <div class="dashboard-header mb-4">
+    <div class="row align-items-center">
+      <div class="col-12 col-lg-8">
+        <h1 class="dashboard-title display-5 fw-bold text-gradient">
+          Bienvenido, {{ user.first_name }}
+        </h1>
+        <p class="dashboard-subtitle lead text-muted">
+          Este es tu panel de control personalizado. Aquí encontrarás un resumen de tus actividades y estadísticas.
+        </p>
+      </div>
+      <div class="col-12 col-lg-4 d-none d-lg-flex justify-content-end">
+        <img src="{% static 'images/dashboard-illustration.svg' %}" alt="Dashboard" class="dashboard-illustration" height="120">
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjetas de estadísticas principales -->
+  <div class="row stat-cards g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card stat-card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon-wrapper bg-primary-soft rounded-circle me-3">
+              <i class="mdi mdi-file-document-outline text-primary fs-3"></i>
+            </div>
+            <div>
+              <h6 class="stat-label mb-1">Encuestas Creadas</h6>
+              <h3 class="stat-value mb-0">{{ stats.encuestas_creadas }}</h3>
+            </div>
+          </div>
+          <div class="stat-change mt-3 d-flex align-items-center">
+            {% if stats.encuestas_porcentaje > 0 %}
+              <span class="badge bg-success-soft text-success me-2">+{{ stats.encuestas_porcentaje }}%</span>
+              <small class="text-muted">desde el mes pasado</small>
+            {% elif stats.encuestas_porcentaje < 0 %}
+              <span class="badge bg-danger-soft text-danger me-2">{{ stats.encuestas_porcentaje }}%</span>
+              <small class="text-muted">desde el mes pasado</small>
+            {% else %}
+              <span class="badge bg-light text-muted me-2">0%</span>
+              <small class="text-muted">sin cambios</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card stat-card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon-wrapper bg-info-soft rounded-circle me-3">
+              <i class="mdi mdi-account-group-outline text-info fs-3"></i>
+            </div>
+            <div>
+              <h6 class="stat-label mb-1">Respuestas Recibidas</h6>
+              <h3 class="stat-value mb-0">{{ stats.respuestas_recibidas }}</h3>
+            </div>
+          </div>
+          <div class="stat-change mt-3 d-flex align-items-center">
+            {% if stats.respuestas_porcentaje > 0 %}
+              <span class="badge bg-success-soft text-success me-2">+{{ stats.respuestas_porcentaje }}%</span>
+              <small class="text-muted">desde el mes pasado</small>
+            {% elif stats.respuestas_porcentaje < 0 %}
+              <span class="badge bg-danger-soft text-danger me-2">{{ stats.respuestas_porcentaje }}%</span>
+              <small class="text-muted">desde el mes pasado</small>
+            {% else %}
+              <span class="badge bg-light text-muted me-2">0%</span>
+              <small class="text-muted">sin cambios</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card stat-card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon-wrapper bg-success-soft rounded-circle me-3">
+              <i class="mdi mdi-chart-line text-success fs-3"></i>
+            </div>
+            <div>
+              <h6 class="stat-label mb-1">Tasa de Finalización</h6>
+              <h3 class="stat-value mb-0">{{ stats.tasa_finalizacion }}%</h3>
+            </div>
+          </div>
+          <div class="stat-change mt-3 d-flex align-items-center">
+            {% if stats.tasa_finalizacion_cambio > 0 %}
+              <span class="badge bg-success-soft text-success me-2">+{{ stats.tasa_finalizacion_cambio }}%</span>
+              <small class="text-muted">desde el mes pasado</small>
+            {% elif stats.tasa_finalizacion_cambio < 0 %}
+              <span class="badge bg-danger-soft text-danger me-2">{{ stats.tasa_finalizacion_cambio }}%</span>
+              <small class="text-muted">desde el mes pasado</small>
+            {% else %}
+              <span class="badge bg-light text-muted me-2">0%</span>
+              <small class="text-muted">sin cambios</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card stat-card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="stat-icon-wrapper bg-warning-soft rounded-circle me-3">
+              <i class="mdi mdi-clock-outline text-warning fs-3"></i>
+            </div>
+            <div>
+              <h6 class="stat-label mb-1">Tiempo Promedio</h6>
+              <h3 class="stat-value mb-0">{{ stats.tiempo_promedio }} min</h3>
+            </div>
+          </div>
+          <div class="stat-change mt-3 d-flex align-items-center">
+            {% if stats.tiempo_promedio_cambio < 0 %}
+              <span class="badge bg-success-soft text-success me-2">{{ stats.tiempo_promedio_cambio }}%</span>
+              <small class="text-muted">más rápido</small>
+            {% elif stats.tiempo_promedio_cambio > 0 %}
+              <span class="badge bg-danger-soft text-danger me-2">+{{ stats.tiempo_promedio_cambio }}%</span>
+              <small class="text-muted">más lento</small>
+            {% else %}
+              <span class="badge bg-light text-muted me-2">0%</span>
+              <small class="text-muted">sin cambios</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos y tablas principales -->
+  <div class="row g-4 mb-4">
+    <!-- Gráfico principal -->
+    <div class="col-12 col-xl-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Resumen de Actividad</h5>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="chartPeriodDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Este Mes
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chartPeriodDropdown">
+              <li><a class="dropdown-item active" href="#">Este Mes</a></li>
+              <li><a class="dropdown-item" href="#">Último Trimestre</a></li>
+              <li><a class="dropdown-item" href="#">Este Año</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="activityChart" height="280"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tabla de encuestas recientes -->
+    <div class="col-12 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Encuestas Recientes</h5>
+          <a href="{% url 'lista_encuestas' %}" class="btn btn-sm btn-link text-primary p-0">Ver todas</a>
+        </div>
+        <div class="card-body p-0">
+          {% if recent_surveys %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <tbody>
+                  {% for survey in recent_surveys %}
+                    <tr>
+                      <td class="ps-3">
+                        <div class="d-flex align-items-center">
+                          <div class="survey-icon-wrapper rounded me-3 d-flex align-items-center justify-content-center" style="background-color: {{ survey.color }}20;">
+                            <i class="mdi {{ survey.icon }} text-{{ survey.color }}" style="font-size: 1rem;"></i>
+                          </div>
+                          <div>
+                            <h6 class="mb-0 survey-title">{{ survey.title }}</h6>
+                            <small class="text-muted">{{ survey.responses }} respuestas</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-end pe-3">
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-icon" type="button" id="dropdownSurvey{{ survey.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="mdi mdi-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownSurvey{{ survey.id }}">
+                            <li><a class="dropdown-item" href="{% url 'ver_encuesta' survey.id %}">Ver Detalles</a></li>
+                            <li><a class="dropdown-item" href="{% url 'editar_encuesta' survey.id %}">Editar</a></li>
+                            <li><a class="dropdown-item" href="{% url 'resultados_encuesta' survey.id %}">Resultados</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'eliminar_encuesta' survey.id %}">Eliminar</a></li>
+                          </ul>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <div class="empty-state-icon mb-3">
+                <i class="mdi mdi-file-document-outline fs-1 text-muted"></i>
+              </div>
+              <h6 class="text-muted">No hay encuestas recientes</h6>
+              <p class="small text-muted mb-3">Comienza creando tu primera encuesta</p>
+              <a href="{% url 'crear_encuesta' %}" class="btn btn-primary btn-sm">
+                <i class="mdi mdi-plus me-1"></i> Crear Encuesta
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Fila inferior - Actividad reciente y consejos -->
+  <div class="row g-4">
+    <!-- Actividad reciente -->
+    <div class="col-12 col-xl-8">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-0">
+          <h5 class="card-title mb-0">Actividad Reciente</h5>
+        </div>
+        <div class="card-body p-0">
+          {% if recent_activities %}
+            <div class="timeline-wrapper">
+              {% for activity in recent_activities %}
+                <div class="timeline-item px-3 py-3 border-bottom">
+                  <div class="d-flex">
+                    <div class="timeline-icon me-3">
+                      <div class="icon-wrapper rounded-circle d-flex align-items-center justify-content-center bg-{{ activity.color }}-soft">
+                        <i class="mdi {{ activity.icon }} text-{{ activity.color }}"></i>
+                      </div>
+                    </div>
+                    <div class="timeline-content">
+                      <p class="mb-1">{{ activity.message }}</p>
+                      <small class="text-muted">{{ activity.timestamp }}</small>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <div class="empty-state-icon mb-3">
+                <i class="mdi mdi-calendar-clock-outline fs-1 text-muted"></i>
+              </div>
+              <h6 class="text-muted">No hay actividades recientes</h6>
+              <p class="small text-muted mb-0">La actividad aparecerá aquí una vez comiences a usar la plataforma</p>
+            </div>
+          {% endif %}
+        </div>
+        {% if recent_activities %}
+          <div class="card-footer bg-transparent border-0 text-center">
+            <a href="{% url 'actividad' %}" class="btn btn-outline-primary btn-sm">Ver toda la actividad</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Consejos y ayuda -->
+    <div class="col-12 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 bg-primary-gradient text-white">
+        <div class="card-body">
+          <h5 class="card-title mb-4">Consejos para empezar</h5>
+          <div class="tips-list">
+            <div class="tip-item d-flex mb-3">
+              <div class="tip-icon me-3">
+                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle" style="width: 32px; height: 32px;">
+                  <i class="mdi mdi-lightbulb-outline text-primary"></i>
+                </div>
+              </div>
+              <div class="tip-content">
+                <h6 class="mb-1">Personaliza tus encuestas</h6>
+                <p class="small mb-0 text-white-50">Utiliza nuestra biblioteca de plantillas para crear encuestas profesionales en minutos.</p>
+              </div>
+            </div>
+            
+            <div class="tip-item d-flex mb-3">
+              <div class="tip-icon me-3">
+                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle" style="width: 32px; height: 32px;">
+                  <i class="mdi mdi-share-variant text-primary"></i>
+                </div>
+              </div>
+              <div class="tip-content">
+                <h6 class="mb-1">Comparte fácilmente</h6>
+                <p class="small mb-0 text-white-50">Distribuye tus encuestas por email, redes sociales o con un enlace personalizado.</p>
+              </div>
+            </div>
+            
+            <div class="tip-item d-flex">
+              <div class="tip-icon me-3">
+                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle" style="width: 32px; height: 32px;">
+                  <i class="mdi mdi-chart-donut text-primary"></i>
+                </div>
+              </div>
+              <div class="tip-content">
+                <h6 class="mb-1">Analiza los resultados</h6>
+                <p class="small mb-0 text-white-50">Visualiza las respuestas con gráficos interactivos y exporta los datos para un análisis más profundo.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <a href="{% url 'guia' %}" class="btn btn-light text-primary btn-sm">Ver guía completa</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Estilos para el dashboard */
+  .dashboard-container {
+    padding: 1.5rem;
+  }
+  
+  .text-gradient {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .dashboard-illustration {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Estilos para tarjetas de estadísticas */
+  .stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  .stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .stat-label {
+    color: var(--muted-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  
+  .stat-value {
+    font-weight: 700;
+    font-size: 1.75rem;
+  }
+  
+  /* Estilos para background soft de los iconos */
+  .bg-primary-soft { background-color: rgba(var(--primary-rgb), 0.15); }
+  .bg-info-soft { background-color: rgba(var(--info-rgb), 0.15); }
+  .bg-success-soft { background-color: rgba(var(--success-rgb), 0.15); }
+  .bg-warning-soft { background-color: rgba(var(--warning-rgb), 0.15); }
+  .bg-danger-soft { background-color: rgba(var(--danger-rgb), 0.15); }
+  
+  /* Estilos para badges soft */
+  .bg-success-soft { background-color: rgba(var(--success-rgb), 0.15); }
+  .bg-danger-soft { background-color: rgba(var(--danger-rgb), 0.15); }
+  
+  /* Estilos para gráficos */
+  .chart-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+  
+  /* Estilos para tabla de encuestas */
+  .survey-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
+  
+  .survey-icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+  
+  /* Estilos para timeline */
+  .timeline-wrapper {
+    position: relative;
+  }
+  
+  .timeline-icon .icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .timeline-item:last-child {
+    border-bottom: none !important;
+  }
+  
+  /* Estilos para gradiente de fondo */
+  .bg-primary-gradient {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 991.98px) {
+    .stat-value {
+      font-size: 1.5rem;
+    }
+  }
+  
+  @media (max-width: 767.98px) {
+    .dashboard-title {
+      font-size: 1.75rem;
+    }
+    
+    .dashboard-subtitle {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Datos de ejemplo para el gráfico de actividad
+    const ctx = document.getElementById('activityChart').getContext('2d');
+    const activityChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+        datasets: [
+          {
+            label: 'Encuestas Creadas',
+            data: [5, 8, 12, 9],
+            backgroundColor: 'rgba(var(--primary-rgb), 0.1)',
+            borderColor: 'var(--primary-color)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Respuestas Recibidas',
+            data: [25, 38, 42, 65],
+            backgroundColor: 'rgba(var(--info-rgb), 0.1)',
+            borderColor: 'var(--info-color)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              boxWidth: 12,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            padding: 10,
+            cornerRadius: 4,
+            caretSize: 6
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              drawBorder: false,
+              color: 'rgba(0, 0, 0, 0.05)'
+            },
+            ticks: {
+              padding: 10
+            }
+          },
+          x: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              padding: 10
+            }
+          }
+        },
+        elements: {
+          point: {
+            radius: 3,
+            hoverRadius: 5
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %} 

@@ -1,60 +1,111 @@
 {% load grupo_tags %}
 
-<nav class="sidebar sidebar-offcanvas" id="sidebar" style="background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%); box-shadow: 0 0 20px rgba(0,0,0,0.2);">
+<nav class="sidebar sidebar-offcanvas" id="sidebar" style="background: linear-gradient(180deg, #1a1a1a 0%, #222222 100%); box-shadow: 0 0 20px rgba(0,0,0,0.2);">
     <style>
         .sidebar {
             min-height: calc(100vh - 50px);
             width: 255px;
             z-index: 11;
-            transition: all 0.25s ease;
+            transition: all 0.3s ease;
             position: fixed;
             left: 0;
-            top: 50px;
+            overflow: hidden;
         }
         
         .sidebar .nav {
-            overflow-y: auto;
             flex-wrap: nowrap;
             flex-direction: column;
             margin-bottom: 60px;
             padding-bottom: 60px;
             height: calc(100vh - 120px);
             width: 100%;
+            padding-top: 10px;
+        }
+        
+        /* Estilos para las secciones del acordeón */
+        .nav-section {
+            margin-bottom: 8px;
+        }
+        
+        .nav-section-header {
+            color: #ffd700;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 8px;
+            margin: 0 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-section-header:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .nav-section-header i {
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-section.active .nav-section-header i {
+            transform: rotate(180deg);
+        }
+        
+        .nav-section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .nav-section.active .nav-section-content {
+            max-height: 500px;
         }
         
         .sidebar .nav .nav-item {
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         
         .sidebar .nav .nav-item .nav-link {
             border-radius: 8px;
             transition: all 0.3s ease;
-            margin: 0 15px;
-            padding: 12px 15px;
+            margin: 4px 15px;
+            padding: 10px 16px;
             white-space: nowrap;
             display: flex;
             align-items: center;
+            position: relative;
+            overflow: hidden;
+            color: rgba(255, 255, 255, 0.8);
         }
         
         .sidebar .nav .nav-item .nav-link:hover {
-            background: rgba(255, 215, 0, 0.2);
+            background: rgba(255, 215, 0, 0.15);
             transform: translateX(5px);
+            color: #ffffff;
         }
         
         .sidebar .nav .nav-item.active .nav-link {
-            background: rgba(255, 215, 0, 0.3);
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.25), rgba(255, 215, 0, 0.1));
             border-left: 4px solid #ffd700;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            color: #ffffff;
         }
         
         .sidebar .nav .nav-item .menu-icon {
-            color: rgba(255, 255, 255, 0.8);
-            background: transparent;
-            margin-right: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.05);
+            margin-right: 14px;
             font-size: 1.1rem;
-            width: 30px;
+            width: 32px;
             text-align: center;
-            height: 30px;
-            line-height: 30px;
+            height: 32px;
+            line-height: 32px;
             border-radius: 8px;
             transition: all 0.3s ease;
             flex-shrink: 0;
@@ -63,6 +114,7 @@
         .sidebar .nav .nav-item .nav-link:hover .menu-icon {
             color: #ffd700;
             transform: scale(1.1);
+            background: rgba(255, 215, 0, 0.15);
         }
         
         .sidebar .nav .nav-item .menu-title {
@@ -74,15 +126,21 @@
             text-overflow: ellipsis;
         }
         
+        .sidebar .nav .nav-item.active .menu-title {
+            color: #ffffff;
+        }
+        
         .sidebar .nav .nav-category {
             color: #ffd700;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             margin: 25px 15px 8px;
-            padding-left: 10px;
+            padding-left: 12px;
+            position: relative;
             text-shadow: 0 0 3px rgba(0,0,0,0.3);
+            border-left: 3px solid #ffd700;
         }
 
         .sidebar-logo {
@@ -93,24 +151,58 @@
             margin-bottom: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             background-color: rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar-logo::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.5), transparent);
         }
 
         .sidebar-logo img {
             height: 70px;
             transition: all 0.3s ease;
-            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+        }
+        
+        .sidebar-logo:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* Contador de notificaciones */
+        .nav-badge {
+            position: absolute;
+            right: 15px;
+            top: 12px;
+            background-color: #ff4081;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         /* Mejoras para dispositivos móviles */
         @media (max-width: 991px) {
             .sidebar {
-                width: 255px;
+                width: 270px;
                 position: fixed;
-                left: -255px;
+                left: -270px;
                 height: 100vh;
                 top: 50px;
                 z-index: 999;
-                box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+                box-shadow: 5px 0 10px rgba(0, 0, 0, 0.2);
             }
             
             .sidebar-open .sidebar {
@@ -126,6 +218,10 @@
             .sidebar .nav .nav-item .nav-link:hover {
                 transform: none;
             }
+            
+            .sidebar .nav .nav-item .nav-link {
+                padding: 14px 16px;
+            }
         }
         
         /* Añadir una capa de oscurecimiento cuando el menú está abierto en móvil */
@@ -138,13 +234,59 @@
             bottom: 0;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 998;
+            backdrop-filter: blur(3px);
+            transition: opacity 0.3s ease;
+            opacity: 0;
         }
         
         @media (max-width: 991px) {
             .sidebar-open .sidebar-backdrop {
                 display: block;
+                opacity: 1;
             }
         }
+        
+        /* Añadir un scrollbar elegante */
+        .sidebar .nav::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        
+        .sidebar .nav::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        
+        .sidebar .nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        
+        .sidebar .nav::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .sidebar .nav .nav-item {
+            animation: fadeIn 0.3s ease forwards;
+            opacity: 0;
+        }
+        
+        .sidebar .nav .nav-item:nth-child(1) { animation-delay: 0.05s; }
+        .sidebar .nav .nav-item:nth-child(2) { animation-delay: 0.1s; }
+        .sidebar .nav .nav-item:nth-child(3) { animation-delay: 0.15s; }
+        .sidebar .nav .nav-item:nth-child(4) { animation-delay: 0.2s; }
+        .sidebar .nav .nav-item:nth-child(5) { animation-delay: 0.25s; }
+        .sidebar .nav .nav-item:nth-child(6) { animation-delay: 0.3s; }
+        .sidebar .nav .nav-item:nth-child(7) { animation-delay: 0.35s; }
+        .sidebar .nav .nav-item:nth-child(8) { animation-delay: 0.4s; }
+        .sidebar .nav .nav-item:nth-child(9) { animation-delay: 0.45s; }
+        .sidebar .nav .nav-item:nth-child(10) { animation-delay: 0.5s; }
     </style>
 
     <div class="sidebar-logo">
@@ -153,122 +295,187 @@
 
     <ul class="nav">
         {% if user.is_authenticated %}
-        <li class="nav-item nav-category">Encuestas</li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
-                <i class="menu-icon mdi mdi-plus-circle-outline"></i>
-                <span class="menu-title">Nueva Encuesta</span>
-            </a>
-        </li>
-        
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'lista_encuestas' %}">
-                <i class="menu-icon mdi mdi-account-outline"></i>
-                <span class="menu-title">Mis encuestas</span>
-            </a>
-        </li>
-        
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'todas_encuestas' %}">
-                <i class="menu-icon mdi mdi-file-multiple"></i>
-                <span class="menu-title">Todas las encuestas</span>
-            </a>
-        </li>
+        <!-- Panel Principal -->
+        <div class="nav-section active">
+            <div class="nav-section-header">
+                <span>Panel Principal</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if request.path == '/index/' or request.path == '/' %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'index' %}">
+                        <i class="menu-icon mdi mdi-view-dashboard"></i>
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                </li>
+            </div>
+        </div>
 
-        <li class="nav-item nav-category">Gestión de Categorías</li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'categorias_principales' %}">
-                <i class="menu-icon mdi mdi-folder-multiple"></i>
-                <span class="menu-title">Categorías y Subcategorías</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_categoria_principal' %}">
-                <i class="menu-icon mdi mdi-folder-plus"></i>
-                <span class="menu-title">Nueva Categoría</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_subcategoria' %}">
-                <i class="menu-icon mdi mdi-folder-plus-outline"></i>
-                <span class="menu-title">Nueva Subcategoría</span>
-            </a>
-        </li>
+        <!-- Encuestas -->
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span>Encuestas</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'seleccionar_metodo' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
+                        <i class="menu-icon mdi mdi-plus-circle-outline"></i>
+                        <span class="menu-title">Nueva Encuesta</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'lista_encuestas' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'lista_encuestas' %}">
+                        <i class="menu-icon mdi mdi-account-outline"></i>
+                        <span class="menu-title">Mis encuestas</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'todas_encuestas' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'todas_encuestas' %}">
+                        <i class="menu-icon mdi mdi-file-multiple"></i>
+                        <span class="menu-title">Todas las encuestas</span>
+                        <span class="nav-badge">7</span>
+                    </a>
+                </li>
+            </div>
+        </div>
 
-        <li class="nav-item nav-category">Gestión de Ubicaciones</li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'regiones_y_municipios' %}">
-                <i class="menu-icon mdi mdi-map-marker-multiple"></i>
-                <span class="menu-title">Regiones y Municipios</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_region' %}">
-                <i class="menu-icon mdi mdi-map-marker-plus"></i>
-                <span class="menu-title">Nueva Región</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_municipio' %}">
-                <i class="menu-icon mdi mdi-city-variant-outline"></i>
-                <span class="menu-title">Nuevo Municipio</span>
-            </a>
-        </li>
+        <!-- Gestión de Categorías -->
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span>Gestión de Categorías</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'categorias_principales' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'categorias_principales' %}">
+                        <i class="menu-icon mdi mdi-folder-multiple"></i>
+                        <span class="menu-title">Categorías y Subcategorías</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'crear_categoria_principal' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'crear_categoria_principal' %}">
+                        <i class="menu-icon mdi mdi-folder-plus"></i>
+                        <span class="menu-title">Nueva Categoría</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'crear_subcategoria' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'crear_subcategoria' %}">
+                        <i class="menu-icon mdi mdi-folder-plus-outline"></i>
+                        <span class="menu-title">Nueva Subcategoría</span>
+                    </a>
+                </li>
+            </div>
+        </div>
 
-        <!-- Sección PQRSFD -->
-        <li class="nav-item nav-category">PQRSFD</li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'listar_pqrsfd' %}">
-                <i class="menu-icon mdi mdi-message-text-outline"></i>
-                <span class="menu-title">Gestionar PQRSFD</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=P">
-                <i class="menu-icon mdi mdi-clock-outline"></i>
-                <span class="menu-title">Pendientes</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=E">
-                <i class="menu-icon mdi mdi-progress-clock"></i>
-                <span class="menu-title">En proceso</span>
-            </a>
-        </li>
+        <!-- Gestión de Ubicaciones -->
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span>Gestión de Ubicaciones</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'regiones_y_municipios' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'regiones_y_municipios' %}">
+                        <i class="menu-icon mdi mdi-map-marker-multiple"></i>
+                        <span class="menu-title">Regiones y Municipios</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'crear_region' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'crear_region' %}">
+                        <i class="menu-icon mdi mdi-map-marker-plus"></i>
+                        <span class="menu-title">Nueva Región</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'crear_municipio' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'crear_municipio' %}">
+                        <i class="menu-icon mdi mdi-city-variant-outline"></i>
+                        <span class="menu-title">Nuevo Municipio</span>
+                    </a>
+                </li>
+            </div>
+        </div>
 
-        <li class="nav-item nav-category">Navegación</li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'public_home' %}">
-                <i class="menu-icon mdi mdi-home"></i>
-                <span class="menu-title">Página Pública</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">
-                <i class="menu-icon mdi mdi-logout"></i>
-                <span class="menu-title">Cerrar sesión</span>
-            </a>
-        </li>
+        <!-- PQRSFD -->
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span>PQRSFD</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=' not in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'listar_pqrsfd' %}">
+                        <i class="menu-icon mdi mdi-message-text-outline"></i>
+                        <span class="menu-title">Gestionar PQRSFD</span>
+                        <span class="nav-badge">3</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=P' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=P">
+                        <i class="menu-icon mdi mdi-clock-outline"></i>
+                        <span class="menu-title">Pendientes</span>
+                        <span class="nav-badge">2</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=E' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=E">
+                        <i class="menu-icon mdi mdi-progress-clock"></i>
+                        <span class="menu-title">En proceso</span>
+                        <span class="nav-badge">1</span>
+                    </a>
+                </li>
+            </div>
+        </div>
+
+        <!-- Navegación -->
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span>Navegación</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'public_home' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'public_home' %}">
+                        <i class="menu-icon mdi mdi-home"></i>
+                        <span class="menu-title">Página Pública</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">
+                        <i class="menu-icon mdi mdi-logout"></i>
+                        <span class="menu-title">Cerrar sesión</span>
+                    </a>
+                </li>
+            </div>
+        </div>
         {% else %}
-        <li class="nav-item nav-category">Navegación</li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'public_home' %}">
-                <i class="menu-icon mdi mdi-home"></i>
-                <span class="menu-title">Inicio</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'crear_pqrsfd' %}">
-                <i class="menu-icon mdi mdi-message-text-outline"></i>
-                <span class="menu-title">PQRSFD</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'login' %}">
-                <i class="menu-icon mdi mdi-login"></i>
-                <span class="menu-title">Iniciar sesión</span>
-            </a>
-        </li>
+        <!-- Navegación para usuarios no autenticados -->
+        <div class="nav-section active">
+            <div class="nav-section-header">
+                <span>Navegación</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'public_home' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'public_home' %}">
+                        <i class="menu-icon mdi mdi-home"></i>
+                        <span class="menu-title">Inicio</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'crear_pqrsfd' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'crear_pqrsfd' %}">
+                        <i class="menu-icon mdi mdi-message-text-outline"></i>
+                        <span class="menu-title">PQRSFD</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">
+                        <i class="menu-icon mdi mdi-login"></i>
+                        <span class="menu-title">Iniciar sesión</span>
+                    </a>
+                </li>
+            </div>
+        </div>
         {% endif %}
     </ul>
 </nav>
@@ -277,25 +484,59 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Cerrar el menú al hacer clic en el backdrop
-        const backdrop = document.getElementById('sidebarBackdrop');
-        if (backdrop) {
-            backdrop.addEventListener('click', function() {
-                document.body.classList.remove('sidebar-open');
-            });
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejo de secciones desplegables
+    const sections = document.querySelectorAll('.nav-section');
+    sections.forEach(section => {
+        const header = section.querySelector('.nav-section-header');
+        const content = section.querySelector('.nav-section-content');
         
-        // Cerrar el menú al hacer clic en un enlace (solo en móvil)
-        const navLinks = document.querySelectorAll('.sidebar .nav-link');
-        function closeMenuOnMobile() {
-            if (window.innerWidth < 992) {
-                document.body.classList.remove('sidebar-open');
+        header.addEventListener('click', () => {
+            const isActive = section.classList.contains('active');
+            
+            // Cerrar todas las secciones
+            sections.forEach(s => {
+                s.classList.remove('active');
+                const c = s.querySelector('.nav-section-content');
+                if (c) c.style.maxHeight = null;
+            });
+            
+            // Si la sección no estaba activa, abrirla
+            if (!isActive) {
+                section.classList.add('active');
+                if (content) {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            }
+        });
+        
+        // Si la sección tiene un elemento activo, abrirla automáticamente
+        if (section.querySelector('.nav-item.active')) {
+            section.classList.add('active');
+            if (content) {
+                content.style.maxHeight = content.scrollHeight + "px";
             }
         }
-        
-        navLinks.forEach(link => {
-            link.addEventListener('click', closeMenuOnMobile);
-        });
     });
+    
+    // Cerrar el menú al hacer clic en el backdrop
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', function() {
+            document.body.classList.remove('sidebar-open');
+        });
+    }
+    
+    // Cerrar el menú al hacer clic en un enlace (solo en móvil)
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    function closeMenuOnMobile() {
+        if (window.innerWidth < 992) {
+            document.body.classList.remove('sidebar-open');
+        }
+    }
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', closeMenuOnMobile);
+    });
+});
 </script>
