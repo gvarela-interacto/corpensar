@@ -32,6 +32,7 @@ urlpatterns = [
   path('encuestas/<int:pk>/resultados/', views.ResultadosEncuestaView.as_view(), name='resultados_encuesta'),
   path('encuestas/<slug:slug>/responder/', views.responder_encuesta, name='responder_encuesta'),
   path('encuesta/responder/<int:encuesta_id>/', views.guardar_respuesta, name='guardar_respuesta'),
+  path('encuestas/<slug:slug>/completada/', views.encuesta_completada, name='encuesta_completada'),
   path('regiones-y-municipios/', views.regiones_y_municipios, name='regiones_y_municipios'),
   path('region/crear/', views.crear_region, name='crear_region'),
   path('region/eliminar/<int:region_id>/', views.eliminar_region, name='eliminar_region'),

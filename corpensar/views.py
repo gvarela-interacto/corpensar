@@ -1315,52 +1315,6 @@ class FechaForm(BaseEncuestaForm):
             )
 
 
-def responder_encuesta(request, slug):
-    encuesta = get_object_or_404(Encuesta, slug=slug)
-    preguntas = []
-    secciones_unicas = []
-    
-    # Obtener todas las preguntas de la encuesta
-    preguntas.extend(encuesta.preguntatexto_relacionadas.all())
-    preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
-    preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
-    preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
-    preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
-    preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
-    preguntas.extend(encuesta.preguntaescala_relacionadas.all())
-    preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
-    preguntas.extend(encuesta.preguntafecha_relacionadas.all())
-    
-    # Ordenar preguntas por orden
-    preguntas.sort(key=lambda x: x.orden)
-    
-    # Obtener secciones únicas manteniendo el orden
-    for pregunta in preguntas:
-        if pregunta.seccion and pregunta.seccion not in secciones_unicas:
-            secciones_unicas.append(pregunta.seccion)
-    
-    # Obtener municipios disponibles filtrados por la región de la encuesta
-    municipios = Municipio.objects.filter(region=encuesta.region)
-    
-    context = {
-        'encuesta': encuesta,
-        'preguntas': preguntas,
-        'secciones_unicas': secciones_unicas,
-        'municipios': municipios,
-        'tema': encuesta.tema,
-    }
-    
-    return render(request, 'Encuesta/responder_encuesta.html', context)
-
-def encuesta_completada(request, slug):
-    """Vista de agradecimiento después de completar una encuesta"""
-    encuesta = get_object_or_404(Encuesta, slug=slug)
-    return render(request, 'Encuesta/encuesta_completada.html', {
-        'encuesta': encuesta
-    })
-    
-
-@login_required
 def guardar_respuesta(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id)
 
@@ -1368,10 +1322,13 @@ def guardar_respuesta(request, encuesta_id):
         municipio_id = request.POST.get('municipio')
         municipio = Municipio.objects.filter(id=municipio_id).first() if municipio_id else None
 
+        # Si el usuario está autenticado, lo usamos; si no, establecemos usuario como None
+        usuario = request.user if request.user.is_authenticated else None
+
         respuesta = RespuestaEncuesta.objects.create(
             encuesta=encuesta,
-            usuario=request.user,
-            municipio=municipio,  # ✅ aquí lo guardas
+            usuario=usuario,
+            municipio=municipio,
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             completada=True
@@ -1388,7 +1345,8 @@ def guardar_respuesta(request, encuesta_id):
         procesar_preguntas_estrellas(request, respuesta)
         procesar_archivos_adjuntos(request, respuesta)
 
-        return redirect('index')
+        # Redirigir a la página de encuesta completada
+        return redirect('encuesta_completada', slug=encuesta.slug)
 
     return redirect('todas_encuestas')
 
@@ -2891,3 +2849,48 @@ def exportar_encuesta_json(request, encuesta_id):
     response['Content-Disposition'] = f'attachment; filename="encuesta_{encuesta.id}.json"'
     
     return response
+
+
+def responder_encuesta(request, slug):
+    encuesta = get_object_or_404(Encuesta, slug=slug)
+    preguntas = []
+    secciones_unicas = []
+    
+    # Obtener todas las preguntas de la encuesta
+    preguntas.extend(encuesta.preguntatexto_relacionadas.all())
+    preguntas.extend(encuesta.preguntatextomultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntaopcionmultiple_relacionadas.all())
+    preguntas.extend(encuesta.preguntacasillasverificacion_relacionadas.all())
+    preguntas.extend(encuesta.preguntamenudesplegable_relacionadas.all())
+    preguntas.extend(encuesta.preguntaestrellas_relacionadas.all())
+    preguntas.extend(encuesta.preguntaescala_relacionadas.all())
+    preguntas.extend(encuesta.preguntamatriz_relacionadas.all())
+    preguntas.extend(encuesta.preguntafecha_relacionadas.all())
+    
+    # Ordenar preguntas por orden
+    preguntas.sort(key=lambda x: x.orden)
+    
+    # Obtener secciones únicas manteniendo el orden
+    for pregunta in preguntas:
+        if pregunta.seccion and pregunta.seccion not in secciones_unicas:
+            secciones_unicas.append(pregunta.seccion)
+    
+    # Obtener municipios disponibles filtrados por la región de la encuesta
+    municipios = Municipio.objects.filter(region=encuesta.region)
+    
+    context = {
+        'encuesta': encuesta,
+        'preguntas': preguntas,
+        'secciones_unicas': secciones_unicas,
+        'municipios': municipios,
+        'tema': encuesta.tema,
+    }
+    
+    return render(request, 'Encuesta/responder_encuesta.html', context)
+
+def encuesta_completada(request, slug):
+    """Vista de agradecimiento después de completar una encuesta"""
+    encuesta = get_object_or_404(Encuesta, slug=slug)
+    return render(request, 'Encuesta/encuesta_completada.html', {
+        'encuesta': encuesta
+    })

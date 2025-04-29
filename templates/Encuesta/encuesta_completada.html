@@ -20,12 +20,12 @@
                     </p>
                     
                     <div class="mt-5">
-                        <a href="{% url 'home' %}" class="btn btn-primary">
+                        <a href="{% url 'public_home' %}" class="btn btn-primary">
                             {% trans "Volver al inicio" %}
                         </a>
                         
                         {% if user.is_authenticated and encuesta.creador == user %}
-                        <a href="{% url 'encuesta_resultados' encuesta.slug %}" class="btn btn-outline-primary ml-2">
+                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-outline-primary ml-2">
                             {% trans "Ver resultados" %}
                         </a>
                         {% endif %}
