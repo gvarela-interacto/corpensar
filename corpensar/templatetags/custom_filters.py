@@ -14,7 +14,9 @@ def times(value):
 @register.filter
 def get_item(dictionary, key):
     """Obtiene un elemento de un diccionario por su clave"""
-    return dictionary.get(key, '') 
+    if isinstance(dictionary, dict):
+        return dictionary.get(key, '') 
+    return 'No es un diccionario'
 
 @register.filter
 def unique(value, arg):
