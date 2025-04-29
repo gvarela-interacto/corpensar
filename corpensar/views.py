@@ -2408,10 +2408,16 @@ def public_home(request):
         activa=True,
         fecha_inicio__lte=timezone.now(),
         fecha_fin__gte=timezone.now()
-    ).order_by('-fecha_creacion')
+    ).select_related('categoria').order_by('-fecha_creacion')
+
+    # Obtener categorías únicas de las encuestas activas
+    categorias_unicas = Categoria.objects.filter(
+        encuesta__in=encuestas_publicas
+    ).distinct()
 
     context = {
         'encuestas_publicas': encuestas_publicas,
+        'categorias_unicas': categorias_unicas,
     }
     return render(request, 'public/home.html', context)
 
