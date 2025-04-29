@@ -497,7 +497,7 @@
           messageElement.classList.add('fade-out');
           setTimeout(() => {
             messageContainer.removeChild(messageElement);
-          }, 500);
+          }, 300);
         });
       }
     }
@@ -535,6 +535,48 @@
         if (window.innerWidth > 991) {
           document.body.classList.remove('sidebar-open');
         }
+      });
+
+      // Marcar el ítem activo en el menú
+      const currentPath = window.location.pathname;
+      const menuLinks = document.querySelectorAll('.sidebar .nav-link');
+      
+      menuLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && currentPath.includes(href) && href !== '/') {
+          link.closest('.nav-item').classList.add('active');
+        } else if (href === '/' && currentPath === '/') {
+          link.closest('.nav-item').classList.add('active');
+        }
+      });
+      
+      // Manejar transiciones de página
+      document.querySelectorAll('a:not([target="_blank"])').forEach(link => {
+        link.addEventListener('click', function(e) {
+          // No aplicar a enlaces con atributo data-no-transition
+          if (this.hasAttribute('data-no-transition')) return;
+          
+          // No aplicar a enlaces que abren dropdowns
+          if (this.hasAttribute('data-bs-toggle')) return;
+          
+          const href = this.getAttribute('href');
+          // Solo aplicar a enlaces internos que no sean anclas
+          if (href && href.startsWith('/') && !href.startsWith('#')) {
+            e.preventDefault();
+            const contentWrapper = document.querySelector('.content-wrapper');
+            
+            if (contentWrapper) {
+              contentWrapper.style.opacity = '0';
+              contentWrapper.style.transform = 'translateY(10px)';
+              
+              setTimeout(() => {
+                window.location.href = href;
+              }, 200);
+            } else {
+              window.location.href = href;
+            }
+          }
+        });
       });
     });
   </script>

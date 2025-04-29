@@ -576,6 +576,31 @@
             background-color: #e9ecef !important;
             color: #6c757d;
         }
+
+        /* Estilos adicionales para el dropdown */
+        .dropdown-menu {
+            animation: dropdown-fade 0.2s ease;
+        }
+        
+        @keyframes dropdown-fade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-item {
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(255, 215, 0, 0.15);
+            transform: translateX(3px);
+        }
+        
+        .dropdown-divider {
+            margin: 8px 0;
+        }
     </style>
     <link rel="icon" type="image/png" href="/static/images/logo corpensar-12.webp">
 </head>
@@ -603,11 +628,39 @@
                             <i class="fas fa-comments me-2"></i>PQRSFD
                         </a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            Mi Cuenta
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" 
+                            style="border-radius: 12px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.15); padding: 8px; min-width: 200px;">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'index' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'lista_encuestas' %}">
+                                    <i class="fas fa-clipboard-list me-2"></i>Mis Encuestas
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
                     <li class="nav-item">
                         <a class="nav-link btn-primary" href="{% url 'login' %}">
                             <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

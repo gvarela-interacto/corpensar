@@ -152,6 +152,7 @@
     </div>
 
     <ul class="nav">
+        {% if user.is_authenticated %}
         <li class="nav-item nav-category">Encuestas</li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
@@ -235,13 +236,40 @@
             </a>
         </li>
 
-        <li class="nav-item nav-category">Asistencia</li>
+        <li class="nav-item nav-category">Navegación</li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'public_home' %}">
+                <i class="menu-icon mdi mdi-home"></i>
+                <span class="menu-title">Página Pública</span>
+            </a>
+        </li>
         <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">
                 <i class="menu-icon mdi mdi-logout"></i>
                 <span class="menu-title">Cerrar sesión</span>
             </a>
         </li>
+        {% else %}
+        <li class="nav-item nav-category">Navegación</li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'public_home' %}">
+                <i class="menu-icon mdi mdi-home"></i>
+                <span class="menu-title">Inicio</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'crear_pqrsfd' %}">
+                <i class="menu-icon mdi mdi-message-text-outline"></i>
+                <span class="menu-title">PQRSFD</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">
+                <i class="menu-icon mdi mdi-login"></i>
+                <span class="menu-title">Iniciar sesión</span>
+            </a>
+        </li>
+        {% endif %}
     </ul>
 </nav>
 
@@ -249,25 +277,25 @@
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const backdrop = document.getElementById('sidebarBackdrop');
-    
-    if (backdrop) {
-        backdrop.addEventListener('click', function() {
-            document.body.classList.remove('sidebar-open');
-        });
-    }
-    
-    // Cerrar menú al hacer clic en enlaces en dispositivos móviles
-    if (window.innerWidth <= 991) {
-        const menuLinks = document.querySelectorAll('.sidebar .nav .nav-item .nav-link');
-        menuLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                setTimeout(() => {
-                    document.body.classList.remove('sidebar-open');
-                }, 150);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cerrar el menú al hacer clic en el backdrop
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', function() {
+                document.body.classList.remove('sidebar-open');
             });
+        }
+        
+        // Cerrar el menú al hacer clic en un enlace (solo en móvil)
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+        function closeMenuOnMobile() {
+            if (window.innerWidth < 992) {
+                document.body.classList.remove('sidebar-open');
+            }
+        }
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', closeMenuOnMobile);
         });
-    }
-});
+    });
 </script>

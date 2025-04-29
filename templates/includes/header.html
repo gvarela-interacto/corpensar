@@ -7,7 +7,7 @@
           </button>
         </div>
         <div class="d-lg-block d-none">
-          <a class="navbar-brand brand-logo" href="{% url 'index' %}" style="transition: all 0.3s ease;">
+          <a class="navbar-brand brand-logo" href="{% if user.is_authenticated %}{% url 'index' %}{% else %}{% url 'public_home' %}{% endif %}" style="transition: all 0.3s ease;">
             <img src="http://72.14.187.231/corpensar/images/logoappw.png" style="width: 110px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
           </a>
         </div>
@@ -25,11 +25,39 @@
                     {% endif %}
                 </span>
             </h1>
-        </li>
+          </li>
+        </ul>
+        
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #333; font-weight: 500;">
+              Mi Cuenta
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown" style="border-radius: 12px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.15); padding: 8px;">
+              <li><a class="dropdown-item" href="{% url 'index' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-view-dashboard me-2"></i> Dashboard</a></li>
+              <li><a class="dropdown-item" href="{% url 'lista_encuestas' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-file-document me-2"></i> Mis Encuestas</a></li>
+              <li><hr class="dropdown-divider" style="margin: 8px 0;"></li>
+              <li><a class="dropdown-item" href="{% url 'public_home' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-home me-2"></i> Página Pública</a></li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}" style="padding: 8px 16px; border-radius: 8px;"><i class="mdi mdi-logout me-2"></i> Cerrar Sesión</a></li>
+            </ul>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a href="{% url 'login' %}" class="nav-link btn" style="background-color: var(--primary-color); color: #000; font-weight: 600; padding: 8px 20px; border-radius: 10px; margin-right: 10px;">
+              <i class="mdi mdi-login me-1"></i> Iniciar Sesión
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'public_home' %}" class="nav-link" style="color: #333; font-weight: 500;">
+              <i class="mdi mdi-home me-1"></i> Inicio
+            </a>
+          </li>
+          {% endif %}
         </ul>
         
         <div class="d-lg-none d-flex align-items-center">
-          <a class="navbar-brand brand-logo me-3" href="{% url 'index' %}" style="transition: all 0.3s ease;">
+          <a class="navbar-brand brand-logo me-3" href="{% if user.is_authenticated %}{% url 'index' %}{% else %}{% url 'public_home' %}{% endif %}" style="transition: all 0.3s ease;">
             <img src="/static/images/logo corpensar-12.webp" style="width: 90px; height: auto; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.1));" alt="logo" />
           </a>
           <button class="navbar-toggler navbar-toggler-right align-self-center toggle-sidebar" type="button" data-bs-toggle="offcanvas" style="transition: all 0.3s ease; border-radius: 8px; padding: 5px; background: var(--primary-color);">
@@ -49,6 +77,22 @@
             background-position: 0% 50%;
           }
         }
+        
+        /* Estilos para dropdown */
+        .dropdown-menu {
+          animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-item:hover {
+          background-color: rgba(255, 215, 0, 0.15);
+          transform: translateX(3px);
+          transition: all 0.2s ease;
+        }
       </style>
     </nav>
     
@@ -62,6 +106,12 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             document.body.classList.toggle('sidebar-open');
         });
+    });
+    
+    // Inicializar los dropdowns de Bootstrap
+    var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+      return new bootstrap.Dropdown(dropdownToggleEl)
     });
 });
 </script>
