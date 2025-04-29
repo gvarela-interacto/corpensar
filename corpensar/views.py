@@ -2894,3 +2894,9 @@ def encuesta_completada(request, slug):
     return render(request, 'Encuesta/encuesta_completada.html', {
         'encuesta': encuesta
     })
+
+def mi_perfil(request):
+    return render(request, 'perfil/mi_perfil.html')
+
+def configuracion(request):
+    return render(request, 'perfil/configuracion.html')

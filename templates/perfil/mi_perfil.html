@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            {% if user.profile_image %}
+                                <img src="{{ user.profile_image.url }}" alt="Foto de perfil" class="profile-image-xl mb-3">
+                            {% else %}
+                                <div class="profile-avatar-xl mb-3">
+                                    {% if user.first_name %}
+                                        {{ user.first_name|slice:":1"|upper }}
+                                    {% else %}
+                                        {{ user.username|slice:":1"|upper }}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <button class="btn btn-outline-gold mb-3">
+                                <i class="mdi mdi-camera"></i> Cambiar foto
+                            </button>
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="text-gold mb-4">Información del Perfil</h4>
+                            <div class="mb-4">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="text-gold-light">Nombre</label>
+                                        <p class="text-white">{{ user.first_name }} {{ user.last_name }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-gold-light">Usuario</label>
+                                        <p class="text-white">{{ user.username }}</p>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="text-gold-light">Email</label>
+                                        <p class="text-white">{{ user.email }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-gold-light">Rol</label>
+                                        <p class="text-white">
+                                            {% if user.is_superuser %}
+                                                Administrador
+                                            {% else %}
+                                                Usuario
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-3">
+                                <button class="btn btn-gold">
+                                    <i class="mdi mdi-pencil me-1"></i> Editar Perfil
+                                </button>
+                                <button class="btn btn-outline-gold">
+                                    <i class="mdi mdi-key me-1"></i> Cambiar Contraseña
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-image-xl {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--gold-color);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .profile-avatar-xl {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--gold-light);
+        color: var(--gold-color);
+        font-size: 4rem;
+        font-weight: 600;
+        margin: 0 auto;
+        border: 3px solid var(--gold-color);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-gold {
+        background-color: var(--gold-color);
+        color: #000;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+        background-color: #e6c200;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-gold {
+        border: 2px solid var(--gold-color);
+        color: var(--gold-color);
+        background: transparent;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-gold:hover {
+        background-color: var(--gold-color);
+        color: #000;
+        transform: translateY(-2px);
+    }
+
+    .card {
+        border: 1px solid rgba(255, 215, 0, 0.1);
+        border-radius: 15px;
+        background: linear-gradient(145deg, #1a1a1a 0%, #222222 100%);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    label {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    p {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %} 

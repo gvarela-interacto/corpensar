@@ -1,0 +1,205 @@
+/* Variables globales */
+:root {
+    --gold-color: #ffd700;
+    --gold-light: rgba(255, 215, 0, 0.15);
+    --gold-hover: rgba(255, 215, 0, 0.25);
+    --dark-bg: #1a1a1a;
+    --dark-bg-2: #222222;
+    --text-white: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+}
+
+/* Estilos generales */
+body {
+    background: var(--dark-bg);
+    color: var(--text-white);
+}
+
+/* Textos */
+.text-gold {
+    color: var(--gold-color) !important;
+}
+
+.text-gold-light {
+    color: rgba(255, 215, 0, 0.8) !important;
+}
+
+/* Fondos */
+.bg-dark {
+    background-color: var(--dark-bg) !important;
+}
+
+.bg-dark-2 {
+    background-color: var(--dark-bg-2) !important;
+}
+
+.bg-gold-light {
+    background-color: var(--gold-light) !important;
+}
+
+/* Bordes */
+.border-gold {
+    border: 1px solid var(--gold-color) !important;
+}
+
+/* Botones */
+.btn-gold {
+    background-color: var(--gold-color);
+    color: #000;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-gold:hover {
+    background-color: #e6c200;
+    transform: translateY(-2px);
+}
+
+.btn-outline-gold {
+    border: 2px solid var(--gold-color);
+    color: var(--gold-color);
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-gold:hover {
+    background-color: var(--gold-color);
+    color: #000;
+    transform: translateY(-2px);
+}
+
+/* Cards */
+.card {
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    border-radius: 15px;
+    background: linear-gradient(145deg, var(--dark-bg) 0%, var(--dark-bg-2) 100%);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Formularios */
+.form-control, .form-select {
+    background-color: var(--dark-bg);
+    border: 1px solid var(--gold-color);
+    color: var(--text-white);
+    border-radius: 8px;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--dark-bg);
+    border-color: var(--gold-color);
+    color: var(--text-white);
+    box-shadow: 0 0 0 2px var(--gold-light);
+}
+
+.form-select option {
+    background-color: var(--dark-bg-2);
+    color: var(--text-white);
+}
+
+/* Switches */
+.form-check-input {
+    background-color: var(--dark-bg);
+    border-color: var(--gold-color);
+}
+
+.form-check-input:checked {
+    background-color: var(--gold-color);
+    border-color: var(--gold-color);
+}
+
+.form-check-input:focus {
+    border-color: var(--gold-color);
+    box-shadow: 0 0 0 2px var(--gold-light);
+}
+
+/* Links */
+a {
+    color: var(--gold-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #e6c200;
+}
+
+/* Tablas */
+.table {
+    color: var(--text-white);
+}
+
+.table thead th {
+    background-color: var(--gold-light);
+    color: var(--gold-color);
+    border-bottom: 2px solid var(--gold-color);
+}
+
+.table tbody tr:hover {
+    background-color: var(--gold-light);
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gold-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-hover);
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+    background-color: var(--dark-bg-2);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.dropdown-item {
+    color: var(--text-white);
+}
+
+.dropdown-item:hover {
+    background-color: var(--gold-light);
+    color: var(--text-white);
+}
+
+.dropdown-divider {
+    border-color: rgba(255, 215, 0, 0.1);
+}
+
+/* Badges */
+.badge-gold {
+    background-color: var(--gold-color);
+    color: #000;
+}
+
+/* Alerts */
+.alert-gold {
+    background-color: var(--gold-light);
+    color: var(--gold-color);
+    border: 1px solid var(--gold-color);
+}
+
+/* Modal */
+.modal-content {
+    background: linear-gradient(145deg, var(--dark-bg) 0%, var(--dark-bg-2) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 215, 0, 0.1);
+} 

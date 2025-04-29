@@ -19,7 +19,7 @@
       <div class="ms-auto d-flex align-items-center gap-3">
         
 
-        <!-- Notificaciones dropdown -->
+        <!-- Notificaciones dropdown
         <div class="dropdown">
           <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="mdi mdi-bell fs-4"></i>
@@ -76,7 +76,7 @@
               <a href="#" class="text-decoration-none text-gold small">Ver todas las notificaciones</a>
             </li>
           </ul>
-        </div>
+        </div> -->
 
         <!-- Acceso rápido -->
         <div class="dropdown d-none d-md-block">
@@ -170,22 +170,21 @@
                       </div>
                     {% endif %}
                     <div class="ms-3">
-                      <h6 class="mb-1 fw-semibold">
+                      <h6 class="mb-1 fw-semibold text-white">
                         {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}
                       </h6>
-                      <p class="mb-0 small text-muted">{{ user.email }}</p>
+                      <p class="mb-0 small text-gold-light">{{ user.email }}</p>
                     </div>
                   </div>
                 </div>
               </li>
-              <li><a class="dropdown-item py-2" href="#"><i class="mdi mdi-account me-2 text-gold"></i>Mi Perfil</a></li>
-              <li><a class="dropdown-item py-2" href="#"><i class="mdi mdi-cog me-2 text-gold"></i>Configuración</a></li>
-              <li><a class="dropdown-item py-2" href="{% url 'public_home' %}"><i class="mdi mdi-web me-2 text-gold"></i>Página Pública</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'mi_perfil' %}"><i class="mdi mdi-account-circle text-gold"></i>Mi Perfil</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'public_home' %}"><i class="mdi mdi-web text-gold"></i>Página Pública</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item py-2 text-danger" href="{% url 'logout' %}"><i class="mdi mdi-logout me-2"></i>Cerrar Sesión</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'logout' %}"><i class="mdi mdi-logout text-danger"></i>Cerrar Sesión</a></li>
             {% else %}
-              <li><a class="dropdown-item py-2" href="{% url 'login' %}"><i class="mdi mdi-login me-2 text-gold"></i>Iniciar Sesión</a></li>
-              <li><a class="dropdown-item py-2" href="{% url 'register' %}"><i class="mdi mdi-account-plus me-2 text-gold"></i>Registrarse</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'login' %}"><i class="mdi mdi-login text-gold"></i>Iniciar Sesión</a></li>
+              
             {% endif %}
           </ul>
         </div>

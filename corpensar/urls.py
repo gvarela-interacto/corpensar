@@ -67,5 +67,7 @@ urlpatterns = [
 
   path('encuesta/<int:encuesta_id>/exportar-json/', views.exportar_encuesta_json, name='exportar_encuesta_json'),
 
+  path('perfil/', views.mi_perfil, name='mi_perfil'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
