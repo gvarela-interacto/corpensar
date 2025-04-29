@@ -327,7 +327,7 @@
   }
   
   .text-gradient {
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(45deg, #4e73df, #36b9cc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -343,11 +343,13 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border-radius: 12px;
     overflow: hidden;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
   }
   
   .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
   }
   
   .stat-icon-wrapper {
@@ -359,7 +361,7 @@
   }
   
   .stat-label {
-    color: var(--muted-color);
+    color: #6c757d;
     font-size: 0.9rem;
     font-weight: 500;
   }
@@ -367,18 +369,43 @@
   .stat-value {
     font-weight: 700;
     font-size: 1.75rem;
+    color: #1a1a1a;
   }
   
   /* Estilos para background soft de los iconos */
-  .bg-primary-soft { background-color: rgba(var(--primary-rgb), 0.15); }
-  .bg-info-soft { background-color: rgba(var(--info-rgb), 0.15); }
-  .bg-success-soft { background-color: rgba(var(--success-rgb), 0.15); }
-  .bg-warning-soft { background-color: rgba(var(--warning-rgb), 0.15); }
-  .bg-danger-soft { background-color: rgba(var(--danger-rgb), 0.15); }
+  .bg-primary-soft { background-color: rgba(78, 115, 223, 0.15); }
+  .bg-info-soft { background-color: rgba(54, 185, 204, 0.15); }
+  .bg-success-soft { background-color: rgba(28, 200, 138, 0.15); }
+  .bg-warning-soft { background-color: rgba(246, 194, 62, 0.15); }
+  .bg-danger-soft { background-color: rgba(231, 74, 59, 0.15); }
+  
+  /* Colores para los textos en badges */
+  .text-primary { color: #4e73df !important; }
+  .text-info { color: #36b9cc !important; }
+  .text-success { color: #1cc88a !important; }
+  .text-warning { color: #f6c23e !important; }
+  .text-danger { color: #e74a3b !important; }
   
   /* Estilos para badges soft */
-  .bg-success-soft { background-color: rgba(var(--success-rgb), 0.15); }
-  .bg-danger-soft { background-color: rgba(var(--danger-rgb), 0.15); }
+  .badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+  }
+  
+  .badge.bg-success-soft { 
+    background-color: rgba(28, 200, 138, 0.15) !important;
+    color: #1cc88a !important;
+  }
+  
+  .badge.bg-danger-soft { 
+    background-color: rgba(231, 74, 59, 0.15) !important; 
+    color: #e74a3b !important;
+  }
+  
+  .badge.bg-light { 
+    background-color: rgba(0, 0, 0, 0.05) !important; 
+    color: #6c757d !important;
+  }
   
   /* Estilos para gráficos */
   .chart-container {
@@ -393,6 +420,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 150px;
+    color: #1a1a1a;
   }
   
   .survey-icon-wrapper {
@@ -416,7 +444,30 @@
   
   /* Estilos para gradiente de fondo */
   .bg-primary-gradient {
-    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(45deg, #4e73df, #36b9cc);
+  }
+  
+  /* Text colors */
+  .text-muted {
+    color: #6c757d !important;
+  }
+  
+  /* Card styles */
+  .card {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-header {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-title {
+    color: #1a1a1a;
+    font-weight: 600;
   }
   
   /* Responsive adjustments */

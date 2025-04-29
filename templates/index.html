@@ -342,6 +342,134 @@
     color: #2c3e50;
     margin-right: 8px;
   }
+
+  /* Mejoras para las tarjetas de estadísticas */
+  .counter-card {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: white;
+    color: #333;
+  }
+  
+  .counter-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .counter-card .card-header {
+    background-color: rgba(255, 215, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+  }
+  
+  .counter-card .counter {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  
+  .counter-card .counter-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  .counter-card.blue-card {
+    border-top: 4px solid var(--primary-color);
+  }
+  
+  .counter-card.green-card {
+    border-top: 4px solid var(--success-color);
+  }
+  
+  .counter-card.yellow-card {
+    border-top: 4px solid var(--warning-color);
+  }
+  
+  .counter-card.red-card {
+    border-top: 4px solid var(--danger-color);
+  }
+  
+  /* Mejoras para los gráficos */
+  .chart-container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  
+  .chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  /* Mejoras para las tarjetas con información geográfica */
+  .geo-card {
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    height: 100%;
+  }
+  
+  .geo-card .card-header {
+    background-color: rgba(255, 215, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    color: #333;
+  }
+  
+  /* Mejoras para badges y etiquetas */
+  .stats-label {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 6px;
+    background-color: rgba(255, 215, 0, 0.1);
+    color: #1a1a1a;
+  }
+  
+  /* Mejoras para tarjetas con información de encuestas */
+  .survey-card {
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .survey-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .survey-card .card-header {
+    background-color: rgba(255, 215, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .survey-title {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+  
+  .survey-meta {
+    color: #6c757d;
+    font-size: 0.85rem;
+  }
 </style>
 
 <div class="container-fluid py-4">

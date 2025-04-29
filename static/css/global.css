@@ -6,13 +6,20 @@
     --dark-bg: #1a1a1a;
     --dark-bg-2: #222222;
     --text-white: #ffffff;
-    --text-muted: rgba(255, 255, 255, 0.6);
+    --text-muted: rgba(255, 255, 255, 0.8);
+    
+    /* Colores adicionales para contraste */
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
 }
 
 /* Estilos generales */
 body {
-    background: var(--dark-bg);
-    color: var(--text-white);
+    background: #f8f9fc;
+    color: #333;
 }
 
 /* Textos */
@@ -57,7 +64,7 @@ body {
 
 .btn-outline-gold {
     border: 2px solid var(--gold-color);
-    color: var(--gold-color);
+    color: var(--dark-bg);
     background: transparent;
     transition: all 0.3s ease;
 }
@@ -70,36 +77,52 @@ body {
 
 /* Cards */
 .card {
-    border: 1px solid rgba(255, 215, 0, 0.1);
-    border-radius: 15px;
-    background: linear-gradient(145deg, var(--dark-bg) 0%, var(--dark-bg-2) 100%);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.card-header {
+    background: rgba(255, 215, 0, 0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
 }
 
 /* Formularios */
 .form-control, .form-select {
-    background-color: var(--dark-bg);
-    border: 1px solid var(--gold-color);
-    color: var(--text-white);
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #333;
     border-radius: 8px;
 }
 
 .form-control:focus, .form-select:focus {
-    background-color: var(--dark-bg);
+    background-color: #fff;
     border-color: var(--gold-color);
-    color: var(--text-white);
+    color: #333;
     box-shadow: 0 0 0 2px var(--gold-light);
 }
 
 .form-select option {
-    background-color: var(--dark-bg-2);
-    color: var(--text-white);
+    background-color: #fff;
+    color: #333;
 }
 
 /* Switches */
 .form-check-input {
-    background-color: var(--dark-bg);
-    border-color: var(--gold-color);
+    background-color: #fff;
+    border-color: rgba(0, 0, 0, 0.2);
 }
 
 .form-check-input:checked {
@@ -114,28 +137,29 @@ body {
 
 /* Links */
 a {
-    color: var(--gold-color);
+    color: var(--primary-color);
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
 a:hover {
-    color: #e6c200;
+    color: var(--gold-color);
 }
 
 /* Tablas */
 .table {
-    color: var(--text-white);
+    color: #333;
 }
 
 .table thead th {
-    background-color: var(--gold-light);
-    color: var(--gold-color);
-    border-bottom: 2px solid var(--gold-color);
+    background-color: rgba(255, 215, 0, 0.1);
+    color: #333;
+    border-bottom: 1px solid var(--gold-color);
+    font-weight: 600;
 }
 
 .table tbody tr:hover {
-    background-color: var(--gold-light);
+    background-color: rgba(255, 215, 0, 0.05);
 }
 
 /* Scrollbar personalizado */
@@ -145,7 +169,7 @@ a:hover {
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--dark-bg);
+    background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -159,22 +183,22 @@ a:hover {
 
 /* Dropdown Menus */
 .dropdown-menu {
-    background-color: var(--dark-bg-2);
-    border: 1px solid rgba(255, 215, 0, 0.1);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-item {
-    color: var(--text-white);
+    color: #333;
 }
 
 .dropdown-item:hover {
     background-color: var(--gold-light);
-    color: var(--text-white);
+    color: #333;
 }
 
 .dropdown-divider {
-    border-color: rgba(255, 215, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Badges */
@@ -183,23 +207,137 @@ a:hover {
     color: #000;
 }
 
+.bg-success-soft {
+    background-color: rgba(28, 200, 138, 0.15) !important;
+    color: var(--success-color) !important;
+}
+
+.bg-danger-soft {
+    background-color: rgba(231, 74, 59, 0.15) !important;
+    color: var(--danger-color) !important;
+}
+
+.bg-warning-soft {
+    background-color: rgba(246, 194, 62, 0.15) !important;
+    color: var(--warning-color) !important;
+}
+
+.bg-info-soft {
+    background-color: rgba(54, 185, 204, 0.15) !important;
+    color: var(--info-color) !important;
+}
+
+.bg-primary-soft {
+    background-color: rgba(78, 115, 223, 0.15) !important;
+    color: var(--primary-color) !important;
+}
+
 /* Alerts */
 .alert-gold {
     background-color: var(--gold-light);
-    color: var(--gold-color);
+    color: #333;
     border: 1px solid var(--gold-color);
 }
 
 /* Modal */
 .modal-content {
-    background: linear-gradient(145deg, var(--dark-bg) 0%, var(--dark-bg-2) 100%);
-    border: 1px solid rgba(255, 215, 0, 0.1);
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
 }
 
 .modal-header {
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .modal-footer {
-    border-top: 1px solid rgba(255, 215, 0, 0.1);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Estilo específico para tarjetas de estadísticas */
+.stat-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.2;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.stat-icon-wrapper {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mejora para texto en tarjetas oscuras */
+.bg-dark .card-title,
+.bg-dark-2 .card-title,
+.bg-primary .card-title,
+.bg-success .card-title,
+.bg-info .card-title,
+.bg-warning .card-title,
+.bg-danger .card-title {
+    color: #ffffff;
+}
+
+.bg-dark .card,
+.bg-dark-2 .card {
+    background: #ffffff;
+    color: #333;
+}
+
+/* Mejora para badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 6px;
+}
+
+.badge.rounded-pill {
+    border-radius: 50rem;
+}
+
+.badge.bg-success {
+    background-color: var(--success-color) !important;
+    color: #fff;
+}
+
+.badge.bg-danger {
+    background-color: var(--danger-color) !important;
+    color: #fff;
+}
+
+.badge.bg-warning {
+    background-color: var(--warning-color) !important;
+    color: #212529;
+}
+
+.badge.bg-info {
+    background-color: var(--info-color) !important;
+    color: #fff;
+}
+
+.badge.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: #fff;
 } 

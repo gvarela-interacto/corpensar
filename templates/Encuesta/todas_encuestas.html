@@ -275,7 +275,7 @@
             {% for encuesta in encuestas %}
             <div class="col">
                 <div class="card h-100 shadow-sm card-hover">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <span class="text-muted small">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</span>
                         {% if encuesta.activa %}
                         <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
@@ -285,39 +285,38 @@
                     </div>
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-sm bg-primary rounded-circle text-center me-3">
-                                <i class="fas fa-poll text-white my-2"></i>
+                            <div class="avatar-sm bg-primary-soft rounded-circle text-center me-3" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-poll text-primary"></i>
                             </div>
-                            <h5 class="card-title mb-0">{{ encuesta.titulo }}</h5>
+                            <h5 class="card-title mb-0 fw-semibold">{{ encuesta.titulo }}</h5>
                         </div>
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>Región:</span>
-                                <span>{{ encuesta.region.nombre|default:"Sin región" }}</span>
+                                <span class="fw-medium">{{ encuesta.region.nombre|default:"Sin región" }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-tags me-1"></i>Categoría:</span>
-                                <span>{{ encuesta.categoria.nombre|default:"Sin categoría" }}</span>
+                                <span class="fw-medium">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-tags me-1"></i>Subcategoría:</span>
-                                <span>{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</span>
+                                <span class="fw-medium">{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-palette me-1"></i>Tema:</span>
-                                <span>{{ encuesta.get_tema_display|default:"Sin tema" }}</span>
+                                <span class="fw-medium">{{ encuesta.get_tema_display|default:"Sin tema" }}</span>
                             </div>
-
                             <div class="d-flex justify-content-between">
                                 <span class="text-muted"><i class="fas fa-user me-1"></i>Creador:</span>
-                                <span>{{ encuesta.creador.username }}</span>
+                                <span class="fw-medium">{{ encuesta.creador.username }}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-white border-top-0 pt-0">
+                    <div class="card-footer bg-white border-top pt-0">
                         <div class="d-grid gap-2">
                             {% if encuesta.slug %}
-                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-eye me-1"></i> Ver encuesta
                             </a>
                             {% else %}
