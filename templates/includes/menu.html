@@ -406,21 +406,45 @@
                     <a class="nav-link" href="{% url 'listar_pqrsfd' %}">
                         <i class="menu-icon mdi mdi-message-text-outline"></i>
                         <span class="menu-title">Gestionar PQRSFD</span>
-                        <span class="nav-badge">3</span>
+                        {% if conteo_estados %}
+                            <span class="nav-badge">{{ conteo_estados.total }}</span>
+                        {% endif %}
                     </a>
                 </li>
                 <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=P' in request.path %}active{% endif %}">
                     <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=P">
                         <i class="menu-icon mdi mdi-clock-outline"></i>
                         <span class="menu-title">Pendientes</span>
-                        <span class="nav-badge">2</span>
+                        {% if conteo_estados %}
+                            <span class="nav-badge">{{ conteo_estados.P }}</span>
+                        {% endif %}
                     </a>
                 </li>
                 <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=E' in request.path %}active{% endif %}">
                     <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=E">
                         <i class="menu-icon mdi mdi-progress-clock"></i>
                         <span class="menu-title">En proceso</span>
-                        <span class="nav-badge">1</span>
+                        {% if conteo_estados %}
+                            <span class="nav-badge">{{ conteo_estados.E }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=R' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=R">
+                        <i class="menu-icon mdi mdi-check-circle-outline"></i>
+                        <span class="menu-title">Resueltos</span>
+                        {% if conteo_estados %}
+                            <span class="nav-badge">{{ conteo_estados.R }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item {% if 'listar_pqrsfd' in request.path and 'estado=vencidos' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'listar_pqrsfd' %}?estado=vencidos">
+                        <i class="menu-icon mdi mdi-alert-outline"></i>
+                        <span class="menu-title">Vencidos</span>
+                        {% if conteo_estados %}
+                            <span class="nav-badge text-danger">{{ conteo_estados.vencidos }}</span>
+                        {% endif %}
                     </a>
                 </li>
             </div>

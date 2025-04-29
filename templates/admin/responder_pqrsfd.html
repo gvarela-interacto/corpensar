@@ -26,6 +26,49 @@
                     {% endif %}
                     <p><strong>Asunto:</strong> {{ pqrsfd.asunto }}</p>
                     <p><strong>Fecha de creación:</strong> {{ pqrsfd.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    
+                    {% if pqrsfd.estado == 'P' or pqrsfd.estado == 'E' %}
+                        <div class="mb-3 p-3 border rounded bg-light">
+                            <h5 class="text-primary mb-3"><i class="fas fa-clock me-2"></i> Tiempo de Respuesta</h5>
+                            
+                            {% if pqrsfd.esta_vencido %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i> 
+                                    <strong>¡Atención!</strong> El tiempo de respuesta ha vencido.
+                                </div>
+                            {% else %}
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Tiempo asignado:</strong></p>
+                                        <h4 class="text-primary">{{ pqrsfd.get_tiempo_respuesta }} días</h4>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Días restantes:</strong></p>
+                                        <h4 class="{% if pqrsfd.get_dias_restantes < 3 %}text-danger{% elif pqrsfd.get_dias_restantes < 7 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ pqrsfd.get_dias_restantes }} días
+                                        </h4>
+                                    </div>
+                                </div>
+                                
+                                <p class="mb-1"><strong>Fecha límite:</strong> {{ pqrsfd.get_fecha_limite|date:"d/m/Y" }}</p>
+                                
+                                <div class="progress mt-3" style="height: 15px;">
+                                    {% with porcentaje=pqrsfd.get_porcentaje_tiempo %}
+                                    <div 
+                                        class="progress-bar {% if porcentaje < 50 %}bg-success{% elif porcentaje < 75 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                        role="progressbar" 
+                                        style="width: {{ porcentaje }}%;" 
+                                        aria-valuenow="{{ porcentaje }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                        {{ porcentaje }}%
+                                    </div>
+                                    {% endwith %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
                     <p><strong>Descripción:</strong></p>
                     <div class="border p-3 bg-light">
                         {{ pqrsfd.descripcion|linebreaks }}
@@ -48,20 +91,52 @@
                 </div>
                 <div class="col-md-6">
                     <h4>Responder</h4>
+                    
+                    {% if pqrsfd.esta_vencido and pqrsfd.estado == 'P' %}
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>Atención:</strong> Este PQRSFD está vencido. Es recomendable actualizarlo a "En Proceso" o brindar una respuesta y marcarlo como "Resuelto".
+                        </div>
+                    {% endif %}
+                    
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="estado" class="form-label">Estado</label>
                             <select name="estado" id="estado" class="form-select">
-                                <option value="P" {% if pqrsfd.estado == 'P' %}selected{% endif %}>Pendiente</option>
-                                <option value="E" {% if pqrsfd.estado == 'E' %}selected{% endif %}>En Proceso</option>
-                                <option value="R" {% if pqrsfd.estado == 'R' %}selected{% endif %}>Resuelto</option>
-                                <option value="C" {% if pqrsfd.estado == 'C' %}selected{% endif %}>Cerrado</option>
+                                {% if pqrsfd.estado == 'P' %}
+                                    <option value="P" selected>Pendiente</option>
+                                    <option value="E">En Proceso</option>
+                                    <option value="R">Resuelto</option>
+                                    <option value="C">Cerrado</option>
+                                {% elif pqrsfd.estado == 'E' %}
+                                    <option value="E" selected>En Proceso</option>
+                                    <option value="R">Resuelto</option>
+                                    <option value="C">Cerrado</option>
+                                {% elif pqrsfd.estado == 'R' %}
+                                    <option value="R" selected>Resuelto</option>
+                                    <option value="C">Cerrado</option>
+                                {% else %}
+                                    <option value="C" selected>Cerrado</option>
+                                {% endif %}
                             </select>
+                            <div class="form-text mt-2">
+                                <ul class="ps-3 mb-0">
+                                    <li><strong>Pendiente:</strong> Aún no se ha iniciado el trabajo.</li>
+                                    <li><strong>En Proceso:</strong> Actualmente en gestión.</li>
+                                    <li><strong>Resuelto:</strong> Se ha dado respuesta satisfactoria.</li>
+                                    <li><strong>Cerrado:</strong> Finalizado y archivado.</li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="respuesta" class="form-label">Respuesta</label>
-                            <textarea name="respuesta" id="respuesta" class="form-control" rows="10">{{ pqrsfd.respuesta|default:'' }}</textarea>
+                            <textarea name="respuesta" id="respuesta" class="form-control" rows="15" style="min-height: 300px;">{{ pqrsfd.respuesta|default:'' }}</textarea>
+                            {% if not pqrsfd.respuesta and pqrsfd.estado != 'P' %}
+                                <div class="form-text text-warning mt-2">
+                                    <i class="fas fa-info-circle me-1"></i> Es recomendable proporcionar una respuesta cuando se cambia el estado a "Resuelto" o "Cerrado".
+                                </div>
+                            {% endif %}
                         </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Guardar Respuesta</button>

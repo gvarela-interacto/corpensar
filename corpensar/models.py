@@ -10,6 +10,8 @@ from django.utils.timezone import now
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 import os
+from datetime import timedelta
+from django.utils import timezone
 
 # Esta línea ya no es necesaria porque importamos User directamente
 # User = get_user_model()
@@ -507,6 +509,16 @@ class PQRSFD(models.Model):
         ('C', 'Cerrado'),
     ]
 
+    # Tiempo de respuesta en días según la ley para cada tipo de PQRSFD
+    TIEMPO_RESPUESTA = {
+        'P': 15,  # Petición: 15 días hábiles
+        'Q': 15,  # Queja: 15 días hábiles
+        'R': 15,  # Reclamo: 15 días hábiles
+        'S': 15,  # Sugerencia: 15 días hábiles
+        'F': 15,  # Felicitación: 15 días hábiles
+        'D': 15,  # Denuncia: 15 días hábiles
+    }
+
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES)
     nombre = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -527,6 +539,50 @@ class PQRSFD(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.asunto}"
+        
+    def get_tiempo_respuesta(self):
+        """Retorna el tiempo de respuesta en días según el tipo de PQRSFD"""
+        return self.TIEMPO_RESPUESTA.get(self.tipo, 15)
+        
+    def get_fecha_limite(self):
+        """Calcula la fecha límite para responder"""
+        if self.estado in ['R', 'C'] or self.fecha_respuesta:
+            return None
+        
+        dias = self.get_tiempo_respuesta()
+        return self.fecha_creacion + timedelta(days=dias)
+        
+    def get_dias_restantes(self):
+        """Calcula los días restantes para responder"""
+        if self.estado in ['R', 'C'] or self.fecha_respuesta:
+            return 0
+            
+        fecha_limite = self.get_fecha_limite()
+        if not fecha_limite:
+            return 0
+            
+        dias_restantes = (fecha_limite - timezone.now()).days
+        return max(0, dias_restantes)
+        
+    def get_porcentaje_tiempo(self):
+        """Retorna el porcentaje de tiempo transcurrido"""
+        if self.estado in ['R', 'C'] or self.fecha_respuesta:
+            return 100
+            
+        tiempo_total = self.get_tiempo_respuesta()
+        dias_transcurridos = (timezone.now() - self.fecha_creacion).days
+        
+        if dias_transcurridos >= tiempo_total:
+            return 100
+            
+        return int((dias_transcurridos / tiempo_total) * 100)
+        
+    def esta_vencido(self):
+        """Indica si el PQRSFD está vencido"""
+        if self.estado in ['R', 'C'] or self.fecha_respuesta:
+            return False
+            
+        return self.get_dias_restantes() <= 0
 
 class ArchivoAdjuntoPQRSFD(models.Model):
     pqrsfd = models.ForeignKey(PQRSFD, on_delete=models.CASCADE, related_name='archivos_adjuntos')

@@ -34,6 +34,7 @@ import locale
 from datetime import timedelta
 from django.template.defaulttags import register
 import os
+from django.urls import reverse
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -176,6 +177,16 @@ def index_view(request):
         cantidad_respuestas=Count('respuestas'),
         promedio_respuestas=Avg('respuestas__id')
     ).order_by('-fecha_creacion')
+    
+    # Contar PQRSFD por estado
+    conteo_estados = {
+        'P': PQRSFD.objects.filter(estado='P').count(),
+        'E': PQRSFD.objects.filter(estado='E').count(),
+        'R': PQRSFD.objects.filter(estado='R').count(),
+        'C': PQRSFD.objects.filter(estado='C').count(),
+        'total': PQRSFD.objects.count(),
+        'vencidos': sum(1 for p in PQRSFD.objects.filter(estado__in=['P', 'E']) if p.esta_vencido())
+    }
 
     context = {
         'total_encuestas': total_encuestas,
@@ -192,6 +203,7 @@ def index_view(request):
         'ultimas_respuestas': ultimas_respuestas,
         'encuestas_detalle': encuestas_detalle,
         'distribucion_categoria': distribucion_categoria,
+        'conteo_estados': conteo_estados,
     }
 
     return render(request, 'index.html', context)
@@ -2446,10 +2458,20 @@ def crear_pqrsfd(request):
 def listar_pqrsfd(request):
     estado_filtro = request.GET.get('estado', None)
     
-    if estado_filtro and estado_filtro in dict(PQRSFD.ESTADO_CHOICES):
-        pqrsfds = PQRSFD.objects.filter(estado=estado_filtro).order_by('-fecha_creacion')
+    # Obtenemos todos los PQRSFD
+    todos_pqrsfd = PQRSFD.objects.all().order_by('-fecha_creacion')
+    
+    # Aplicar filtro por estado si está especificado
+    if estado_filtro:
+        if estado_filtro == 'vencidos':
+            # Filtramos PQRSFD vencidos (debe hacerse en Python porque usa el método esta_vencido)
+            pqrsfds = [p for p in todos_pqrsfd.filter(estado__in=['P', 'E']) if p.esta_vencido()]
+        elif estado_filtro in dict(PQRSFD.ESTADO_CHOICES):
+            pqrsfds = todos_pqrsfd.filter(estado=estado_filtro)
+        else:
+            pqrsfds = todos_pqrsfd
     else:
-        pqrsfds = PQRSFD.objects.all().order_by('-fecha_creacion')
+        pqrsfds = todos_pqrsfd
     
     # Contar PQRSFD por estado para mostrar en la interfaz
     conteo_estados = {
@@ -2457,7 +2479,8 @@ def listar_pqrsfd(request):
         'E': PQRSFD.objects.filter(estado='E').count(),
         'R': PQRSFD.objects.filter(estado='R').count(),
         'C': PQRSFD.objects.filter(estado='C').count(),
-        'total': PQRSFD.objects.count()
+        'total': PQRSFD.objects.count(),
+        'vencidos': sum(1 for p in PQRSFD.objects.filter(estado__in=['P', 'E']) if p.esta_vencido())
     }
     
     context = {
@@ -2476,16 +2499,45 @@ def responder_pqrsfd(request, pqrsfd_id):
     if request.method == 'POST':
         respuesta = request.POST.get('respuesta')
         estado = request.POST.get('estado')
+        estado_anterior = pqrsfd.estado
         
+        # Validar que el cambio de estado siga el flujo correcto
+        estados_validos = get_siguientes_estados_validos(estado_anterior)
+        if estado not in estados_validos:
+            messages.warning(request, f'Cambio de estado no válido. De "{pqrsfd.get_estado_display()}" solo puede pasar a: {", ".join([dict(PQRSFD.ESTADO_CHOICES)[e] for e in estados_validos])}')
+            return redirect('responder_pqrsfd', pqrsfd_id=pqrsfd.id)
+        
+        # Actualización de los datos
         pqrsfd.respuesta = respuesta
         pqrsfd.estado = estado
-        pqrsfd.fecha_respuesta = timezone.now()
+        
+        # Solo actualizar fecha de respuesta si no existía antes o cambia a Resuelto/Cerrado
+        if (not pqrsfd.fecha_respuesta and estado in ['R', 'C']):
+            pqrsfd.fecha_respuesta = timezone.now()
+            
         pqrsfd.save()
         
-        messages.success(request, 'La respuesta ha sido guardada exitosamente.')
-        return redirect('listar_pqrsfd')
+        if estado_anterior != estado:
+            messages.success(request, f'La respuesta ha sido guardada y el estado ha cambiado de "{dict(PQRSFD.ESTADO_CHOICES)[estado_anterior]}" a "{dict(PQRSFD.ESTADO_CHOICES)[estado]}".')
+        else:
+            messages.success(request, 'La respuesta ha sido guardada exitosamente.')
+        
+        # Redirección corregida
+        return redirect('{}?estado={}'.format(reverse('listar_pqrsfd'), estado))
     
     return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})
+
+def get_siguientes_estados_validos(estado_actual):
+    """Obtiene los siguientes estados válidos según el flujo de trabajo"""
+    if estado_actual == 'P':  # Pendiente
+        return ['P', 'E', 'R', 'C']  # Puede quedarse pendiente, pasar a en proceso, resuelto o cerrado
+    elif estado_actual == 'E':  # En Proceso
+        return ['E', 'R', 'C']  # Puede quedarse en proceso, pasar a resuelto o cerrado
+    elif estado_actual == 'R':  # Resuelto
+        return ['R', 'C']  # Puede quedarse resuelto o pasar a cerrado
+    elif estado_actual == 'C':  # Cerrado
+        return ['C']  # No puede cambiar de estado
+    return ['P', 'E', 'R', 'C']  # Por defecto, permitir cualquier estado
 
 @login_required
 def categorias_principales(request):

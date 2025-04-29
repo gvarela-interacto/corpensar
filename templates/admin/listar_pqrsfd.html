@@ -14,19 +14,22 @@
                     <p>Filtrar por estado:</p>
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         <a href="{% url 'listar_pqrsfd' %}" class="btn {% if not estado_actual %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                            Todos ({{ conteo_estados.total }})
+                            Todos <span class="badge bg-light text-dark">{{ conteo_estados.total }}</span>
                         </a>
                         <a href="{% url 'listar_pqrsfd' %}?estado=P" class="btn {% if estado_actual == 'P' %}btn-warning{% else %}btn-outline-warning{% endif %}">
-                            Pendientes ({{ conteo_estados.P }})
+                            Pendientes <span class="badge bg-light text-dark">{{ conteo_estados.P }}</span>
                         </a>
                         <a href="{% url 'listar_pqrsfd' %}?estado=E" class="btn {% if estado_actual == 'E' %}btn-info{% else %}btn-outline-info{% endif %}">
-                            En Proceso ({{ conteo_estados.E }})
+                            En Proceso <span class="badge bg-light text-dark">{{ conteo_estados.E }}</span>
                         </a>
                         <a href="{% url 'listar_pqrsfd' %}?estado=R" class="btn {% if estado_actual == 'R' %}btn-success{% else %}btn-outline-success{% endif %}">
-                            Resueltos ({{ conteo_estados.R }})
+                            Resueltos <span class="badge bg-light text-dark">{{ conteo_estados.R }}</span>
                         </a>
                         <a href="{% url 'listar_pqrsfd' %}?estado=C" class="btn {% if estado_actual == 'C' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-                            Cerrados ({{ conteo_estados.C }})
+                            Cerrados <span class="badge bg-light text-dark">{{ conteo_estados.C }}</span>
+                        </a>
+                        <a href="{% url 'listar_pqrsfd' %}?estado=vencidos" class="btn {% if estado_actual == 'vencidos' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                            Vencidos <span class="badge bg-light text-dark">{{ conteo_estados.vencidos }}</span>
                         </a>
                     </div>
                 </div>
@@ -41,12 +44,13 @@
                             <th>Nombre</th>
                             <th>Asunto</th>
                             <th>Estado</th>
+                            <th>Tiempo Restante</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for pqrsfd in pqrsfds %}
-                            <tr>
+                            <tr {% if pqrsfd.esta_vencido and pqrsfd.estado == 'P' %}class="table-danger"{% endif %}>
                                 <td>{{ pqrsfd.fecha_creacion|date:"d/m/Y H:i" }}</td>
                                 <td>
                                     <span class="badge 
@@ -62,7 +66,7 @@
                                 </td>
                                 <td>
                                     {% if pqrsfd.es_anonimo %}
-                                        <span class="badge bg-secondary">Anónimo</span>
+                                        <span class="badge bg-primary">Anónimo</span>
                                     {% else %}
                                         {{ pqrsfd.nombre }}
                                     {% endif %}
@@ -73,9 +77,34 @@
                                         {% if pqrsfd.estado == 'P' %}bg-warning
                                         {% elif pqrsfd.estado == 'E' %}bg-info
                                         {% elif pqrsfd.estado == 'R' %}bg-success
-                                        {% else %}bg-secondary{% endif %}">
+                                        {% else %}bg-primary{% endif %}">
                                         {{ pqrsfd.get_estado_display }}
                                     </span>
+                                </td>
+                                <td>
+                                    {% if pqrsfd.estado == 'P' or pqrsfd.estado == 'E' %}
+                                        {% if pqrsfd.esta_vencido %}
+                                            <span class="badge bg-danger py-2 px-3 d-block"><i class="fas fa-exclamation-triangle me-1"></i> ¡Vencido!</span>
+                                        {% else %}
+                                            <div class="d-flex align-items-center">
+                                                <strong class="me-2">{{ pqrsfd.get_dias_restantes }} días</strong>
+                                                <div class="progress flex-grow-1" style="height: 10px;">
+                                                    {% with porcentaje=pqrsfd.get_porcentaje_tiempo %}
+                                                    <div 
+                                                        class="progress-bar {% if porcentaje < 50 %}bg-success{% elif porcentaje < 75 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                        role="progressbar" 
+                                                        style="width: {{ porcentaje }}%;" 
+                                                        aria-valuenow="{{ porcentaje }}" 
+                                                        aria-valuemin="0" 
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                    {% endwith %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-success py-2 px-3 d-block">Completado</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <a href="{% url 'responder_pqrsfd' pqrsfd.id %}" class="btn btn-sm btn-primary">
@@ -85,7 +114,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="7" class="text-center py-4">
                                     <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
                                     <p>No hay PQRSFD {% if estado_actual %}en estado "{{ ESTADO_CHOICES|get_item:estado_actual }}"{% else %}registrados{% endif %}</p>
                                 </td>

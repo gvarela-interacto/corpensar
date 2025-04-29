@@ -997,6 +997,58 @@
       </div>
     </div>
   </div>
+
+  <!-- Sección PQRSFD -->
+  <div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Estado de PQRSFD</h5>
+                <a href="{% url 'listar_pqrsfd' %}" class="btn btn-sm btn-primary">Ver todos</a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body text-center">
+                                <div class="display-4 text-warning">{{ conteo_estados.P }}</div>
+                                <h6 class="text-muted">Pendientes</h6>
+                                <a href="{% url 'listar_pqrsfd' %}?estado=P" class="btn btn-sm btn-outline-warning mt-2">Ver pendientes</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body text-center">
+                                <div class="display-4 text-info">{{ conteo_estados.E }}</div>
+                                <h6 class="text-muted">En Proceso</h6>
+                                <a href="{% url 'listar_pqrsfd' %}?estado=E" class="btn btn-sm btn-outline-info mt-2">Ver en proceso</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body text-center">
+                                <div class="display-4 text-success">{{ conteo_estados.R }}</div>
+                                <h6 class="text-muted">Resueltos</h6>
+                                <a href="{% url 'listar_pqrsfd' %}?estado=R" class="btn btn-sm btn-outline-success mt-2">Ver resueltos</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 {% if conteo_estados.vencidos > 0 %}bg-danger text-white{% else %}bg-light{% endif %} h-100">
+                            <div class="card-body text-center">
+                                <div class="display-4">{{ conteo_estados.vencidos }}</div>
+                                <h6 class="{% if conteo_estados.vencidos > 0 %}text-white{% else %}text-muted{% endif %}">Vencidos</h6>
+                                <a href="{% url 'listar_pqrsfd' %}?estado=vencidos" class="btn btn-sm {% if conteo_estados.vencidos > 0 %}btn-outline-light{% else %}btn-outline-danger{% endif %} mt-2">Ver vencidos</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
