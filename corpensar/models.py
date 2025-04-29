@@ -531,6 +531,9 @@ class PQRSFD(models.Model):
     respuesta = models.TextField(blank=True, null=True)
     fecha_respuesta = models.DateTimeField(null=True, blank=True)
     es_anonimo = models.BooleanField(default=False)
+    notificado_email = models.BooleanField(default=False, verbose_name="Notificado por email")
+    notificado_sms = models.BooleanField(default=False, verbose_name="Notificado por SMS")
+    fecha_notificacion = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'PQRSFD'
@@ -650,3 +653,18 @@ class ArchivoRespuesta(models.Model):
     def extension(self):
         """Devuelve la extensión del archivo"""
         return os.path.splitext(self.nombre_original)[1][1:].lower()
+
+class ArchivoRespuestaPQRSFD(models.Model):
+    """Archivos adjuntos para las respuestas a PQRSFD"""
+    pqrsfd = models.ForeignKey(PQRSFD, on_delete=models.CASCADE, related_name='archivos_respuesta')
+    archivo = models.FileField(upload_to='pqrsfd/respuestas/%Y/%m/')
+    nombre_original = models.CharField(max_length=255)
+    tipo_archivo = models.CharField(max_length=100)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Archivo respuesta PQRSFD'
+        verbose_name_plural = 'Archivos respuesta PQRSFD'
+
+    def __str__(self):
+        return f"Archivo respuesta {self.nombre_original} - {self.pqrsfd}"

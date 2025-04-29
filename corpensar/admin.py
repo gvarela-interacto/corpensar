@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.contrib.admin import TabularInline, StackedInline
 from django import forms
+from django.utils.html import format_html
+from django.urls import reverse
+from django.db.models import Count
 from .models import (
     Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
     OpcionMultiple, PreguntaCasillasVerificacion, OpcionCasillaVerificacion,
@@ -9,7 +12,7 @@ from .models import (
     RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
     RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD,
-    Subcategoria
+    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD
 )
 
 
@@ -434,10 +437,10 @@ admin.site.register(RespuestaEncuesta, RespuestaEncuestaAdmin)
 
 @admin.register(PQRSFD)
 class PQRSFDAdmin(admin.ModelAdmin):
-    list_display = ['asunto', 'tipo', 'estado', 'fecha_creacion', 'es_anonimo']
-    list_filter = ['tipo', 'estado', 'fecha_creacion', 'es_anonimo']
-    search_fields = ['asunto', 'descripcion', 'nombre', 'email']
-    readonly_fields = ['fecha_creacion']
+    list_display = ['asunto', 'tipo', 'estado', 'fecha_creacion', 'es_anonimo', 'dias_restantes', 'notificado']
+    list_filter = ['tipo', 'estado', 'fecha_creacion', 'es_anonimo', 'notificado_email', 'notificado_sms']
+    search_fields = ['asunto', 'descripcion', 'nombre', 'email', 'telefono']
+    readonly_fields = ['fecha_creacion', 'fecha_actualizacion', 'fecha_notificacion']
     fieldsets = (
         (None, {
             'fields': ('tipo', 'asunto', 'descripcion', 'estado')
@@ -448,7 +451,47 @@ class PQRSFDAdmin(admin.ModelAdmin):
         ('Respuesta', {
             'fields': ('respuesta', 'fecha_respuesta')
         }),
+        ('Notificaciones', {
+            'fields': ('notificado_email', 'notificado_sms', 'fecha_notificacion')
+        }),
         ('Fechas', {
-            'fields': ('fecha_creacion',)
+            'fields': ('fecha_creacion', 'fecha_actualizacion')
         }),
     )
+    
+    def dias_restantes(self, obj):
+        if obj.estado in ['R', 'C']:
+            return "Completado"
+        elif obj.esta_vencido():
+            return format_html('<span style="color: red; font-weight: bold;">Vencido</span>')
+        else:
+            dias = obj.get_dias_restantes()
+            color = "green"
+            if dias < 3:
+                color = "red"
+            elif dias < 7:
+                color = "orange"
+            return format_html('<span style="color: {}; font-weight: bold;">{} días</span>', color, dias)
+    
+    dias_restantes.short_description = "Tiempo Restante"
+    
+    def notificado(self, obj):
+        if obj.es_anonimo:
+            return "Anónimo"
+        elif obj.notificado_email and obj.notificado_sms:
+            return format_html('<span style="color: green;">Email y SMS</span>')
+        elif obj.notificado_email:
+            return format_html('<span style="color: blue;">Email</span>')
+        elif obj.notificado_sms:
+            return format_html('<span style="color: purple;">SMS</span>')
+        else:
+            return format_html('<span style="color: gray;">No</span>')
+    
+    notificado.short_description = "Notificado"
+
+@admin.register(ArchivoRespuestaPQRSFD)
+class ArchivoRespuestaPQRSFDAdmin(admin.ModelAdmin):
+    list_display = ['pqrsfd', 'nombre_original', 'tipo_archivo', 'fecha_subida']
+    list_filter = ['tipo_archivo', 'fecha_subida']
+    search_fields = ['nombre_original', 'pqrsfd__asunto']
+    readonly_fields = ['fecha_subida']

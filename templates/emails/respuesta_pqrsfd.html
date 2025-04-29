@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Respuesta a su {{ pqrsfd.get_tipo_display }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4361ee;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+        .details {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #4361ee;
+        }
+        .response {
+            padding: 15px;
+            margin: 15px 0;
+            background-color: #f0f7ff;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #4361ee;
+            margin-top: 0;
+        }
+        a {
+            color: #4361ee;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Respuesta a su {{ pqrsfd.get_tipo_display }}</h1>
+    </div>
+    
+    <div class="content">
+        <p>Estimado(a) <strong>{{ pqrsfd.nombre }}</strong>,</p>
+        
+        <p>Hemos procesado su {{ pqrsfd.get_tipo_display }} relacionada con el asunto "<strong>{{ pqrsfd.asunto }}</strong>" y tenemos una respuesta para usted.</p>
+        
+        <div class="details">
+            <p><strong>Referencia:</strong> #{{ pqrsfd.id }}</p>
+            <p><strong>Fecha de recepción:</strong> {{ pqrsfd.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            <p><strong>Estado actual:</strong> {{ pqrsfd.get_estado_display }}</p>
+        </div>
+        
+        <h2>Nuestra respuesta:</h2>
+        <div class="response">
+            {{ pqrsfd.respuesta|linebreaks }}
+        </div>
+        
+        {% if pqrsfd.archivos_respuesta.all %}
+            <p><strong>Archivos adjuntos:</strong> Se han incluido {{ pqrsfd.archivos_respuesta.count }} archivo(s) adjunto(s) en este correo.</p>
+        {% endif %}
+        
+        <p>Si tiene alguna pregunta adicional o requiere más información, no dude en contactarnos respondiendo a este correo electrónico o a través de nuestro sitio web.</p>
+        
+        <p>Atentamente,<br>
+        Equipo de Atención al Usuario<br>
+        Corpensar</p>
+    </div>
+    
+    <div class="footer">
+        <p>Este es un correo automático, por favor no responda directamente. Para seguimiento adicional, visite nuestro sitio web.</p>
+        <p>&copy; {% now "Y" %} Corpensar. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html> 

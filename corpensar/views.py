@@ -2500,6 +2500,8 @@ def responder_pqrsfd(request, pqrsfd_id):
         respuesta = request.POST.get('respuesta')
         estado = request.POST.get('estado')
         estado_anterior = pqrsfd.estado
+        enviar_email = request.POST.get('enviar_email') == 'on'
+        enviar_sms = request.POST.get('enviar_sms') == 'on'
         
         # Validar que el cambio de estado siga el flujo correcto
         estados_validos = get_siguientes_estados_validos(estado_anterior)
@@ -2517,6 +2519,43 @@ def responder_pqrsfd(request, pqrsfd_id):
             
         pqrsfd.save()
         
+        # Manejar los archivos adjuntos
+        archivos = request.FILES.getlist('archivos')
+        archivos_guardados = 0
+        for archivo in archivos:
+            ArchivoRespuestaPQRSFD.objects.create(
+                pqrsfd=pqrsfd,
+                archivo=archivo,
+                nombre_original=archivo.name,
+                tipo_archivo=archivo.content_type
+            )
+            archivos_guardados += 1
+            
+        if archivos_guardados > 0:
+            messages.success(request, f'Se han adjuntado {archivos_guardados} archivo(s) a la respuesta.')
+        
+        # Enviar notificaciones si se seleccionó la opción
+        if (enviar_email or enviar_sms) and pqrsfd.respuesta and not pqrsfd.es_anonimo:
+            try:
+                ahora = timezone.now()
+                
+                if enviar_email and pqrsfd.email:
+                    enviar_respuesta_email(pqrsfd, request)
+                    pqrsfd.notificado_email = True
+                    pqrsfd.fecha_notificacion = ahora
+                    messages.success(request, f'Se ha enviado una notificación por correo a {pqrsfd.email}')
+                
+                if enviar_sms and pqrsfd.telefono:
+                    enviar_respuesta_sms(pqrsfd)
+                    pqrsfd.notificado_sms = True
+                    if not pqrsfd.fecha_notificacion:
+                        pqrsfd.fecha_notificacion = ahora
+                    messages.success(request, f'Se ha enviado una notificación por SMS al número {pqrsfd.telefono}')
+                
+                pqrsfd.save()
+            except Exception as e:
+                messages.warning(request, f'Error al enviar notificaciones: {str(e)}')
+        
         if estado_anterior != estado:
             messages.success(request, f'La respuesta ha sido guardada y el estado ha cambiado de "{dict(PQRSFD.ESTADO_CHOICES)[estado_anterior]}" a "{dict(PQRSFD.ESTADO_CHOICES)[estado]}".')
         else:
@@ -2526,6 +2565,63 @@ def responder_pqrsfd(request, pqrsfd_id):
         return redirect('{}?estado={}'.format(reverse('listar_pqrsfd'), estado))
     
     return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})
+
+def enviar_respuesta_email(pqrsfd, request):
+    """Envía un correo electrónico con la respuesta al PQRSFD"""
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import render_to_string
+    from django.utils.html import strip_tags
+    
+    asunto = f'Respuesta a su {pqrsfd.get_tipo_display()} - {pqrsfd.asunto}'
+    
+    # Crear el contenido del correo en HTML
+    contexto = {
+        'pqrsfd': pqrsfd,
+        'fecha': timezone.now().strftime("%d/%m/%Y %H:%M"),
+        'url_base': f"{request.scheme}://{request.get_host()}"
+    }
+    contenido_html = render_to_string('emails/respuesta_pqrsfd.html', contexto)
+    contenido_texto = strip_tags(contenido_html)
+    
+    # Crear y enviar el correo
+    email = EmailMultiAlternatives(
+        subject=asunto,
+        body=contenido_texto,
+        from_email='noreply@corpensar.com',  # Reemplazar con un correo real
+        to=[pqrsfd.email]
+    )
+    email.attach_alternative(contenido_html, "text/html")
+    
+    # Adjuntar los archivos de la respuesta (si existen)
+    for adjunto in pqrsfd.archivos_respuesta.all():
+        email.attach_file(adjunto.archivo.path)
+    
+    email.send()
+
+def enviar_respuesta_sms(pqrsfd):
+    """
+    Envía un SMS con la notificación de respuesta
+    
+    Nota: Esta es una implementación básica, necesitará configurar
+    un servicio de SMS real para producción (Twilio, etc.)
+    """
+    # Este es un placeholder - necesita implementar con un proveedor real
+    telefono = pqrsfd.telefono
+    mensaje = f"Su {pqrsfd.get_tipo_display()} '{pqrsfd.asunto}' ha sido respondido. Por favor revise su correo o acceda a la plataforma."
+    
+    # Aquí implementaría la llamada a un servicio de SMS como Twilio
+    # Por ejemplo:
+    # from twilio.rest import Client
+    # client = Client(account_sid, auth_token)
+    # message = client.messages.create(
+    #     body=mensaje,
+    #     from_='+12345678901',  # Número Twilio
+    #     to=telefono
+    # )
+    
+    # Por ahora solo registramos que se "envió"
+    print(f"SMS enviado a {telefono}: {mensaje}")
+    return True
 
 def get_siguientes_estados_validos(estado_actual):
     """Obtiene los siguientes estados válidos según el flujo de trabajo"""
