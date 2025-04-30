@@ -23,7 +23,7 @@
                     {% endif %}
                     
                     <div class="table-responsive">
-                        <table class="table table-dark table-striped table-hover">
+                        <table class="table table-dark text-white table-hover">
                             <thead class="table-gold text-dark">
                                 <tr>
                                     <th>Usuario</th>
@@ -45,7 +45,7 @@
                                         {% if usuario.is_superuser %}
                                             <span class="badge bg-gold text-dark">Administrador</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">Usuario</span>
+                                            <span class="badge bg-success">Usuario</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>

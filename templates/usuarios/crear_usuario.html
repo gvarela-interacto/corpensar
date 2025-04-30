@@ -25,7 +25,7 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label for="id_username" class="form-label text-gold fw-semibold mb-2">Nombre de usuario</label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account"></i></span>
                                     {{ form.username }}
                                 </div>
@@ -36,7 +36,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="id_email" class="form-label text-gold fw-semibold mb-2">Correo electrónico</label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-email"></i></span>
                                     {{ form.email }}
                                 </div>
@@ -49,7 +49,7 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label for="id_first_name" class="form-label text-gold fw-semibold mb-2">Nombre</label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account-details"></i></span>
                                     {{ form.first_name }}
                                 </div>
@@ -59,7 +59,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="id_last_name" class="form-label text-gold fw-semibold mb-2">Apellido</label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account-details"></i></span>
                                     {{ form.last_name }}
                                 </div>
@@ -72,7 +72,7 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label for="id_password1" class="form-label text-gold fw-semibold mb-2">Contraseña</label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-lock"></i></span>
                                     {{ form.password1 }}
                                 </div>
@@ -82,7 +82,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="id_password2" class="form-label text-gold fw-semibold mb-2">Confirmar contraseña</label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-lock-check"></i></span>
                                     {{ form.password2 }}
                                 </div>
@@ -91,13 +91,15 @@
                                 {% endif %}
                             </div>
                         </div>
-                        
-                        <div class="mb-4 form-check form-switch">
-                            {{ form.is_admin }}
-                            <label class="form-check-label text-gold" for="id_is_admin">
-                                <strong>Es administrador</strong> (tendrá acceso completo al sistema)
-                            </label>
+                        <div class="text-center">
+                            <div class="mb-4 form-check form-switch d-inline-block">
+                                {{ form.is_admin }}
+                                <label class="form-check-label text-gold" for="id_is_admin">
+                                    <strong>Es administrador</strong> (tendrá acceso completo al sistema)
+                                </label>
+                            </div>
                         </div>
+                        
                         
                         <div class="mb-4 password-rules p-3 bg-gold-light rounded text-dark">
                             <h6 class="fw-bold"><i class="mdi mdi-information-outline me-2"></i>Requisitos de contraseña</h6>
@@ -121,7 +123,7 @@
                             <a href="{% url 'administrar_usuarios' %}" class="btn btn-outline-gold">
                                 <i class="mdi mdi-arrow-left me-1"></i>Volver
                             </a>
-                            <button type="submit" class="btn btn-gold btn-lg">
+                            <button type="submit" class="btn btn-gold">
                                 <i class="mdi mdi-account-plus me-1"></i>Crear Usuario
                             </button>
                         </div>
