@@ -103,7 +103,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 # Login URLs
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'index'  # Redirige al dashboard después del login
+LOGIN_REDIRECT_URL = 'login_redirect'  # Ahora usa una vista personalizada para la redirección
 LOGOUT_REDIRECT_URL = 'public_home'  # Redirige a la página principal después del logout
 
 # settings.py
@@ -114,3 +114,14 @@ CACHES = {
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desarrollo, imprime en consola
+# En producción, usar SMTP real:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.example.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_email@example.com'
+# EMAIL_HOST_PASSWORD = 'your_password'
+DEFAULT_FROM_EMAIL = 'noreply@corpensar.com'

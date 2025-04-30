@@ -18,68 +18,8 @@
       <!-- Elementos del navbar a la derecha -->
       <div class="ms-auto d-flex align-items-center gap-3">
         
-
-        <!-- Notificaciones dropdown
-        <div class="dropdown">
-          <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="mdi mdi-bell fs-4"></i>
-            <span class="notification-badge">3</span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end shadow-lg notification-dropdown">
-            <li>
-              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-                <h6 class="mb-0 fw-semibold text-gold">Notificaciones</h6>
-                <a href="#" class="text-decoration-none small text-gold">Marcar como leídas</a>
-              </div>
-            </li>
-            <li>
-              <a class="dropdown-item notification-item" href="#">
-                <div class="d-flex align-items-center">
-                  <div class="notification-icon bg-gold-light">
-                    <i class="mdi mdi-account-check text-gold"></i>
-                  </div>
-                  <div class="ms-3">
-                    <p class="mb-1 fw-medium">Nuevo registro completado</p>
-                    <small class="text-muted">Hace 30 minutos</small>
-                  </div>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item notification-item" href="#">
-                <div class="d-flex align-items-center">
-                  <div class="notification-icon bg-gold-light">
-                    <i class="mdi mdi-chart-line text-gold"></i>
-                  </div>
-                  <div class="ms-3">
-                    <p class="mb-1 fw-medium">Informe mensual disponible</p>
-                    <small class="text-muted">Hace 2 horas</small>
-                  </div>
-                </div>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item notification-item" href="#">
-                <div class="d-flex align-items-center">
-                  <div class="notification-icon bg-gold-light">
-                    <i class="mdi mdi-calendar-clock text-gold"></i>
-                  </div>
-                  <div class="ms-3">
-                    <p class="mb-1 fw-medium">Recordatorio de reunión</p>
-                    <small class="text-muted">Mañana, 10:00 AM</small>
-                  </div>
-                </div>
-              </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li class="text-center py-2">
-              <a href="#" class="text-decoration-none text-gold small">Ver todas las notificaciones</a>
-            </li>
-          </ul>
-        </div> -->
-
         <!-- Acceso rápido -->
-         {% if user.is_authenticated %}
+        {% if user.is_authenticated %}
         <div class="dropdown d-none d-md-block">
           <button class="btn btn-icon" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="mdi mdi-apps fs-4"></i>
@@ -87,6 +27,7 @@
           <div class="dropdown-menu dropdown-menu-end shadow-lg p-3 quick-access-dropdown">
             <h6 class="dropdown-header px-1 fw-semibold text-gold">Acceso Rápido</h6>
             <div class="row g-3 px-1">
+              {% if user.is_superuser %}
               <div class="col-6">
                 <a href="{% url 'seleccionar_metodo' %}" class="quick-action-item">
                   <i class="mdi mdi-plus-circle-outline text-gold"></i>
@@ -100,13 +41,20 @@
                 </a>
               </div>
               <div class="col-6">
+                <a href="{% url 'administrar_usuarios' %}" class="quick-action-item">
+                  <i class="mdi mdi-account-group text-gold"></i>
+                  <span>Usuarios</span>
+                </a>
+              </div>
+              {% endif %}
+              <div class="col-6">
                 <a href="{% url 'todas_encuestas' %}" class="quick-action-item">
                   <i class="mdi mdi-file-multiple text-gold"></i>
-                  <span>Todas</span>
+                  <span>{% if user.is_superuser %}Todas{% else %}Encuestas{% endif %}</span>
                 </a>
               </div>
               <div class="col-6">
-                <a href="{% url 'listar_pqrsfd' %}" class="quick-action-item">
+                <a href="{% if user.is_superuser %}{% url 'listar_pqrsfd' %}{% else %}{% url 'crear_pqrsfd' %}{% endif %}" class="quick-action-item">
                   <i class="mdi mdi-message-text-outline text-gold"></i>
                   <span>PQRSFD</span>
                 </a>
@@ -181,6 +129,10 @@
                 </div>
               </li>
               <li><a class="dropdown-item py-2" href="{% url 'mi_perfil' %}"><i class="mdi mdi-account-circle text-gold"></i>Mi Perfil</a></li>
+              {% if user.is_superuser %}
+              <li><a class="dropdown-item py-2" href="{% url 'administrar_usuarios' %}"><i class="mdi mdi-account-group text-gold"></i>Administrar Usuarios</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'crear_usuario' %}"><i class="mdi mdi-account-plus text-gold"></i>Crear Usuario</a></li>
+              {% endif %}
               <li><a class="dropdown-item py-2" href="{% url 'public_home' %}"><i class="mdi mdi-web text-gold"></i>Página Pública</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item py-2" href="{% url 'logout' %}"><i class="mdi mdi-logout text-danger"></i>Cerrar Sesión</a></li>
@@ -261,11 +213,35 @@
     background-color: var(--gold-light);
     color: var(--gold-color);
     transition: all 0.3s ease;
+    z-index: 1033;
+    cursor: pointer;
+    border: none;
+    outline: none !important;
   }
 
-  .sidebar-toggle:hover {
+  .sidebar-toggle:hover, .sidebar-toggle:active, .sidebar-toggle:focus {
     background-color: var(--gold-hover);
     transform: scale(1.05);
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+  }
+  
+  /* Estilos específicos para el botón en móvil */
+  @media (max-width: 991px) {
+    .sidebar-toggle {
+      margin-right: 10px;
+      width: 38px;
+      height: 38px;
+    }
+    
+    /* Animación para el icono de menú cuando está activo */
+    body.sidebar-open .sidebar-toggle i {
+      transform: rotate(90deg);
+    }
+    
+    .sidebar-toggle i {
+      transition: transform 0.3s ease;
+    }
   }
 
   /* Barra de búsqueda */
@@ -560,10 +536,28 @@
     // Toggle para el menú lateral en móvil
     const sidebarToggle = document.getElementById('sidebarToggle');
     if (sidebarToggle) {
-      sidebarToggle.addEventListener('click', function() {
-        // Ahora manejado por el atributo data-toggle="sidebar" en template.js
-        // Solo mantener este evento por compatibilidad
+      sidebarToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Aplicar directamente la clase al body sin depender de template.js
         document.body.classList.toggle('sidebar-open');
+        
+        // Controlar el backdrop
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (backdrop) {
+          if (document.body.classList.contains('sidebar-open')) {
+            backdrop.style.display = 'block';
+            setTimeout(function() {
+              backdrop.style.opacity = '1';
+              backdrop.style.visibility = 'visible';
+            }, 10);
+          } else {
+            backdrop.style.opacity = '0';
+            backdrop.style.visibility = 'hidden';
+            setTimeout(function() {
+              backdrop.style.display = 'none';
+            }, 300);
+          }
+        }
       });
     }
     
@@ -583,6 +577,11 @@
       backdrop.className = 'sidebar-backdrop';
       backdrop.addEventListener('click', function() {
         document.body.classList.remove('sidebar-open');
+        this.style.opacity = '0';
+        this.style.visibility = 'hidden';
+        setTimeout(() => {
+          this.style.display = 'none';
+        }, 300);
       });
       document.body.appendChild(backdrop);
     }

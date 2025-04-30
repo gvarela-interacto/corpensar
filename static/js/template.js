@@ -66,14 +66,43 @@
     });
 
     // Manejar el botón de toggle del sidebar
-    $(document).on('click', '[data-toggle="sidebar"]', function () {
+    $(document).on('click', '[data-toggle="sidebar"]', function (e) {
+      e.preventDefault();
       body.toggleClass('sidebar-open');
+
+      // Ajustar el backdrop
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (backdrop) {
+        if (body.hasClass('sidebar-open')) {
+          backdrop.style.display = 'block';
+          // Pequeño retraso para asegurar que la transición sea suave
+          setTimeout(function () {
+            backdrop.style.opacity = '1';
+            backdrop.style.visibility = 'visible';
+          }, 10);
+        } else {
+          backdrop.style.opacity = '0';
+          backdrop.style.visibility = 'hidden';
+          // Esperar a que termine la transición para ocultar
+          setTimeout(function () {
+            backdrop.style.display = 'none';
+          }, 300);
+        }
+      }
     });
 
     // Manejar la adaptación de sidebar/main-panel en resize
     $(window).on('resize', function () {
       if (window.innerWidth > 991) {
         body.removeClass('sidebar-open');
+
+        // Ocultar backdrop en pantallas grandes
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (backdrop) {
+          backdrop.style.opacity = '0';
+          backdrop.style.visibility = 'hidden';
+          backdrop.style.display = 'none';
+        }
       }
     });
 
@@ -164,3 +193,36 @@
   });
 
 })(jQuery);
+
+// Código adicional para asegurar que el toggle del sidebar funcione incluso si jQuery falla
+document.addEventListener('DOMContentLoaded', function () {
+  // Agregar manejador directo al botón de toggle
+  const sidebarToggles = document.querySelectorAll('[data-toggle="sidebar"]');
+  if (sidebarToggles.length > 0) {
+    sidebarToggles.forEach(function (toggle) {
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.body.classList.toggle('sidebar-open');
+
+        // Asegurarse de que el backdrop se muestre/oculte
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if (backdrop) {
+          if (document.body.classList.contains('sidebar-open')) {
+            backdrop.style.display = 'block';
+          } else {
+            backdrop.style.display = 'none';
+          }
+        }
+      });
+    });
+  }
+
+  // Cerrar el menú cuando se hace clic en el backdrop
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (backdrop) {
+    backdrop.addEventListener('click', function () {
+      document.body.classList.remove('sidebar-open');
+      backdrop.style.display = 'none';
+    });
+  }
+});

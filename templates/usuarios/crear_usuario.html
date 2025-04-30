@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white">
+                <div class="card-header bg-gold-gradient">
+                    <h4 class="mb-0 text-dark fw-bold">Crear Nuevo Usuario</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="id_username" class="form-label text-gold fw-semibold mb-2">Nombre de usuario</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account"></i></span>
+                                    {{ form.username }}
+                                </div>
+                                <div class="form-text text-gold-light">{{ form.username.help_text }}</div>
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_email" class="form-label text-gold fw-semibold mb-2">Correo electrónico</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-email"></i></span>
+                                    {{ form.email }}
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="id_first_name" class="form-label text-gold fw-semibold mb-2">Nombre</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account-details"></i></span>
+                                    {{ form.first_name }}
+                                </div>
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_last_name" class="form-label text-gold fw-semibold mb-2">Apellido</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account-details"></i></span>
+                                    {{ form.last_name }}
+                                </div>
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="id_password1" class="form-label text-gold fw-semibold mb-2">Contraseña</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-lock"></i></span>
+                                    {{ form.password1 }}
+                                </div>
+                                {% if form.password1.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_password2" class="form-label text-gold fw-semibold mb-2">Confirmar contraseña</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-lock-check"></i></span>
+                                    {{ form.password2 }}
+                                </div>
+                                {% if form.password2.errors %}
+                                    <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="mb-4 form-check form-switch d-inline-block">
+                                {{ form.is_admin }}
+                                <label class="form-check-label text-gold" for="id_is_admin">
+                                    <strong>Es administrador</strong> (tendrá acceso completo al sistema)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="mb-4 password-rules p-3 bg-gold-light rounded text-dark">
+                            <h6 class="fw-bold"><i class="mdi mdi-information-outline me-2"></i>Requisitos de contraseña</h6>
+                            <ul class="mb-0 ps-3">
+                                <li>La contraseña no puede ser demasiado similar a la información personal.</li>
+                                <li>Debe contener al menos 8 caracteres.</li>
+                                <li>No puede ser una contraseña común o fácil de adivinar.</li>
+                                <li>No puede ser completamente numérica.</li>
+                            </ul>
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'administrar_usuarios' %}" class="btn btn-outline-gold">
+                                <i class="mdi mdi-arrow-left me-1"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-gold">
+                                <i class="mdi mdi-account-plus me-1"></i>Crear Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos para el formulario de usuarios */
+    .card .bg-gold-gradient {
+        background: linear-gradient(45deg, #ffd700, #ffa500) !important;
+        color: #000 !important;
+    }
+    
+    .form-control {
+        background-color: #333;
+        border: 1px solid #555;
+        color: #fff;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        background-color: #444;
+        color: #fff;
+        border-color: #ffd700;
+        box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+    }
+    
+    .text-gold {
+        color: #ffd700 !important;
+    }
+    
+    .text-gold-light {
+        color: rgba(255, 215, 0, 0.8) !important;
+    }
+    
+    .bg-gold-light {
+        background-color: rgba(255, 215, 0, 0.9) !important;
+    }
+    
+    .btn-gold {
+        background-color: #ffd700;
+        border-color: #ffd700;
+        color: #000 !important;
+        font-weight: bold;
+    }
+    
+    .btn-gold:hover {
+        background-color: #ffcc00;
+        border-color: #ffcc00;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+    }
+    
+    .btn-outline-gold {
+        color: #ffd700 !important;
+        border-color: #ffd700;
+        background-color: transparent;
+    }
+    
+    .btn-outline-gold:hover {
+        background-color: rgba(255, 215, 0, 0.1);
+        color: #ffd700 !important;
+    }
+    
+    .password-rules {
+        background-color: rgba(255, 215, 0, 0.9) !important;
+        color: #000 !important;
+        border-radius: 8px;
+    }
+    
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        margin-top: 0.1em;
+    }
+    
+    .form-switch .form-check-input:checked {
+        background-color: #ffd700;
+        border-color: #ffd700;
+    }
+</style>
+{% endblock %} 

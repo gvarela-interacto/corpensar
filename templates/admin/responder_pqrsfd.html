@@ -99,7 +99,7 @@
                         </div>
                     {% endif %}
                     
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="estado" class="form-label">Estado</label>
@@ -138,6 +138,66 @@
                                 </div>
                             {% endif %}
                         </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Adjuntar archivos</label>
+                            <input type="file" name="archivos" multiple class="form-control" />
+                            <div class="form-text">Puede seleccionar múltiples archivos para adjuntar a la respuesta.</div>
+                        </div>
+                        
+                        {% if pqrsfd.archivos_respuesta.all %}
+                            <div class="mb-3">
+                                <label class="form-label">Archivos adjuntos a la respuesta</label>
+                                <div class="list-group">
+                                    {% for adjunto in pqrsfd.archivos_respuesta.all %}
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <a href="{{ adjunto.archivo.url }}" target="_blank" class="text-decoration-none">
+                                                <i class="fas fa-paperclip me-2"></i>
+                                                {{ adjunto.nombre_original }}
+                                            </a>
+                                            <span class="badge bg-secondary">{{ adjunto.archivo.size|filesizeformat }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if not pqrsfd.es_anonimo %}
+                            <div class="mb-4 p-3 border rounded bg-light">
+                                <h5 class="mb-3">Notificar al usuario</h5>
+                                
+                                {% if pqrsfd.email %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="enviar_email" id="enviar_email">
+                                        <label class="form-check-label" for="enviar_email">
+                                            Enviar respuesta por correo electrónico a <strong>{{ pqrsfd.email }}</strong>
+                                        </label>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if pqrsfd.telefono %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="enviar_sms" id="enviar_sms">
+                                        <label class="form-check-label" for="enviar_sms">
+                                            Enviar notificación por SMS al número <strong>{{ pqrsfd.telefono }}</strong>
+                                        </label>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if not pqrsfd.email and not pqrsfd.telefono %}
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Este usuario no proporcionó información de contacto para notificaciones.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-user-secret me-2"></i>
+                                Este PQRSFD es anónimo, no se pueden enviar notificaciones.
+                            </div>
+                        {% endif %}
+                        
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Guardar Respuesta</button>
                             <a href="{% url 'listar_pqrsfd' %}" class="btn btn-outline-secondary">Cancelar</a>

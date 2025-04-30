@@ -44,7 +44,15 @@ def registro_view(request):
         form = UserCreationForm(request.POST)  # Usamos el formulario por defecto
         if form.is_valid():
             user = form.save()
-            return redirect('login')
+            # Autenticar al usuario automáticamente después del registro
+            from django.contrib.auth import login as auth_login
+            from django.contrib.auth import authenticate
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
+            auth_login(request, user)
+            # Redirigir a todas las encuestas
+            return redirect('todas_encuestas')
     else:
         form = UserCreationForm()
     
@@ -2500,6 +2508,8 @@ def responder_pqrsfd(request, pqrsfd_id):
         respuesta = request.POST.get('respuesta')
         estado = request.POST.get('estado')
         estado_anterior = pqrsfd.estado
+        enviar_email = request.POST.get('enviar_email') == 'on'
+        enviar_sms = request.POST.get('enviar_sms') == 'on'
         
         # Validar que el cambio de estado siga el flujo correcto
         estados_validos = get_siguientes_estados_validos(estado_anterior)
@@ -2517,6 +2527,43 @@ def responder_pqrsfd(request, pqrsfd_id):
             
         pqrsfd.save()
         
+        # Manejar los archivos adjuntos
+        archivos = request.FILES.getlist('archivos')
+        archivos_guardados = 0
+        for archivo in archivos:
+            ArchivoRespuestaPQRSFD.objects.create(
+                pqrsfd=pqrsfd,
+                archivo=archivo,
+                nombre_original=archivo.name,
+                tipo_archivo=archivo.content_type
+            )
+            archivos_guardados += 1
+            
+        if archivos_guardados > 0:
+            messages.success(request, f'Se han adjuntado {archivos_guardados} archivo(s) a la respuesta.')
+        
+        # Enviar notificaciones si se seleccionó la opción
+        if (enviar_email or enviar_sms) and pqrsfd.respuesta and not pqrsfd.es_anonimo:
+            try:
+                ahora = timezone.now()
+                
+                if enviar_email and pqrsfd.email:
+                    enviar_respuesta_email(pqrsfd, request)
+                    pqrsfd.notificado_email = True
+                    pqrsfd.fecha_notificacion = ahora
+                    messages.success(request, f'Se ha enviado una notificación por correo a {pqrsfd.email}')
+                
+                if enviar_sms and pqrsfd.telefono:
+                    enviar_respuesta_sms(pqrsfd)
+                    pqrsfd.notificado_sms = True
+                    if not pqrsfd.fecha_notificacion:
+                        pqrsfd.fecha_notificacion = ahora
+                    messages.success(request, f'Se ha enviado una notificación por SMS al número {pqrsfd.telefono}')
+                
+                pqrsfd.save()
+            except Exception as e:
+                messages.warning(request, f'Error al enviar notificaciones: {str(e)}')
+        
         if estado_anterior != estado:
             messages.success(request, f'La respuesta ha sido guardada y el estado ha cambiado de "{dict(PQRSFD.ESTADO_CHOICES)[estado_anterior]}" a "{dict(PQRSFD.ESTADO_CHOICES)[estado]}".')
         else:
@@ -2526,6 +2573,63 @@ def responder_pqrsfd(request, pqrsfd_id):
         return redirect('{}?estado={}'.format(reverse('listar_pqrsfd'), estado))
     
     return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})
+
+def enviar_respuesta_email(pqrsfd, request):
+    """Envía un correo electrónico con la respuesta al PQRSFD"""
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import render_to_string
+    from django.utils.html import strip_tags
+    
+    asunto = f'Respuesta a su {pqrsfd.get_tipo_display()} - {pqrsfd.asunto}'
+    
+    # Crear el contenido del correo en HTML
+    contexto = {
+        'pqrsfd': pqrsfd,
+        'fecha': timezone.now().strftime("%d/%m/%Y %H:%M"),
+        'url_base': f"{request.scheme}://{request.get_host()}"
+    }
+    contenido_html = render_to_string('emails/respuesta_pqrsfd.html', contexto)
+    contenido_texto = strip_tags(contenido_html)
+    
+    # Crear y enviar el correo
+    email = EmailMultiAlternatives(
+        subject=asunto,
+        body=contenido_texto,
+        from_email='noreply@corpensar.com',  # Reemplazar con un correo real
+        to=[pqrsfd.email]
+    )
+    email.attach_alternative(contenido_html, "text/html")
+    
+    # Adjuntar los archivos de la respuesta (si existen)
+    for adjunto in pqrsfd.archivos_respuesta.all():
+        email.attach_file(adjunto.archivo.path)
+    
+    email.send()
+
+def enviar_respuesta_sms(pqrsfd):
+    """
+    Envía un SMS con la notificación de respuesta
+    
+    Nota: Esta es una implementación básica, necesitará configurar
+    un servicio de SMS real para producción (Twilio, etc.)
+    """
+    # Este es un placeholder - necesita implementar con un proveedor real
+    telefono = pqrsfd.telefono
+    mensaje = f"Su {pqrsfd.get_tipo_display()} '{pqrsfd.asunto}' ha sido respondido. Por favor revise su correo o acceda a la plataforma."
+    
+    # Aquí implementaría la llamada a un servicio de SMS como Twilio
+    # Por ejemplo:
+    # from twilio.rest import Client
+    # client = Client(account_sid, auth_token)
+    # message = client.messages.create(
+    #     body=mensaje,
+    #     from_='+12345678901',  # Número Twilio
+    #     to=telefono
+    # )
+    
+    # Por ahora solo registramos que se "envió"
+    print(f"SMS enviado a {telefono}: {mensaje}")
+    return True
 
 def get_siguientes_estados_validos(estado_actual):
     """Obtiene los siguientes estados válidos según el flujo de trabajo"""
@@ -3001,3 +3105,39 @@ def eliminar_respuesta_encuesta(request, respuesta_id):
     
     messages.success(request, "La respuesta ha sido eliminada con éxito.")
     return redirect('resultados_encuesta', pk=encuesta_id)
+
+@login_required
+def administrar_usuarios(request):
+    """Vista para que los administradores gestionen los usuarios"""
+    # Verificar si el usuario es administrador
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('index')
+    
+    # Obtener todos los usuarios
+    usuarios = User.objects.all().order_by('-date_joined')
+    
+    return render(request, 'usuarios/administrar_usuarios.html', {
+        'usuarios': usuarios
+    })
+
+@login_required
+def crear_usuario(request):
+    """Vista para que los administradores creen nuevos usuarios"""
+    # Verificar si el usuario es administrador
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('index')
+    
+    if request.method == 'POST':
+        form = CrearUsuarioForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Usuario '{user.username}' creado correctamente.")
+            return redirect('administrar_usuarios')
+    else:
+        form = CrearUsuarioForm()
+    
+    return render(request, 'usuarios/crear_usuario.html', {
+        'form': form
+    })

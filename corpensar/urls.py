@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from .views import estadisticas_municipios, categorias_principales, crear_categoria_principal, crear_subcategoria, eliminar_categoria_principal, eliminar_subcategoria, get_subcategorias
+from .redirect_views import login_redirect_view
 
 urlpatterns = [
   path('admin/', admin.site.urls),
@@ -50,6 +51,11 @@ urlpatterns = [
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
   path('accounts/logout/', views.custom_logout, name='logout'),
   path('accounts/registro/', views.registro_view, name='registro'),
+  path('login-redirect/', login_redirect_view, name='login_redirect'),
+  
+  # Gestión de usuarios para administradores
+  path('usuarios/administrar/', views.administrar_usuarios, name='administrar_usuarios'),
+  path('usuarios/crear/', views.crear_usuario, name='crear_usuario'),
 
   path('pregunta/<int:pregunta_id>/editar/', views.editar_pregunta, name='editar_pregunta'),
   path('pregunta/<int:pregunta_id>/eliminar/', views.eliminar_pregunta, name='eliminar_pregunta'),
