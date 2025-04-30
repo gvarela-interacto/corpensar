@@ -44,7 +44,15 @@ def registro_view(request):
         form = UserCreationForm(request.POST)  # Usamos el formulario por defecto
         if form.is_valid():
             user = form.save()
-            return redirect('login')
+            # Autenticar al usuario automáticamente después del registro
+            from django.contrib.auth import login as auth_login
+            from django.contrib.auth import authenticate
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
+            auth_login(request, user)
+            # Redirigir a todas las encuestas
+            return redirect('todas_encuestas')
     else:
         form = UserCreationForm()
     
