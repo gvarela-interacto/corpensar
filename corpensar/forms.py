@@ -2,6 +2,7 @@ from django import forms
 from .models import *
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 class EncuestaForm(forms.ModelForm):
     class Meta:
@@ -221,3 +222,83 @@ class PQRSFDForm(forms.ModelForm):
                 self.add_error('email', 'El correo electrónico es requerido cuando no es anónimo.')
         
         return cleaned_data
+
+class CrearUsuarioForm(forms.Form):
+    """Formulario para crear un nuevo usuario por parte de un administrador"""
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de usuario'}),
+        help_text="Requerido. 150 caracteres o menos. Solo letras, números y @/./+/-/_"
+    )
+    first_name = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'}),
+        required=False
+    )
+    last_name = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellido'}),
+        required=False
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo electrónico'})
+    )
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
+        label="Contraseña"
+    )
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmar contraseña'}),
+        label="Confirmar contraseña"
+    )
+    is_admin = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Es administrador"
+    )
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este correo electrónico ya está en uso.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+
+        if password1 and password2 and password1 != password2:
+            self.add_error('password2', "Las contraseñas no coinciden.")
+
+        return cleaned_data
+
+    def save(self):
+        username = self.cleaned_data.get('username')
+        email = self.cleaned_data.get('email')
+        password = self.cleaned_data.get('password1')
+        first_name = self.cleaned_data.get('first_name', '')
+        last_name = self.cleaned_data.get('last_name', '')
+        is_admin = self.cleaned_data.get('is_admin', False)
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        # Si es administrador, asignar permisos de staff y superusuario
+        if is_admin:
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+
+        return user

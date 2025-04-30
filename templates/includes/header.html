@@ -111,6 +111,14 @@
                   <span>PQRSFD</span>
                 </a>
               </div>
+              {% if user.is_superuser %}
+              <div class="col-6">
+                <a href="{% url 'administrar_usuarios' %}" class="quick-action-item">
+                  <i class="mdi mdi-account-group text-gold"></i>
+                  <span>Usuarios</span>
+                </a>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -181,6 +189,10 @@
                 </div>
               </li>
               <li><a class="dropdown-item py-2" href="{% url 'mi_perfil' %}"><i class="mdi mdi-account-circle text-gold"></i>Mi Perfil</a></li>
+              {% if user.is_superuser %}
+              <li><a class="dropdown-item py-2" href="{% url 'administrar_usuarios' %}"><i class="mdi mdi-account-group text-gold"></i>Administrar Usuarios</a></li>
+              <li><a class="dropdown-item py-2" href="{% url 'crear_usuario' %}"><i class="mdi mdi-account-plus text-gold"></i>Crear Usuario</a></li>
+              {% endif %}
               <li><a class="dropdown-item py-2" href="{% url 'public_home' %}"><i class="mdi mdi-web text-gold"></i>Página Pública</a></li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item py-2" href="{% url 'logout' %}"><i class="mdi mdi-logout text-danger"></i>Cerrar Sesión</a></li>

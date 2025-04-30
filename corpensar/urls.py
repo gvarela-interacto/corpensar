@@ -50,6 +50,10 @@ urlpatterns = [
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
   path('accounts/logout/', views.custom_logout, name='logout'),
   path('accounts/registro/', views.registro_view, name='registro'),
+  
+  # Gestión de usuarios para administradores
+  path('usuarios/administrar/', views.administrar_usuarios, name='administrar_usuarios'),
+  path('usuarios/crear/', views.crear_usuario, name='crear_usuario'),
 
   path('pregunta/<int:pregunta_id>/editar/', views.editar_pregunta, name='editar_pregunta'),
   path('pregunta/<int:pregunta_id>/eliminar/', views.eliminar_pregunta, name='eliminar_pregunta'),

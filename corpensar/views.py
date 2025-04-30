@@ -3097,3 +3097,39 @@ def eliminar_respuesta_encuesta(request, respuesta_id):
     
     messages.success(request, "La respuesta ha sido eliminada con éxito.")
     return redirect('resultados_encuesta', pk=encuesta_id)
+
+@login_required
+def administrar_usuarios(request):
+    """Vista para que los administradores gestionen los usuarios"""
+    # Verificar si el usuario es administrador
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('index')
+    
+    # Obtener todos los usuarios
+    usuarios = User.objects.all().order_by('-date_joined')
+    
+    return render(request, 'usuarios/administrar_usuarios.html', {
+        'usuarios': usuarios
+    })
+
+@login_required
+def crear_usuario(request):
+    """Vista para que los administradores creen nuevos usuarios"""
+    # Verificar si el usuario es administrador
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect('index')
+    
+    if request.method == 'POST':
+        form = CrearUsuarioForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"Usuario '{user.username}' creado correctamente.")
+            return redirect('administrar_usuarios')
+    else:
+        form = CrearUsuarioForm()
+    
+    return render(request, 'usuarios/crear_usuario.html', {
+        'form': form
+    })

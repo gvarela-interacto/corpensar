@@ -151,6 +151,29 @@
         </a>
       </li>
       
+      <!-- ADMINISTRACIÓN DE USUARIOS -->
+      <li class="nav-item nav-category">
+        <span class="nav-link text-uppercase">Administración</span>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'administrar_usuarios' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-account-group"></i>
+          </div>
+          <span class="nav-text">Administrar Usuarios</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'crear_usuario' %}">
+          <div class="nav-icon-wrapper">
+            <i class="mdi mdi-account-plus"></i>
+          </div>
+          <span class="nav-text">Crear Usuario</span>
+        </a>
+      </li>
+      
       <!-- PQRSFD -->
       <li class="nav-item nav-category">
         <span class="nav-link text-uppercase">PQRSFD</span>
@@ -226,6 +249,8 @@
     overflow-y: auto;
     overflow-x: hidden;
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
   }
   
   .sidebar-wrapper {
@@ -234,6 +259,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .sidebar-header {
@@ -386,6 +414,22 @@
     .sidebar-wrapper {
       padding-top: 0;
     }
+  }
+  
+  /* Ajuste para que la navegación ocupe todo el espacio disponible y permita scroll */
+  .sidebar .nav.flex-column {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 60px; /* Espacio para que se vea el final del menú */
+  }
+  
+  /* Estilo específico para la sección de administración */
+  .nav-item.nav-category:has(+ li a[href*="administrar_usuarios"]),
+  .nav-item:has(a[href*="administrar_usuarios"]),
+  .nav-item:has(a[href*="crear_usuario"]) {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 </style>
 
