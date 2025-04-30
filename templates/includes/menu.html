@@ -620,12 +620,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Función para manejar el toggle del menú
+    function toggleSidebar() {
+        const body = document.body;
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        
+        body.classList.toggle('sidebar-open');
+        
+        if (backdrop) {
+            if (body.classList.contains('sidebar-open')) {
+                backdrop.style.display = 'block';
+                setTimeout(() => {
+                    backdrop.style.opacity = '1';
+                    backdrop.style.visibility = 'visible';
+                }, 10);
+            } else {
+                backdrop.style.opacity = '0';
+                backdrop.style.visibility = 'hidden';
+                setTimeout(() => {
+                    backdrop.style.display = 'none';
+                }, 300);
+            }
+        }
+    }
+    
+    // Agregar evento de click a todos los botones de toggle
+    const sidebarToggles = document.querySelectorAll('[data-toggle="sidebar"]');
+    sidebarToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleSidebar();
+        });
+    });
+    
     // Cerrar el menú al hacer clic en el backdrop
     const backdrop = document.getElementById('sidebarBackdrop');
     if (backdrop) {
         backdrop.addEventListener('click', function() {
             document.body.classList.remove('sidebar-open');
-            backdrop.style.display = 'none';
+            this.style.opacity = '0';
+            this.style.visibility = 'hidden';
+            setTimeout(() => {
+                this.style.display = 'none';
+            }, 300);
         });
     }
     
@@ -636,7 +674,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.remove('sidebar-open');
             const backdrop = document.getElementById('sidebarBackdrop');
             if (backdrop) {
-                backdrop.style.display = 'none';
+                backdrop.style.opacity = '0';
+                backdrop.style.visibility = 'hidden';
+                setTimeout(() => {
+                    backdrop.style.display = 'none';
+                }, 300);
             }
         }
     }
@@ -645,25 +687,19 @@ document.addEventListener('DOMContentLoaded', function() {
         link.addEventListener('click', closeMenuOnMobile);
     });
     
-    // Verificar si el toggle existe
-    const sidebarToggles = document.querySelectorAll('[data-toggle="sidebar"]');
-    
-    // Agregar listener manualmente
-    sidebarToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            const body = document.body;
-            body.classList.toggle('sidebar-open');
-            
-            // Mostrar/ocultar backdrop
+    // Cerrar menú al cambiar tamaño de ventana a desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 991) {
+            document.body.classList.remove('sidebar-open');
+            const backdrop = document.getElementById('sidebarBackdrop');
             if (backdrop) {
-                if (body.classList.contains('sidebar-open')) {
-                    backdrop.style.display = 'block';
-                } else {
+                backdrop.style.opacity = '0';
+                backdrop.style.visibility = 'hidden';
+                setTimeout(() => {
                     backdrop.style.display = 'none';
-                }
+                }, 300);
             }
-        });
+        }
     });
 });
 </script>

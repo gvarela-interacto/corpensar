@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="{% static 'js/select.dataTables.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/vertical-layout-light/style.css' %}">
   <link rel="stylesheet" href="{% static 'css/vertical-layout-light/personalizado.css' %}">
+  <link rel="stylesheet" href="{% static 'css/sidebar-responsive.css' %}">
   <link rel="shortcut icon" type="image/png" href="http://72.14.187.231/corpensar/images/logoappw.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/global.css' %}">
@@ -510,6 +511,13 @@
       overflow-x: hidden;
       width: 100%;
     }
+    
+    
+    body.sidebar-open .sidebar-backdrop {
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: block !important;
+    }
 
     /* Ajustes adicionales para mostrar correctamente el contenido */
     .interContenido {
@@ -681,6 +689,7 @@
     {% include 'includes/header.html' %}
     
     <div class="container-fluid page-body-wrapper">
+      
       {% include 'includes/menu.html' %}
       
       <div class="main-panel">
@@ -744,6 +753,7 @@
   <script src="{% static 'js/todolist.js' %}"></script>
   <script src="{% static 'js/Chart.roundedBarCharts.js' %}"></script>
   <script src="{% static 'js/general.js' %}"></script>
+  <script src="{% static 'js/menu-toggle.js' %}"></script>
   
   {% block javascript %}{% endblock %}
   
@@ -826,6 +836,28 @@
         }
       }, 100);
 
+      // Manejar todos los botones de toggle del sidebar
+      const sidebarToggles = document.querySelectorAll('[data-toggle="sidebar"]');
+      sidebarToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+          e.preventDefault();
+          const body = document.body;
+          body.classList.toggle('sidebar-open');
+          
+          // Manejar el backdrop
+          const backdrop = document.getElementById('sidebarBackdrop');
+          if (backdrop) {
+            if (body.classList.contains('sidebar-open')) {
+              backdrop.style.display = 'block';
+            } else {
+              setTimeout(() => {
+                backdrop.style.display = 'none';
+              }, 300);
+            }
+          }
+        });
+      });
+
       // Cerrar menú al hacer clic fuera de él en dispositivos móviles
       const mainPanel = document.querySelector('.main-panel');
       if (mainPanel && window.innerWidth <= 991) {
@@ -833,6 +865,12 @@
           const body = document.querySelector('body');
           if (body.classList.contains('sidebar-open')) {
             body.classList.remove('sidebar-open');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) {
+              setTimeout(() => {
+                backdrop.style.display = 'none';
+              }, 300);
+            }
           }
         });
       }
@@ -841,6 +879,8 @@
       window.addEventListener('resize', function() {
         if (window.innerWidth > 991) {
           document.body.classList.remove('sidebar-open');
+          const backdrop = document.getElementById('sidebarBackdrop');
+          if (backdrop) backdrop.style.display = 'none';
         }
       });
 

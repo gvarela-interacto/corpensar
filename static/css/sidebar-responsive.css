@@ -1,0 +1,87 @@
+/**
+ * Estilos específicos para el menú lateral responsivo de Corpensar
+ */
+
+/* Backdrop para dispositivos móviles */
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+body.sidebar-open .sidebar-backdrop {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Estilos responsivos para el sidebar */
+.sidebar {
+    min-height: calc(100vh - 70px);
+    width: 255px;
+    z-index: 1031;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: fixed;
+    left: 0;
+    top: 70px;
+    height: calc(100% - 70px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(0);
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 991px) {
+    .sidebar {
+        width: 270px;
+        position: fixed;
+        left: 0;
+        transform: translateX(-100%);
+        height: calc(100% - 70px);
+        top: 70px;
+        z-index: 1032;
+        box-shadow: none;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        overflow-x: hidden;
+        pointer-events: all;
+    }
+    
+    body.sidebar-open {
+        overflow: hidden;
+    }
+    
+    body.sidebar-open .sidebar {
+        transform: translateX(0);
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sidebar .nav {
+        height: auto;
+        max-height: calc(100vh - 140px);
+        padding-bottom: 50px;
+        overflow-y: auto;
+    }
+}
+
+/* Ajustes específicos para smartphones pequeños */
+@media (max-width: 480px) {
+    .sidebar {
+        width: 85%;
+        transform: translateX(-100%);
+    }
+    
+    body.sidebar-open .sidebar {
+        transform: translateX(0);
+    }
+} 

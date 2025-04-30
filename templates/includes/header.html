@@ -6,7 +6,7 @@
     <div class="container-fluid px-4">
       <!-- Logo y toggle para móvil -->
       <div class="d-flex align-items-center">
-        <button type="button" class="btn btn-link sidebar-toggle me-3 d-lg-none" id="sidebarToggle" data-toggle="sidebar">
+        <button type="button" class="btn btn-link sidebar-toggle me-3 d-lg-none" id="sidebarToggle">
           <i class="mdi mdi-menu fs-4 text-gold"></i>
         </button>
         <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
@@ -535,31 +535,71 @@
   document.addEventListener('DOMContentLoaded', function() {
     // Toggle para el menú lateral en móvil
     const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop') || document.createElement('div');
+    
+    // Crear backdrop si no existe
+    if (!document.getElementById('sidebarBackdrop')) {
+      backdrop.id = 'sidebarBackdrop';
+      backdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    
+    // Función para manejar el toggle del menú
+    function toggleSidebar() {
+      document.body.classList.toggle('sidebar-open');
+      
+      if (document.body.classList.contains('sidebar-open')) {
+        backdrop.style.display = 'block';
+        setTimeout(() => {
+          backdrop.style.opacity = '1';
+          backdrop.style.visibility = 'visible';
+        }, 10);
+      } else {
+        backdrop.style.opacity = '0';
+        backdrop.style.visibility = 'hidden';
+        setTimeout(() => {
+          backdrop.style.display = 'none';
+        }, 300);
+      }
+    }
+    
+    // Evento para el botón de toggle
     if (sidebarToggle) {
       sidebarToggle.addEventListener('click', function(e) {
         e.preventDefault();
-        // Aplicar directamente la clase al body sin depender de template.js
-        document.body.classList.toggle('sidebar-open');
-        
-        // Controlar el backdrop
-        const backdrop = document.getElementById('sidebarBackdrop');
-        if (backdrop) {
-          if (document.body.classList.contains('sidebar-open')) {
-            backdrop.style.display = 'block';
-            setTimeout(function() {
-              backdrop.style.opacity = '1';
-              backdrop.style.visibility = 'visible';
-            }, 10);
-          } else {
-            backdrop.style.opacity = '0';
-            backdrop.style.visibility = 'hidden';
-            setTimeout(function() {
-              backdrop.style.display = 'none';
-            }, 300);
-          }
-        }
+        toggleSidebar();
       });
     }
+    
+    // Evento para cerrar al hacer clic en el backdrop
+    backdrop.addEventListener('click', function() {
+      if (document.body.classList.contains('sidebar-open')) {
+        toggleSidebar();
+      }
+    });
+    
+    // Cerrar menú al hacer clic en un enlace (solo en móvil)
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        if (window.innerWidth < 992) {
+          toggleSidebar();
+        }
+      });
+    });
+    
+    // Cerrar menú al cambiar tamaño de ventana a desktop
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 991) {
+        document.body.classList.remove('sidebar-open');
+        backdrop.style.opacity = '0';
+        backdrop.style.visibility = 'hidden';
+        setTimeout(() => {
+          backdrop.style.display = 'none';
+        }, 300);
+      }
+    });
     
     // Manejo del dropdown para dispositivos táctiles
     const dropdownToggle = document.querySelectorAll('.dropdown-toggle');
@@ -567,23 +607,6 @@
       dropdownToggle.forEach(item => {
         item.setAttribute('data-bs-toggle', 'dropdown');
       });
-    }
-    
-    // Agregar backdrop para cerrar el sidebar en móvil
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar && !document.getElementById('sidebarBackdrop')) {
-      const backdrop = document.createElement('div');
-      backdrop.id = 'sidebarBackdrop';
-      backdrop.className = 'sidebar-backdrop';
-      backdrop.addEventListener('click', function() {
-        document.body.classList.remove('sidebar-open');
-        this.style.opacity = '0';
-        this.style.visibility = 'hidden';
-        setTimeout(() => {
-          this.style.display = 'none';
-        }, 300);
-      });
-      document.body.appendChild(backdrop);
     }
   });
 </script>
