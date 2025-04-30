@@ -4,11 +4,17 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Todas las Encuestas</h2>
+        <h2 class="mb-0">{{ dashboard_title|default:"Todas las Encuestas" }}</h2>
+        {% if user.is_superuser %}
         <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nueva Encuesta
         </a>
+        {% endif %}
     </div>
+    
+    {% if dashboard_subtitle %}
+    <p class="text-muted mb-4">{{ dashboard_subtitle }}</p>
+    {% endif %}
     
     <!-- Barra de búsqueda y filtros -->
     <div class="card shadow-sm mb-4">
@@ -29,13 +35,14 @@
                             </span>
                             <input type="text" class="form-control form-control-lg border-start-0 ps-0" id="search" name="search" 
                                    placeholder="Buscar por título de encuesta..." value="{{ request.GET.search|default:'' }}">
-                            <button class="btn btn-lg btn-primary" type="submit">
+                            <button class="btn btn-primary" type="submit">
                                 Buscar
                             </button>
                         </div>
                     </div>
                     
                     <!-- Filtros básicos - primera fila -->
+                    {% if user.is_superuser %}
                     <div class="col-md-3">
                         <div class="form-floating">
                             <select class="form-select" id="estado" name="estado">
@@ -46,8 +53,9 @@
                             <label for="estado"><i class="fas fa-toggle-on me-1"></i>Estado</label>
                         </div>
                     </div>
+                    {% endif %}
                     
-                    <div class="col-md-3">
+                    <div class="col-md-{% if user.is_superuser %}3{% else %}4{% endif %}">
                         <div class="form-floating">
                             <select class="form-select" id="categoria" name="categoria">
                                 <option value="">Todas</option>
@@ -61,7 +69,7 @@
                         </div>
                     </div>
                     
-                    <div class="col-md-3">
+                    <div class="col-md-{% if user.is_superuser %}3{% else %}4{% endif %}">
                         <div class="form-floating">
                             <select class="form-select" id="region" name="region">
                                 <option value="">Todas</option>
@@ -75,6 +83,7 @@
                         </div>
                     </div>
                     
+                    {% if user.is_superuser and usuarios %}
                     <div class="col-md-3">
                         <div class="form-floating">
                             <select class="form-select" id="creador" name="creador">
@@ -88,8 +97,22 @@
                             <label for="creador"><i class="fas fa-user me-1"></i>Creador</label>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <select class="form-select" id="orden" name="orden">
+                                <option value="fecha_desc" {% if request.GET.orden == 'fecha_desc' %}selected{% endif %}>Más recientes</option>
+                                <option value="fecha_asc" {% if request.GET.orden == 'fecha_asc' %}selected{% endif %}>Más antiguas</option>
+                                <option value="titulo_asc" {% if request.GET.orden == 'titulo_asc' %}selected{% endif %}>Título A-Z</option>
+                                <option value="titulo_desc" {% if request.GET.orden == 'titulo_desc' %}selected{% endif %}>Título Z-A</option>
+                            </select>
+                            <label for="orden"><i class="fas fa-sort me-1"></i>Ordenar por</label>
+                        </div>
+                    </div>
+                    {% endif %}
                     
                     <!-- Filtros avanzados - segunda fila -->
+                    {% if user.is_superuser %}
                     <div class="col-md-3">
                         <div class="form-floating">
                             <select class="form-select" id="orden" name="orden">
@@ -117,6 +140,7 @@
                             <label for="fecha_hasta"><i class="fas fa-calendar-alt me-1"></i>Hasta</label>
                         </div>
                     </div>
+                    {% endif %}
                     
                     <!-- Botones -->
                     <div class="col-12 mt-3 text-end">
@@ -135,7 +159,7 @@
     <!-- Resultados y estadísticas -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <span class="text-muted">Mostrando {{ encuestas|length }} de {{ paginator.count|default:encuestas|length }} encuestas</span>
+            <span class="text-muted">Mostrando {{ encuestas|length }} de {{ encuestas|length }} encuestas</span>
         </div>
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-outline-secondary active" id="tablaView">
@@ -154,11 +178,15 @@
                 <thead class="table-light">
                     <tr>
                         <th class="border-0" style="width: 35%;">Título</th>
+                        {% if user.is_superuser %}
                         <th class="border-0 text-center" style="width: 90px;">Estado</th>
+                        {% endif %}
                         <th class="border-0 d-none d-md-table-cell" style="width: 120px;">Región</th>
                         <th class="border-0 d-none d-md-table-cell" style="width: 120px;">Categoría</th>
                         <th class="border-0 d-none d-lg-table-cell" style="width: 100px;">Fecha</th>
+                        {% if user.is_superuser %}
                         <th class="border-0 d-none d-lg-table-cell" style="width: 120px;">Creador</th>
+                        {% endif %}
                         <th class="border-0 text-end" style="width: 150px;">Acciones</th>
                     </tr>
                 </thead>
@@ -177,11 +205,14 @@
                                         <small class="d-block text-muted text-wrap">{{ encuesta.region.nombre|default:"Sin región" }}</small>
                                         <small class="d-block text-muted text-wrap">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</small>
                                         <small class="d-block text-muted">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</small>
+                                        {% if user.is_superuser %}
                                         <small class="d-block text-muted text-wrap">{{ encuesta.creador.username }}</small>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </td>
+                        {% if user.is_superuser %}
                         <td class="align-middle text-center">
                             {% if encuesta.activa %}
                             <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
@@ -189,78 +220,87 @@
                             <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
                             {% endif %}
                         </td>
+                        {% endif %}
                         <td class="align-middle d-none d-md-table-cell">{{ encuesta.region.nombre|default:"Sin región" }}</td>
                         <td class="align-middle d-none d-md-table-cell">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
                         <td class="align-middle d-none d-lg-table-cell">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
+                        {% if user.is_superuser %}
                         <td class="align-middle d-none d-lg-table-cell">{{ encuesta.creador.username }}</td>
+                        {% endif %}
                         <td class="align-middle text-end">
                             <div class="d-flex justify-content-end">
                                 <!-- Menú de acciones desplegable para móviles -->
                                 <div class="dropdown d-md-none">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="actionDropdown-{{ encuesta.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Acciones
+                                        <i class="fas fa-ellipsis-v"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown-{{ encuesta.id }}">
-                                        {% if encuesta.slug %}
                                         <li>
-                                            <a class="dropdown-item" href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank">
-                                                <i class="fas fa-eye me-2"></i> Ver encuesta
+                                            <a class="dropdown-item" href="{% url 'responder_encuesta' encuesta.slug %}">
+                                                <i class="fas fa-clipboard-check text-primary"></i> Responder
+                                            </a>
+                                        </li>
+                                        {% if user == encuesta.creador or user.is_superuser %}
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'resultados_encuesta' encuesta.id %}">
+                                                <i class="fas fa-chart-bar text-success"></i> Resultados
                                             </a>
                                         </li>
                                         {% endif %}
+                                        {% if user.is_superuser %}
+                                        <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <a class="dropdown-item" href="{% url 'editar_encuesta' encuesta.id %}">
-                                                <i class="fas fa-edit me-2"></i> Editar encuesta
+                                                <i class="fas fa-edit text-primary"></i> Editar
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{% url 'resultados_encuesta' encuesta.id %}">
-                                                <i class="fas fa-chart-bar me-2"></i> Ver resultados
+                                            <a class="dropdown-item" href="{% url 'duplicar_encuesta' encuesta.id %}">
+                                                <i class="fas fa-copy text-info"></i> Duplicar
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="#" onclick="generarQR('{{ encuesta.slug }}'); return false;">
-                                                <i class="fas fa-qrcode me-2"></i> Generar QR
+                                            <a class="dropdown-item" href="{% url 'eliminar_encuesta' encuesta.id %}" onclick="return confirm('¿Estás seguro de que deseas eliminar esta encuesta?')">
+                                                <i class="fas fa-trash-alt text-danger"></i> Eliminar
                                             </a>
                                         </li>
+                                        {% endif %}
                                     </ul>
                                 </div>
                                 
-                                <!-- Botones de acción para desktop -->
+                                <!-- Botones para desktop -->
                                 <div class="d-none d-md-flex">
-                                    {% if encuesta.slug %}
-                                    <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="tooltip" title="Ver encuesta">
-                                        <i class="fas fa-eye"></i>
+                                    <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" title="Responder">
+                                        <i class="fas fa-clipboard-check"></i>
                                     </a>
-                                    {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary me-1" disabled data-bs-toggle="tooltip" title="Sin URL">
-                                        <i class="fas fa-eye-slash"></i>
-                                    </button>
-                                    {% endif %}
-                                    <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="Editar encuesta">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success me-1" data-bs-toggle="tooltip" title="Ver resultados">
+                                    {% if user == encuesta.creador or user.is_superuser %}
+                                    <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-success me-1" data-bs-toggle="tooltip" title="Ver resultados">
                                         <i class="fas fa-chart-bar"></i>
                                     </a>
-                                    <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="Generar código QR">
-                                        <i class="fas fa-qrcode"></i>
-                                    </button>
+                                    {% endif %}
+                                    {% if user.is_superuser %}
+                                    <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'duplicar_encuesta' encuesta.id %}" class="btn btn-sm btn-warning me-1" data-bs-toggle="tooltip" title="Duplicar">
+                                        <i class="fas fa-copy"></i>
+                                    </a>
+                                    <a href="{% url 'eliminar_encuesta' encuesta.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar esta encuesta?')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5">
-                            <div class="empty-state">
-                                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                                <h5>No hay encuestas disponibles</h5>
-                                <p class="text-muted">No se encontraron encuestas con los filtros seleccionados</p>
-                                <a href="{% url 'todas_encuestas' %}" class="btn btn-primary mt-2">
-                                    <i class="fas fa-undo me-1"></i> Ver todas las encuestas
-                                </a>
-                            </div>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <p class="mb-0">No se encontraron encuestas con los filtros aplicados.</p>
+                            <a href="{% url 'todas_encuestas' %}" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-undo me-1"></i> Restablecer filtros
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -275,7 +315,7 @@
             {% for encuesta in encuestas %}
             <div class="col">
                 <div class="card h-100 shadow-sm card-hover">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <span class="text-muted small">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</span>
                         {% if encuesta.activa %}
                         <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
@@ -285,38 +325,34 @@
                     </div>
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-sm bg-primary-soft rounded-circle text-center me-3" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-                                <i class="fas fa-poll text-primary"></i>
+                            <div class="avatar-sm bg-primary rounded-circle text-center me-3">
+                                <i class="fas fa-poll text-white my-2"></i>
                             </div>
-                            <h5 class="card-title mb-0 fw-semibold">{{ encuesta.titulo }}</h5>
+                            <h5 class="card-title mb-0">{{ encuesta.titulo }}</h5>
                         </div>
                         <div class="mb-3">
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>Región:</span>
-                                <span class="fw-medium">{{ encuesta.region.nombre|default:"Sin región" }}</span>
+                                <span>{{ encuesta.region.nombre|default:"Sin región" }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-tags me-1"></i>Categoría:</span>
-                                <span class="fw-medium">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</span>
+                                <span>{{ encuesta.categoria.nombre|default:"Sin categoría" }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-tags me-1"></i>Subcategoría:</span>
-                                <span class="fw-medium">{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</span>
+                                <span>{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted"><i class="fas fa-palette me-1"></i>Tema:</span>
-                                <span class="fw-medium">{{ encuesta.get_tema_display|default:"Sin tema" }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted"><i class="fas fa-user me-1"></i>Creador:</span>
-                                <span class="fw-medium">{{ encuesta.creador.username }}</span>
+                                <span>{{ encuesta.get_tema_display|default:"Sin tema" }}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-white border-top pt-0">
+                    <div class="card-footer bg-white border-top-0 pt-0">
                         <div class="d-grid gap-2">
                             {% if encuesta.slug %}
-                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
                                 <i class="fas fa-eye me-1"></i> Ver encuesta
                             </a>
                             {% else %}
@@ -324,6 +360,7 @@
                                 <i class="fas fa-eye-slash me-1"></i> Sin URL
                             </button>
                             {% endif %}
+                            {% if user == encuesta.creador or user.is_superuser %}
                             <div class="d-flex gap-2">
                                 <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary flex-grow-1">
                                     <i class="fas fa-edit me-1"></i> Editar
@@ -332,9 +369,20 @@
                                     <i class="fas fa-chart-bar me-1"></i> Resultados
                                 </a>
                             </div>
-                            <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info">
-                                <i class="fas fa-qrcode me-1"></i> Generar QR
-                            </button>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'exportar_encuesta_json' encuesta.id %}" class="btn btn-sm btn-outline-info flex-grow-1">
+                                    <i class="fas fa-file-export me-1"></i> Exportar JSON
+                                </a>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info flex-grow-1">
+                                    <i class="fas fa-qrcode me-1"></i> Generar QR
+                                </button>
+                                <button onclick="confirmarEliminar('{{ encuesta.id }}', '{{ encuesta.titulo }}')" class="btn btn-sm btn-outline-danger flex-grow-1">
+                                    <i class="fas fa-trash-alt me-1"></i> Eliminar
+                                </button>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -345,10 +393,10 @@
                     <div class="card-body text-center py-5">
                         <div class="empty-state">
                             <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                            <h5>No hay encuestas disponibles</h5>
-                            <p class="text-muted">No se encontraron encuestas con los filtros seleccionados</p>
-                            <a href="{% url 'todas_encuestas' %}" class="btn btn-primary mt-2">
-                                <i class="fas fa-undo me-1"></i> Ver todas las encuestas
+                            <h5>No tienes encuestas creadas aún</h5>
+                            <p class="text-muted">Comienza a crear tu primera encuesta con el botón "Nueva Encuesta"</p>
+                            <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus me-1"></i> Crear encuesta
                             </a>
                         </div>
                     </div>
@@ -360,44 +408,64 @@
     
     <!-- Paginación -->
     {% if is_paginated %}
-    <nav aria-label="Paginación de encuestas" class="mt-4">
+    <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Anterior">
-                    <i class="fas fa-chevron-left"></i>
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
             {% else %}
             <li class="page-item disabled">
-                <a class="page-link" href="#" aria-label="Anterior">
-                    <i class="fas fa-chevron-left"></i>
+                <a class="page-link" href="#" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
             {% endif %}
             
             {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                    <li class="page-item">
-                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endif %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+            </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
             {% endfor %}
             
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Siguiente">
-                    <i class="fas fa-chevron-right"></i>
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
                 </a>
             </li>
             {% else %}
             <li class="page-item disabled">
-                <a class="page-link" href="#" aria-label="Siguiente">
-                    <i class="fas fa-chevron-right"></i>
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
                 </a>
             </li>
             {% endif %}
@@ -406,72 +474,11 @@
     {% endif %}
 </div>
 
-<!-- Agregar el modal para mostrar el QR -->
-<div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="qrModalLabel">Código QR de la Encuesta</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <div id="qrcode" class="p-3 border rounded bg-light">
-                    <img id="qrImage" src="" alt="QR Code" style="max-width: 100%;">
-                </div>
-                <div class="mt-3">
-                    <small class="text-muted">Escanea este código QR para acceder directamente a la encuesta</small>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="descargarQR()">
-                    <i class="fas fa-download me-1"></i> Descargar QR
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+{% endblock %}
 
-<!-- Agregar el script para generar el QR y otras funcionalidades -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+{% block javascript %}
 <script>
-    let qrDataURL = '';
-
-    function generarQR(slug) {
-        const url = window.location.origin + '/encuestas/' + slug + '/responder/';
-        const qrImage = document.getElementById('qrImage');
-        
-        QRCode.toDataURL(url, {
-            width: 300,
-            margin: 5,
-            color: {
-                dark: '#000000',
-                light: '#ffffff'
-            }
-        }, function (error, dataURL) {
-            if (error) {
-                console.error(error);
-                return;
-            }
-            qrDataURL = dataURL;
-            qrImage.src = dataURL;
-            var qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
-            qrModal.show();
-        });
-    }
-
-    function descargarQR() {
-        if (qrDataURL) {
-            const link = document.createElement('a');
-            link.download = 'qr-encuesta.png';
-            link.href = qrDataURL;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-    
-    // Cambiar entre vistas de tabla y tarjetas
+    // Toggle entre vista de tabla y tarjetas
     document.addEventListener('DOMContentLoaded', function() {
         const tablaView = document.getElementById('tablaView');
         const tarjetasView = document.getElementById('tarjetasView');
@@ -479,176 +486,45 @@
         const vistaTarjetas = document.getElementById('vistaTarjetas');
         
         if (tablaView && tarjetasView && vistaTabla && vistaTarjetas) {
-            // Inicializar tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-                new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Cambiar a vista de tabla
             tablaView.addEventListener('click', function() {
                 vistaTabla.style.display = 'block';
                 vistaTarjetas.style.display = 'none';
                 tablaView.classList.add('active');
                 tarjetasView.classList.remove('active');
-                localStorage.setItem('vistaEncuestas', 'tabla');
+                // Guardar preferencia en localStorage
+                localStorage.setItem('vista_encuestas', 'tabla');
             });
             
-            // Cambiar a vista de tarjetas
             tarjetasView.addEventListener('click', function() {
                 vistaTabla.style.display = 'none';
-                vistaTarjetas.style.display = 'block';
+                vistaTarjetas.style.display = 'flex';
                 tablaView.classList.remove('active');
                 tarjetasView.classList.add('active');
-                localStorage.setItem('vistaEncuestas', 'tarjetas');
+                // Guardar preferencia en localStorage
+                localStorage.setItem('vista_encuestas', 'tarjetas');
             });
             
-            // Cargar preferencia guardada
-            const vistaPreferida = localStorage.getItem('vistaEncuestas');
+            // Cargar preferencia del usuario si existe
+            const vistaPreferida = localStorage.getItem('vista_encuestas');
             if (vistaPreferida === 'tarjetas') {
-                tarjetasView.click();
+                vistaTabla.style.display = 'none';
+                vistaTarjetas.style.display = 'flex';
+                tablaView.classList.remove('active');
+                tarjetasView.classList.add('active');
             }
+        } else {
+            console.error('No se encontraron elementos para el toggle de vistas');
+        }
+        
+        // Initialize tooltips
+        try {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        } catch (e) {
+            console.warn('Error al inicializar tooltips:', e);
         }
     });
 </script>
-
-<style>
-    .avatar-sm {
-        width: 36px;
-        height: 36px;
-        line-height: 36px;
-        flex-shrink: 0;
-    }
-    
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-    }
-    
-    .table th {
-        font-weight: 600;
-        color: #495057;
-        white-space: nowrap;
-    }
-    
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 123, 255, 0.03);
-    }
-    
-    /* Estilos para el manejo de texto */
-    .text-wrap {
-        white-space: normal;
-        word-wrap: break-word;
-        min-width: 0;
-    }
-    
-    .min-width-0 {
-        min-width: 0;
-    }
-    
-    /* Estilos para la barra de búsqueda */
-    .input-group .form-control-lg,
-    .input-group .btn-lg,
-    .input-group .input-group-text {
-        height: 48px;
-        font-size: 1rem;
-        line-height: 1.5;
-    }
-    
-    .input-group-text {
-        display: flex;
-        align-items: center;
-    }
-    
-    /* Estilos para las tarjetas */
-    .card-hover {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    /* Mejoras para dispositivos móviles */
-    @media (max-width: 768px) {
-        .container-fluid {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-        
-        .table {
-            font-size: 0.85rem;
-        }
-        
-        .table td, .table th {
-            padding: 0.4rem;
-        }
-        
-        .btn-sm {
-            padding: 0.2rem 0.4rem;
-            font-size: 0.75rem;
-        }
-        
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.3em 0.6em;
-        }
-        
-        .table td.text-wrap h6 {
-            font-size: 0.9rem;
-            margin-bottom: 0.2rem;
-        }
-        
-        .table td.text-wrap small {
-            font-size: 0.75rem;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .table {
-            font-size: 0.8rem;
-        }
-        
-        .table td.text-wrap h6 {
-            font-size: 0.85rem;
-        }
-    }
-    
-    .table-responsive {
-        margin: 0;
-        padding: 0;
-    }
-    
-    .table {
-        margin-bottom: 0;
-    }
-    
-    thead.table-light tr th {
-        padding: 0.5rem;
-        font-size: 0.9rem;
-    }
-    
-    .table td {
-        padding: 0.5rem;
-        vertical-align: middle;
-    }
-    
-    .table td.text-wrap {
-        white-space: normal;
-        word-wrap: break-word;
-        min-width: 0;
-        max-width: none;
-        line-height: 1.3;
-    }
-    
-    .table th {
-        white-space: nowrap;
-        font-weight: 600;
-        color: #495057;
-    }
-</style>
 {% endblock %}

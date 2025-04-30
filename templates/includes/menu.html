@@ -2,14 +2,23 @@
 
 <nav class="sidebar sidebar-offcanvas" id="sidebar" style="background: linear-gradient(180deg, #1a1a1a 0%, #222222 100%); box-shadow: 0 0 20px rgba(0,0,0,0.2);">
     <style>
+        /* Estilos mejorados para el sidebar */
+        body {
+            overflow-x: hidden; /* Prevenir scroll horizontal */
+        }
+        
         .sidebar {
-            min-height: calc(100vh - 50px);
+            min-height: calc(100vh - 70px);
             width: 255px;
             z-index: 1031;
             transition: all 0.3s ease;
             position: fixed;
             left: 0;
-            overflow: hidden;
+            top: 70px; /* Posicionado debajo del header */
+            height: calc(100% - 70px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 0; /* Sin padding superior */
         }
         
         .sidebar .nav {
@@ -17,7 +26,7 @@
             flex-direction: column;
             margin-bottom: 60px;
             padding-bottom: 60px;
-            height: calc(100vh - 120px);
+            height: auto;
             width: 100%;
             padding-top: 10px;
         }
@@ -148,6 +157,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px 15px;
+            margin-top: 0; /* Sin margen superior */
             margin-bottom: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             background-color: rgba(0,0,0,0.2);
@@ -193,56 +203,101 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        /* Mejoras para dispositivos móviles */
+        /* Ajustes para dispositivos móviles */
         @media (max-width: 991px) {
             .sidebar {
                 width: 270px;
                 position: fixed;
                 left: -270px;
-                height: 100vh;
-                top: 50px;
-                z-index: 999;
-                box-shadow: 5px 0 10px rgba(0, 0, 0, 0.2);
+                height: calc(100% - 70px); /* Altura total menos el header */
+                top: 70px; /* Justo debajo del header */
+                z-index: 1032;
+                box-shadow: none;
+                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                overflow-y: auto;
+                overflow-x: hidden;
+                pointer-events: all;
+                padding-top: 0; /* Eliminamos el padding-top ya que ahora empieza debajo del header */
             }
             
-            .sidebar-open .sidebar {
-                left: 0;
+            body.sidebar-open {
+                overflow: hidden; /* Evitar scroll cuando el menú está abierto */
             }
             
+            body.sidebar-open .sidebar {
+                left: 0; /* Cambiar a usar left en lugar de transform para mejor posicionamiento */
+                box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+            }
+            
+            /* Mejorar cómo se muestra el contenido del menú */
             .sidebar .nav {
-                height: calc(100vh - 120px);
-                padding-bottom: 100px;
+                height: auto;
+                max-height: calc(100vh - 140px);
+                padding-bottom: 50px;
+                overflow-y: auto;
             }
             
-            /* Desactiva la transformación en móvil para evitar problemas */
-            .sidebar .nav .nav-item .nav-link:hover {
-                transform: none;
+            /* Asegurar que el menú se muestre completamente */
+            .sidebar-wrapper {
+                height: 100%;
+                padding-bottom: 70px;
+                overflow: auto;
             }
             
-            .sidebar .nav .nav-item .nav-link {
-                padding: 14px 16px;
+            /* Mejorar la visualización del backdrop */
+            .sidebar-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1031;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
             }
-        }
-        
-        /* Añadir una capa de oscurecimiento cuando el menú está abierto en móvil */
-        .sidebar-backdrop {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 998;
-            backdrop-filter: blur(3px);
-            transition: opacity 0.3s ease;
-            opacity: 0;
-        }
-        
-        @media (max-width: 991px) {
-            .sidebar-open .sidebar-backdrop {
-                display: block;
+            
+            body.sidebar-open .sidebar-backdrop {
                 opacity: 1;
+                visibility: visible;
+            }
+        }
+        
+        /* Ajustes específicos para smartphones pequeños */
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 85%;
+                left: -100%;
+            }
+        }
+        
+        /* Mejoras para el header en móvil */
+        @media (max-width: 991px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .navbar .navbar-brand-wrapper {
+                width: auto;
+                padding: 0;
+            }
+            
+            .navbar .navbar-menu-wrapper {
+                padding: 0.5rem;
+            }
+            
+            .navbar .navbar-menu-wrapper .navbar-nav {
+                flex-direction: row;
+                align-items: center;
+            }
+            
+            .navbar .navbar-menu-wrapper .navbar-nav .nav-item {
+                margin: 0 0.5rem;
+            }
+            
+            .navbar .navbar-menu-wrapper .navbar-toggler {
+                padding: 0.25rem;
             }
         }
         
@@ -287,6 +342,23 @@
         .sidebar .nav .nav-item:nth-child(8) { animation-delay: 0.4s; }
         .sidebar .nav .nav-item:nth-child(9) { animation-delay: 0.45s; }
         .sidebar .nav .nav-item:nth-child(10) { animation-delay: 0.5s; }
+
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: none;
+            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(2px);
+        }
+
+        body.sidebar-open .sidebar-backdrop {
+            display: block !important;
+        }
     </style>
 
     <div class="sidebar-logo">
@@ -295,6 +367,7 @@
 
     <ul class="nav">
         {% if user.is_authenticated %}
+        {% if user.is_superuser %}
         <!-- Panel Principal -->
         <div class="nav-section active">
             <div class="nav-section-header">
@@ -310,14 +383,16 @@
                 </li>
             </div>
         </div>
-
+        {% endif %}
         <!-- Encuestas -->
         <div class="nav-section">
             <div class="nav-section-header">
                 <span>Encuestas</span>
                 <i class="mdi mdi-chevron-down"></i>
             </div>
+            
             <div class="nav-section-content">
+                {% if user.is_superuser %}
                 <li class="nav-item {% if 'seleccionar_metodo' in request.path %}active{% endif %}">
                     <a class="nav-link" href="{% url 'seleccionar_metodo' %}">
                         <i class="menu-icon mdi mdi-plus-circle-outline"></i>
@@ -330,6 +405,7 @@
                         <span class="menu-title">Mis encuestas</span>
                     </a>
                 </li>
+                {% endif %}
                 <li class="nav-item {% if 'todas_encuestas' in request.path %}active{% endif %}">
                     <a class="nav-link" href="{% url 'todas_encuestas' %}">
                         <i class="menu-icon mdi mdi-file-multiple"></i>
@@ -339,6 +415,7 @@
             </div>
         </div>
 
+        {% if user.is_superuser %}
         <!-- Gestión de Categorías -->
         <div class="nav-section">
             <div class="nav-section-header">
@@ -394,6 +471,7 @@
                 </li>
             </div>
         </div>
+        
 
         <!-- PQRSFD -->
         <div class="nav-section">
@@ -449,7 +527,7 @@
                 </li>
             </div>
         </div>
-
+        {% endif %}
         <!-- Navegación -->
         <div class="nav-section">
             <div class="nav-section-header">
@@ -547,6 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (backdrop) {
         backdrop.addEventListener('click', function() {
             document.body.classList.remove('sidebar-open');
+            backdrop.style.display = 'none';
         });
     }
     
@@ -555,11 +634,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeMenuOnMobile() {
         if (window.innerWidth < 992) {
             document.body.classList.remove('sidebar-open');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (backdrop) {
+                backdrop.style.display = 'none';
+            }
         }
     }
     
     navLinks.forEach(link => {
         link.addEventListener('click', closeMenuOnMobile);
+    });
+    
+    // Verificar si el toggle existe
+    const sidebarToggles = document.querySelectorAll('[data-toggle="sidebar"]');
+    
+    // Agregar listener manualmente
+    sidebarToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const body = document.body;
+            body.classList.toggle('sidebar-open');
+            
+            // Mostrar/ocultar backdrop
+            if (backdrop) {
+                if (body.classList.contains('sidebar-open')) {
+                    backdrop.style.display = 'block';
+                } else {
+                    backdrop.style.display = 'none';
+                }
+            }
+        });
     });
 });
 </script>

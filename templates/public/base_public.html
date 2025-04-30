@@ -636,6 +636,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" 
                             style="border-radius: 12px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.15); padding: 8px; min-width: 200px;">
+                            {% if user.is_superuser %}
                             <li>
                                 <a class="dropdown-item" href="{% url 'index' %}">
                                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
@@ -646,6 +647,18 @@
                                     <i class="fas fa-clipboard-list me-2"></i>Mis Encuestas
                                 </a>
                             </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'administrar_usuarios' %}">
+                                    <i class="fas fa-users me-2"></i>Administrar Usuarios
+                                </a>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'todas_encuestas' %}">
+                                    <i class="fas fa-clipboard-list me-2"></i>Encuestas
+                                </a>
+                            </li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'logout' %}">
