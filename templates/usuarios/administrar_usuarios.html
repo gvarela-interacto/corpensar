@@ -5,10 +5,10 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="card bg-dark text-white mb-4">
+            <div class="card bg-light text-dark mb-4">
                 <div class="card-header bg-gold-gradient d-flex justify-content-between align-items-center">
                     <h4 class="mb-0 text-dark fw-bold">Administrar Usuarios</h4>
-                    <a href="{% url 'crear_usuario' %}" class="btn btn-dark">
+                    <a href="{% url 'crear_usuario' %}" class="btn btn-gold-dark">
                         <i class="mdi mdi-account-plus me-1"></i> Crear Usuario
                     </a>
                 </div>
@@ -23,7 +23,7 @@
                     {% endif %}
                     
                     <div class="table-responsive">
-                        <table class="table table-dark text-white table-hover">
+                        <table class="table table-light text-dark table-hover">
                             <thead class="table-gold text-dark">
                                 <tr>
                                     <th>Usuario</th>
@@ -38,7 +38,7 @@
                             <tbody>
                                 {% for usuario in usuarios %}
                                 <tr>
-                                    <td class="fw-bold text-gold">{{ usuario.username }}</td>
+                                    <td class="fw-bold text-gold-dark">{{ usuario.username }}</td>
                                     <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
                                     <td>{{ usuario.email }}</td>
                                     <td>
@@ -80,23 +80,23 @@
     }
     
     .table-gold {
-        background-color: rgba(255, 215, 0, 0.9) !important;
+        background-color: rgba(255, 215, 0, 0.7) !important;
     }
     
-    .table-dark {
-        border-color: #444;
+    .table-light {
+        border-color: #e9ecef;
     }
     
-    .table-dark tbody tr {
-        border-bottom-color: #444;
+    .table-light tbody tr {
+        border-bottom-color: #e9ecef;
     }
     
-    .table-dark tbody tr:hover {
-        background-color: #333 !important;
+    .table-light tbody tr:hover {
+        background-color: #f8f9fa !important;
     }
     
-    .table-dark th, 
-    .table-dark td {
+    .table-light th, 
+    .table-light td {
         padding: 0.85rem 1rem;
         vertical-align: middle;
     }
@@ -107,22 +107,22 @@
         font-weight: 600;
     }
     
-    .text-gold {
-        color: #ffd700 !important;
+    .text-gold-dark {
+        color: #b8860b !important;
     }
     
-    .btn-dark {
-        background-color: #222;
-        color: #ffd700;
-        border: 1px solid #ffd700;
-        box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+    .btn-gold-dark {
+        background-color: #b8860b;
+        color: #fff;
+        border: 1px solid #b8860b;
+        box-shadow: 0 0 8px rgba(184, 134, 11, 0.2);
     }
     
-    .btn-dark:hover {
-        background-color: #333;
-        color: #ffd700;
+    .btn-gold-dark:hover {
+        background-color: #a67c09;
+        color: #fff;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
     }
 </style>
 {% endblock %} 

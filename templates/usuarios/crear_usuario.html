@@ -5,7 +5,7 @@
 <div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card bg-dark text-white">
+            <div class="card bg-light text-dark">
                 <div class="card-header bg-gold-gradient">
                     <h4 class="mb-0 text-dark fw-bold">Crear Nuevo Usuario</h4>
                 </div>
@@ -24,18 +24,18 @@
                         
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="id_username" class="form-label text-gold fw-semibold mb-2">Nombre de usuario</label>
+                                <label for="id_username" class="form-label text-gold-dark fw-semibold mb-2">Nombre de usuario</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account"></i></span>
                                     {{ form.username }}
                                 </div>
-                                <div class="form-text text-gold-light">{{ form.username.help_text }}</div>
+                                <div class="form-text text-muted">{{ form.username.help_text }}</div>
                                 {% if form.username.errors %}
                                     <div class="text-danger small mt-1">{{ form.username.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label for="id_email" class="form-label text-gold fw-semibold mb-2">Correo electrónico</label>
+                                <label for="id_email" class="form-label text-gold-dark fw-semibold mb-2">Correo electrónico</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-email"></i></span>
                                     {{ form.email }}
@@ -48,7 +48,7 @@
                         
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="id_first_name" class="form-label text-gold fw-semibold mb-2">Nombre</label>
+                                <label for="id_first_name" class="form-label text-gold-dark fw-semibold mb-2">Nombre</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account-details"></i></span>
                                     {{ form.first_name }}
@@ -58,7 +58,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label for="id_last_name" class="form-label text-gold fw-semibold mb-2">Apellido</label>
+                                <label for="id_last_name" class="form-label text-gold-dark fw-semibold mb-2">Apellido</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-account-details"></i></span>
                                     {{ form.last_name }}
@@ -71,7 +71,7 @@
                         
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="id_password1" class="form-label text-gold fw-semibold mb-2">Contraseña</label>
+                                <label for="id_password1" class="form-label text-gold-dark fw-semibold mb-2">Contraseña</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-lock"></i></span>
                                     {{ form.password1 }}
@@ -81,7 +81,7 @@
                                 {% endif %}
                             </div>
                             <div class="col-md-6">
-                                <label for="id_password2" class="form-label text-gold fw-semibold mb-2">Confirmar contraseña</label>
+                                <label for="id_password2" class="form-label text-gold-dark fw-semibold mb-2">Confirmar contraseña</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-gold-light text-dark"><i class="mdi mdi-lock-check"></i></span>
                                     {{ form.password2 }}
@@ -94,7 +94,7 @@
                         <div class="text-center">
                             <div class="mb-4 form-check form-switch d-inline-block">
                                 {{ form.is_admin }}
-                                <label class="form-check-label text-gold" for="id_is_admin">
+                                <label class="form-check-label text-gold-dark" for="id_is_admin">
                                     <strong>Es administrador</strong> (tendrá acceso completo al sistema)
                                 </label>
                             </div>
@@ -120,10 +120,10 @@
                         {% endif %}
                         
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'administrar_usuarios' %}" class="btn btn-outline-gold">
+                            <a href="{% url 'administrar_usuarios' %}" class="btn btn-outline-gold-dark">
                                 <i class="mdi mdi-arrow-left me-1"></i>Volver
                             </a>
-                            <button type="submit" class="btn btn-gold">
+                            <button type="submit" class="btn btn-gold-dark">
                                 <i class="mdi mdi-account-plus me-1"></i>Crear Usuario
                             </button>
                         </div>
@@ -142,58 +142,58 @@
     }
     
     .form-control {
-        background-color: #333;
-        border: 1px solid #555;
-        color: #fff;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        color: #212529;
         font-size: 1rem;
     }
     
     .form-control:focus {
-        background-color: #444;
-        color: #fff;
+        background-color: #fff;
+        color: #212529;
         border-color: #ffd700;
         box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
     }
     
-    .text-gold {
-        color: #ffd700 !important;
+    .text-gold-dark {
+        color: #b8860b !important; /* Dorado más oscuro para contrastar con fondo claro */
     }
     
     .text-gold-light {
-        color: rgba(255, 215, 0, 0.8) !important;
+        color: rgba(184, 134, 11, 0.8) !important;
     }
     
     .bg-gold-light {
         background-color: rgba(255, 215, 0, 0.9) !important;
     }
     
-    .btn-gold {
-        background-color: #ffd700;
-        border-color: #ffd700;
-        color: #000 !important;
+    .btn-gold-dark {
+        background-color: #b8860b;
+        border-color: #b8860b;
+        color: #fff !important;
         font-weight: bold;
     }
     
-    .btn-gold:hover {
-        background-color: #ffcc00;
-        border-color: #ffcc00;
+    .btn-gold-dark:hover {
+        background-color: #a67c09;
+        border-color: #a67c09;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+        box-shadow: 0 4px 8px rgba(184, 134, 11, 0.3);
     }
     
-    .btn-outline-gold {
-        color: #ffd700 !important;
-        border-color: #ffd700;
+    .btn-outline-gold-dark {
+        color: #b8860b !important;
+        border-color: #b8860b;
         background-color: transparent;
     }
     
-    .btn-outline-gold:hover {
-        background-color: rgba(255, 215, 0, 0.1);
-        color: #ffd700 !important;
+    .btn-outline-gold-dark:hover {
+        background-color: rgba(184, 134, 11, 0.1);
+        color: #b8860b !important;
     }
     
     .password-rules {
-        background-color: rgba(255, 215, 0, 0.9) !important;
+        background-color: rgba(255, 215, 0, 0.2) !important;
         color: #000 !important;
         border-radius: 8px;
     }
@@ -205,8 +205,8 @@
     }
     
     .form-switch .form-check-input:checked {
-        background-color: #ffd700;
-        border-color: #ffd700;
+        background-color: #b8860b;
+        border-color: #b8860b;
     }
 </style>
 {% endblock %} 
