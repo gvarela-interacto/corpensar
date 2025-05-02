@@ -842,28 +842,29 @@
                       <button
                         type="button"
                         class="btn btn-outline-primary"
-                        id="btnTotalEncuestas"
+                        id="btnMostrarMunicipios"
                       >
-                        Total Encuestas
+                        Municipios
                       </button>
                       <button
                         type="button"
                         class="btn btn-outline-success"
-                        id="btnTotalRespuestas"
+                        id="btnMostrarOleoductos"
                       >
-                        Total Respuestas
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-outline-warning"
-                        id="btnTasaFinalizacion"
-                      >
-                        Tasa de Finalización
+                        Oleoductos
                       </button>
                     </div>
                   </div>
                 </div>
                 <div class="card-body">
+                  <div id="loadingMap" class="text-center" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <div class="mt-2">
+                      <span id="loadingProgress">0%</span> Cargando datos...
+                    </div>
+                  </div>
                   <div
                     id="mapaColombia"
                     style="height: 500px; width: 100%"
@@ -1444,8 +1445,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }).addTo(map);
 
   let datosEstadisticas = {};
-  let tipoEstadisticaActual = 'totalEncuestas';
   let markerLayer = L.layerGroup().addTo(map);
+  let oleoductoLayer = L.layerGroup();
+  let municipiosLayer = L.layerGroup();
+  let loadingElement = document.getElementById('loadingMap');
+  let progressElement = document.getElementById('loadingProgress');
 
   function getColorForValue(value, tipo) {
     const scales = {
@@ -1688,123 +1692,213 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  // 1) Traigo estadísticas
-  fetch('/api/estadisticas-municipios/')
-    .then(res => res.json())
-    .then(estadisticas => {
-      datosEstadisticas = estadisticas;
+  // Función para cargar municipios con markers
+  function cargarMunicipios() {
+    // Mostrar animación de carga
+    loadingElement.style.display = 'block';
+    progressElement.textContent = '0%';
+    
+    // Limpiar capas existentes
+    municipiosLayer.clearLayers();
+    oleoductoLayer.clearLayers();
+    map.removeLayer(oleoductoLayer);
+    map.addLayer(municipiosLayer);
+    
+    fetch('/api/estadisticas-municipios/')
+      .then(res => res.json())
+      .then(estadisticas => {
+        datosEstadisticas = estadisticas;
+        
+        let total = Object.keys(estadisticas).length;
+        let contador = 0;
+        
+        // Para cada municipio, crear un marker
+        for (const key in estadisticas) {
+          const municipio = estadisticas[key];
+          
+          // Actualizar progreso
+          contador++;
+          let porcentaje = Math.round((contador / total) * 100);
+          progressElement.textContent = porcentaje + '%';
+          
+          // Si tiene coordenadas (simuladas para el ejemplo)
+          // Nota: En un caso real, deberías tener las coordenadas reales de cada municipio
+          const lat = 4.0 + Math.random() * 7.0; // Simula coordenadas dentro de Colombia
+          const lng = -76.0 + Math.random() * 5.0;
+          
+          const marker = L.marker([lat, lng], {
+            icon: createCustomIcon('#4e73df')
+          }).bindPopup(`
+            <div class="popup-content">
+              <h6>${municipio.nombre}</h6>
+              <p>Región: ${municipio.region}</p>
+              <hr>
+              <p>Encuestas: ${municipio.totalEncuestas}</p>
+              <p>Respuestas: ${municipio.totalRespuestas}</p>
+              <p>Finalización: ${municipio.tasaFinalizacion}%</p>
+            </div>
+          `);
+          
+          marker.on('click', () => mostrarInfoMunicipio(key));
+          municipiosLayer.addLayer(marker);
+        }
+        
+        // Ocultar animación de carga cuando termine
+        loadingElement.style.display = 'none';
+      })
+      .catch(error => {
+        console.error('Error cargando datos de municipios:', error);
+        loadingElement.style.display = 'none';
+      });
+  }
 
-      // 2) Traigo GeoJSON ya convertido
-      fetch("{% static 'kml/Trazado_oleoducto_Cenit.geojson' %}")
-        .then(res => res.json())
-        .then(geoJson => {
-          // 3) Creo layer
-          const oleoLayer = L.geoJSON(geoJson, {
-            style(feature) {
-              // Si es línea (LineString) la pinto fija
-              if (feature.geometry.type.includes('LineString')) {
-                return { color: '#006837', weight: 4, dashArray: '8,4' };
-              }
-              // Polígonos (si hubiera), con escala:
-              const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
+  // Función para cargar oleoductos
+  function cargarOleoductos() {
+    // Mostrar animación de carga
+    loadingElement.style.display = 'block';
+    progressElement.textContent = '0%';
+    
+    // Limpiar capas existentes
+    municipiosLayer.clearLayers();
+    oleoductoLayer.clearLayers();
+    map.removeLayer(municipiosLayer);
+    map.addLayer(oleoductoLayer);
+    
+    // 1) Traigo estadísticas
+    fetch('/api/estadisticas-municipios/')
+      .then(res => res.json())
+      .then(estadisticas => {
+        datosEstadisticas = estadisticas;
+        progressElement.textContent = '20%';
 
-              // Si no existe la clave, asigno 0 a todas las estadísticas
-              const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
-              return {
-                fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual),
-                color: 'white', weight:1, fillOpacity:0.7
-              };
-            },
-            onEachFeature(feature, layer) {
-              const p = feature.properties;
-              const key = (p.nombre || p.name || '').toUpperCase();
-              const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
-              
-              // Si es un LineString, agregar markers en los puntos clave
-              if (feature.geometry.type === 'LineString') {
-                const coords = feature.geometry.coordinates;
-                // Agregar markers al inicio y fin de cada línea
-                const startPoint = coords[0];
-                const endPoint = coords[coords.length - 1];
+        // 2) Traigo GeoJSON ya convertido
+        fetch("{% static 'kml/Trazado_oleoducto_Cenit.geojson' %}")
+          .then(res => res.json())
+          .then(geoJson => {
+            progressElement.textContent = '50%';
+            
+            // 3) Creo layer
+            const oleoLayer = L.geoJSON(geoJson, {
+              style(feature) {
+                // Si es línea (LineString) la pinto fija
+                if (feature.geometry.type.includes('LineString')) {
+                  return { color: '#006837', weight: 4, dashArray: '8,4' };
+                }
+                // Polígonos (si hubiera), con escala:
+                const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
+
+                // Si no existe la clave, asigno 0 a todas las estadísticas
+                const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
+                return {
+                  fillColor: getColorForValue(d['totalEncuestas'], 'totalEncuestas'),
+                  color: 'white', weight:1, fillOpacity:0.7
+                };
+              },
+              onEachFeature(feature, layer) {
+                const p = feature.properties;
+                const key = (p.nombre || p.name || '').toUpperCase();
+                const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
                 
-                // Color basado en las estadísticas
-                const color = getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual);
-                
-                // Crear markers con iconos personalizados
-                L.marker([startPoint[1], startPoint[0]], {
-                  icon: createCustomIcon(color)
-                }).bindPopup(`
+                // Si es un LineString, agregar markers en los puntos clave
+                if (feature.geometry.type === 'LineString') {
+                  const coords = feature.geometry.coordinates;
+                  // Agregar markers al inicio y fin de cada línea
+                  const startPoint = coords[0];
+                  const endPoint = coords[coords.length - 1];
+                  
+                  // Color basado en las estadísticas
+                  const color = getColorForValue(d['totalEncuestas'], 'totalEncuestas');
+                  
+                  // Crear markers con iconos personalizados
+                  L.marker([startPoint[1], startPoint[0]], {
+                    icon: createCustomIcon(color)
+                  }).bindPopup(`
+                    <div class="popup-content">
+                      <h6>Inicio: ${p.nombre || p.name}</h6>
+                      <p>Región: ${d.region}</p>
+                      <hr>
+                      <p>Encuestas: ${d.totalEncuestas}</p>
+                      <p>Respuestas: ${d.totalRespuestas}</p>
+                      <p>Finalización: ${d.tasaFinalizacion}%</p>
+                    </div>
+                  `).addTo(oleoductoLayer);
+                  
+                  L.marker([endPoint[1], endPoint[0]], {
+                    icon: createCustomIcon(color)
+                  }).bindPopup(`
+                    <div class="popup-content">
+                      <h6>Fin: ${p.nombre || p.name}</h6>
+                      <p>Región: ${d.region}</p>
+                      <hr>
+                      <p>Encuestas: ${d.totalEncuestas}</p>
+                      <p>Respuestas: ${d.totalRespuestas}</p>
+                      <p>Finalización: ${d.tasaFinalizacion}%</p>
+                    </div>
+                  `).addTo(oleoductoLayer);
+                }
+
+                layer.bindPopup(`
                   <div class="popup-content">
-                    <h6>Inicio: ${p.nombre || p.name}</h6>
+                    <h6>${p.nombre || p.name}</h6>
                     <p>Región: ${d.region}</p>
                     <hr>
                     <p>Encuestas: ${d.totalEncuestas}</p>
                     <p>Respuestas: ${d.totalRespuestas}</p>
                     <p>Finalización: ${d.tasaFinalizacion}%</p>
                   </div>
-                `).addTo(markerLayer);
+                `);
                 
-                L.marker([endPoint[1], endPoint[0]], {
-                  icon: createCustomIcon(color)
-                }).bindPopup(`
-                  <div class="popup-content">
-                    <h6>Fin: ${p.nombre || p.name}</h6>
-                    <p>Región: ${d.region}</p>
-                    <hr>
-                    <p>Encuestas: ${d.totalEncuestas}</p>
-                    <p>Respuestas: ${d.totalRespuestas}</p>
-                    <p>Finalización: ${d.tasaFinalizacion}%</p>
-                  </div>
-                `).addTo(markerLayer);
+                layer.on({
+                  mouseover() { layer.setStyle({ weight:5 }); },
+                  mouseout()  { layer.setStyle({ weight:4 }); },
+                  click()     { mostrarInfoMunicipio(key); }
+                });
               }
-
-              layer.bindPopup(`
-                <div class="popup-content">
-                  <h6>${p.nombre || p.name}</h6>
-                  <p>Región: ${d.region}</p>
-                  <hr>
-                  <p>Encuestas: ${d.totalEncuestas}</p>
-                  <p>Respuestas: ${d.totalRespuestas}</p>
-                  <p>Finalización: ${d.tasaFinalizacion}%</p>
-                </div>
-              `);
-              
-              layer.on({
-                mouseover() { layer.setStyle({ weight:5 }); },
-                mouseout()  { layer.setStyle({ weight:4 }); },
-                click()     { mostrarInfoMunicipio(key); }
-              });
-            }
-          }).addTo(map);
-
-          // 4) Ajusto vista a bounds
-          const b = oleoLayer.getBounds();
-          if (b.isValid && b.isValid()) map.fitBounds(b);
-          else map.setView([4.5709, -74.2973], 6);
-        })
-        .catch(err => {
-          console.error('Error cargando GeoJSON:', err);
-          map.setView([4.5709, -74.2973], 6);
-        });
-
-      // 5) Botones para cambiar estadística
-      document.querySelectorAll('#btnTotalEncuestas, #btnTotalRespuestas, #btnTasaFinalizacion')
-        .forEach(btn => btn.addEventListener('click', function() {
-          tipoEstadisticaActual = this.id.replace('btn','').toLowerCase();
-          markerLayer.clearLayers(); // Limpiar markers existentes
-          oleoLayer.eachLayer(layer => {
-            const props = layer.feature.properties;
-            const key = (props.nombre || props.name).toUpperCase();
-            const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
-            if (layer.setStyle) {
-              layer.setStyle({ fillColor: getColorForValue(d[tipoEstadisticaActual], tipoEstadisticaActual) });
-            }
+            });
+            
+            oleoductoLayer.addLayer(oleoLayer);
+            
+            progressElement.textContent = '80%';
+            
+            // 4) Ajusto vista a bounds
+            const b = oleoLayer.getBounds();
+            if (b.isValid && b.isValid()) map.fitBounds(b);
+            else map.setView([4.5709, -74.2973], 6);
+            
+            // Ocultar animación de carga cuando termine
+            setTimeout(() => {
+              progressElement.textContent = '100%';
+              loadingElement.style.display = 'none';
+            }, 500);
+          })
+          .catch(err => {
+            console.error('Error cargando GeoJSON:', err);
+            map.setView([4.5709, -74.2973], 6);
+            loadingElement.style.display = 'none';
           });
-          document.querySelectorAll('.btn-group button').forEach(b=>b.classList.remove('active'));
-          this.classList.add('active');
-        }));
-    })
-    .catch(err => console.error('Error al cargar estadísticas:', err));
+      })
+      .catch(err => {
+        console.error('Error al cargar estadísticas:', err);
+        loadingElement.style.display = 'none';
+      });
+  }
+
+  // Configurar botones
+  document.getElementById('btnMostrarMunicipios').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('btnMostrarOleoductos').classList.remove('active');
+    cargarMunicipios();
+  });
+  
+  document.getElementById('btnMostrarOleoductos').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('btnMostrarMunicipios').classList.remove('active');
+    cargarOleoductos();
+  });
+
+  // Al cargar la página, mostrar oleoductos por defecto
+  document.getElementById('btnMostrarOleoductos').classList.add('active');
+  cargarOleoductos();
 });
 </script>
 
