@@ -93,6 +93,7 @@ class Encuesta(models.Model):
         ('suave', _('Suave')),
     )
     
+    # Estructura de una encuesta (datos basicos)
     titulo = models.CharField(max_length=200, verbose_name=_("Título"))
     descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
     slug = models.SlugField(max_length=250, unique=True)
@@ -106,7 +107,7 @@ class Encuesta(models.Model):
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
     tema = models.CharField(max_length=20, choices=TEMAS, default='default', verbose_name=_("Tema"))
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Categoría")
-    subcategoria = models.ForeignKey('Subcategoria', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Subcategoría")
+    subcategoria = models.ForeignKey('Subcategoria', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Subcategoría") # Se aplica el lazy relationship (permite definir el modelo mas adelante)
     municipio = models.ForeignKey(
         Municipio, 
         on_delete=models.SET_NULL, 
@@ -169,16 +170,18 @@ class Encuesta(models.Model):
             # Convertir la lista a un QuerySet utilizando Q objects para filtrar por id
             ids_por_tipo = {}
             for p in preguntas:
-                model_class = p.__class__
+                model_class = p.__class__ # Obtenemos la clase del modelo de la pregunta
+
+                # Si el modelo no está en el diccionario, lo agregamos
                 if model_class not in ids_por_tipo:
                     ids_por_tipo[model_class] = []
-                ids_por_tipo[model_class].append(p.id)
+                ids_por_tipo[model_class].append(p.id) # Agregamos el id de la pregunta al diccionario
             
             # Combinar todos los QuerySets
             combined_qs = empty_qs
-            for model_class, ids in ids_por_tipo.items():
-                modelo_qs = model_class.objects.filter(id__in=ids)
-                combined_qs = combined_qs | modelo_qs
+            for model_class, ids in ids_por_tipo.items(): # Recorremos el diccionario de ids por tipo
+                modelo_qs = model_class.objects.filter(id__in=ids) # Obtenemos el QuerySet del modelo
+                combined_qs = combined_qs | modelo_qs # Combinamos los QuerySets
             
             return combined_qs
         
@@ -209,7 +212,7 @@ class PreguntaBase(models.Model):
     )
     texto = models.TextField(verbose_name=_("Texto de la pregunta"))
     tipo = models.CharField(max_length=10, choices=TIPOS_PREGUNTA, verbose_name=_("Tipo de pregunta"))
-    requerida = models.BooleanField(default=True, verbose_name=_("Requerida"))
+    requerida = models.BooleanField(default=False, verbose_name=_("Requerida"))
     orden = models.PositiveIntegerField(verbose_name=_("Orden"))
     ayuda = models.CharField(max_length=300, blank=True, verbose_name=_("Texto de ayuda"))
     seccion = models.CharField(max_length=100, blank=True, verbose_name=_("Sección"))
@@ -221,6 +224,7 @@ class PreguntaBase(models.Model):
     
     def __str__(self):
         return f"{self.texto[:50]}... ({self.get_tipo_display()})"
+    
 
 
 class PreguntaTexto(PreguntaBase):
@@ -260,8 +264,7 @@ class OpcionPregunta(models.Model):
 
 class OpcionMultiple(OpcionPregunta):
     """Opciones para preguntas de opción múltiple"""
-    pregunta = models.ForeignKey('PreguntaOpcionMultiple', related_name='opciones', 
-                               on_delete=models.CASCADE, verbose_name=_("Pregunta"))
+    pregunta = models.ForeignKey('PreguntaOpcionMultiple', related_name='opciones', on_delete=models.CASCADE, verbose_name=_("Pregunta"))
 
 
 class PreguntaOpcionMultiple(PreguntaBase):

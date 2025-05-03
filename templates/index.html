@@ -90,7 +90,7 @@
   /* Nuevos estilos para las tarjetas de KPI */
   .kpi-card {
     border-radius: 10px;
-    transition: transform 0.2s;
+    transition: transform 0.2s; 
   }
   .kpi-card:hover {
     transform: translateY(-5px);
@@ -483,7 +483,7 @@
         ></div>
         <div class="card-body">
           <h5 class="card-title text-muted">Total Encuestas</h5>
-          <h2 class="display-4">{{ total_encuestas }}</h2>
+          <h2 class="display-4">{{ total_encuestas|intcomma }}</h2>
           <p class="text-success mb-0">
             <i class="mdi mdi-arrow-up"></i>
             {{ encuestas_activas }} activas
@@ -549,7 +549,7 @@
     <div class="col-md-6 mb-3">
       <div class="alert alert-warning alert-clickable">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>{{ encuestas_proximo_fin.count }}</strong> encuestas por
+        <strong>{{ encuestas_proximo_fin.count|intcomma }}</strong> encuestas por
         finalizar en 3 días
       </div>
 

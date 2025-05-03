@@ -759,7 +759,11 @@
   
   <!-- JavaScript para gestionar eventos -->
   <script>
-    // Mostrar mensajes del sistema
+    /**
+     * Muestra un mensaje emergente del sistema en pantalla.
+     * @param {string} message - Texto del mensaje a mostrar.
+     * @param {string} [type='info'] - Tipo de mensaje: 'success', 'info', 'warning', 'error' o 'danger'.
+     */
     function showSystemMessage(message, type = 'info') {
       const messageContainer = document.getElementById('messageContainer');
       if (!messageContainer) return;
@@ -819,12 +823,18 @@
       }
     }
 
-    // Manejar errores no controlados en la aplicación
+    /**
+     * Escucha errores globales no capturados y muestra un mensaje de error.
+     * @param {ErrorEvent} event - Objeto de evento que contiene la descripción del error.
+     */
     window.addEventListener('error', function(event) {
       showSystemMessage('Se ha producido un error en la aplicación: ' + event.message, 'error');
     });
 
-    // Script para mejorar el comportamiento del menú lateral y contenido principal
+    /**
+     * Inicializa comportamiento del menú lateral, animaciones de página y cierres automáticos
+     * cuando el DOM ha cargado.
+     */
     document.addEventListener('DOMContentLoaded', function() {
       // Asegurarse de que el contenido principal se muestre correctamente
       setTimeout(function() {
@@ -931,104 +941,5 @@
   <!-- Script personalizado para modales -->
   <script src="{% static 'js/modals.js' %}"></script>
   
-  <!-- Panel principal modificado -->
-  <script>
-    // Función para inicializar los gráficos del dashboard
-    function initDashboardCharts() {
-      // Si Chart.js está disponible
-      if (typeof Chart !== 'undefined') {
-        // Ejemplo: Gráfico de respuestas por municipio
-        const municipiosCtx = document.getElementById('chartMunicipios');
-        if (municipiosCtx) {
-          new Chart(municipiosCtx, {
-            type: 'bar',
-            data: {
-              labels: ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena'],
-              datasets: [{
-                label: 'Respuestas recibidas',
-                data: [42, 35, 27, 23, 19],
-                backgroundColor: [
-                  'rgba(67, 97, 238, 0.7)',
-                  'rgba(76, 201, 240, 0.7)',
-                  'rgba(247, 37, 133, 0.7)',
-                  'rgba(76, 175, 80, 0.7)',
-                  'rgba(255, 152, 0, 0.7)'
-                ],
-                borderColor: [
-                  'rgba(67, 97, 238, 1)',
-                  'rgba(76, 201, 240, 1)',
-                  'rgba(247, 37, 133, 1)',
-                  'rgba(76, 175, 80, 1)',
-                  'rgba(255, 152, 0, 1)'
-                ],
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  beginAtZero: true
-                }
-              }
-            }
-          });
-        }
-        
-        // Gráfico de encuestas por categoría
-        const categoriasCtx = document.getElementById('chartCategorias');
-        if (categoriasCtx) {
-          new Chart(categoriasCtx, {
-            type: 'doughnut',
-            data: {
-              labels: ['Educación', 'Salud', 'Vivienda', 'Seguridad', 'Otras'],
-              datasets: [{
-                data: [12, 9, 6, 5, 3],
-                backgroundColor: [
-                  'rgba(67, 97, 238, 0.7)',
-                  'rgba(76, 175, 80, 0.7)',
-                  'rgba(76, 201, 240, 0.7)',
-                  'rgba(255, 152, 0, 0.7)',
-                  'rgba(247, 37, 133, 0.7)'
-                ],
-                borderColor: [
-                  'rgba(67, 97, 238, 1)',
-                  'rgba(76, 175, 80, 1)',
-                  'rgba(76, 201, 240, 1)',
-                  'rgba(255, 152, 0, 1)',
-                  'rgba(247, 37, 133, 1)'
-                ],
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: 'bottom'
-                }
-              }
-            }
-          });
-        }
-      }
-    }
-    
-    // Inicializar los gráficos cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-      // Animar las tarjetas de estadísticas al cargar
-      const statCards = document.querySelectorAll('.stats-card');
-      statCards.forEach((card, index) => {
-        setTimeout(() => {
-          card.classList.add('fade-in');
-        }, index * 100);
-      });
-      
-      // Inicializar gráficos
-      initDashboardCharts();
-    });
-  </script>
 </body>
 </html>

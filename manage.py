@@ -2,7 +2,6 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from utils.convert_kml import convert_kml_to_geojson
 
 
 def main():
@@ -17,13 +16,7 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
     
-    # Si el comando es 'convert_kml', ejecutar la conversión
-    if len(sys.argv) > 1 and sys.argv[1] == 'convert_kml':
-        if convert_kml_to_geojson():
-            print("✅ Conversión completada exitosamente")
-        else:
-            print("❌ Error en la conversión")
-        return
+   
     
     execute_from_command_line(sys.argv)
 
