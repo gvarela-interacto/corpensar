@@ -2184,15 +2184,6 @@ def estadisticas_municipios(request):
             total_encuestas = encuestas_activas.count()
             total_respuestas = respuestas.count()
 
-            # print(Encuesta.objects.all())
-
-            # print(f"Total encuestas: {total_encuestas}")
-            # print(f"Total respuestas: {total_respuestas}")
-            # print(f"Encuestas respondidas: {encuestas_respondidas}")
-            # print(f"Municipio: {municipio.nombre}")
-            # print(f"Region: {municipio.region.nombre if municipio.region else 'No asignada'}")
-            # print(f"Encuestas activas: {encuestas_activas}")
-            
             # Calcular tasa de finalización
             tasa_finalizacion = 0
             if total_encuestas > 0:
@@ -2205,7 +2196,9 @@ def estadisticas_municipios(request):
                 'totalEncuestas': total_encuestas,
                 'totalRespuestas': total_respuestas,
                 'encuestasRespondidas': encuestas_respondidas,
-                'tasaFinalizacion': round(tasa_finalizacion, 2)
+                'tasaFinalizacion': round(tasa_finalizacion, 2),
+                'latitud': municipio.latitud if municipio.latitud else None,
+                'longitud': municipio.longitud if municipio.longitud else None
             }
         
         return JsonResponse(data)

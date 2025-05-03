@@ -1705,51 +1705,50 @@ document.addEventListener('DOMContentLoaded', function() {
     map.addLayer(municipiosLayer);
     
     fetch('/api/estadisticas-municipios/')
-      .then(res => res.json())
-      .then(estadisticas => {
-        datosEstadisticas = estadisticas;
-        
-        let total = Object.keys(estadisticas).length;
-        let contador = 0;
-        
-        // Para cada municipio, crear un marker
-        for (const key in estadisticas) {
-          const municipio = estadisticas[key];
-          
-          // Actualizar progreso
-          contador++;
-          let porcentaje = Math.round((contador / total) * 100);
-          progressElement.textContent = porcentaje + '%';
-          
-          // Si tiene coordenadas (simuladas para el ejemplo)
-          // Nota: En un caso real, deberías tener las coordenadas reales de cada municipio
-          const lat = 4.0 + Math.random() * 7.0; // Simula coordenadas dentro de Colombia
-          const lng = -76.0 + Math.random() * 5.0;
-          
-          const marker = L.marker([lat, lng], {
-            icon: createCustomIcon('#4e73df')
-          }).bindPopup(`
-            <div class="popup-content">
-              <h6>${municipio.nombre}</h6>
-              <p>Región: ${municipio.region}</p>
-              <hr>
-              <p>Encuestas: ${municipio.totalEncuestas}</p>
-              <p>Respuestas: ${municipio.totalRespuestas}</p>
-              <p>Finalización: ${municipio.tasaFinalizacion}%</p>
-            </div>
-          `);
-          
-          marker.on('click', () => mostrarInfoMunicipio(key));
-          municipiosLayer.addLayer(marker);
-        }
-        
-        // Ocultar animación de carga cuando termine
-        loadingElement.style.display = 'none';
-      })
-      .catch(error => {
-        console.error('Error cargando datos de municipios:', error);
-        loadingElement.style.display = 'none';
-      });
+        .then(res => res.json())
+        .then(estadisticas => {
+            datosEstadisticas = estadisticas;
+            
+            let total = Object.keys(estadisticas).length;
+            let contador = 0;
+            
+            // Para cada municipio, crear un marker
+            for (const key in estadisticas) {
+                const municipio = estadisticas[key];
+                
+                // Actualizar progreso
+                contador++;
+                let porcentaje = Math.round((contador / total) * 100);
+                progressElement.textContent = porcentaje + '%';
+                
+                // Usar coordenadas reales si existen, de lo contrario usar coordenadas por defecto
+                const lat = municipio.latitud || 4.5709; // Coordenadas por defecto: Bogotá
+                const lng = municipio.longitud || -74.2973;
+                
+                const marker = L.marker([lat, lng], {
+                    icon: createCustomIcon('#4e73df')
+                }).bindPopup(`
+                    <div class="popup-content">
+                        <h6>${municipio.nombre}</h6>
+                        <p>Región: ${municipio.region}</p>
+                        <hr>
+                        <p>Encuestas: ${municipio.totalEncuestas}</p>
+                        <p>Respuestas: ${municipio.totalRespuestas}</p>
+                        <p>Finalización: ${municipio.tasaFinalizacion}%</p>
+                    </div>
+                `);
+                
+                marker.on('click', () => mostrarInfoMunicipio(key));
+                municipiosLayer.addLayer(marker);
+            }
+            
+            // Ocultar animación de carga cuando termine
+            loadingElement.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error cargando datos de municipios:', error);
+            loadingElement.style.display = 'none';
+        });
   }
 
   // Función para cargar oleoductos
