@@ -40,6 +40,8 @@ class Region(models.Model):
 class Municipio(models.Model):
     nombre = models.CharField(max_length=100)
     region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name="municipios")
+    latitud = models.FloatField(null=True, blank=True)
+    longitud = models.FloatField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Municipio"

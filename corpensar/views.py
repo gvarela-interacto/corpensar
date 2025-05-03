@@ -1597,12 +1597,24 @@ def crear_municipio(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre", "").strip()
         region_id = request.POST.get("region")
+        latitud = request.POST.get("latitud")
+        longitud = request.POST.get("longitud")
         
         if nombre and region_id:
             region = Region.objects.filter(id=region_id).first()
             if region:
-                Municipio.objects.get_or_create(nombre=nombre, region=region)
-                messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                municipio, created = Municipio.objects.get_or_create(
+                    nombre=nombre,
+                    region=region,
+                    defaults={
+                        'latitud': latitud if latitud else None,
+                        'longitud': longitud if longitud else None
+                    }
+                )
+                if created:
+                    messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                else:
+                    messages.info(request, f"El municipio '{nombre}' ya existe en la región '{region.nombre}'.")
                 return redirect('crear_municipio')
             else:
                 messages.error(request, "Región no encontrada.")
