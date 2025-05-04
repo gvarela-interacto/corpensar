@@ -2231,6 +2231,7 @@ def estadisticas_municipios(request):
     # Obtener datos históricos de respuestas (últimos 6 meses)
     from django.db.models import Count
     from datetime import timedelta, datetime
+    import json
     
     # Fecha de inicio (6 meses atrás)
     fecha_inicio = timezone.now() - timedelta(days=180)
@@ -2265,11 +2266,12 @@ def estadisticas_municipios(request):
     respuestas_ordenadas = sorted(respuestas_por_mes.items())
     
     # Formatear datos para el gráfico
-    meses = []
-    conteos = []
-    for _, datos in respuestas_ordenadas:
-        meses.append(datos['label'])
-        conteos.append(datos['count'])
+    meses = [datos['label'] for _, datos in respuestas_ordenadas]
+    conteos = [datos['count'] for _, datos in respuestas_ordenadas]
+    
+    # Convertir a JSON con comillas dobles para evitar errores de sintaxis
+    meses_json = json.dumps(meses)
+    conteos_json = json.dumps(conteos)
     
     # Datos para gráfico de distribución por región
     datos_regiones = {}
@@ -2320,8 +2322,8 @@ def estadisticas_municipios(request):
         'total_respuestas': total_respuestas,
         'total_encuestas_completadas': total_encuestas_completadas,
         'tasa_finalizacion': round(tasa_finalizacion_general, 2),
-        'historial_meses': meses,
-        'historial_conteos': conteos,
+        'historial_meses': meses_json,
+        'historial_conteos': conteos_json,
         'datos_regiones': datos_regiones,
         'top_municipios': top_municipios,
         'encuestas': encuestas,

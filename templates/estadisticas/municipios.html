@@ -281,29 +281,43 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-<script id="datos-graficos" type="application/json">
+<script id="datos-municipios" type="application/json">
+{% if municipios %}
+[
+    {% for municipio in municipios %}
     {
-        "historial": {
-            "meses": {{ historial_meses|safe }},
-            "conteos": {{ historial_conteos|safe }}
-        },
-        "regiones": {
-            "nombres": [{% for nombre, valor in datos_regiones.items %}"{{ nombre|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-            "datos": [{% for nombre, valor in datos_regiones.items %}{ "name": "{{ nombre|escapejs }}", "value": {{ valor }} }{% if not forloop.last %},{% endif %}{% endfor %}]
-        },
-        "municipios": {
-            "nombres": [{% for municipio in top_municipios %}"{{ municipio.nombre|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-            "valores": [{% for municipio in top_municipios %}{{ municipio.totalRespuestas }}{% if not forloop.last %},{% endif %}{% endfor %}]
-        }
-    }
+        "id": "{{ municipio.id }}",
+        "nombre": "{{ municipio.nombre|escapejs }}",
+        "region": "{{ municipio.region.id }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+{% else %}
+[]
+{% endif %}
 </script>
+
+<script id="datos-graficos" type="application/json">
+{
+    "historial": {
+        "meses": {{ historial_meses|safe }},
+        "conteos": {{ historial_conteos|safe }}
+    },
+    "regiones": {
+        "nombres": [{% for nombre, valor in datos_regiones.items %}"{{ nombre|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        "datos": [{% for nombre, valor in datos_regiones.items %}{ "name": "{{ nombre|escapejs }}", "value": {{ valor }} }{% if not forloop.last %},{% endif %}{% endfor %}]
+    },
+    "municipios": {
+        "nombres": [{% for municipio in top_municipios %}"{{ municipio.nombre|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        "valores": [{% for municipio in top_municipios %}{{ municipio.totalRespuestas }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    }
+}
+</script>
+
 <script>
-    // Guardar todos los municipios en una variable JS al cargar la página
-    var todosMunicipios = [
-        {% for municipio in municipios %}
-            {id: "{{ municipio.id }}", nombre: "{{ municipio.nombre|escapejs }}", region: "{{ municipio.region.id }}"},
-        {% endfor %}
-    ];
+    // Cargar datos JSON directamente de las etiquetas script
+    var todosMunicipios = JSON.parse(document.getElementById('datos-municipios').textContent);
+    var datosGraficos = JSON.parse(document.getElementById('datos-graficos').textContent);
 
     function cargarMunicipios() {
         const regionId = document.getElementById('region').value;
@@ -322,20 +336,25 @@
                 var option = document.createElement('option');
                 option.value = municipio.id;
                 option.text = municipio.nombre;
+                // Si hay un municipio seleccionado, lo marcamos como selected
+                if (municipio.id === '{{ municipio_seleccionado }}') {
+                    option.selected = true;
+                }
                 municipioSelect.appendChild(option);
             }
         });
     }
 
-    // Ejecutar al cargar la página para que el filtro funcione desde el inicio
     document.addEventListener('DOMContentLoaded', function() {
+        // Seleccionar la región correcta si hay una seleccionada
+        if ('{{ region_seleccionada }}') {
+            document.getElementById('region').value = '{{ region_seleccionada }}';
+        }
+        
+        // Cargar municipios y configurar evento de cambio
         cargarMunicipios();
         document.getElementById('region').addEventListener('change', cargarMunicipios);
-    });
-
-    var datosGraficos = JSON.parse(document.getElementById('datos-graficos').textContent);
-
-    document.addEventListener('DOMContentLoaded', function() {
+        
         // Inicializar gráficos con datos precargados
         inicializarGraficos();
     });
