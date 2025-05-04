@@ -2160,252 +2160,176 @@ def eliminar_municipio(request, municipio_id):
 
 @login_required
 def estadisticas_municipios(request):
-    """Obtiene estadísticas de encuestas por municipio"""
-    try:
-        now = timezone.now()
-        municipios = Municipio.objects.select_related('region').all()
-        data = {}
+    """Vista para mostrar la página de estadísticas de municipios con datos precargados"""
+    
+    # Obtener todas las regiones y municipios
+    regiones = Region.objects.all()
+    todos_municipios = Municipio.objects.select_related('region').all()
+    
+    # Filtros aplicados (opcional)
+    region_id = request.GET.get('region')
+    municipio_id = request.GET.get('municipio')
+    
+    # Consulta base para municipios
+    municipios_query = todos_municipios
+    
+    # Aplicar filtros si existen
+    if region_id and region_id != 'todas':
+        municipios_query = municipios_query.filter(region_id=region_id)
+    if municipio_id and municipio_id != 'todos':
+        municipios_query = municipios_query.filter(id=municipio_id)
+    
+    # Estadísticas por municipio
+    datos_municipios = {}
+    total_encuestas = 0
+    total_respuestas = 0
+    total_encuestas_completadas = 0
+    
+    for municipio in municipios_query:
+        # Obtener encuestas activas para este municipio
+        encuestas_activas = Encuesta.objects.filter(region=municipio.region)
         
-        for municipio in municipios:
-            # Obtener encuestas activas para este municipio
-            encuestas_activas = Encuesta.objects.filter(
-                region=municipio.region
-            )
-            
-            # Obtener respuestas para este municipio
-            respuestas = RespuestaEncuesta.objects.filter(
-                municipio=municipio
-            )
-            
-            # Contar respuestas únicas por encuesta
-            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
-            
-            # Calcular estadísticas
-            total_encuestas = encuestas_activas.count()
-            total_respuestas = respuestas.count()
-
-            # Calcular tasa de finalización
-            tasa_finalizacion = 0
-            if total_encuestas > 0:
-                tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
-            
-            # Usar el nombre del municipio en mayúsculas como clave
-            data[municipio.nombre.upper()] = {
-                'nombre': municipio.nombre,
-                'region': municipio.region.nombre if municipio.region else 'No asignada',
-                'totalEncuestas': total_encuestas,
-                'totalRespuestas': total_respuestas,
-                'encuestasRespondidas': encuestas_respondidas,
-                'tasaFinalizacion': round(tasa_finalizacion, 2),
-                'latitud': municipio.latitud if municipio.latitud else None,
-                'longitud': municipio.longitud if municipio.longitud else None
+        # Obtener respuestas para este municipio
+        respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+        
+        # Contar respuestas únicas por encuesta
+        encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+        
+        # Calcular estadísticas
+        municipio_total_encuestas = encuestas_activas.count()
+        municipio_total_respuestas = respuestas.count()
+        
+        # Calcular tasa de finalización
+        tasa_finalizacion = 0
+        if municipio_total_encuestas > 0:
+            tasa_finalizacion = (encuestas_respondidas / municipio_total_encuestas) * 100
+        
+        # Agregar datos al diccionario
+        datos_municipios[municipio.id] = {
+            'id': municipio.id,
+            'nombre': municipio.nombre,
+            'region': municipio.region.nombre,
+            'region_id': municipio.region.id,
+            'totalEncuestas': municipio_total_encuestas,
+            'totalRespuestas': municipio_total_respuestas,
+            'encuestasRespondidas': encuestas_respondidas,
+            'tasaFinalizacion': round(tasa_finalizacion, 2),
+            'latitud': municipio.latitud,
+            'longitud': municipio.longitud
+        }
+        
+        # Acumular totales generales
+        total_encuestas += municipio_total_encuestas
+        total_respuestas += municipio_total_respuestas
+        total_encuestas_completadas += encuestas_respondidas
+    
+    # Calcular tasa de finalización general
+    tasa_finalizacion_general = 0
+    if total_encuestas > 0:
+        tasa_finalizacion_general = (total_encuestas_completadas / total_encuestas) * 100
+    
+    # Obtener datos históricos de respuestas (últimos 6 meses)
+    from django.db.models import Count
+    from datetime import timedelta, datetime
+    
+    # Fecha de inicio (6 meses atrás)
+    fecha_inicio = timezone.now() - timedelta(days=180)
+    
+    # Respuestas históricas
+    query_historico = RespuestaEncuesta.objects.filter(
+        fecha_respuesta__gte=fecha_inicio
+    )
+    
+    # Aplicar los mismos filtros
+    if region_id and region_id != 'todas':
+        municipios_ids = list(todos_municipios.filter(region_id=region_id).values_list('id', flat=True))
+        query_historico = query_historico.filter(municipio_id__in=municipios_ids)
+    if municipio_id and municipio_id != 'todos':
+        query_historico = query_historico.filter(municipio_id=municipio_id)
+    
+    # Agrupar por mes manualmente sin usar TruncMonth para evitar problemas de zona horaria
+    respuestas_por_mes = {}
+    for respuesta in query_historico:
+        mes_key = respuesta.fecha_respuesta.strftime('%Y-%m')
+        mes_label = respuesta.fecha_respuesta.strftime('%b %Y')
+        
+        if mes_key not in respuestas_por_mes:
+            respuestas_por_mes[mes_key] = {
+                'label': mes_label,
+                'count': 0
             }
         
-        return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-@login_required
-def respuestas_historicas_municipio(request, municipio_nombre):
-    """
-    Endpoint para obtener las respuestas históricas de un municipio específico.
-    Devuelve datos agrupados por mes para los últimos 6 meses.
-    """
-    from django.db.models.functions import TruncMonth
-    from django.db.models import Count
-    from datetime import datetime, timedelta
-    from django.http import JsonResponse
-    # Corregir la importación - parece que Respuesta no está en corpensar.models
-    # Intentar encontrar el modelo correcto
-    try:
-        # Intento 1: buscar en aplicaciones específicas
-        from Encuesta.models import Respuesta, Encuesta, Municipio
-    except ImportError:
-        try:
-            # Intento 2: la estructura podría ser diferente
-            from Encuesta.models import Respuesta, Encuesta
-            from .models import Municipio
-        except ImportError:
-            # Si ninguna importación funciona, usar solo lo que podamos
-            # y generar datos de muestra
-            from .models import Municipio
-            
-    import logging
-    from django.conf import settings
-    import traceback
+        respuestas_por_mes[mes_key]['count'] += 1
     
-    logger = logging.getLogger(__name__)
-    logger.info(f"Solicitando datos para municipio: {municipio_nombre}")
+    # Ordenar por mes (clave)
+    respuestas_ordenadas = sorted(respuestas_por_mes.items())
     
-    # Datos de fallback para mostrar cuando hay errores
-    meses_espanol = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-                     'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    # Formatear datos para el gráfico
+    meses = []
+    conteos = []
+    for _, datos in respuestas_ordenadas:
+        meses.append(datos['label'])
+        conteos.append(datos['count'])
     
-    def generar_ultimos_meses():
-        """Genera etiquetas para los últimos 6 meses"""
-        labels = []
-        now = datetime.now()
-        for i in range(5, -1, -1):
-            mes = now.month - i
-            año = now.year
-            if mes <= 0:
-                mes += 12
-                año -= 1
-            labels.append(f"{meses_espanol[mes-1]} {año}")
-        return labels
+    # Datos para gráfico de distribución por región
+    datos_regiones = {}
+    for municipio_data in datos_municipios.values():
+        region_nombre = municipio_data['region']
+        if region_nombre not in datos_regiones:
+            datos_regiones[region_nombre] = 0
+        datos_regiones[region_nombre] += municipio_data['totalRespuestas']
     
-    try:
-        # Verificar si el parámetro tiene un formato correcto
-        if not municipio_nombre or len(municipio_nombre) < 2:
-            return JsonResponse({
-                'labels': generar_ultimos_meses(),
-                'data': [5, 10, 15, 20, 25, 30],
-                'info': 'Datos de muestra - nombre de municipio inválido'
-            })
-        
-        # Buscar el municipio
-        try:
-            municipio = Municipio.objects.get(nombre__iexact=municipio_nombre)
-            logger.info(f"Municipio encontrado: {municipio.nombre} (id: {municipio.id})")
-        except Municipio.DoesNotExist:
-            # Intentar búsqueda parcial
-            municipios = Municipio.objects.filter(nombre__icontains=municipio_nombre)
-            if municipios.exists():
-                municipio = municipios.first()
-                logger.info(f"Municipio encontrado con búsqueda parcial: {municipio.nombre}")
-            else:
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [2, 5, 8, 12, 15, 18],
-                    'info': f'Municipio no encontrado: {municipio_nombre}'
-                })
-        
-        # Fecha límite (6 meses atrás)
-        fecha_limite = datetime.now() - timedelta(days=180)
-        
-        # Variable para almacenar resultados
-        labels = []
-        data = []
-        
-        # Comprobar si tenemos acceso al modelo Respuesta
-        if 'Respuesta' not in globals():
-            logger.error("No se pudo importar el modelo Respuesta")
-            return JsonResponse({
-                'labels': generar_ultimos_meses(),
-                'data': [8, 15, 22, 30, 38, 45],
-                'info': 'Datos de muestra - no se pudo importar el modelo Respuesta'
-            })
-        
-        # Intentar obtener datos históricos
-        try:
-            # Verificar si hay relación entre encuesta y municipio
-            from django.db import models
-            
-            # Verificar si Encuesta está disponible
-            if 'Encuesta' not in globals():
-                logger.error("No se pudo importar el modelo Encuesta")
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [10, 18, 25, 32, 40, 48],
-                    'info': 'Datos de muestra - no se pudo importar el modelo Encuesta'
-                })
-            
-            # Verificar si Encuesta tiene el campo municipio
-            encuesta_fields = [f.name for f in Encuesta._meta.get_fields()]
-            
-            if 'municipio' not in encuesta_fields:
-                # Si no hay campo municipio directo, verificar si hay relación indirecta
-                logger.warning("No se encontró campo 'municipio' en Encuesta")
-                # Devolver datos simulados
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [25, 30, 35, 40, 45, 50],
-                    'info': 'Datos de muestra - no hay relación directa Encuesta-Municipio'
-                })
-            
-            # Verificar si Respuesta tiene fecha_respuesta
-            respuesta_fields = [f.name for f in Respuesta._meta.get_fields()]
-            if 'fecha_respuesta' not in respuesta_fields:
-                logger.warning("No se encontró campo 'fecha_respuesta' en Respuesta")
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [15, 20, 25, 30, 35, 40],
-                    'info': 'Datos de muestra - no hay campo fecha_respuesta'
-                })
-            
-            # Consultar datos reales
-            respuestas_por_mes = Respuesta.objects.filter(
-                encuesta__municipio=municipio,
-                fecha_respuesta__gte=fecha_limite
-            ).annotate(
-                mes=TruncMonth('fecha_respuesta')
-            ).values('mes').annotate(
-                total=Count('id')
-            ).order_by('mes')
-            
-            # Procesar resultados
-            for item in respuestas_por_mes:
-                try:
-                    fecha = item['mes']
-                    mes_formateado = f"{meses_espanol[fecha.month-1]} {fecha.year}"
-                    labels.append(mes_formateado)
-                    data.append(item['total'])
-                except Exception as e:
-                    logger.error(f"Error al procesar fecha: {str(e)}")
-            
-            # Si no hay datos, generar etiquetas para los últimos 6 meses con valores 0
-            if not labels:
-                labels = generar_ultimos_meses()
-                data = [0, 0, 0, 0, 0, 0]
-                
-            return JsonResponse({
-                'labels': labels,
-                'data': data
-            })
-            
-        except Exception as e:
-            logger.error(f"Error al consultar datos históricos: {str(e)}")
-            stack = traceback.format_exc()
-            logger.error(stack)
-            
-            # Plan B: intentar obtener al menos el total de respuestas para este municipio
-            try:
-                total_respuestas = Respuesta.objects.filter(
-                    encuesta__municipio=municipio
-                ).count()
-                
-                # Distribuir el total en los últimos 6 meses
-                labels = generar_ultimos_meses()
-                total_por_mes = total_respuestas / 6
-                data = [int(total_por_mes * (0.7 + i * 0.1)) for i in range(1, 7)]
-                
-                return JsonResponse({
-                    'labels': labels,
-                    'data': data,
-                    'info': 'Estimación basada en total de respuestas'
-                })
-            except Exception as inner_e:
-                logger.error(f"Error en consulta alternativa: {str(inner_e)}")
-                
-                # Último recurso: datos simulados
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [5, 10, 15, 20, 25, 30],
-                    'info': 'Datos de muestra debido a errores en consultas'
-                })
+    # Datos para gráfico de barras (top 10 municipios)
+    top_municipios = sorted(
+        datos_municipios.values(),
+        key=lambda x: x['totalRespuestas'],
+        reverse=True
+    )[:10]
     
-    except Exception as e:
-        logger.error(f"Error general en respuestas_historicas_municipio: {str(e)}")
-        stack = traceback.format_exc()
-        logger.error(stack)
-        
-        # Siempre devolver datos para que el frontend pueda mostrar algo
-        return JsonResponse({
-            'labels': generar_ultimos_meses(),
-            'data': [3, 6, 9, 12, 15, 18],
-            'error': str(e),
-            'info': 'Datos de muestra debido a error general'
+    # Obtener encuestas disponibles
+    encuestas = []
+    query_encuestas = Encuesta.objects.all()
+    
+    # Aplicar filtros a las encuestas si existen
+    if region_id and region_id != 'todas':
+        query_encuestas = query_encuestas.filter(region_id=region_id)
+    if municipio_id and municipio_id != 'todos':
+        query_encuestas = query_encuestas.filter(municipio_id=municipio_id)
+    
+    # Limitar a 50 encuestas y ordenar por fecha
+    query_encuestas = query_encuestas.order_by('-fecha_creacion')[:50]
+    
+    for encuesta in query_encuestas:
+        total_respuestas_encuesta = RespuestaEncuesta.objects.filter(encuesta=encuesta).count()
+        encuestas.append({
+            'id': encuesta.id,
+            'titulo': encuesta.titulo,
+            'descripcion': encuesta.descripcion,
+            'fecha_creacion': encuesta.fecha_creacion.strftime('%d/%m/%Y'),
+            'es_publica': encuesta.es_publica,
+            'total_respuestas': total_respuestas_encuesta,
+            'region': encuesta.region.nombre if encuesta.region else 'No asignada',
+            'municipio': encuesta.municipio.nombre if encuesta.municipio else 'No asignado'
         })
+    
+    context = {
+        'regiones': regiones,
+        'municipios': todos_municipios,
+        'datos_municipios': datos_municipios,
+        'total_encuestas': total_encuestas,
+        'total_respuestas': total_respuestas,
+        'total_encuestas_completadas': total_encuestas_completadas,
+        'tasa_finalizacion': round(tasa_finalizacion_general, 2),
+        'historial_meses': meses,
+        'historial_conteos': conteos,
+        'datos_regiones': datos_regiones,
+        'top_municipios': top_municipios,
+        'encuestas': encuestas,
+        'region_seleccionada': region_id,
+        'municipio_seleccionado': municipio_id
+    }
+    
+    return render(request, 'estadisticas/municipios.html', context)
 
 def public_home(request):
     """
@@ -3146,3 +3070,109 @@ def crear_usuario(request):
     return render(request, 'usuarios/crear_usuario.html', {
         'form': form
     })
+
+# API Views para el mapa y estadísticas
+def api_estadisticas_municipios(request):
+    """
+    API que devuelve estadísticas de municipios en formato JSON para el mapa
+    """
+    try:
+        # Obtener todas las regiones y municipios
+        regiones = Region.objects.all()
+        todos_municipios = Municipio.objects.select_related('region').all()
+        
+        # Filtros aplicados (opcional)
+        region_id = request.GET.get('region')
+        municipio_id = request.GET.get('municipio')
+        
+        # Consulta base para municipios
+        municipios_query = todos_municipios
+        
+        # Aplicar filtros si existen
+        if region_id and region_id != 'todas':
+            municipios_query = municipios_query.filter(region_id=region_id)
+        if municipio_id and municipio_id != 'todos':
+            municipios_query = municipios_query.filter(id=municipio_id)
+        
+        # Estadísticas por municipio
+        datos_municipios = {}
+        
+        for municipio in municipios_query:
+            # Obtener encuestas activas para este municipio
+            encuestas_activas = Encuesta.objects.filter(region=municipio.region)
+            
+            # Obtener respuestas para este municipio
+            respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+            
+            # Contar respuestas únicas por encuesta
+            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+            
+            # Calcular estadísticas
+            municipio_total_encuestas = encuestas_activas.count()
+            municipio_total_respuestas = respuestas.count()
+            
+            # Calcular tasa de finalización
+            tasa_finalizacion = 0
+            if municipio_total_encuestas > 0:
+                tasa_finalizacion = (encuestas_respondidas / municipio_total_encuestas) * 100
+            
+            # La clave debe ser el nombre del municipio en mayúsculas ya que así lo espera el código JS
+            datos_municipios[municipio.nombre.upper()] = {
+                'id': municipio.id,
+                'nombre': municipio.nombre,
+                'region': municipio.region.nombre,
+                'region_id': municipio.region.id,
+                'totalEncuestas': municipio_total_encuestas,
+                'totalRespuestas': municipio_total_respuestas,
+                'encuestasRespondidas': encuestas_respondidas,
+                'tasaFinalizacion': round(tasa_finalizacion, 2),
+                'latitud': municipio.latitud,
+                'longitud': municipio.longitud
+            }
+        
+        # Retornar directamente el diccionario sin envolverlo en otro objeto
+        return JsonResponse(datos_municipios)
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
+def api_mapa_municipios(request):
+    """
+    API que devuelve datos de municipios para el mapa
+    """
+    try:
+        # Obtener todos los municipios con coordenadas
+        municipios = Municipio.objects.select_related('region').all()
+        
+        # Filtrar por región si se proporciona
+        region_id = request.GET.get('region')
+        if region_id and region_id != 'todas':
+            municipios = municipios.filter(region_id=region_id)
+        
+        # Preparar datos para el mapa
+        datos_mapa = {}
+        for municipio in municipios:
+            if municipio.latitud and municipio.longitud:  # Solo incluir si tiene coordenadas
+                # Contar respuestas para este municipio
+                respuestas = RespuestaEncuesta.objects.filter(municipio=municipio).count()
+                
+                # La clave debe ser el nombre del municipio en mayúsculas
+                datos_mapa[municipio.nombre.upper()] = {
+                    'id': municipio.id,
+                    'nombre': municipio.nombre,
+                    'region': municipio.region.nombre,
+                    'region_id': municipio.region.id,
+                    'latitud': municipio.latitud,
+                    'longitud': municipio.longitud,
+                    'totalRespuestas': respuestas,
+                    'totalEncuestas': Encuesta.objects.filter(region=municipio.region).count(),
+                    'tasaFinalizacion': 0  # Se calculará correctamente si es necesario
+                }
+        
+        # Retornar directamente el diccionario como lo espera el frontend
+        return JsonResponse(datos_mapa)
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
