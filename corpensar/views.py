@@ -10,7 +10,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import Form
-from django.db.models import Count, Avg, F, Max
+from django.db.models import Count, Avg, F, Max, Q # Añadir Q
 from django.db.models.functions import TruncDate
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -76,113 +76,187 @@ def index_view(request):
     - Alertas y estados de PQRSFD
     """
     now = timezone.now()
-    
-    # ===== ESTADÍSTICAS GENERALES =====
+    one_week_ago = now - timedelta(days=7)
+    thirty_days_ago = now - timedelta(days=30)
+
+    # ===== ESTADÍSTICAS GENERALES ENCUESTAS =====
     total_encuestas = Encuesta.objects.count()
     total_respuestas = RespuestaEncuesta.objects.count()
-    encuestas_activas = Encuesta.objects.filter(
+    encuestas_activas_qs = Encuesta.objects.filter(
         activa=True,
         fecha_inicio__lte=now,
         fecha_fin__gte=now
-    ).count()
+    )
+    encuestas_activas = encuestas_activas_qs.count()
+    encuestas_publicas_activas_qs = encuestas_activas_qs.filter(es_publica=True)
+    encuestas_publicas_activas = list(encuestas_publicas_activas_qs) # Mantener lista para otras partes
+    encuestas_publicas_count = len(encuestas_publicas_activas) # Conteo específico de públicas y activas
+
+    # Conteo Total Públicas vs Privadas
+    conteo_publicas_privadas = Encuesta.objects.aggregate(
+        publicas=Count('id', filter=Q(es_publica=True)),
+        privadas=Count('id', filter=Q(es_publica=False))
+    )
+
+    # Encuestas creadas recientemente
+    encuestas_creadas_7d = Encuesta.objects.filter(fecha_creacion__gte=one_week_ago).count()
+    encuestas_creadas_30d = Encuesta.objects.filter(fecha_creacion__gte=thirty_days_ago).count()
 
     # ===== CÁLCULO DE ENCUESTAS RESPONDIDAS =====
-    total_encuesta_respondidas = 0
-    for municipio in Municipio.objects.all():
-        respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
-        encuestas_respondidas = respuestas.values('encuesta').distinct().count()
-        total_encuesta_respondidas += encuestas_respondidas
+    encuestas_con_respuestas_ids = RespuestaEncuesta.objects.values_list('encuesta_id', flat=True).distinct()
+    total_encuesta_respondidas = len(encuestas_con_respuestas_ids)
 
-    # ===== ENCUESTAS PÚBLICAS Y ACTIVAS =====
-    encuestas_publicas_activas = list(Encuesta.objects.filter(
-        es_publica=True,
-        activa=True,
-        fecha_inicio__lte=timezone.now(),
-        fecha_fin__gte=timezone.now()
-    ))
-
-    total_encuestas_respondidas_activas = list(RespuestaEncuesta.objects.filter(
-        encuesta__es_publica=True,
-        encuesta__activa=True,
-        encuesta__fecha_inicio__lte=timezone.now(),
-        encuesta__fecha_fin__gte=timezone.now()
-    ))
+    # Encuestas respondidas activas (contar respuestas de encuestas públicas y activas)
+    total_encuestas_respondidas_activas_count = RespuestaEncuesta.objects.filter(
+        encuesta__in=encuestas_publicas_activas_qs # Usar el queryset ya filtrado
+    ).count()
 
     # ===== MÉTRICAS DE PARTICIPACIÓN =====
     avg_respuestas = Encuesta.objects.annotate(
         num_respuestas=Count('respuestas')
     ).aggregate(avg=Avg('num_respuestas'))['avg'] or 0
 
-    encuestas_sin_respuestas = encuestas_activas - total_encuesta_respondidas
+    # Encuestas activas SIN respuestas
+    encuestas_activas_ids = encuestas_activas_qs.values_list('id', flat=True) # Usar queryset ya filtrado
+    encuestas_activas_con_respuestas_ids = RespuestaEncuesta.objects.filter(
+        encuesta_id__in=encuestas_activas_ids
+    ).values_list('encuesta_id', flat=True).distinct()
+    encuestas_sin_respuestas_count = len(encuestas_activas_ids) - len(encuestas_activas_con_respuestas_ids)
+
     tasa_finalizacion = (total_encuesta_respondidas / total_encuestas) * 100 if total_encuestas > 0 else 0
 
     # ===== ALERTAS Y NOTIFICACIONES =====
     encuestas_proximo_fin = Encuesta.objects.filter(
+        activa=True,
         fecha_fin__gte=now,
         fecha_fin__lte=now + timezone.timedelta(days=3)
-    )
+    ).order_by('fecha_fin')
 
-    # ===== DISTRIBUCIONES Y TENDENCIAS =====
-    # Distribución por categoría
-    distribucion_categoria = Encuesta.objects.values('categoria__nombre').annotate(
+    # ===== DISTRIBUCIONES Y TENDENCIAS (ENCUESTAS) =====
+
+    # --- Colores base para gráficos (más opciones) ---
+    base_colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997', '#6610f2', '#fd7e14', '#dc3545', '#6c757d', '#28a745', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+    
+    # --- Distribución por categoría ---
+    distribucion_categoria_qs = Encuesta.objects.values('categoria__nombre').annotate(
         total=Count('id')
     ).order_by('-total')
+    categoria_labels = [item['categoria__nombre'] or 'Sin Categoría' for item in distribucion_categoria_qs]
+    categoria_data = [item['total'] for item in distribucion_categoria_qs]
+    distribucion_categoria_chart_data = {
+        'labels': categoria_labels,
+        'datasets': [{
+            'label': 'Encuestas por Categoría',
+            'data': categoria_data,
+            'backgroundColor': base_colors[:len(categoria_labels)],
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_categoria_json = json.dumps(distribucion_categoria_chart_data)
 
-    # Distribución por región
-    distribucion_region = Encuesta.objects.values(
-        'region__nombre'
-    ).annotate(
+    # --- Distribución por Subcategoría ---
+    distribucion_subcategoria_qs = Encuesta.objects.values('subcategoria__nombre').annotate(
+        total=Count('id')
+    ).exclude(subcategoria__nombre__isnull=True).order_by('-total') # Excluir nulos
+    subcategoria_labels = [item['subcategoria__nombre'] for item in distribucion_subcategoria_qs]
+    subcategoria_data = [item['total'] for item in distribucion_subcategoria_qs]
+    distribucion_subcategoria_chart_data = {
+        'labels': subcategoria_labels,
+        'datasets': [{
+            'label': 'Encuestas por Subcategoría',
+            'data': subcategoria_data,
+            'backgroundColor': base_colors[len(categoria_labels):len(categoria_labels)+len(subcategoria_labels)], # Usar colores diferentes
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_subcategoria_json = json.dumps(distribucion_subcategoria_chart_data)
+
+
+    # --- Distribución por Tema ---
+    distribucion_tema_qs = Encuesta.objects.values('tema').annotate(
         total=Count('id')
     ).order_by('-total')
+    # Mapear códigos de tema a nombres legibles si es necesario (usando TEMAS del modelo Encuesta)
+    tema_dict = dict(Encuesta.TEMAS)
+    tema_labels = [str(tema_dict.get(item['tema'], item['tema'] or 'Sin Tema')) for item in distribucion_tema_qs]
+    tema_data = [item['total'] for item in distribucion_tema_qs]
+    distribucion_tema_chart_data = {
+        'labels': tema_labels,
+        'datasets': [{
+            'label': 'Encuestas por Tema',
+            'data': tema_data,
+            'backgroundColor': base_colors[len(subcategoria_labels):len(subcategoria_labels)+len(tema_labels)], # Usar colores diferentes
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_tema_json = json.dumps(distribucion_tema_chart_data)
 
-    # Tendencia de respuestas últimos 7 días
-    una_semana_atras = now - timedelta(days=7)
-    tendencia_respuestas = RespuestaEncuesta.objects.filter(
-        fecha_respuesta__gte=una_semana_atras
+    # --- Distribución por región ---
+    distribucion_region_qs = Encuesta.objects.values('region__nombre').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    region_labels = [item['region__nombre'] or 'Sin Región' for item in distribucion_region_qs]
+    region_data = [item['total'] for item in distribucion_region_qs]
+    distribucion_region_chart_data = {
+        'labels': region_labels,
+        'datasets': [{
+            'label': 'Encuestas por Región',
+            'data': region_data,
+            'backgroundColor': base_colors[:len(region_labels)], # Reusar colores si es necesario
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_region_json = json.dumps(distribucion_region_chart_data)
+
+    # --- Tendencia de respuestas últimos 7 días ---
+    tendencia_respuestas_qs = RespuestaEncuesta.objects.filter(
+        fecha_respuesta__gte=one_week_ago # Usar variable
     ).annotate(
         fecha=TruncDate('fecha_respuesta')
     ).values('fecha').annotate(
         total=Count('id')
     ).order_by('fecha')
+    # (Estos datos se usan directamente en la plantilla o se podrían formatear para un gráfico)
 
-    # Top municipios con más respuestas
-    top_municipios = RespuestaEncuesta.objects.values(
-        'municipio__nombre'
-    ).annotate(
+    # --- Top municipios con más respuestas ---
+    top_municipios_qs = RespuestaEncuesta.objects.values('municipio__nombre').annotate(
         total=Count('id')
-    ).order_by('-total')[:5]
+    ).order_by('-total')[:5] # Mantener top 5
 
     # ===== TIPOS DE PREGUNTAS =====
     tipos_preguntas = []
-    tipos_preguntas_data = [
-        ('Texto', PreguntaTexto),
-        ('Texto Múltiple', PreguntaTextoMultiple),
-        ('Opción Múltiple', PreguntaOpcionMultiple),
-        ('Casillas', PreguntaCasillasVerificacion),
-        ('Menú Desplegable', PreguntaMenuDesplegable),
-        ('Estrellas', PreguntaEstrellas),
-        ('Escala', PreguntaEscala),
-        ('Matriz', PreguntaMatriz),
-        ('Fecha', PreguntaFecha)
+    tipos_preguntas_data_map = [
+        ('Texto', PreguntaTexto), ('Texto Múltiple', PreguntaTextoMultiple),
+        ('Opción Múltiple', PreguntaOpcionMultiple), ('Casillas', PreguntaCasillasVerificacion),
+        ('Menú Desplegable', PreguntaMenuDesplegable), ('Estrellas', PreguntaEstrellas),
+        ('Escala', PreguntaEscala), ('Matriz', PreguntaMatriz), ('Fecha', PreguntaFecha)
     ]
-
-    for tipo_nombre, modelo in tipos_preguntas_data:
+    tipos_labels = []
+    tipos_data = []
+    for tipo_nombre, modelo in tipos_preguntas_data_map:
         count = modelo.objects.count()
         if count > 0:
             tipos_preguntas.append({'tipo': tipo_nombre, 'total': count})
+            tipos_labels.append(tipo_nombre)
+            tipos_data.append(count)
 
-    # ===== DATOS ADICIONALES =====
-    ultimas_respuestas = RespuestaEncuesta.objects.select_related(
-        'encuesta', 'usuario'
-    ).order_by('-fecha_respuesta')[:10]
+    tipos_preguntas_chart_data = {
+        'labels': tipos_labels,
+        'datasets': [{
+            'data': tipos_data,
+            'backgroundColor': base_colors[:len(tipos_labels)], # Ajustar colores
+            'hoverOffset': 10
+        }]
+    }
+    tipos_preguntas_json = json.dumps(tipos_preguntas_chart_data)
 
-    encuestas_detalle = Encuesta.objects.annotate(
-        cantidad_respuestas=Count('respuestas'),
-        promedio_respuestas=Avg('respuestas__id')
-    ).order_by('-fecha_creacion')
-
-    # Estadísticas de PQRSFD
-    conteo_estados = {
+    # ===== ESTADÍSTICAS PQRSFD =====
+    # Conteo por estado (existente)
+    conteo_estados_pqrsfd = {
         'P': PQRSFD.objects.filter(estado='P').count(),
         'E': PQRSFD.objects.filter(estado='E').count(),
         'R': PQRSFD.objects.filter(estado='R').count(),
@@ -191,34 +265,83 @@ def index_view(request):
         'vencidos': sum(1 for p in PQRSFD.objects.filter(estado__in=['P', 'E']) if p.esta_vencido())
     }
 
+    # Distribución por Tipo
+    distribucion_tipo_pqrsfd_qs = PQRSFD.objects.values('tipo').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    tipo_pqrsfd_dict = dict(PQRSFD.TIPO_CHOICES)
+    tipo_pqrsfd_labels = [str(tipo_pqrsfd_dict.get(item['tipo'], item['tipo'] or 'Sin Tipo')) for item in distribucion_tipo_pqrsfd_qs]
+    tipo_pqrsfd_data = [item['total'] for item in distribucion_tipo_pqrsfd_qs]
+    distribucion_tipo_pqrsfd_chart_data = {
+        'labels': tipo_pqrsfd_labels,
+        'datasets': [{
+            'label': 'PQRSFD por Tipo',
+            'data': tipo_pqrsfd_data,
+            'backgroundColor': base_colors[:len(tipo_pqrsfd_labels)], # Reusar colores si es necesario
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_tipo_pqrsfd_json = json.dumps(distribucion_tipo_pqrsfd_chart_data)
+
+    # PQRSFD Recientes
+    pqrsfd_creados_7d = PQRSFD.objects.filter(fecha_creacion__gte=one_week_ago).count()
+    pqrsfd_creados_30d = PQRSFD.objects.filter(fecha_creacion__gte=thirty_days_ago).count()
+    # Usar fecha_actualizacion como proxy para resueltos/cerrados recientes
+    pqrsfd_resueltos_cerrados_7d = PQRSFD.objects.filter(estado__in=['R', 'C'], fecha_actualizacion__gte=one_week_ago).count()
+    pqrsfd_resueltos_cerrados_30d = PQRSFD.objects.filter(estado__in=['R', 'C'], fecha_actualizacion__gte=thirty_days_ago).count()
+
+
+    # ===== DATOS ADICIONALES =====
+    ultimas_respuestas = RespuestaEncuesta.objects.select_related(
+        'encuesta', 'usuario'
+    ).order_by('-fecha_respuesta')[:10] # Mantener ultimas 10
+
     # ===== CONTEXTO PARA LA PLANTILLA =====
     context = {
-        # Estadísticas generales
+        # --- Estadísticas generales Encuestas ---
         'total_encuestas': total_encuestas,
-        'total_encuesta_respondidas': total_encuesta_respondidas,
-        'total_encuesta_respondidas_activas': len(total_encuestas_respondidas_activas),
-        'total_respuestas': total_respuestas,
+        'total_encuesta_respondidas': total_encuesta_respondidas, # Total histórico respondidas
+        'total_encuesta_respondidas_activas': total_encuestas_respondidas_activas_count, # Respuestas a encuestas públicas activas
+        'total_respuestas': total_respuestas, # Total histórico de objetos RespuestaEncuesta
         'avg_respuestas': round(avg_respuestas, 1),
-        'encuestas_activas': encuestas_activas,
-        'encuestas_publicas': len(encuestas_publicas_activas),
-        
-        # Alertas y notificaciones
+        'encuestas_activas': encuestas_activas, # Total activas (públicas + privadas)
+        'encuestas_publicas': encuestas_publicas_count, # Total públicas y activas
+        'conteo_publicas_privadas': conteo_publicas_privadas, # Total públicas vs privadas (histórico)
+        'encuestas_creadas_7d': encuestas_creadas_7d,
+        'encuestas_creadas_30d': encuestas_creadas_30d,
+        'tasa_finalizacion': round(tasa_finalizacion, 1), # Basada en total histórico
+
+        # --- Alertas y notificaciones ---
         'encuestas_proximo_fin': encuestas_proximo_fin,
-        'encuestas_sin_respuestas': encuestas_sin_respuestas,
-        
-        # Distribuciones y tendencias
-        'distribucion_region': distribucion_region,
-        'tendencia_respuestas': tendencia_respuestas,
-        'top_municipios': top_municipios,
-        'tasa_finalizacion': round(tasa_finalizacion, 1),
-        'distribucion_categoria': distribucion_categoria,
-        
-        # Tipos de preguntas y datos adicionales
-        'tipos_preguntas': tipos_preguntas,
+        'encuestas_sin_respuestas': encuestas_sin_respuestas_count, # Activas sin respuestas
+
+        # --- Datos para tablas y listas (QuerySets/Listas) ---
+        'distribucion_region': distribucion_region_qs, # Para posible tabla
+        'tendencia_respuestas': tendencia_respuestas_qs, # Para posible tabla
+        'top_municipios': top_municipios_qs,
+        'distribucion_categoria': distribucion_categoria_qs, # Para posible tabla
+        'distribucion_subcategoria': distribucion_subcategoria_qs, # Para posible tabla
+        'distribucion_tema': distribucion_tema_qs, # Para posible tabla
+        'tipos_preguntas': tipos_preguntas, # Para posible tabla
         'ultimas_respuestas': ultimas_respuestas,
-        'encuestas_detalle': encuestas_detalle,
-        'conteo_estados': conteo_estados,
-        'encuestas_publicas_activas': encuestas_publicas_activas,
+        'encuestas_publicas_activas': encuestas_publicas_activas, # Lista de encuestas públicas activas
+
+        # --- Estadísticas PQRSFD ---
+        'conteo_estados_pqrsfd': conteo_estados_pqrsfd, # Renombrado para claridad
+        'distribucion_tipo_pqrsfd': distribucion_tipo_pqrsfd_qs, # Para posible tabla
+        'pqrsfd_creados_7d': pqrsfd_creados_7d,
+        'pqrsfd_creados_30d': pqrsfd_creados_30d,
+        'pqrsfd_resueltos_cerrados_7d': pqrsfd_resueltos_cerrados_7d,
+        'pqrsfd_resueltos_cerrados_30d': pqrsfd_resueltos_cerrados_30d,
+
+        # --- JSON para Gráficos ---
+        'tipos_preguntas_json': tipos_preguntas_json,
+        'distribucion_categoria_json': distribucion_categoria_json,
+        'distribucion_subcategoria_json': distribucion_subcategoria_json, # Nuevo
+        'distribucion_tema_json': distribucion_tema_json, # Nuevo
+        'distribucion_region_json': distribucion_region_json,
+        'distribucion_tipo_pqrsfd_json': distribucion_tipo_pqrsfd_json, # Nuevo
     }
 
     return render(request, 'index.html', context)
