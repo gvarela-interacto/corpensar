@@ -5,94 +5,236 @@
 
 {% block styles %}
 <style>
-    .stats-container {
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
+    /* Mejoras generales */
+    .container-fluid {
+        padding: 2rem;
+        max-width: 100%;
     }
-    
-    .chart-container {
-        height: 400px;
-        width: 100%;
-        margin-bottom: 30px;
+
+    /* Animaciones */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
-    .mini-stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 15px;
-        margin-bottom: 20px;
+
+    @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-    
-    .stat-card {
-        flex: 1;
-        min-width: 200px;
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-        color: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-    
-    .stat-card h4 {
-        font-size: 2rem;
-        margin-bottom: 10px;
-        font-weight: 700;
-    }
-    
-    .stat-card p {
-        margin: 0;
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
-    
-    .encuesta-list {
-        margin-top: 20px;
-    }
-    
-    .encuesta-item {
-        padding: 15px;
+
+    /* Contenedor principal de estadísticas */
+    .stats-dashboard {
         background-color: #f8f9fc;
-        border-radius: 8px;
-        margin-bottom: 10px;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    /* Tarjetas de estadísticas mejoradas */
+    .card {
         transition: all 0.3s ease;
-        cursor: pointer;
-        border-left: 4px solid #4e73df;
+        animation: fadeIn 0.5s ease-out;
+        margin-bottom: 1.5rem;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-    
-    .encuesta-item:hover {
-        background-color: #eaecf4;
-        transform: translateX(5px);
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
     }
-    
-    .region-selector {
-        margin-bottom: 20px;
+
+    .border-left-primary { border-left: 0.5rem solid #4e73df !important; }
+    .border-left-success { border-left: 0.5rem solid #1cc88a !important; }
+    .border-left-info { border-left: 0.5rem solid #36b9cc !important; }
+    .border-left-warning { border-left: 0.5rem solid #f6c23e !important; }
+
+    /* Tabs mejoradas */
+    .nav-tabs-container {
+        background-color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1rem 1rem 0 1rem;
+        box-shadow: 0 -2px 15px rgba(0,0,0,0.03);
     }
-    
-    .tab-content {
-        background-color: #fff;
-        border-radius: 0 0 10px 10px;
-        padding: 20px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+
+    .nav-tabs {
+        border-bottom: none;
+        margin-bottom: 0;
     }
-    
+
+    .nav-tabs .nav-item {
+        margin-bottom: 0;
+    }
+
     .nav-tabs .nav-link {
-        color: #5a5c69;
+        border: none;
+        color: #858796;
         font-weight: 600;
+        padding: 1rem 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        border-radius: 10px 10px 0 0;
     }
-    
+
+    .nav-tabs .nav-link:hover {
+        color: #4e73df;
+        background-color: #f8f9fc;
+    }
+
     .nav-tabs .nav-link.active {
         color: #4e73df;
-        font-weight: 700;
-        border-color: #4e73df #e3e6f0 #fff;
+        background-color: #f8f9fc;
+        border-bottom: 3px solid #4e73df;
     }
-    
+
+    /* Contenedor de gráficos significativamente mejorado */
+    .tab-content {
+        background-color: #f8f9fc;
+        border-radius: 0 0 15px 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .chart-container {
+        height: 600px; /* Mucho más alto para mejor visualización */
+        width: 100%;
+        margin: 0;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .distribution-charts {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Formulario de filtros mejorado */
+    .filters-card {
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    .filters-card .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .form-select {
+        border-radius: 10px;
+        border: 1px solid #d1d3e2;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+        background-color: #f8f9fc;
+    }
+
+    .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78,115,223,0.25);
+    }
+
+    .btn-primary {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #4e73df;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78,115,223,0.2);
+        background-color: #3a5ecc;
+    }
+
+    /* Lista de encuestas mejorada */
+    .encuesta-item {
+        padding: 1.5rem;
+        background-color: white;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid #4e73df;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        animation: fadeIn 0.5s ease-out;
+        cursor: pointer;
+    }
+
+    .encuesta-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .encuesta-item h5 {
+        color: #2e384d;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .encuesta-item p {
+        color: #858796;
+        margin-bottom: 1rem;
+    }
+
+    /* Badges mejorados */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .bg-success {
+        background-color: #1cc88a !important;
+    }
+
+    /* Responsividad mejorada */
+    @media (min-width: 992px) {
+        .distribution-charts {
+            flex-direction: row;
+        }
+        
+        .chart-box {
+            flex: 1;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .chart-container {
+            height: 450px;
+        }
+    }
+
     @media (max-width: 768px) {
-        .stat-card {
-            min-width: 140px;
+        .container-fluid {
+            padding: 1rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            padding: 1rem;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 0.75rem 1rem;
+        }
+
+        .tab-content {
+            padding: 1rem;
+        }
+
+        .encuesta-item {
+            padding: 1rem;
         }
     }
 </style>
@@ -102,11 +244,12 @@
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Estadísticas de Municipios</h1>
     
+    <!-- Filtros de búsqueda -->
     <div class="row">
         <div class="col-12">
-            <div class="card shadow mb-4">
+            <div class="filters-card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Selecciona una región o municipio</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Filtrar estadísticas</h6>
                 </div>
                 <div class="card-body">
                     <form method="get" action="{% url 'estadisticas_municipios' %}" class="row mb-4">
@@ -123,13 +266,64 @@
                             <label for="municipio" class="form-label">Municipio:</label>
                             <select id="municipio" name="municipio" class="form-select">
                                 <option value="todos" >Todos los municipios</option>
-                                
                             </select>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary w-100">Filtrar</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de estadísticas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas por Municipio</h6>
+                    <button class="btn btn-sm btn-success" onclick="exportarExcel()">
+                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="tablaEstadisticas">
+                            <thead>
+                                <tr>
+                                    <th>Municipio</th>
+                                    <th>Región</th>
+                                    <th>Total Encuestas</th>
+                                    <th>Total Respuestas</th>
+                                    <th>Encuestas Completadas</th>
+                                    <th>Tasa de Finalización</th>
+                                    <th>Clasificación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for municipio in datos_municipios.values %}
+                                <tr>
+                                    <td>{{ municipio.nombre }}</td>
+                                    <td>{{ municipio.region }}</td>
+                                    <td>{{ municipio.totalEncuestas }}</td>
+                                    <td>{{ municipio.totalRespuestas }}</td>
+                                    <td>{{ municipio.encuestasRespondidas }}</td>
+                                    <td>{{ municipio.tasaFinalizacion }}%</td>
+                                    <td>
+                                        {% if municipio.tasaFinalizacion >= 80 %}
+                                            <span class="badge bg-success">Alto</span>
+                                        {% elif municipio.tasaFinalizacion >= 50 %}
+                                            <span class="badge bg-warning">Medio</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Bajo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -207,80 +401,81 @@
     </div>
     
     <!-- Pestañas para diferentes visualizaciones -->
-    <div class="row">
-        <div class="col-12">
+    <div class="stats-dashboard">
+        <div class="nav-tabs-container">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">
-                        Historial de Respuestas
+                        <i class="fas fa-chart-line mr-2"></i>Historial de Respuestas
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="distribucion-tab" data-bs-toggle="tab" data-bs-target="#distribucion" type="button" role="tab">
-                        Distribución de Respuestas
+                        <i class="fas fa-chart-pie mr-2"></i>Distribución de Respuestas
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="encuestas-tab" data-bs-toggle="tab" data-bs-target="#encuestas" type="button" role="tab">
-                        Encuestas Disponibles
+                        <i class="fas fa-list mr-2"></i>Encuestas Disponibles
                     </button>
                 </li>
             </ul>
+        </div>
+        
+        <div class="tab-content" id="myTabContent">
+            <!-- Historial de Respuestas -->
+            <div class="tab-pane fade show active" id="historial" role="tabpanel">
+                <div class="chart-container">
+                    <div id="historialChart" style="width: 100%; height: 100%;"></div>
+                </div>
+            </div>
             
-            <div class="tab-content" id="myTabContent">
-                <!-- Historial de Respuestas -->
-                <div class="tab-pane fade show active" id="historial" role="tabpanel">
-                    <div class="chart-container">
-                        <div id="historialChart" style="width: 100%; height: 100%;"></div>
-                    </div>
-                </div>
-                
-                <!-- Distribución de Respuestas -->
-                <div class="tab-pane fade" id="distribucion" role="tabpanel">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="chart-container">
-                                <div id="pieChart" style="width: 100%; height: 100%;"></div>
-                            </div>
+            <!-- Distribución de Respuestas -->
+            <div class="tab-pane fade" id="distribucion" role="tabpanel">
+                <div class="distribution-charts">
+                    <div class="chart-box">
+                        <div class="chart-container">
+                            <div id="pieChart" style="width: 100%; height: 100%;"></div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="chart-container">
-                                <div id="barChart" style="width: 100%; height: 100%;"></div>
-                            </div>
+                    </div>
+                    <div class="chart-box">
+                        <div class="chart-container">
+                            <div id="barChart" style="width: 100%; height: 100%;"></div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Lista de Encuestas -->
-                <div class="tab-pane fade" id="encuestas" role="tabpanel">
-                    <div class="encuesta-list">
-                        {% if encuestas %}
-                            {% for encuesta in encuestas %}
-                                <div class="encuesta-item" onclick="window.location.href='/encuestas/{{ encuesta.id }}/resultados/'">
-                                    <h5>{{ encuesta.titulo }}</h5>
-                                    <p>{{ encuesta.descripcion }}</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="badge {% if encuesta.es_publica %}bg-success{% else %}bg-secondary{% endif %}">
-                                            {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
-                                        </span>
-                                        <span>Respuestas: {{ encuesta.total_respuestas }}</span>
-                                    </div>
+            </div>
+            
+            <!-- Lista de Encuestas -->
+            <div class="tab-pane fade" id="encuestas" role="tabpanel">
+                <div class="encuesta-list">
+                    {% if encuestas %}
+                        {% for encuesta in encuestas %}
+                            <div class="encuesta-item" onclick="window.location.href='/encuestas/{{ encuesta.id }}/resultados/'">
+                                <h5>{{ encuesta.titulo }}</h5>
+                                <p>{{ encuesta.descripcion }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge {% if encuesta.es_publica %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
+                                    </span>
+                                    <span>Respuestas: {{ encuesta.total_respuestas }}</span>
                                 </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center py-5">
-                                <i class="far fa-frown fa-3x text-gray-400 mb-3"></i>
-                                <p>No hay encuestas disponibles para mostrar.</p>
                             </div>
-                        {% endif %}
-                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="far fa-frown fa-3x text-gray-400 mb-3"></i>
+                            <p>No hay encuestas disponibles para mostrar.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script id="datos-municipios" type="application/json">
 {% if municipios %}
 [
@@ -315,184 +510,375 @@
 </script>
 
 <script>
-    // Cargar datos JSON directamente de las etiquetas script
-    var todosMunicipios = JSON.parse(document.getElementById('datos-municipios').textContent);
-    var datosGraficos = JSON.parse(document.getElementById('datos-graficos').textContent);
+    // Asegurarse de que el JSON se carga correctamente
+    let todosMunicipios = [];
+    let datosGraficos = {};
+    
+    try {
+        const jsonMunicipios = document.getElementById('datos-municipios').textContent.trim();
+        if (jsonMunicipios) {
+            todosMunicipios = JSON.parse(jsonMunicipios);
+        }
+        
+        const jsonGraficos = document.getElementById('datos-graficos').textContent.trim();
+        if (jsonGraficos) {
+            datosGraficos = JSON.parse(jsonGraficos);
+        }
+    } catch (error) {
+        console.error("Error al cargar datos JSON:", error);
+        todosMunicipios = [];
+        datosGraficos = {
+            historial: { meses: [], conteos: [] },
+            regiones: { nombres: [], datos: [] },
+            municipios: { nombres: [], valores: [] }
+        };
+    }
 
     function cargarMunicipios() {
-        const regionId = document.getElementById('region').value;
-        const municipioSelect = document.getElementById('municipio');
-        municipioSelect.innerHTML = ''; // Limpiar opciones
-
-        // Opción por defecto
-        var optionTodos = document.createElement('option');
-        optionTodos.value = 'todos';
-        optionTodos.text = 'Todos los municipios';
-        municipioSelect.appendChild(optionTodos);
-
-        // Filtrar municipios por región
-        todosMunicipios.forEach(function(municipio) {
-            if (regionId === 'todas' || municipio.region === regionId) {
-                var option = document.createElement('option');
-                option.value = municipio.id;
-                option.text = municipio.nombre;
-                // Si hay un municipio seleccionado, lo marcamos como selected
-                if (municipio.id === '{{ municipio_seleccionado }}') {
-                    option.selected = true;
-                }
-                municipioSelect.appendChild(option);
+        try {
+            const regionId = document.getElementById('region').value;
+            const municipioSelect = document.getElementById('municipio');
+            const municipioSeleccionado = '{{ municipio_seleccionado }}';
+            
+            if (!municipioSelect) {
+                console.error("No se encontró el elemento select de municipio");
+                return;
             }
-        });
+            
+            // Guardar la opción seleccionada actualmente antes de limpiar
+            const opcionSeleccionadaActual = municipioSelect.value;
+            
+            // Limpiar opciones actuales
+            municipioSelect.innerHTML = '';
+
+            // Opción por defecto
+            const optionTodos = document.createElement('option');
+            optionTodos.value = 'todos';
+            optionTodos.text = 'Todos los municipios';
+            if (municipioSeleccionado === 'todos' || !municipioSeleccionado) {
+                optionTodos.selected = true;
+            }
+            municipioSelect.appendChild(optionTodos);
+
+            // Si no hay municipios, terminamos aquí
+            if (!todosMunicipios || !todosMunicipios.length) {
+                console.warn("No hay datos de municipios disponibles");
+                return;
+            }
+
+            // Filtrar y agregar municipios por región
+            let municipioEncontrado = false;
+            let municipiosAgregados = 0;
+            
+            todosMunicipios.forEach(function(municipio) {
+                if (regionId === 'todas' || municipio.region === regionId) {
+                    const option = document.createElement('option');
+                    option.value = municipio.id;
+                    option.text = municipio.nombre;
+                    
+                    // Marcar como seleccionado si coincide con el municipio previamente seleccionado
+                    if (municipio.id === municipioSeleccionado) {
+                        option.selected = true;
+                        municipioEncontrado = true;
+                    }
+                    
+                    // También mantener la selección actual si estamos cambiando de región
+                    if (opcionSeleccionadaActual && municipio.id === opcionSeleccionadaActual && !municipioEncontrado) {
+                        option.selected = true;
+                    }
+                    
+                    municipioSelect.appendChild(option);
+                    municipiosAgregados++;
+                }
+            });
+            
+            // Registrar para debugging
+            console.log(`Municipios cargados para región ${regionId}: ${municipiosAgregados}`);
+        } catch (error) {
+            console.error("Error al cargar municipios:", error);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Seleccionar la región correcta si hay una seleccionada
-        if ('{{ region_seleccionada }}') {
-            document.getElementById('region').value = '{{ region_seleccionada }}';
+        try {
+            // Configurar correctamente la región seleccionada
+            const regionSeleccionada = '{{ region_seleccionada }}';
+            const regionSelect = document.getElementById('region');
+            
+            if (regionSelect) {
+                // Si hay una región seleccionada, establecerla
+                if (regionSeleccionada) {
+                    regionSelect.value = regionSeleccionada;
+                }
+                
+                // Configurar el evento de cambio
+                regionSelect.addEventListener('change', cargarMunicipios);
+            }
+            
+            // Cargar municipios inicialmente
+            cargarMunicipios();
+            
+            // Inicializar gráficos
+            inicializarGraficos();
+            
+            // Ajustar tamaño de gráficos al cambiar de pestaña
+            var tabLinks = document.querySelectorAll('.nav-link');
+            tabLinks.forEach(function(tabLink) {
+                tabLink.addEventListener('shown.bs.tab', function (e) {
+                    window.dispatchEvent(new Event('resize'));
+                });
+            });
+        } catch (error) {
+            console.error("Error durante la inicialización:", error);
         }
-        
-        // Cargar municipios y configurar evento de cambio
-        cargarMunicipios();
-        document.getElementById('region').addEventListener('change', cargarMunicipios);
-        
-        // Inicializar gráficos con datos precargados
-        inicializarGraficos();
     });
 
+    function exportarExcel() {
+        try {
+            // Obtener la tabla
+            const tabla = document.getElementById('tablaEstadisticas');
+            
+            // Crear un libro de Excel
+            const wb = XLSX.utils.book_new();
+            
+            // Convertir la tabla a una hoja de Excel
+            const ws = XLSX.utils.table_to_sheet(tabla);
+            
+            // Ajustar el ancho de las columnas
+            const wscols = [
+                {wch: 20}, // Municipio
+                {wch: 15}, // Región
+                {wch: 15}, // Total Encuestas
+                {wch: 15}, // Total Respuestas
+                {wch: 20}, // Encuestas Completadas
+                {wch: 20}, // Tasa de Finalización
+                {wch: 15}  // Clasificación
+            ];
+            ws['!cols'] = wscols;
+            
+            // Agregar la hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, "Estadísticas");
+            
+            // Generar el archivo Excel
+            const fecha = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `estadisticas_municipios_${fecha}.xlsx`);
+        } catch (error) {
+            console.error("Error al exportar a Excel:", error);
+            alert("Error al exportar a Excel. Por favor, intente nuevamente.");
+        }
+    }
+
     function inicializarGraficos() {
+        // Verificar si los elementos DOM existen
+        const historialElement = document.getElementById('historialChart');
+        const pieElement = document.getElementById('pieChart');
+        const barElement = document.getElementById('barChart');
+        
+        // Si no hay datos, no inicializar gráficos
+        if (!datosGraficos || !datosGraficos.historial) {
+            console.warn("No hay datos disponibles para los gráficos");
+            return;
+        }
+
+        // Colores para los gráficos
+        const colores = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#5a5c69', '#858796', '#6f42c1', '#e83e8c', '#fd7e14'];
+
         // Inicializar gráfico de historial
-        const historialChart = echarts.init(document.getElementById('historialChart'));
-        historialChart.setOption({
-            title: {
-                text: 'Historial de Respuestas',
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'shadow'
-                }
-            },
-            legend: {
-                data: ['Respuestas'],
-                bottom: 10
-            },
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '15%',
-                top: '15%',
-                containLabel: true
-            },
-            xAxis: {
-                type: 'category',
-                data: datosGraficos.historial.meses,
-                axisLabel: {
-                    rotate: 45
-                }
-            },
-            yAxis: {
-                type: 'value',
-                name: 'Cantidad de respuestas'
-            },
-            series: [{
-                name: 'Respuestas',
-                type: 'bar',
-                data: datosGraficos.historial.conteos,
-                itemStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#4e73df' },
-                        { offset: 1, color: '#224abe' }
-                    ])
-                },
-                emphasis: {
-                    itemStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: '#2e59d9' },
-                            { offset: 1, color: '#1c44b2' }
-                        ])
+        if (historialElement) {
+            try {
+                const trace = {
+                    x: datosGraficos.historial.meses,
+                    y: datosGraficos.historial.conteos,
+                    type: 'bar',
+                    name: 'Respuestas',
+                    marker: {
+                        color: colores[0],
+                        line: {
+                            color: '#224abe',
+                            width: 1
+                        }
                     }
-                }
-            }]
-        });
-        
-        // Inicializar gráfico de distribución (pie)
-        const pieChart = echarts.init(document.getElementById('pieChart'));
-        pieChart.setOption({
-            title: {
-                text: 'Distribución por Región',
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'item',
-                formatter: '{a} <br/>{b}: {c} ({d}%)'
-            },
-            legend: {
-                orient: 'vertical',
-                left: 'left',
-                data: datosGraficos.regiones.nombres
-            },
-            series: [{
-                name: 'Respuestas',
-                type: 'pie',
-                radius: '70%',
-                center: ['50%', '50%'],
-                data: datosGraficos.regiones.datos,
-                emphasis: {
-                    itemStyle: {
-                        shadowBlur: 10,
-                        shadowOffsetX: 0,
-                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                };
+
+                const layout = {
+                    title: {
+                        text: 'Historial de Respuestas por Mes',
+                        font: {
+                            size: 20,
+                            color: '#2e384d'
+                        }
+                    },
+                    xaxis: {
+                        title: 'Mes',
+                        tickangle: 45,
+                        tickfont: {
+                            size: 12,
+                            color: '#5a5c69'
+                        }
+                    },
+                    yaxis: {
+                        title: 'Número de respuestas',
+                        tickfont: {
+                            size: 12,
+                            color: '#5a5c69'
+                        }
+                    },
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    margin: {
+                        l: 50,
+                        r: 50,
+                        b: 100,
+                        t: 50,
+                        pad: 4
                     }
-                }
-            }]
-        });
-        
-        // Inicializar gráfico de barras (top municipios)
-        const barChart = echarts.init(document.getElementById('barChart'));
-        barChart.setOption({
-            title: {
-                text: 'Top 10 Municipios por Respuestas',
-                left: 'center'
-            },
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'shadow'
-                }
-            },
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                containLabel: true
-            },
-            xAxis: {
-                type: 'value',
-                name: 'Respuestas'
-            },
-            yAxis: {
-                type: 'category',
-                data: datosGraficos.municipios.nombres
-            },
-            series: [{
-                name: 'Respuestas',
-                type: 'bar',
-                data: datosGraficos.municipios.valores,
-                itemStyle: {
-                    color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-                        { offset: 0, color: '#4e73df' },
-                        { offset: 1, color: '#224abe' }
-                    ])
-                }
-            }]
-        });
-        
-        // Ajustar tamaño de los gráficos al cambiar el tamaño de la ventana
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: false
+                };
+
+                Plotly.newPlot(historialElement, [trace], layout, config);
+            } catch (error) {
+                console.error("Error al inicializar gráfico de historial:", error);
+            }
+        }
+
+        // Inicializar gráfico de distribución por región
+        if (pieElement) {
+            try {
+                const trace = {
+                    labels: datosGraficos.regiones.nombres,
+                    values: datosGraficos.regiones.datos.map(d => d.value),
+                    type: 'pie',
+                    hole: 0.4,
+                    marker: {
+                        colors: colores
+                    },
+                    textinfo: 'label+percent',
+                    textposition: 'outside',
+                    automargin: true
+                };
+
+                const layout = {
+                    title: {
+                        text: 'Distribución por Región',
+                        font: {
+                            size: 20,
+                            color: '#2e384d'
+                        }
+                    },
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    margin: {
+                        l: 0,
+                        r: 0,
+                        b: 0,
+                        t: 50,
+                        pad: 4
+                    },
+                    showlegend: true,
+                    legend: {
+                        orientation: 'v',
+                        y: 0.5
+                    }
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: false
+                };
+
+                Plotly.newPlot(pieElement, [trace], layout, config);
+            } catch (error) {
+                console.error("Error al inicializar gráfico de distribución por región:", error);
+            }
+        }
+
+        // Inicializar gráfico de barras de municipios
+        if (barElement) {
+            try {
+                const trace = {
+                    x: datosGraficos.municipios.valores,
+                    y: datosGraficos.municipios.nombres,
+                    type: 'bar',
+                    orientation: 'h',
+                    marker: {
+                        color: colores[1],
+                        line: {
+                            color: '#159a68',
+                            width: 1
+                        }
+                    }
+                };
+
+                const layout = {
+                    title: {
+                        text: 'Top Municipios por Respuestas',
+                        font: {
+                            size: 20,
+                            color: '#2e384d'
+                        }
+                    },
+                    xaxis: {
+                        title: 'Respuestas',
+                        tickfont: {
+                            size: 12,
+                            color: '#5a5c69'
+                        }
+                    },
+                    yaxis: {
+                        tickfont: {
+                            size: 12,
+                            color: '#5a5c69'
+                        }
+                    },
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    margin: {
+                        l: 150,
+                        r: 50,
+                        b: 50,
+                        t: 50,
+                        pad: 4
+                    }
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: false
+                };
+
+                Plotly.newPlot(barElement, [trace], layout, config);
+            } catch (error) {
+                console.error("Error al inicializar gráfico de barras de municipios:", error);
+            }
+        }
+
+        // Manejar la responsividad
         window.addEventListener('resize', function() {
-            historialChart.resize();
-            pieChart.resize();
-            barChart.resize();
+            if (historialElement) {
+                try {
+                    Plotly.Plots.resize(historialElement);
+                } catch (error) {
+                    console.error("Error al redimensionar gráfico de historial:", error);
+                }
+            }
+            if (pieElement) {
+                try {
+                    Plotly.Plots.resize(pieElement);
+                } catch (error) {
+                    console.error("Error al redimensionar gráfico de distribución:", error);
+                }
+            }
+            if (barElement) {
+                try {
+                    Plotly.Plots.resize(barElement);
+                } catch (error) {
+                    console.error("Error al redimensionar gráfico de barras:", error);
+                }
+            }
         });
     }
 </script>
