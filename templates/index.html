@@ -1413,14 +1413,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Inicialización del mapa de Colombia
   const mapaContainer = document.getElementById('mapaColombia');
   if (!mapaContainer) return;
 
+  // Configuración inicial del mapa con vista centrada en Colombia
   const map = L.map('mapaColombia').setView([4.5709, -74.2973], 6);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
+  // Variables globales para el manejo de capas y datos
   let datosEstadisticas = {};
   let markerLayer = L.layerGroup().addTo(map);
   let oleoductoLayer = L.layerGroup();
@@ -1428,6 +1431,12 @@ document.addEventListener('DOMContentLoaded', function() {
   let loadingElement = document.getElementById('loadingMap');
   let progressElement = document.getElementById('loadingProgress');
 
+  /**
+   * Función para determinar el color según el valor y tipo de estadística
+   * @param {number} value - Valor numérico para determinar el color
+   * @param {string} tipo - Tipo de estadística (totalEncuestas, totalRespuestas, tasaFinalizacion)
+   * @returns {string} - Color en formato hexadecimal
+   */
   function getColorForValue(value, tipo) {
     const scales = {
       totalEncuestas: ['#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#08519c'],
@@ -1441,6 +1450,11 @@ document.addEventListener('DOMContentLoaded', function() {
     return colors[idx];
   }
 
+  /**
+   * Crea un ícono personalizado para los marcadores del mapa
+   * @param {string} color - Color del ícono en formato hexadecimal
+   * @returns {L.DivIcon} - Ícono personalizado de Leaflet
+   */
   function createCustomIcon(color) {
     return L.divIcon({
       className: 'custom-div-icon',
@@ -1450,24 +1464,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Función para mostrar información del municipio dentro del mapa
+  /**
+   * Muestra la información detallada de un municipio en el panel lateral
+   * @param {string} key - Identificador del municipio
+   */
   function mostrarInfoMunicipio(key) {
     const info = datosEstadisticas[key];
     console.log(info);
     if (!info) return;
 
+    // Actualizar información básica en el panel
     document.getElementById('nombreMunicipio').textContent = info.nombre;
     document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas;
     document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas;
     document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion + '%';
     document.getElementById('infoMunicipio').style.display = 'block';
     
-    // Crear gráficos básicos inmediatamente
+    // Crear gráficos básicos
     crearGraficoEncuestas(info);
     crearGraficoFinalizacion(info);
     
-    // Para el gráfico de respuestas históricas, hacer una petición específica
-    // Identificamos el municipio mediante su nombre
+    // Cargar datos históricos de respuestas
     const municipioNombre = encodeURIComponent(info.nombre);
     
     // Mostrar indicador de carga
@@ -1480,6 +1497,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ctx.textAlign = 'center';
     ctx.fillText('Cargando datos...', ctx.canvas.width / 2, ctx.canvas.height / 2);
     
+    // Cargar datos históricos desde la API
     fetch(`/api/municipio/${municipioNombre}/respuestas-historicas/`)
       .then(res => {
         if (!res.ok) {
@@ -1494,14 +1512,16 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(error => {
         console.error("Error al cargar datos históricos:", error);
         ctx.canvas.style.opacity = '1';
-        // En caso de error, generar datos históricos localmente
         generarYMostrarDatosSimulados(info);
       });
   }
   
-  // Función para generar datos simulados cuando hay error del servidor
+  /**
+   * Genera datos simulados cuando no se pueden cargar los datos reales
+   * @param {Object} info - Información del municipio
+   */
   function generarYMostrarDatosSimulados(info) {
-    // Generar meses recientes (6 meses)
+    // Generar últimos 6 meses
     const meses = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -1518,12 +1538,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const respuestaPromedio = respuestaTotal / 6;
     
     for (let i = 0; i < 6; i++) {
-      // Variación basada en el índice para simular tendencia creciente
       const factor = 0.7 + (i * 0.1);
       respuestasPorMes.push(Math.round(respuestaPromedio * factor));
     }
     
-    // Crear el gráfico con los datos simulados
+    // Crear gráfico con datos simulados
     const datos = {
       labels: meses,
       data: respuestasPorMes
@@ -1532,27 +1551,26 @@ document.addEventListener('DOMContentLoaded', function() {
     crearGraficoRespuestas(datos);
   }
   
-  // Variables para almacenar instancias de gráficos y poder destruirlas
+  // Variables para almacenar instancias de gráficos
   let chartEncuestas = null;
   let chartRespuestas = null;
   let chartFinalizacion = null;
   
-  // Función para crear gráfico de encuestas
+  /**
+   * Crea el gráfico de distribución de encuestas por estado
+   * @param {Object} info - Información del municipio
+   */
   function crearGraficoEncuestas(info) {
-    // Destruir gráfico anterior si existe
     if (chartEncuestas) {
       chartEncuestas.destroy();
     }
-
-    console.log(info);
     
-    // Datos para el gráfico de encuestas (ejemplo: distribución por estado)
     const datosEncuestas = {
       labels: ['Activas', 'Cerradas', 'Pausadas'],
       datasets: [{
         label: 'Encuestas por estado',
         data: [
-          info.encuestasActivas || Math.round(info.totalEncuestas * 0.7), // Si no hay dato real, uso un porcentaje aproximado
+          info.encuestasActivas || Math.round(info.totalEncuestas * 0.7),
           info.encuestasCerradas || Math.round(info.totalEncuestas * 0.2),
           info.encuestasPausadas || Math.round(info.totalEncuestas * 0.1)
         ],
@@ -1580,9 +1598,11 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
   
-  // Modificar la función para usar datos dinámicos
+  /**
+   * Crea el gráfico de respuestas históricas
+   * @param {Object} datos - Datos históricos de respuestas
+   */
   function crearGraficoRespuestas(datos) {
-    // Destruir gráfico anterior si existe
     if (chartRespuestas) {
       chartRespuestas.destroy();
     }
@@ -1624,19 +1644,20 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
   
-  // Función para crear gráfico de finalización
+  /**
+   * Crea el gráfico de comparación de tasa de finalización
+   * @param {Object} info - Información del municipio
+   */
   function crearGraficoFinalizacion(info) {
-    // Destruir gráfico anterior si existe
     if (chartFinalizacion) {
       chartFinalizacion.destroy();
     }
     
-    // Datos para la tasa de finalización vs promedio nacional
     const datosFinalizacion = {
       labels: ['Este Municipio', 'Promedio Nacional'],
       datasets: [{
         label: 'Tasa de Finalización (%)',
-        data: [info.tasaFinalizacion, info.tasaPromedioNacional || 65], // Valor por defecto si no hay dato real
+        data: [info.tasaFinalizacion, info.tasaPromedioNacional || 65],
         backgroundColor: ['#ffc107', '#858796'],
         borderWidth: 1
       }]
@@ -1669,13 +1690,13 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  // Función para cargar municipios con markers
+  /**
+   * Carga los municipios y sus marcadores en el mapa
+   */
   function cargarMunicipios() {
-    // Mostrar animación de carga
     loadingElement.style.display = 'block';
     progressElement.textContent = '0%';
     
-    // Limpiar capas existentes
     municipiosLayer.clearLayers();
     oleoductoLayer.clearLayers();
     map.removeLayer(oleoductoLayer);
@@ -1689,17 +1710,14 @@ document.addEventListener('DOMContentLoaded', function() {
             let total = Object.keys(estadisticas).length;
             let contador = 0;
             
-            // Para cada municipio, crear un marker
             for (const key in estadisticas) {
                 const municipio = estadisticas[key];
                 
-                // Actualizar progreso
                 contador++;
                 let porcentaje = Math.round((contador / total) * 100);
                 progressElement.textContent = porcentaje + '%';
                 
-                // Usar coordenadas reales si existen, de lo contrario usar coordenadas por defecto
-                const lat = municipio.latitud || 4.5709; // Coordenadas por defecto: Bogotá
+                const lat = municipio.latitud || 4.5709;
                 const lng = municipio.longitud || -74.2973;
                 
                 const marker = L.marker([lat, lng], {
@@ -1719,7 +1737,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 municipiosLayer.addLayer(marker);
             }
             
-            // Ocultar animación de carga cuando termine
             loadingElement.style.display = 'none';
         })
         .catch(error => {
@@ -1728,42 +1745,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
   }
 
-  // Función para cargar oleoductos
+  /**
+   * Carga los oleoductos y sus marcadores en el mapa
+   */
   function cargarOleoductos() {
-    // Mostrar animación de carga
     loadingElement.style.display = 'block';
     progressElement.textContent = '0%';
     
-    // Limpiar capas existentes
     municipiosLayer.clearLayers();
     oleoductoLayer.clearLayers();
     map.removeLayer(municipiosLayer);
     map.addLayer(oleoductoLayer);
     
-    // 1) Traigo estadísticas
     fetch('/api/estadisticas-municipios/')
       .then(res => res.json())
       .then(estadisticas => {
         datosEstadisticas = estadisticas;
         progressElement.textContent = '20%';
 
-        // 2) Traigo GeoJSON ya convertido
         fetch("{% static 'kml/Trazado_oleoducto_Cenit.geojson' %}")
           .then(res => res.json())
           .then(geoJson => {
             progressElement.textContent = '50%';
             
-            // 3) Creo layer
             const oleoLayer = L.geoJSON(geoJson, {
               style(feature) {
-                // Si es línea (LineString) la pinto fija
                 if (feature.geometry.type.includes('LineString')) {
                   return { color: '#006837', weight: 4, dashArray: '8,4' };
                 }
-                // Polígonos (si hubiera), con escala:
                 const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
-
-                // Si no existe la clave, asigno 0 a todas las estadísticas
                 const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
                 return {
                   fillColor: getColorForValue(d['totalEncuestas'], 'totalEncuestas'),
@@ -1775,17 +1785,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const key = (p.nombre || p.name || '').toUpperCase();
                 const d = datosEstadisticas[key] || { totalEncuestas:0, totalRespuestas:0, tasaFinalizacion:0 };
                 
-                // Si es un LineString, agregar markers en los puntos clave
                 if (feature.geometry.type === 'LineString') {
                   const coords = feature.geometry.coordinates;
-                  // Agregar markers al inicio y fin de cada línea
                   const startPoint = coords[0];
                   const endPoint = coords[coords.length - 1];
                   
-                  // Color basado en las estadísticas
                   const color = getColorForValue(d['totalEncuestas'], 'totalEncuestas');
                   
-                  // Crear markers con iconos personalizados
                   L.marker([startPoint[1], startPoint[0]], {
                     icon: createCustomIcon(color)
                   }).bindPopup(`
@@ -1836,12 +1842,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             progressElement.textContent = '80%';
             
-            // 4) Ajusto vista a bounds
             const b = oleoLayer.getBounds();
             if (b.isValid && b.isValid()) map.fitBounds(b);
             else map.setView([4.5709, -74.2973], 6);
             
-            // Ocultar animación de carga cuando termine
             setTimeout(() => {
               progressElement.textContent = '100%';
               loadingElement.style.display = 'none';
@@ -1859,7 +1863,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  // Configurar botones
+  // Configuración de botones de control
   document.getElementById('btnMostrarMunicipios').addEventListener('click', function() {
     this.classList.add('active');
     document.getElementById('btnMostrarOleoductos').classList.remove('active');
@@ -1872,7 +1876,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarOleoductos();
   });
 
-  // Al cargar la página, mostrar oleoductos por defecto
+  // Cargar oleoductos por defecto al iniciar
   document.getElementById('btnMostrarOleoductos').classList.add('active');
   cargarOleoductos();
 });

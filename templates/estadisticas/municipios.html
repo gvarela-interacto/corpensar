@@ -310,6 +310,29 @@
         background-color: #858796;
         border-color: #858796;
     }
+
+    /* Estilos para la tabla con altura fija */
+    .table-responsive-fixed {
+        height: 400px;
+        overflow-y: auto;
+    }
+
+    .table-responsive-fixed thead th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
+        border-top: none;
+    }
+
+    /* Estilos para secciones desplegables */
+    .collapsible-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .collapsible-section .card-header {
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 
@@ -317,92 +340,139 @@
 <div class="container-fluid">
     <h1 class="h3 mb-4 text-gray-800">Estadísticas de Municipios</h1>
     
-    <!-- Filtros de búsqueda -->
-    <div class="row">
-        <div class="col-12">
-            <div class="filters-card shadow">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Filtrar estadísticas</h6>
-                </div>
-                <div class="card-body">
-                    <form method="get" action="{% url 'estadisticas_municipios' %}" class="row mb-4">
-                        <div class="col-md-5">
-                            <label for="region" class="form-label">Región:</label>
-                            <select id="region" name="region" class="form-select" onchange="cargarMunicipios()">
-                                <option value="todas" >Todas las regiones</option>
-                                {% for region in regiones %}
-                                    <option value="{{ region.id }}">{{ region.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label for="municipio" class="form-label">Municipio:</label>
-                            <select id="municipio" name="municipio" class="form-select">
-                                <option value="todos" >Todos los municipios</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabla de estadísticas -->
+    <!-- SECCIÓN 1: ENCUESTAS DISPONIBLES -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas por Municipio</h6>
-                    <button class="btn btn-sm btn-success" onclick="exportarExcel()">
-                        <i class="fas fa-file-excel"></i> Exportar a Excel
+                    <h6 class="m-0 font-weight-bold text-primary">Encuestas Disponibles</h6>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEncuestas">
+                        <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="tablaEstadisticas">
-                            <thead>
-                                <tr>
-                                    <th>Municipio</th>
-                                    <th>Región</th>
-                                    <th>Total Encuestas</th>
-                                    <th>Total Respuestas</th>
-                                    <th>Encuestas Completadas</th>
-                                    <th>Tasa de Finalización</th>
-                                    <th>Clasificación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for municipio in datos_municipios.values %}
-                                <tr>
-                                    <td>{{ municipio.nombre }}</td>
-                                    <td>{{ municipio.region }}</td>
-                                    <td>{{ municipio.totalEncuestas }}</td>
-                                    <td>{{ municipio.totalRespuestas }}</td>
-                                    <td>{{ municipio.encuestasRespondidas }}</td>
-                                    <td>{{ municipio.tasaFinalizacion }}%</td>
-                                    <td>
-                                        {% if municipio.tasaFinalizacion >= 80 %}
-                                            <span class="badge bg-success">Alto</span>
-                                        {% elif municipio.tasaFinalizacion >= 50 %}
-                                            <span class="badge bg-warning">Medio</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Bajo</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
+                <div class="collapse show" id="collapseEncuestas">
+                    <div class="card-body">
+                        <!-- Filtros para encuestas -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Filtrar encuestas</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <select id="filtroEstado" class="form-select">
+                                            <option value="todas">Todas las encuestas</option>
+                                            <option value="activas">Encuestas activas</option>
+                                            <option value="finalizadas">Encuestas finalizadas</option>
+                                            <option value="proximas">Encuestas próximas</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select id="filtroVisibilidad" class="form-select">
+                                            <option value="todas">Todas</option>
+                                            <option value="publicas">Públicas</option>
+                                            <option value="privadas">Privadas</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" id="buscarEncuesta" class="form-control" placeholder="Buscar por título...">
+                                            <button class="btn btn-primary" type="button" id="btnBuscarEncuesta">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de encuestas -->
+                        <div class="row" id="encuestasGrid">
+                            {% if encuestas %}
+                                {% for encuesta in encuestas %}
+                                    <div class="col-md-4 mb-4 encuesta-card" 
+                                        data-estado="{% if encuesta.activa %}activa{% else %}finalizada{% endif %}"
+                                        data-visibilidad="{% if encuesta.es_publica %}publica{% else %}privada{% endif %}">
+                                        <div class="card h-100 shadow-sm hover-card">
+                                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                                <span class="badge {% if encuesta.activa %}bg-success{% else %}bg-danger{% endif %} me-2">
+                                                    {% if encuesta.activa %}Activa{% else %}Finalizada{% endif %}
+                                                </span>
+                                                <span class="badge {% if encuesta.es_publica %}bg-primary{% else %}bg-info{% endif %}">
+                                                    {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ encuesta.titulo }}</h5>
+                                                <p class="card-text">{{ encuesta.descripcion }}</p>
+                                                
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <small class="text-muted">Respuestas: {{ encuesta.total_respuestas }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer bg-transparent border-top-0">
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                                    <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-chart-bar me-1"></i> Ver resultados
+                                                    </a>
+                                                    <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-secondary btn-sm">
+                                                        <i class="fas fa-cog me-1"></i> Ajustes
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                            {% else %}
+                                <div class="col-12 text-center py-5">
+                                    <i class="far fa-frown fa-3x text-gray-400 mb-3"></i>
+                                    <p>No hay encuestas disponibles para mostrar.</p>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Tarjetas de resumen de estadísticas -->
+    <!-- SECCIÓN 2: FILTROS DE BÚSQUEDA -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow collapsible-section">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapseFiltros">
+                    <h6 class="m-0 font-weight-bold text-primary">Filtrar estadísticas por región/municipio</h6>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="collapse show" id="collapseFiltros">
+                    <div class="card-body">
+                        <form method="get" action="{% url 'estadisticas_municipios' %}" class="row mb-4">
+                            <div class="col-md-5">
+                                <label for="region" class="form-label">Región:</label>
+                                <select id="region" name="region" class="form-select" onchange="cargarMunicipios()">
+                                    <option value="todas" >Todas las regiones</option>
+                                    {% for region in regiones %}
+                                        <option value="{{ region.id }}">{{ region.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="municipio" class="form-label">Municipio:</label>
+                                <select id="municipio" name="municipio" class="form-select">
+                                    <option value="todos" >Todos los municipios</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 3: TARJETAS DE RESUMEN -->
     <div class="row" id="estadisticasResumen">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -473,131 +543,119 @@
         </div>
     </div>
     
-    <!-- Pestañas para diferentes visualizaciones -->
-    <div class="stats-dashboard">
-        <div class="nav-tabs-container">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">
-                        <i class="fas fa-chart-line mr-2"></i>Historial de Respuestas
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="distribucion-tab" data-bs-toggle="tab" data-bs-target="#distribucion" type="button" role="tab">
-                        <i class="fas fa-chart-pie mr-2"></i>Distribución de Respuestas
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="encuestas-tab" data-bs-toggle="tab" data-bs-target="#encuestas" type="button" role="tab">
-                        <i class="fas fa-list mr-2"></i>Encuestas Disponibles
-                    </button>
-                </li>
-            </ul>
-        </div>
-        
-        <div class="tab-content" id="myTabContent">
-            <!-- Historial de Respuestas -->
-            <div class="tab-pane fade show active" id="historial" role="tabpanel">
-                <div class="chart-container">
-                    <div id="historialChart" style="width: 100%; height: 100%;"></div>
-                </div>
-            </div>
-            
-            <!-- Distribución de Respuestas -->
-            <div class="tab-pane fade" id="distribucion" role="tabpanel">
-                <div class="distribution-charts">
-                    <div class="chart-box">
-                        <div class="chart-container">
-                            <div id="pieChart" style="width: 100%; height: 100%;"></div>
-                        </div>
-                    </div>
-                    <div class="chart-box">
-                        <div class="chart-container">
-                            <div id="barChart" style="width: 100%; height: 100%;"></div>
-                        </div>
+    <!-- SECCIÓN 4: TABLA DE ESTADÍSTICAS -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow collapsible-section">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapseTabla">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas por Municipio</h6>
+                    <div>
+                        <button class="btn btn-sm btn-success" onclick="exportarExcel()">
+                            <i class="fas fa-file-excel"></i> Exportar a Excel
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTabla">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Lista de Encuestas -->
-            <div class="tab-pane fade" id="encuestas" role="tabpanel">
-                <!-- Filtros para encuestas -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">Filtrar encuestas</h6>
-                    </div>
+                <div class="collapse show" id="collapseTabla">
                     <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <select id="filtroEstado" class="form-select">
-                                    <option value="todas">Todas las encuestas</option>
-                                    <option value="activas">Encuestas activas</option>
-                                    <option value="finalizadas">Encuestas finalizadas</option>
-                                    <option value="proximas">Encuestas próximas</option>
-                                </select>
+                        <div class="table-responsive-fixed">
+                            <table class="table table-bordered" id="tablaEstadisticas">
+                                <thead>
+                                    <tr>
+                                        <th>Municipio</th>
+                                        <th>Región</th>
+                                        <th>Total Encuestas</th>
+                                        <th>Total Respuestas</th>
+                                        <th>Encuestas Completadas</th>
+                                        <th>Tasa de Finalización</th>
+                                        <th>Clasificación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for municipio in datos_municipios.values %}
+                                    <tr>
+                                        <td>{{ municipio.nombre }}</td>
+                                        <td>{{ municipio.region }}</td>
+                                        <td>{{ municipio.totalEncuestas }}</td>
+                                        <td>{{ municipio.totalRespuestas }}</td>
+                                        <td>{{ municipio.encuestasRespondidas }}</td>
+                                        <td>{{ municipio.tasaFinalizacion }}%</td>
+                                        <td>
+                                            {% if municipio.tasaFinalizacion >= 80 %}
+                                                <span class="badge bg-success">Alto</span>
+                                            {% elif municipio.tasaFinalizacion >= 50 %}
+                                                <span class="badge bg-warning">Medio</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Bajo</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SECCIÓN 5: GRÁFICOS -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapseGraficos">
+                    <h6 class="m-0 font-weight-bold text-primary">Gráficos y Visualizaciones</h6>
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGraficos">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="collapse show" id="collapseGraficos">
+                    <div class="card-body">
+                        <div class="stats-dashboard">
+                            <div class="nav-tabs-container">
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">
+                                            <i class="fas fa-chart-line mr-2"></i>Historial de Respuestas
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="distribucion-tab" data-bs-toggle="tab" data-bs-target="#distribucion" type="button" role="tab">
+                                            <i class="fas fa-chart-pie mr-2"></i>Distribución de Respuestas
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
-                            <div class="col-md-4">
-                                <select id="filtroVisibilidad" class="form-select">
-                                    <option value="todas">Todas</option>
-                                    <option value="publicas">Públicas</option>
-                                    <option value="privadas">Privadas</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="input-group">
-                                    <input type="text" id="buscarEncuesta" class="form-control" placeholder="Buscar por título...">
-                                    <button class="btn btn-primary" type="button" id="btnBuscarEncuesta">
-                                        <i class="fas fa-search"></i>
-                                    </button>
+                            
+                            <div class="tab-content" id="myTabContent">
+                                <!-- Historial de Respuestas -->
+                                <div class="tab-pane fade show active" id="historial" role="tabpanel">
+                                    <div class="chart-container">
+                                        <div id="historialChart" style="width: 100%; height: 100%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Distribución de Respuestas -->
+                                <div class="tab-pane fade" id="distribucion" role="tabpanel">
+                                    <div class="distribution-charts">
+                                        <div class="chart-box">
+                                            <div class="chart-container">
+                                                <div id="pieChart" style="width: 100%; height: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="chart-box">
+                                            <div class="chart-container">
+                                                <div id="barChart" style="width: 100%; height: 100%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Grid de encuestas -->
-                <div class="row" id="encuestasGrid">
-                    {% if encuestas %}
-                        {% for encuesta in encuestas %}
-                            <div class="col-md-4 mb-4 encuesta-card" 
-                                 data-estado="{% if encuesta.activa %}activa{% else %}finalizada{% endif %}"
-                                 data-visibilidad="{% if encuesta.es_publica %}publica{% else %}privada{% endif %}">
-                                <div class="card h-100 shadow-sm hover-card">
-                                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                        <span class="badge {% if encuesta.activa %}bg-success{% else %}bg-danger{% endif %} me-2">
-                                            {% if encuesta.activa %}Activa{% else %}Finalizada{% endif %}
-                                        </span>
-                                        <span class="badge {% if encuesta.es_publica %}bg-primary{% else %}bg-info{% endif %}">
-                                            {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
-                                        </span>
-                                    </div>
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ encuesta.titulo }}</h5>
-                                        <p class="card-text">{{ encuesta.descripcion }}</p>
-                                        
-                                        <div class="d-flex justify-content-between align-items-center mt-3">
-                                            <small class="text-muted">Respuestas: {{ encuesta.total_respuestas }}</small>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer bg-transparent border-top-0">
-                                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                                            <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-chart-bar me-1"></i> Ver resultados
-                                            </a>
-                                            <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-secondary btn-sm">
-                                                <i class="fas fa-cog me-1"></i> Ajustes
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="col-12 text-center py-5">
-                            <i class="far fa-frown fa-3x text-gray-400 mb-3"></i>
-                            <p>No hay encuestas disponibles para mostrar.</p>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -793,6 +851,36 @@
                 
                 card.addEventListener('mouseleave', function() {
                     this.classList.remove('shadow');
+                });
+            });
+            
+            // Controlar el comportamiento de los botones de colapso
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const target = this.getAttribute('data-bs-target');
+                    const icon = this.querySelector('i') || this.nextElementSibling;
+                    
+                    if (icon && icon.classList.contains('fa-chevron-down')) {
+                        setTimeout(() => {
+                            const isCollapsed = document.querySelector(target).classList.contains('show');
+                            if (isCollapsed) {
+                                icon.classList.remove('fa-chevron-up');
+                                icon.classList.add('fa-chevron-down');
+                            } else {
+                                icon.classList.remove('fa-chevron-down');
+                                icon.classList.add('fa-chevron-up');
+                            }
+                        }, 350);
+                    }
+                });
+            });
+
+            // Evento para ajustar gráficos al expandir secciones
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    setTimeout(function() {
+                        window.dispatchEvent(new Event('resize'));
+                    }, 500);
                 });
             });
         } catch (error) {

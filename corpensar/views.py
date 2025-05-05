@@ -66,41 +66,39 @@ def custom_logout(request):
 
 @login_required
 def index_view(request):
+    """
+    Vista principal del dashboard que muestra estadísticas y métricas del sistema.
+    Esta función recopila y procesa datos para mostrar:
+    - Estadísticas generales de encuestas
+    - Distribución de respuestas
+    - Tendencias y métricas de participación
+    - Alertas y estados de PQRSFD
+    """
     now = timezone.now()
     
-    # Estadísticas básicas
+    # ===== ESTADÍSTICAS GENERALES =====
     total_encuestas = Encuesta.objects.count()
-
-    total_encuesta_respondidas = 0
-
-    # Recorremos los municipios para encontrar las respuestas de cada municipio 
-    for municipio in Municipio.objects.all():
-        respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
-
-
-        # Contamos las respuestas de cada municipio con .distinct() que nos permite 
-        # evitar contar las respuestas duplicadas
-        encuestas_respondidas = respuestas.values('encuesta').distinct().count()
-        total_encuesta_respondidas += encuestas_respondidas
-        
-
-    # Encuestas publicas activas
-    encuestas_publicas_activas = list(Encuesta.objects.filter(
-        es_publica=True,
-        activa=True,
-        fecha_inicio__lte=timezone.now(),
-        fecha_fin__gte=timezone.now()
-    ))
-
-    # Encuestas activas
+    total_respuestas = RespuestaEncuesta.objects.count()
     encuestas_activas = Encuesta.objects.filter(
         activa=True,
         fecha_inicio__lte=now,
         fecha_fin__gte=now
     ).count()
 
-    # Total respuestas de todas las encuestas
-    total_respuestas = RespuestaEncuesta.objects.count()
+    # ===== CÁLCULO DE ENCUESTAS RESPONDIDAS =====
+    total_encuesta_respondidas = 0
+    for municipio in Municipio.objects.all():
+        respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+        encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+        total_encuesta_respondidas += encuestas_respondidas
+
+    # ===== ENCUESTAS PÚBLICAS Y ACTIVAS =====
+    encuestas_publicas_activas = list(Encuesta.objects.filter(
+        es_publica=True,
+        activa=True,
+        fecha_inicio__lte=timezone.now(),
+        fecha_fin__gte=timezone.now()
+    ))
 
     total_encuestas_respondidas_activas = list(RespuestaEncuesta.objects.filter(
         encuesta__es_publica=True,
@@ -109,19 +107,21 @@ def index_view(request):
         encuesta__fecha_fin__gte=timezone.now()
     ))
 
+    # ===== MÉTRICAS DE PARTICIPACIÓN =====
     avg_respuestas = Encuesta.objects.annotate(
         num_respuestas=Count('respuestas')
     ).aggregate(avg=Avg('num_respuestas'))['avg'] or 0
 
-    # Alertas
+    encuestas_sin_respuestas = encuestas_activas - total_encuesta_respondidas
+    tasa_finalizacion = (total_encuesta_respondidas / total_encuestas) * 100 if total_encuestas > 0 else 0
+
+    # ===== ALERTAS Y NOTIFICACIONES =====
     encuestas_proximo_fin = Encuesta.objects.filter(
         fecha_fin__gte=now,
         fecha_fin__lte=now + timezone.timedelta(days=3)
     )
-    
-    # Encuestas sin respuestas de las activas
-    encuestas_sin_respuestas = encuestas_activas - total_encuesta_respondidas
 
+    # ===== DISTRIBUCIONES Y TENDENCIAS =====
     # Distribución por categoría
     distribucion_categoria = Encuesta.objects.values('categoria__nombre').annotate(
         total=Count('id')
@@ -151,50 +151,26 @@ def index_view(request):
         total=Count('id')
     ).order_by('-total')[:5]
 
-    # Tasa de finalización
-    tasa_finalizacion = (total_encuesta_respondidas / total_encuestas) * 100
-
-
-    # Tipos de preguntas
+    # ===== TIPOS DE PREGUNTAS =====
     tipos_preguntas = []
-    
-    # Contar cada tipo de pregunta
-    texto_count = PreguntaTexto.objects.count()
-    if texto_count > 0:
-        tipos_preguntas.append({'tipo': 'Texto', 'total': texto_count})
-    
-    texto_multiple_count = PreguntaTextoMultiple.objects.count()
-    if texto_multiple_count > 0:
-        tipos_preguntas.append({'tipo': 'Texto Múltiple', 'total': texto_multiple_count})
-    
-    opcion_multiple_count = PreguntaOpcionMultiple.objects.count()
-    if opcion_multiple_count > 0:
-        tipos_preguntas.append({'tipo': 'Opción Múltiple', 'total': opcion_multiple_count})
-    
-    casillas_count = PreguntaCasillasVerificacion.objects.count()
-    if casillas_count > 0:
-        tipos_preguntas.append({'tipo': 'Casillas', 'total': casillas_count})
-    
-    menu_count = PreguntaMenuDesplegable.objects.count()
-    if menu_count > 0:
-        tipos_preguntas.append({'tipo': 'Menú Desplegable', 'total': menu_count})
-    
-    estrellas_count = PreguntaEstrellas.objects.count()
-    if estrellas_count > 0:
-        tipos_preguntas.append({'tipo': 'Estrellas', 'total': estrellas_count})
-    
-    escala_count = PreguntaEscala.objects.count()
-    if escala_count > 0:
-        tipos_preguntas.append({'tipo': 'Escala', 'total': escala_count})
-    
-    matriz_count = PreguntaMatriz.objects.count()
-    if matriz_count > 0:
-        tipos_preguntas.append({'tipo': 'Matriz', 'total': matriz_count})
-    
-    fecha_count = PreguntaFecha.objects.count()
-    if fecha_count > 0:
-        tipos_preguntas.append({'tipo': 'Fecha', 'total': fecha_count})
+    tipos_preguntas_data = [
+        ('Texto', PreguntaTexto),
+        ('Texto Múltiple', PreguntaTextoMultiple),
+        ('Opción Múltiple', PreguntaOpcionMultiple),
+        ('Casillas', PreguntaCasillasVerificacion),
+        ('Menú Desplegable', PreguntaMenuDesplegable),
+        ('Estrellas', PreguntaEstrellas),
+        ('Escala', PreguntaEscala),
+        ('Matriz', PreguntaMatriz),
+        ('Fecha', PreguntaFecha)
+    ]
 
+    for tipo_nombre, modelo in tipos_preguntas_data:
+        count = modelo.objects.count()
+        if count > 0:
+            tipos_preguntas.append({'tipo': tipo_nombre, 'total': count})
+
+    # ===== DATOS ADICIONALES =====
     ultimas_respuestas = RespuestaEncuesta.objects.select_related(
         'encuesta', 'usuario'
     ).order_by('-fecha_respuesta')[:10]
@@ -203,8 +179,8 @@ def index_view(request):
         cantidad_respuestas=Count('respuestas'),
         promedio_respuestas=Avg('respuestas__id')
     ).order_by('-fecha_creacion')
-    
-    # Contar PQRSFD por estado
+
+    # Estadísticas de PQRSFD
     conteo_estados = {
         'P': PQRSFD.objects.filter(estado='P').count(),
         'E': PQRSFD.objects.filter(estado='E').count(),
@@ -214,26 +190,34 @@ def index_view(request):
         'vencidos': sum(1 for p in PQRSFD.objects.filter(estado__in=['P', 'E']) if p.esta_vencido())
     }
 
+    # ===== CONTEXTO PARA LA PLANTILLA =====
     context = {
+        # Estadísticas generales
         'total_encuestas': total_encuestas,
         'total_encuesta_respondidas': total_encuesta_respondidas,
         'total_encuesta_respondidas_activas': len(total_encuestas_respondidas_activas),
         'total_respuestas': total_respuestas,
         'avg_respuestas': round(avg_respuestas, 1),
+        'encuestas_activas': encuestas_activas,
+        'encuestas_publicas': len(encuestas_publicas_activas),
+        
+        # Alertas y notificaciones
         'encuestas_proximo_fin': encuestas_proximo_fin,
         'encuestas_sin_respuestas': encuestas_sin_respuestas,
+        
+        # Distribuciones y tendencias
         'distribucion_region': distribucion_region,
         'tendencia_respuestas': tendencia_respuestas,
         'top_municipios': top_municipios,
         'tasa_finalizacion': round(tasa_finalizacion, 1),
+        'distribucion_categoria': distribucion_categoria,
+        
+        # Tipos de preguntas y datos adicionales
         'tipos_preguntas': tipos_preguntas,
         'ultimas_respuestas': ultimas_respuestas,
         'encuestas_detalle': encuestas_detalle,
-        'distribucion_categoria': distribucion_categoria,
         'conteo_estados': conteo_estados,
-        'encuestas_activas': encuestas_activas,
         'encuestas_publicas_activas': encuestas_publicas_activas,
-        'encuestas_publicas': len(encuestas_publicas_activas),
     }
 
     return render(request, 'index.html', context)
