@@ -3352,3 +3352,37 @@ def api_mapa_municipios(request):
         return JsonResponse({
             'error': str(e)
         }, status=500)
+
+# --- NUEVA VISTA API ---
+def api_encuestas_por_municipio(request, municipio_id):
+    """
+    API que devuelve una lista de encuestas activas y públicas
+    asociadas a la región del municipio especificado.
+    """
+    # Validar que el municipio exista
+    municipio = get_object_or_404(Municipio.objects.select_related('region'), id=municipio_id)
+    region_id = municipio.region.id
+
+    try:
+        # Filtrar encuestas: activas, públicas y de la misma región que el municipio
+        # También podrías filtrar directamente por municipio si una encuesta pertenece a uno solo:
+        # encuestas = Encuesta.objects.filter(municipio_id=municipio_id, activa=True, es_publica=True)
+        encuestas = Encuesta.objects.filter(
+            Q(region_id=region_id), # De la misma región
+            # Opcional: incluir encuestas sin región específica si aplica
+            # Q(region__isnull=True) |
+            activa=True,
+            es_publica=True,
+            fecha_inicio__lte=timezone.now(), # Que ya hayan iniciado
+            fecha_fin__gte=timezone.now() # Que no hayan terminado
+        ).values(
+            'id', 'titulo', 'slug' # Devolver solo campos necesarios
+        ).order_by('-fecha_creacion')[:10] # Limitar a 10 más recientes
+
+        # Convertir QuerySet a lista de diccionarios
+        lista_encuestas = list(encuestas)
+
+        return JsonResponse(lista_encuestas, safe=False) # safe=False porque devolvemos una lista
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

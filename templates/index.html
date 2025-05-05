@@ -894,10 +894,10 @@
                         </div>
                     </div>
                      <div class="col-lg col-md-6 col-sm-6 col-6 mb-3">
-                        <div class="card border-0 bg-light h-100 kpi-card-small" style="border-top-color: {% if conteo_estados_pqrsfd.vencidos > 0 %}#fff{% else %}#dc3545{% endif %};">
+                        <div class="card border-0 {% if conteo_estados_pqrsfd.vencidos > 0 %}bg-danger text-white{% else %}bg-light{% endif %} h-100 kpi-card-small" style="border-top-color: {% if conteo_estados_pqrsfd.vencidos > 0 %}#fff{% else %}#dc3545{% endif %};">
                             <div class="card-body text-center">
                                 <div class="display-5">{{ conteo_estados_pqrsfd.vencidos|intcomma }}</div>
-                                <h6 class="card-title-small {% if conteo_estados_pqrsfd.vencidos > 0 %}text-white{% else %}text-danger{% endif %}">Vencidos</h6>
+                                <h6 class="card-title-small {% if conteo_estados_pqrsfd.vencidos > 0 %}text-white-50{% else %}text-danger{% endif %}">Vencidos</h6>
                                 <a href="{% url 'listar_pqrsfd' %}?estado=vencidos" class="btn btn-sm {% if conteo_estados_pqrsfd.vencidos > 0 %}btn-outline-light{% else %}btn-outline-danger{% endif %} mt-1 stretched-link">Ver</a>
                             </div>
                         </div>
