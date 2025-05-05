@@ -535,6 +535,8 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Contenedor para controles de paginación -->
+                    <div class="d-flex justify-content-end mt-3" id="paginacionControles"></div>
                 </div>
             </div>
         </div>
@@ -743,6 +745,12 @@
     let datosTablaRegiones = []; // Datos para la tabla de regiones
     let datosTablaMunicipios = []; // Datos para la tabla de municipios
 
+    // --- Variables Globales para Paginación ---
+    let paginaActual = 1;
+    const filasPorPagina = 15; // Puedes ajustar este número
+    let datosTablaActual = []; // Almacenará los datos de municipios o regiones
+    let vistaTablaActual = 'vistaMunicipios'; // Para saber qué datos paginar
+
     try {
         const jsonMunicipios = document.getElementById('datos-municipios').textContent.trim();
         if (jsonMunicipios) {
@@ -866,56 +874,31 @@
 
     // Función para actualizar la tabla (cambiar entre municipios y regiones)
     function actualizarVistaTabla() {
-        const vistaSeleccionada = document.querySelector('input[name="vistaTabla"]:checked').id;
+        vistaTablaActual = document.querySelector('input[name="vistaTabla"]:checked').id;
         const tabla = document.getElementById('tablaEstadisticas');
         const thead = tabla.querySelector('thead tr');
-        const tbody = tabla.querySelector('tbody');
-
-        // Limpiar tabla actual
-        tbody.innerHTML = '';
+        
+        // Limpiar cabecera actual
         thead.innerHTML = '';
+        
+        // Reiniciar paginación
+        paginaActual = 1;
 
-        if (vistaSeleccionada === 'vistaMunicipios') {
+        if (vistaTablaActual === 'vistaMunicipios') {
             // Configurar cabecera para municipios
             thead.innerHTML = `
                 <th>Municipio</th>
                 <th>Región</th>
-                <th class="text-center">Total Encuestas</th>
-                <th class="text-center">Total Respuestas</th>
-                <th class="text-center">Encuestas Completadas</th>
-                <th class="text-center">Tasa Finalización (%)</th>
-                <th class="text-center">Clasificación</th>
+                <th>Total Encuestas</th>
+                <th>Total Respuestas</th>
+                <th>Encuestas Completadas</th>
+                <th>Tasa Finalización (%)</th>
+                <th>Clasificación</th>
             `;
             // Poblar tabla con datos de municipios (si existen)
-            if (datosTablaMunicipios && datosTablaMunicipios.length > 0) {
-                 datosTablaMunicipios.forEach(municipio => {
-                    const tasa = parseFloat(municipio.tasaFinalizacion) || 0;
-                    let badgeClass = 'bg-danger';
-                    let badgeText = 'Bajo';
-                    if (tasa >= 80) {
-                        badgeClass = 'bg-success';
-                        badgeText = 'Alto';
-                    } else if (tasa >= 50) {
-                        badgeClass = 'bg-warning text-dark';
-                        badgeText = 'Medio';
-                    }
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${municipio.nombre}</td>
-                            <td>${municipio.region}</td>
-                            <td class="text-center">${municipio.totalEncuestas}</td>
-                            <td class="text-center">${municipio.totalRespuestas}</td>
-                            <td class="text-center">${municipio.encuestasRespondidas}</td>
-                            <td class="text-center">${tasa.toFixed(1)}</td>
-                            <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
-                        </tr>
-                    `;
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center">No hay datos de municipios para mostrar.</td></tr>`;
-            }
-
-        } else if (vistaSeleccionada === 'vistaRegiones') {
+            datosTablaActual = datosTablaMunicipios; // Usar datos de municipios para paginación
+ 
+        } else if (vistaTablaActual === 'vistaRegiones') {
             // Configurar cabecera para regiones
              thead.innerHTML = `
                 <th>Región</th>
@@ -926,35 +909,149 @@
                 <th class="text-center">Clasificación</th>
             `;
              // Poblar tabla con datos de regiones
-            if (datosTablaRegiones && datosTablaRegiones.length > 0) {
-                datosTablaRegiones.forEach(region => {
-                    const tasa = parseFloat(region.tasaFinalizacion) || 0;
-                    let badgeClass = 'bg-danger';
-                    let badgeText = 'Bajo';
-                    if (tasa >= 80) {
-                        badgeClass = 'bg-success';
-                        badgeText = 'Alto';
-                    } else if (tasa >= 50) {
-                        badgeClass = 'bg-warning text-dark';
-                        badgeText = 'Medio';
-                    }
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${region.nombre}</td>
-                            <td class="text-center">${region.totalEncuestas}</td>
-                            <td class="text-center">${region.totalRespuestas}</td>
-                            <td class="text-center">${region.encuestasRespondidas}</td>
-                            <td class="text-center">${tasa.toFixed(1)}</td>
-                            <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
-                        </tr>
-                    `;
-                });
-            } else {
-                 tbody.innerHTML = `<tr><td colspan="6" class="text-center">No hay datos de regiones para mostrar.</td></tr>`;
-            }
+            datosTablaActual = datosTablaRegiones; // Usar datos de regiones para paginación
         }
+
+        // Renderizar la primera página de la tabla y los controles
+        renderizarPaginaTabla();
+        renderizarControlesPaginacion();
     }
 
+    // --- Funciones para Paginación ---
+    function renderizarPaginaTabla() {
+        const tabla = document.getElementById('tablaEstadisticas');
+        const tbody = tabla.querySelector('tbody');
+        tbody.innerHTML = ''; // Limpiar cuerpo de la tabla
+
+        const inicio = (paginaActual - 1) * filasPorPagina;
+        const fin = inicio + filasPorPagina;
+        const datosPagina = datosTablaActual.slice(inicio, fin);
+
+        if (datosPagina.length === 0) {
+            const numCols = vistaTablaActual === 'vistaMunicipios' ? 7 : 6;
+            tbody.innerHTML = `<tr><td colspan="${numCols}" class="text-center text-muted py-3">No hay datos para mostrar en esta página.</td></tr>`;
+            return;
+        }
+
+        datosPagina.forEach(item => {
+            const tasa = parseFloat(item.tasaFinalizacion) || 0;
+            let badgeClass = 'bg-danger';
+            let badgeText = 'Bajo';
+            if (tasa >= 80) {
+                badgeClass = 'bg-success';
+                badgeText = 'Alto';
+            } else if (tasa >= 50) {
+                badgeClass = 'bg-warning text-dark';
+                badgeText = 'Medio';
+            }
+            
+            let filaHTML = '<tr>';
+            if (vistaTablaActual === 'vistaMunicipios') {
+                filaHTML += `
+                    <td>${item.nombre}</td>
+                    <td>${item.region}</td>
+                    <td class="text-center">${item.totalEncuestas}</td>
+                    <td class="text-center">${item.totalRespuestas}</td>
+                    <td class="text-center">${item.encuestasRespondidas}</td>
+                    <td class="text-center">${tasa.toFixed(1)}</td>
+                    <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
+                `;
+            } else { // vistaRegiones
+                filaHTML += `
+                    <td>${item.nombre}</td>
+                    <td class="text-center">${item.totalEncuestas}</td>
+                    <td class="text-center">${item.totalRespuestas}</td>
+                    <td class="text-center">${item.encuestasRespondidas}</td>
+                    <td class="text-center">${tasa.toFixed(1)}</td>
+                    <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
+                `;
+            }
+            filaHTML += '</tr>';
+            tbody.innerHTML += filaHTML;
+        });
+    }
+
+    function renderizarControlesPaginacion() {
+        const contenedor = document.getElementById('paginacionControles');
+        contenedor.innerHTML = ''; // Limpiar controles existentes
+        const totalPaginas = Math.ceil(datosTablaActual.length / filasPorPagina);
+
+        if (totalPaginas <= 1) return; // No mostrar paginación si solo hay una página
+
+        const ul = document.createElement('ul');
+        ul.className = 'pagination pagination-sm mb-0';
+
+        // Botón Anterior
+        const liPrev = document.createElement('li');
+        liPrev.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
+        liPrev.innerHTML = `<a class="page-link" href="#" data-page="${paginaActual - 1}">&laquo;</a>`;
+        ul.appendChild(liPrev);
+
+        // Botones de Página (simplificado, muestra algunas páginas alrededor de la actual)
+        const maxBotonesVisibles = 5; 
+        let inicioPag = Math.max(1, paginaActual - Math.floor(maxBotonesVisibles / 2));
+        let finPag = Math.min(totalPaginas, inicioPag + maxBotonesVisibles - 1);
+        // Ajustar inicio si fin llega al límite
+        if (finPag === totalPaginas) {
+            inicioPag = Math.max(1, finPag - maxBotonesVisibles + 1);
+        }
+
+        if (inicioPag > 1) {
+            const liFirst = document.createElement('li');
+            liFirst.className = 'page-item';
+            liFirst.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+            ul.appendChild(liFirst);
+            if (inicioPag > 2) {
+                const liEllipsisStart = document.createElement('li');
+                liEllipsisStart.className = 'page-item disabled';
+                liEllipsisStart.innerHTML = `<span class="page-link">...</span>`;
+                ul.appendChild(liEllipsisStart);
+            }
+        }
+
+        for (let i = inicioPag; i <= finPag; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+            ul.appendChild(li);
+        }
+
+        if (finPag < totalPaginas) {
+            if (finPag < totalPaginas - 1) {
+                const liEllipsisEnd = document.createElement('li');
+                liEllipsisEnd.className = 'page-item disabled';
+                liEllipsisEnd.innerHTML = `<span class="page-link">...</span>`;
+                ul.appendChild(liEllipsisEnd);
+            }
+            const liLast = document.createElement('li');
+            liLast.className = 'page-item';
+            liLast.innerHTML = `<a class="page-link" href="#" data-page="${totalPaginas}">${totalPaginas}</a>`;
+            ul.appendChild(liLast);
+        }
+ 
+        // Botón Siguiente
+        const liNext = document.createElement('li');
+        liNext.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
+        liNext.innerHTML = `<a class="page-link" href="#" data-page="${paginaActual + 1}">&raquo;</a>`;
+        ul.appendChild(liNext);
+
+        contenedor.appendChild(ul);
+
+        // Añadir listeners a los botones de página
+        contenedor.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetPage = parseInt(e.target.getAttribute('data-page'));
+                if (targetPage && targetPage !== paginaActual && targetPage >= 1 && targetPage <= totalPaginas) {
+                    paginaActual = targetPage;
+                    renderizarPaginaTabla();
+                    renderizarControlesPaginacion();
+                    // Opcional: Hacer scroll suave a la tabla
+                    // document.getElementById('tablaEstadisticas').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         try {
@@ -1205,7 +1302,20 @@
                  gridcolor: '#e3e6f0',
                  linecolor: '#d1d3e2',
                  zerolinecolor: '#d1d3e2'
-             }
+             },
+             hovermode: 'closest', // Mostrar tooltip del punto más cercano
+             hoverlabel: { // Estilo general para los tooltips
+                bgcolor: "#5a5c69",
+                bordercolor: "#5a5c69",
+                font: { 
+                    size: 13, 
+                    color: "white" 
+                }
+            },
+            transition: { // Asegurar transiciones suaves por defecto
+                duration: 500,
+                easing: 'cubic-in-out'
+            }
         };
 
 
@@ -1220,6 +1330,10 @@
                     marker: {
                         color: colores[0],
                         line: { color: '#224abe', width: 1 }
+                    },
+                    hoverinfo: 'y+name', // Mostrar valor Y y nombre de la traza en tooltip
+                    hoverlabel: { // Estilo específico si es necesario
+                         // namelength: -1 // Mostrar nombre completo de traza
                     }
                 };
                 const layoutHistorial = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
@@ -1249,7 +1363,7 @@
                     hole: 0.4, // Estilo dona
                     marker: { colors: colores },
                     textinfo: 'percent', // Mostrar solo porcentaje en el gráfico
-                    hoverinfo: 'label+value+percent', // Mostrar más info al pasar el mouse
+                    hoverinfo: 'label+percent+value', // Mostrar etiqueta, porcentaje y valor
                     // textposition: 'outside', // Puede solaparse, mejor leyenda
                     automargin: true
                 };
@@ -1287,7 +1401,8 @@
                     marker: {
                         color: colores[1],
                         line: { color: '#159a68', width: 1 }
-                    }
+                    },
+                    hoverinfo: 'x+y', // Mostrar valor X (respuestas) y Y (municipio)
                 };
                  const layoutBar = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
                  layoutBar.title.text = 'Top Municipios'; // Título más corto
@@ -1331,36 +1446,38 @@
             return;
         }
 
-        const estado = estadoSelect.value;
-        const visibilidad = visibilidadSelect.value;
+        const estado = estadoSelect.value; // ej: 'activas', 'finalizadas', 'proximas', 'todas'
+        const visibilidad = visibilidadSelect.value; // ej: 'publicas', 'privadas', 'todas'
         const busqueda = busquedaInput.value.toLowerCase().trim();
 
         const tarjetas = document.querySelectorAll('.encuesta-card');
         const gridEncuestas = document.getElementById('encuestasGrid');
-        const mensajeNoResultados = document.getElementById('mensajeNoResultadosEncuestas'); // ID actualizado
+        const mensajeNoResultados = document.getElementById('mensajeNoResultadosEncuestas'); 
 
         let hayResultados = false;
 
         tarjetas.forEach(tarjeta => {
             let mostrar = true;
-            const estadoEncuesta = tarjeta.getAttribute('data-estado');
-            const visibilidadEncuesta = tarjeta.getAttribute('data-visibilidad');
+            const estadoEncuesta = tarjeta.getAttribute('data-estado'); // ej: 'activa', 'finalizada', 'proxima'
+            const visibilidadEncuesta = tarjeta.getAttribute('data-visibilidad'); // ej: 'publica', 'privada'
             const titulo = tarjeta.querySelector('.card-title')?.textContent.toLowerCase() || '';
             const descripcion = tarjeta.querySelector('.card-text')?.textContent.toLowerCase() || '';
 
             // Filtrar por estado
-            if (estado !== 'todas' && estado !== estadoEncuesta) {
-                // Manejar caso especial 'activas' vs 'proximas' si es necesario
-                 if (estado === 'activas' && estadoEncuesta !== 'activa') mostrar = false;
-                 else if (estado === 'finalizadas' && estadoEncuesta !== 'finalizada') mostrar = false;
-                 else if (estado === 'proximas' && estadoEncuesta !== 'proxima') mostrar = false;
-                 // Si no es ninguno de los anteriores y no coincide, ocultar
-                 else if (!['activas', 'finalizadas', 'proximas'].includes(estado) && estado !== estadoEncuesta) mostrar = false;
+            if (estado !== 'todas') {
+                 // Mapear valor del select ('activas') al valor del atributo ('activa')
+                 const estadoEsperado = estado.replace('as', 'a').replace('os', 'o'); // 'activas' -> 'activa', 'finalizadas' -> 'finalizada', etc.
+                 if (estadoEsperado !== estadoEncuesta) {
+                     mostrar = false;
+                 }
             }
 
             // Filtrar por visibilidad
-            if (mostrar && visibilidad !== 'todas' && visibilidad !== visibilidadEncuesta) {
-                mostrar = false;
+            if (mostrar && visibilidad !== 'todas') {
+                const visibilidadEsperada = visibilidad.replace('as', 'a'); // 'publicas' -> 'publica', 'privadas' -> 'privada'
+                if (visibilidadEsperada !== visibilidadEncuesta) {
+                    mostrar = false;
+                }
             }
 
             // Filtrar por búsqueda
@@ -1378,7 +1495,7 @@
         // Mostrar/ocultar mensaje si no hay resultados
          if (mensajeNoResultados) {
             mensajeNoResultados.style.display = hayResultados ? 'none' : 'block';
-         } else if (!hayResultados && gridEncuestas) {
+         } else if (!hayResultados && gridEncuestas && tarjetas.length > 0) { // Solo crear si había tarjetas originalmente
             // Crear el mensaje si no existe y no hay resultados
             const mensaje = document.createElement('div');
             mensaje.id = 'mensajeNoResultadosEncuestas'; // ID actualizado
@@ -1387,7 +1504,13 @@
                 <i class="fas fa-search fa-3x text-gray-400 mb-3"></i>
                 <p>No se encontraron encuestas con los filtros seleccionados.</p>
             `;
-            gridEncuestas.appendChild(mensaje);
+            // Insertar antes del primer elemento o al final si está vacío
+            const primerElementoVisible = gridEncuestas.querySelector('.encuesta-card:not([style*="display: none"])');
+            if(primerElementoVisible){
+                gridEncuestas.insertBefore(mensaje, primerElementoVisible);
+            } else {
+                 gridEncuestas.appendChild(mensaje);
+            }
         }
 
     }
