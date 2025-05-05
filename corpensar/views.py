@@ -70,21 +70,40 @@ def index_view(request):
     
     # Estadísticas básicas
     total_encuestas = Encuesta.objects.count()
-    print(f'Total encuestas: {total_encuestas}')
 
     total_encuesta_respondidas = 0
     encuestas_activas_now = []
+    total_encuestas_respondidas_activas = 0
 
+
+
+    # Recorremos las encuestas para encontrar las activas
+    # y las publicas
     for encuesta in Encuesta.objects.all():
-        if encuesta.activa and encuesta.fecha_inicio <= now and encuesta.fecha_fin >= now:
+        if encuesta.activa and encuesta.fecha_inicio <= now and encuesta.fecha_fin >= now and encuesta.es_publica:
             encuestas_activas_now.append(encuesta)
 
-    print(f'Encuestas activas ahora: {encuestas_activas_now}')
+        
 
+
+    # Recorremos los municipios para encontrar las respuestas de cada municipio 
     for municipio in Municipio.objects.all():
         respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+
+
+        # Contamos las respuestas de cada municipio con .distinct() que nos permite 
+        # evitar contar las respuestas duplicadas
         encuestas_respondidas = respuestas.values('encuesta').distinct().count()
         total_encuesta_respondidas += encuestas_respondidas
+        
+
+    # Encuestas publicas activas
+    encuestas_publicas = Encuesta.objects.filter(
+        es_publica=True,
+        activa=True,
+        fecha_inicio__lte=timezone.now(),
+        fecha_fin__gte=timezone.now()
+    ).count()
 
     # Encuestas activas
     encuestas_activas = Encuesta.objects.filter(
@@ -95,6 +114,10 @@ def index_view(request):
 
     # Total respuestas de todas las encuestas
     total_respuestas = RespuestaEncuesta.objects.count()
+
+    for respuesta in RespuestaEncuesta.objects.all():
+        if respuesta.encuesta.activa and respuesta.encuesta.fecha_inicio <= now and respuesta.encuesta.fecha_fin >= now and respuesta.encuesta.es_publica:
+            total_encuestas_respondidas_activas += 1
 
     avg_respuestas = Encuesta.objects.annotate(
         num_respuestas=Count('respuestas')
@@ -204,6 +227,7 @@ def index_view(request):
     context = {
         'total_encuestas': total_encuestas,
         'total_encuesta_respondidas': total_encuesta_respondidas,
+        'total_encuesta_respondidas_activas': total_encuestas_respondidas_activas,
         'encuestas_activas': encuestas_activas,
         'total_respuestas': total_respuestas,
         'avg_respuestas': round(avg_respuestas, 1),
@@ -219,6 +243,7 @@ def index_view(request):
         'distribucion_categoria': distribucion_categoria,
         'conteo_estados': conteo_estados,
         'encuestas_activas_now': encuestas_activas_now,
+        'encuestas_publicas': encuestas_publicas,
     }
 
     return render(request, 'index.html', context)

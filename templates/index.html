@@ -488,6 +488,10 @@
             <i class="mdi mdi-arrow-up"></i>
             {{ encuestas_activas }} activas
           </p>
+          <p class="text-success mb-0">
+            <i class="mdi mdi-arrow-up"></i>
+            {{ encuestas_publicas }} publicas
+          </p>
         </div>
       </div>
     </div>
@@ -498,11 +502,11 @@
           style="height: 6px; background-color: #2c3e50; top: 0; left: 0"
         ></div>
         <div class="card-body">
-          <h5 class="card-title text-muted">Encuestas Respondidas</h5>
-          <h2 class="display-4">{{ total_encuesta_respondidas|intcomma }}</h2>
+          <h5 class="card-title text-muted">Encuestas Activas Respondidas</h5>
+          <h2 class="display-4">{{ total_encuesta_respondidas_activas|intcomma }}</h2>
           <p class="text-success mb-0">
             <i class="mdi mdi-arrow-up"></i>
-            {{ total_encuesta_respondidas }} respondidas de {{ encuestas_activas }}
+            {{ total_encuesta_respondidas_activas}} respondidas de {{ encuestas_publicas }}
           </p>
         </div>
       </div>
@@ -630,50 +634,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Gráfico de Tendencia de Respuestas -->
-            <div
-              class="grid-item col-span-4"
-              data-id="tendenciaRespuestasChart"
-            >
-              <div class="card h-100 shadow-sm">
-                <div class="card-header">
-                  <h5 class="mb-0">Tendencia de Respuestas</h5>
-                  <div class="handle">
-                    <i class="mdi mdi-drag"></i>
-                    <div class="btn-group btn-group-sm ms-2">
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary btn-sm resize-item"
-                        data-size="4"
-                      >
-                        S
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary btn-sm resize-item"
-                        data-size="6"
-                      >
-                        M
-                      </button>
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary btn-sm resize-item"
-                        data-size="12"
-                      >
-                        L
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="chart-container">
-                    <canvas id="tendenciaRespuestasChart"></canvas>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- Gráfico de Distribución por Categoría -->
             <div
               class="grid-item col-span-4"
@@ -999,7 +959,7 @@
             <div class="grid-item col-span-6" data-id="ultimasRespuestas">
               <div class="card h-100 shadow-sm">
                 <div class="card-header">
-                  <h5 class="mb-0">Encuestas Activas Ahora</h5>
+                  <h5 class="mb-0">Encuestas Publicas Activas</h5>
                   <div class="handle">
                     <i class="mdi mdi-drag"></i>
                     <div class="btn-group btn-group-sm ms-2">
@@ -1028,6 +988,7 @@
                   </div>
                 </div>
                 <div class="card-body">
+                  {% if encuestas_activas_now|length > 0 %}
                   <table class="table table-hover">
                     <thead>
                       <tr>
@@ -1048,6 +1009,9 @@
                       {% endfor %}
                     </tbody>
                   </table>
+                  {% else %}
+                  <p class="text-center text-muted">No hay encuestas activas</p>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -1311,52 +1275,7 @@
         }
       });
 
-      // Gráfico de Tendencia de Respuestas
-      const tendenciaData = {
-        labels: [
-          {% for item in tendencia_respuestas %}
-            "{{ item.fecha|date:'d M' }}"{% if not forloop.last %},{% endif %}
-          {% endfor %}
-        ],
-        datasets: [{
-          label: 'Respuestas',
-          data: [
-            {% for item in tendencia_respuestas %}
-              {{ item.total }}{% if not forloop.last %},{% endif %}
-            {% endfor %}
-          ],
-          borderColor: '#4e73df',
-          backgroundColor: 'rgba(78, 115, 223, 0.1)',
-          fill: true,
-          tension: 0.4
-        }]
-      };
-
-      new Chart(document.getElementById('tendenciaRespuestasChart').getContext('2d'), {
-        type: 'line',
-        data: tendenciaData,
-        options: {
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                drawBorder: false
-              }
-            },
-            x: {
-              grid: {
-                display: false
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            }
-          }
-        }
-      });
+      
 
       // Gráfico de Distribución por Categoría
       const categoriaData = {
