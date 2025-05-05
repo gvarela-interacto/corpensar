@@ -1349,6 +1349,7 @@
                          backgroundColor: [color, '#e9ecef'],
                          borderColor: ['#ffffff', '#ffffff'],
                          borderWidth: 1, // Borde más fino
+                         cutout: '75%', // Más delgado
                      }]
                  };
                  const options = {
@@ -1374,7 +1375,7 @@
                              ctx.textBaseline = 'middle';
                              ctx.fillText(text, textX, textY);
 
-                             const labelText = label;
+                             const labelText = label || ''; // Asegurar que labelText sea siempre un string
                              ctx.font = '0.7rem Nunito, sans-serif';
                              ctx.fillStyle = '#6c757d';
                              ctx.fillText(labelText, textX, textY + 16); // Debajo del número
@@ -1484,7 +1485,7 @@
                             .then(geoJson => {
                                 progressElement.textContent = '60%';
 
-                                const oleoLayer = L.geoJSON(geoJson, {
+                                const geoJsonLayer = L.geoJSON(geoJson, { // Guardamos la capa GeoJSON aquí
                                     style: feature => {
                                         // Usar nombre en MAYUSCULAS como clave
                                         const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
@@ -1512,17 +1513,17 @@
 
                                         layer.on({
                                             mouseover: (e) => e.target.setStyle({ weight:5 }), // Resaltar
-                                            mouseout: (e) => oleoductoLayer.resetStyle(e.target), // Restaurar
+                                            mouseout: (e) => geoJsonLayer.resetStyle(e.target), // CORRECCIÓN: usar geoJsonLayer.resetStyle
                                             click: () => mostrarInfoMunicipio(key) // Mostrar info al hacer clic
                                         });
                                     }
                                 });
 
-                                oleoductoLayer.addLayer(oleoLayer);
+                                oleoductoLayer.addLayer(geoJsonLayer); // Añadir la capa GeoJSON al grupo
                                 
                                 progressElement.textContent = '80%';
                                 
-                                const b = oleoLayer.getBounds();
+                                const b = geoJsonLayer.getBounds();
                                 if (b.isValid && b.isValid()) map.fitBounds(b);
                                 else map.setView([4.5709, -74.2973], 6);
                                 
