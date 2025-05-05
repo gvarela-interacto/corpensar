@@ -237,6 +237,79 @@
             padding: 1rem;
         }
     }
+
+    /* Estilos para las tarjetas de encuestas */
+    .hover-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .hover-card .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .hover-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .hover-card .card-footer {
+        background-color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .hover-card .card-title {
+        font-weight: 600;
+        color: #2e384d;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        height: 2.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .hover-card .card-text {
+        color: #5a5c69;
+        height: 4.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    /* Estilos para los botones de acción */
+    .hover-card .btn-sm {
+        border-radius: 20px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .hover-card .btn-sm:hover {
+        transform: translateY(-2px);
+    }
+
+    .hover-card .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+
+    .hover-card .btn-secondary {
+        background-color: #858796;
+        border-color: #858796;
+    }
 </style>
 {% endblock %}
 
@@ -448,22 +521,79 @@
             
             <!-- Lista de Encuestas -->
             <div class="tab-pane fade" id="encuestas" role="tabpanel">
-                <div class="encuesta-list">
+                <!-- Filtros para encuestas -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Filtrar encuestas</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <select id="filtroEstado" class="form-select">
+                                    <option value="todas">Todas las encuestas</option>
+                                    <option value="activas">Encuestas activas</option>
+                                    <option value="finalizadas">Encuestas finalizadas</option>
+                                    <option value="proximas">Encuestas próximas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="filtroVisibilidad" class="form-select">
+                                    <option value="todas">Todas</option>
+                                    <option value="publicas">Públicas</option>
+                                    <option value="privadas">Privadas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" id="buscarEncuesta" class="form-control" placeholder="Buscar por título...">
+                                    <button class="btn btn-primary" type="button" id="btnBuscarEncuesta">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid de encuestas -->
+                <div class="row" id="encuestasGrid">
                     {% if encuestas %}
                         {% for encuesta in encuestas %}
-                            <div class="encuesta-item" onclick="window.location.href='/encuestas/{{ encuesta.id }}/resultados/'">
-                                <h5>{{ encuesta.titulo }}</h5>
-                                <p>{{ encuesta.descripcion }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge {% if encuesta.es_publica %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
-                                    </span>
-                                    <span>Respuestas: {{ encuesta.total_respuestas }}</span>
+                            <div class="col-md-4 mb-4 encuesta-card" 
+                                 data-estado="{% if encuesta.activa %}activa{% else %}finalizada{% endif %}"
+                                 data-visibilidad="{% if encuesta.es_publica %}publica{% else %}privada{% endif %}">
+                                <div class="card h-100 shadow-sm hover-card">
+                                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                        <span class="badge {% if encuesta.activa %}bg-success{% else %}bg-danger{% endif %} me-2">
+                                            {% if encuesta.activa %}Activa{% else %}Finalizada{% endif %}
+                                        </span>
+                                        <span class="badge {% if encuesta.es_publica %}bg-primary{% else %}bg-info{% endif %}">
+                                            {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ encuesta.titulo }}</h5>
+                                        <p class="card-text">{{ encuesta.descripcion }}</p>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <small class="text-muted">Respuestas: {{ encuesta.total_respuestas }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-top-0">
+                                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                            <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-chart-bar me-1"></i> Ver resultados
+                                            </a>
+                                            <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-secondary btn-sm">
+                                                <i class="fas fa-cog me-1"></i> Ajustes
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <div class="text-center py-5">
+                        <div class="col-12 text-center py-5">
                             <i class="far fa-frown fa-3x text-gray-400 mb-3"></i>
                             <p>No hay encuestas disponibles para mostrar.</p>
                         </div>
@@ -626,6 +756,43 @@
             tabLinks.forEach(function(tabLink) {
                 tabLink.addEventListener('shown.bs.tab', function (e) {
                     window.dispatchEvent(new Event('resize'));
+                });
+            });
+
+            // Inicializar filtros de encuestas
+            const filtroEstado = document.getElementById('filtroEstado');
+            const filtroVisibilidad = document.getElementById('filtroVisibilidad');
+            const buscarEncuesta = document.getElementById('buscarEncuesta');
+            const btnBuscarEncuesta = document.getElementById('btnBuscarEncuesta');
+            
+            if (filtroEstado) {
+                filtroEstado.addEventListener('change', filtrarEncuestas);
+            }
+            
+            if (filtroVisibilidad) {
+                filtroVisibilidad.addEventListener('change', filtrarEncuestas);
+            }
+            
+            if (btnBuscarEncuesta) {
+                btnBuscarEncuesta.addEventListener('click', filtrarEncuestas);
+            }
+            
+            if (buscarEncuesta) {
+                buscarEncuesta.addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        filtrarEncuestas();
+                    }
+                });
+            }
+
+            // Añadir efectos a las tarjetas
+            document.querySelectorAll('.hover-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.classList.add('shadow');
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.classList.remove('shadow');
                 });
             });
         } catch (error) {
@@ -880,6 +1047,70 @@
                 }
             }
         });
+    }
+
+    // Funcionalidad para filtrar encuestas
+    function filtrarEncuestas() {
+        const estado = document.getElementById('filtroEstado').value;
+        const visibilidad = document.getElementById('filtroVisibilidad').value;
+        const busqueda = document.getElementById('buscarEncuesta').value.toLowerCase();
+        
+        const tarjetas = document.querySelectorAll('.encuesta-card');
+        
+        tarjetas.forEach(tarjeta => {
+            let mostrar = true;
+            
+            // Filtrar por estado
+            if (estado !== 'todas') {
+                const estadoEncuesta = tarjeta.getAttribute('data-estado');
+                if (estado !== estadoEncuesta) {
+                    mostrar = false;
+                }
+            }
+            
+            // Filtrar por visibilidad
+            if (visibilidad !== 'todas') {
+                const visibilidadEncuesta = tarjeta.getAttribute('data-visibilidad');
+                if (visibilidad !== visibilidadEncuesta) {
+                    mostrar = false;
+                }
+            }
+            
+            // Filtrar por búsqueda
+            if (busqueda) {
+                const titulo = tarjeta.querySelector('.card-title').textContent.toLowerCase();
+                const descripcion = tarjeta.querySelector('.card-text').textContent.toLowerCase();
+                if (!titulo.includes(busqueda) && !descripcion.includes(busqueda)) {
+                    mostrar = false;
+                }
+            }
+            
+            // Mostrar u ocultar tarjeta
+            tarjeta.style.display = mostrar ? 'block' : 'none';
+        });
+        
+        // Mostrar mensaje si no hay resultados
+        const hayResultados = Array.from(tarjetas).some(tarjeta => tarjeta.style.display !== 'none');
+        const mensajeNoResultados = document.getElementById('mensajeNoResultados');
+        
+        if (!hayResultados) {
+            // Si no existe el mensaje, crearlo
+            if (!mensajeNoResultados) {
+                const gridEncuestas = document.getElementById('encuestasGrid');
+                const mensaje = document.createElement('div');
+                mensaje.id = 'mensajeNoResultados';
+                mensaje.className = 'col-12 text-center py-5';
+                mensaje.innerHTML = `
+                    <i class="fas fa-search fa-3x text-gray-400 mb-3"></i>
+                    <p>No se encontraron encuestas con los filtros seleccionados.</p>
+                `;
+                gridEncuestas.appendChild(mensaje);
+            } else {
+                mensajeNoResultados.style.display = 'block';
+            }
+        } else if (mensajeNoResultados) {
+            mensajeNoResultados.style.display = 'none';
+        }
     }
 </script>
 {% endblock %}

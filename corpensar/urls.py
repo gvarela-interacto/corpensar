@@ -81,5 +81,7 @@ urlpatterns = [
   path('api/estadisticas-municipios/', views.api_estadisticas_municipios, name='api_estadisticas_municipios'),
   path('api/mapa-municipios/', views.api_mapa_municipios, name='api_mapa_municipios'),
 
+  path('eliminar-respuesta/<int:respuesta_id>/', views.eliminar_respuesta_encuesta, name='eliminar_respuesta'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
