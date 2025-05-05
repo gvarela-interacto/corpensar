@@ -70,13 +70,32 @@ def index_view(request):
     
     # Estadísticas básicas
     total_encuestas = Encuesta.objects.count()
+    print(f'Total encuestas: {total_encuestas}')
+
+    total_encuesta_respondidas = 0
+    encuestas_activas_now = []
+
+    for encuesta in Encuesta.objects.all():
+        if encuesta.activa and encuesta.fecha_inicio <= now and encuesta.fecha_fin >= now:
+            encuestas_activas_now.append(encuesta)
+
+    print(f'Encuestas activas ahora: {encuestas_activas_now}')
+
+    for municipio in Municipio.objects.all():
+        respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+        encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+        total_encuesta_respondidas += encuestas_respondidas
+
+    # Encuestas activas
     encuestas_activas = Encuesta.objects.filter(
         activa=True,
         fecha_inicio__lte=now,
         fecha_fin__gte=now
     ).count()
 
+    # Total respuestas de todas las encuestas
     total_respuestas = RespuestaEncuesta.objects.count()
+
     avg_respuestas = Encuesta.objects.annotate(
         num_respuestas=Count('respuestas')
     ).aggregate(avg=Avg('num_respuestas'))['avg'] or 0
@@ -87,11 +106,8 @@ def index_view(request):
         fecha_fin__lte=now + timezone.timedelta(days=3)
     )
     
-    encuestas_sin_respuestas = Encuesta.objects.filter(
-        activa=True
-    ).annotate(
-        num_respuestas=Count('respuestas')
-    ).filter(num_respuestas=0).count()
+    # Encuestas sin respuestas de las activas
+    encuestas_sin_respuestas = encuestas_activas - total_encuesta_respondidas
 
     # Distribución por categoría
     distribucion_categoria = Encuesta.objects.values('categoria__nombre').annotate(
@@ -123,19 +139,8 @@ def index_view(request):
     ).order_by('-total')[:5]
 
     # Tasa de finalización
-    encuestas_stats = Encuesta.objects.annotate(
-        total_preguntas=Count('preguntatexto_relacionadas') + 
-                        Count('preguntaopcionmultiple_relacionadas') + 
-                        Count('preguntacasillasverificacion_relacionadas') + 
-                        Count('preguntamenudesplegable_relacionadas') + 
-                        Count('preguntaestrellas_relacionadas') + 
-                        Count('preguntaescala_relacionadas') + 
-                        Count('preguntamatriz_relacionadas') + 
-                        Count('preguntafecha_relacionadas'),
-        respuestas_completas=Count('respuestas', distinct=True)
-    ).aggregate(
-        tasa_finalizacion=Avg(F('respuestas_completas') * 100.0 / F('total_preguntas'))
-    )
+    tasa_finalizacion = (total_encuesta_respondidas / total_encuestas) * 100
+
 
     # Tipos de preguntas
     tipos_preguntas = []
@@ -198,6 +203,7 @@ def index_view(request):
 
     context = {
         'total_encuestas': total_encuestas,
+        'total_encuesta_respondidas': total_encuesta_respondidas,
         'encuestas_activas': encuestas_activas,
         'total_respuestas': total_respuestas,
         'avg_respuestas': round(avg_respuestas, 1),
@@ -206,12 +212,13 @@ def index_view(request):
         'distribucion_region': distribucion_region,
         'tendencia_respuestas': tendencia_respuestas,
         'top_municipios': top_municipios,
-        'tasa_finalizacion': round(encuestas_stats['tasa_finalizacion'] or 0, 1),
+        'tasa_finalizacion': round(tasa_finalizacion, 1),
         'tipos_preguntas': tipos_preguntas,
         'ultimas_respuestas': ultimas_respuestas,
         'encuestas_detalle': encuestas_detalle,
         'distribucion_categoria': distribucion_categoria,
         'conteo_estados': conteo_estados,
+        'encuestas_activas_now': encuestas_activas_now,
     }
 
     return render(request, 'index.html', context)
@@ -2165,7 +2172,25 @@ def estadisticas_municipios(request):
     # Obtener todas las regiones y municipios
     regiones = Region.objects.all()
     todos_municipios = Municipio.objects.select_related('region').all()
+
+    total_encuestas = 0
+    total_respuestas_region = 0
+
+    for region in regiones:
+        print(f'region: {region}')
+
+        total_encuestas_region = Encuesta.objects.filter(region=region).count()
+        print(f'total_encuestas_region: {total_encuestas_region}')
+
+        total_respuestas_region = RespuestaEncuesta.objects.filter(municipio__region=region).count()
+        print(f'total_respuestas_region: {total_respuestas_region}')
+
+        total_encuestas += total_encuestas_region
+        total_respuestas_region += total_respuestas_region
     
+    print(f'total_encuestas: {total_encuestas}')
+    print(f'total_respuestas_region: {total_respuestas_region}')
+
     # Filtros aplicados (opcional)
     region_id = request.GET.get('region')
     municipio_id = request.GET.get('municipio')
@@ -2181,13 +2206,10 @@ def estadisticas_municipios(request):
     
     # Estadísticas por municipio
     datos_municipios = {}
-    total_encuestas = 0
     total_respuestas = 0
     total_encuestas_completadas = 0
     
     for municipio in municipios_query:
-        # Obtener encuestas activas para este municipio
-        encuestas_activas = Encuesta.objects.filter(region=municipio.region)
         
         # Obtener respuestas para este municipio
         respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
@@ -2196,13 +2218,12 @@ def estadisticas_municipios(request):
         encuestas_respondidas = respuestas.values('encuesta').distinct().count()
         
         # Calcular estadísticas
-        municipio_total_encuestas = encuestas_activas.count()
         municipio_total_respuestas = respuestas.count()
         
         # Calcular tasa de finalización
         tasa_finalizacion = 0
-        if municipio_total_encuestas > 0:
-            tasa_finalizacion = (encuestas_respondidas / municipio_total_encuestas) * 100
+        if total_encuestas > 0:
+            tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
         
         # Agregar datos al diccionario
         datos_municipios[municipio.id] = {
@@ -2210,7 +2231,7 @@ def estadisticas_municipios(request):
             'nombre': municipio.nombre,
             'region': municipio.region.nombre,
             'region_id': municipio.region.id,
-            'totalEncuestas': municipio_total_encuestas,
+            'totalEncuestas': total_encuestas,
             'totalRespuestas': municipio_total_respuestas,
             'encuestasRespondidas': encuestas_respondidas,
             'tasaFinalizacion': round(tasa_finalizacion, 2),
@@ -2219,7 +2240,6 @@ def estadisticas_municipios(request):
         }
         
         # Acumular totales generales
-        total_encuestas += municipio_total_encuestas
         total_respuestas += municipio_total_respuestas
         total_encuestas_completadas += encuestas_respondidas
     
