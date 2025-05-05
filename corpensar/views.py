@@ -35,6 +35,7 @@ from datetime import timedelta
 from django.template.defaulttags import register
 import os
 from django.urls import reverse
+from django.core.serializers.json import DjangoJSONEncoder
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -2168,181 +2169,217 @@ def eliminar_municipio(request, municipio_id):
 def estadisticas_municipios(request):
     """Vista para mostrar la página de estadísticas de municipios con datos precargados"""
     
-    # Obtener todas las regiones y municipios
+    # Obtener todas las regiones y municipios para los selects
     regiones = Region.objects.all()
-    todos_municipios = Municipio.objects.select_related('region').all()
+    todos_municipios_lista = list(Municipio.objects.values('id', 'nombre', 'region_id')) # Corregido: seleccionar el campo existente
+    todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder)
 
-    total_encuestas = 0
-    total_respuestas_region = 0
-
-    for region in regiones:
-
-        total_encuestas_region = Encuesta.objects.filter(region=region).count()
-
-        total_respuestas_region = RespuestaEncuesta.objects.filter(municipio__region=region).count()
-
-        total_encuestas += total_encuestas_region
-        total_respuestas_region += total_respuestas_region
-
-
-    # Filtros aplicados (opcional)
-    region_id = request.GET.get('region')
-    municipio_id = request.GET.get('municipio')
+    # --- Filtros --- 
+    region_id_str = request.GET.get('region', 'todas')
+    municipio_id_str = request.GET.get('municipio', 'todos')
     
-    # Consulta base para municipios
-    municipios_query = todos_municipios
+    # Convertir IDs a int si no son 'todas' o 'todos'
+    region_id = int(region_id_str) if region_id_str.isdigit() else None
+    municipio_id = int(municipio_id_str) if municipio_id_str.isdigit() else None
+
+    # --- Cálculo de Estadísticas --- 
     
-    # Aplicar filtros si existen
-    if region_id and region_id != 'todas':
-        municipios_query = municipios_query.filter(region_id=region_id)
-    if municipio_id and municipio_id != 'todos':
-        municipios_query = municipios_query.filter(id=municipio_id)
-    
-    # Estadísticas por municipio
-    datos_municipios = {}
-    total_respuestas = 0
-    total_encuestas_completadas = 0
-    
-    for municipio in municipios_query:
+    # 1. Estadísticas por Municipio (Filtradas)
+    municipios_filtrados = Municipio.objects.select_related('region').all()
+    if region_id:
+        municipios_filtrados = municipios_filtrados.filter(region_id=region_id)
+    if municipio_id:
+        municipios_filtrados = municipios_filtrados.filter(id=municipio_id)
+
+    datos_municipios_lista = []
+    total_respuestas_general = 0
+    total_encuestas_completadas_general = 0 # Ojo: Esta lógica puede necesitar revisión
+    total_encuestas_aplicables_general = Encuesta.objects.count() # Simplificación inicial, ajustar si las encuestas dependen de región/municipio
+
+    for municipio in municipios_filtrados:
+        respuestas_municipio = RespuestaEncuesta.objects.filter(municipio=municipio)
+        num_respuestas = respuestas_municipio.count()
+        # Contar encuestas únicas respondidas en este municipio
+        encuestas_respondidas_ids = respuestas_municipio.values_list('encuesta_id', flat=True).distinct()
+        num_encuestas_respondidas = len(encuestas_respondidas_ids)
         
-        # Obtener respuestas para este municipio
-        respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
-        
-        # Contar respuestas únicas por encuesta
-        encuestas_respondidas = respuestas.values('encuesta').distinct().count()
-        
-        # Calcular estadísticas
-        municipio_total_respuestas = respuestas.count()
-        
-        # Calcular tasa de finalización
+        # Calcular tasa - Necesita el número total de encuestas *aplicables* a este municipio
+        # Esta parte es compleja y depende de tu lógica de negocio.
+        # Asumiremos un total general por ahora, pero idealmente filtrarías Encuesta por región/municipio si aplica.
+        total_encuestas_aplicables_municipio = total_encuestas_aplicables_general # Simplificación
         tasa_finalizacion = 0
-        if total_encuestas > 0:
-            tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
+        if total_encuestas_aplicables_municipio > 0:
+            tasa_finalizacion = (num_encuestas_respondidas / total_encuestas_aplicables_municipio) * 100
         
-        # Agregar datos al diccionario
-        datos_municipios[municipio.id] = {
+        datos_municipios_lista.append({
             'id': municipio.id,
             'nombre': municipio.nombre,
             'region': municipio.region.nombre,
             'region_id': municipio.region.id,
-            'totalEncuestas': total_encuestas,
-            'totalRespuestas': municipio_total_respuestas,
-            'encuestasRespondidas': encuestas_respondidas,
-            'tasaFinalizacion': round(tasa_finalizacion, 2),
-            'latitud': municipio.latitud,
-            'longitud': municipio.longitud
-        }
+            'totalEncuestas': total_encuestas_aplicables_municipio, # Revisar esta lógica
+            'totalRespuestas': num_respuestas,
+            'encuestasRespondidas': num_encuestas_respondidas,
+            'tasaFinalizacion': round(tasa_finalizacion, 1),
+            # 'latitud': municipio.latitud, # Descomentar si se necesita para mapas
+            # 'longitud': municipio.longitud
+        })
         
-        # Acumular totales generales
-        total_respuestas += municipio_total_respuestas
-        total_encuestas_completadas += encuestas_respondidas
-    
-    # Calcular tasa de finalización general
+        total_respuestas_general += num_respuestas
+        total_encuestas_completadas_general += num_encuestas_respondidas
+
+    # Calcular tasa de finalización general (basada en filtros)
     tasa_finalizacion_general = 0
-    if total_encuestas > 0:
-        tasa_finalizacion_general = (total_encuestas_completadas / total_encuestas) * 100
+    if total_encuestas_aplicables_general > 0: # Usar el total aplicable calculado
+        # Necesitamos el total *único* de encuestas respondidas *dentro del filtro*
+        respuestas_filtradas_general = RespuestaEncuesta.objects.all()
+        if region_id:
+             respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio__region_id=region_id)
+        if municipio_id:
+             respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio_id=municipio_id)
+        total_encuestas_completadas_general = respuestas_filtradas_general.values('encuesta_id').distinct().count()
+
+        tasa_finalizacion_general = (total_encuestas_completadas_general / total_encuestas_aplicables_general) * 100
+
+    # 2. Estadísticas por Región (Agregadas)
+    datos_regiones_lista = []
+    regiones_para_tabla = regiones # Usar todas las regiones o filtrar si es necesario
+    if region_id:
+        regiones_para_tabla = regiones_para_tabla.filter(id=region_id)
     
-    # Obtener datos históricos de respuestas (últimos 6 meses)
-    from django.db.models import Count
-    from datetime import timedelta, datetime
-    import json
+    for region in regiones_para_tabla:
+        respuestas_region = RespuestaEncuesta.objects.filter(municipio__region=region)
+        num_respuestas_region = respuestas_region.count()
+        encuestas_respondidas_region_ids = respuestas_region.values_list('encuesta_id', flat=True).distinct()
+        num_encuestas_respondidas_region = len(encuestas_respondidas_region_ids)
+        
+        # Total encuestas aplicables a la región (Simplificación)
+        total_encuestas_aplicables_region = Encuesta.objects.filter(region=region).count() if Encuesta._meta.get_field('region') else total_encuestas_aplicables_general
+
+        tasa_finalizacion_region = 0
+        if total_encuestas_aplicables_region > 0:
+            tasa_finalizacion_region = (num_encuestas_respondidas_region / total_encuestas_aplicables_region) * 100
+
+        datos_regiones_lista.append({
+            'id': region.id,
+            'nombre': region.nombre,
+            'totalEncuestas': total_encuestas_aplicables_region, # Revisar lógica
+            'totalRespuestas': num_respuestas_region,
+            'encuestasRespondidas': num_encuestas_respondidas_region,
+            'tasaFinalizacion': round(tasa_finalizacion_region, 1)
+        })
+
+    # 3. Datos para Gráficos
     
-    # Fecha de inicio (6 meses atrás)
+    # Historial (últimos 6 meses, filtrado)
     fecha_inicio = timezone.now() - timedelta(days=180)
-    
-    # Respuestas históricas
-    query_historico = RespuestaEncuesta.objects.filter(
-        fecha_respuesta__gte=fecha_inicio
-    )
-    
-    # Aplicar los mismos filtros
-    if region_id and region_id != 'todas':
-        municipios_ids = list(todos_municipios.filter(region_id=region_id).values_list('id', flat=True))
-        query_historico = query_historico.filter(municipio_id__in=municipios_ids)
-    if municipio_id and municipio_id != 'todos':
-        query_historico = query_historico.filter(municipio_id=municipio_id)
-    
-    # Agrupar por mes manualmente sin usar TruncMonth para evitar problemas de zona horaria
+    respuestas_historial = RespuestaEncuesta.objects.filter(fecha_respuesta__gte=fecha_inicio)
+    if region_id:
+        respuestas_historial = respuestas_historial.filter(municipio__region_id=region_id)
+    if municipio_id:
+        respuestas_historial = respuestas_historial.filter(municipio_id=municipio_id)
+        
     respuestas_por_mes = {}
-    for respuesta in query_historico:
+    # Crear todos los meses en el rango para asegurar que aparezcan aunque no tengan datos
+    current_date = fecha_inicio
+    end_date = timezone.now()
+    while current_date <= end_date:
+        mes_key = current_date.strftime('%Y-%m')
+        mes_label = current_date.strftime('%b %Y')
+        respuestas_por_mes[mes_key] = {'label': mes_label, 'count': 0}
+        # Avanzar al siguiente mes (aproximado)
+        next_month = current_date.replace(day=28) + timedelta(days=4) # Ir al final del mes y sumar 4 días
+        current_date = next_month - timedelta(days=next_month.day - 1) # Ir al primer día del siguiente mes
+
+    for respuesta in respuestas_historial:
         mes_key = respuesta.fecha_respuesta.strftime('%Y-%m')
-        mes_label = respuesta.fecha_respuesta.strftime('%b %Y')
-        
-        if mes_key not in respuestas_por_mes:
-            respuestas_por_mes[mes_key] = {
-                'label': mes_label,
-                'count': 0
-            }
-        
-        respuestas_por_mes[mes_key]['count'] += 1
+        if mes_key in respuestas_por_mes:
+             respuestas_por_mes[mes_key]['count'] += 1
+        # else: Manejar respuestas fuera del rango si es necesario
     
-    # Ordenar por mes (clave)
     respuestas_ordenadas = sorted(respuestas_por_mes.items())
-    
-    # Formatear datos para el gráfico
-    meses = [datos['label'] for _, datos in respuestas_ordenadas]
-    conteos = [datos['count'] for _, datos in respuestas_ordenadas]
-    
-    # Convertir a JSON con comillas dobles para evitar errores de sintaxis
-    meses_json = json.dumps(meses)
-    conteos_json = json.dumps(conteos)
-    
-    # Datos para gráfico de distribución por región
-    datos_regiones = {}
-    for municipio_data in datos_municipios.values():
-        region_nombre = municipio_data['region']
-        if region_nombre not in datos_regiones:
-            datos_regiones[region_nombre] = 0
-        datos_regiones[region_nombre] += municipio_data['totalRespuestas']
-    
-    # Datos para gráfico de barras (top 10 municipios)
-    top_municipios = sorted(
-        datos_municipios.values(),
+    historial_meses = [datos['label'] for _, datos in respuestas_ordenadas]
+    historial_conteos = [datos['count'] for _, datos in respuestas_ordenadas]
+
+    # Distribución por Región (basado en respuestas filtradas)
+    distribucion_regiones = {} # { 'Region A': 100, 'Region B': 50 }
+    # Usar los datos ya calculados para la tabla de regiones
+    for region_data in datos_regiones_lista:
+         distribucion_regiones[region_data['nombre']] = region_data['totalRespuestas']
+         
+    # Formatear para Plotly Pie
+    regiones_pie_datos = [{'name': nombre, 'value': valor} for nombre, valor in distribucion_regiones.items()]
+
+    # Top 10 Municipios (basado en respuestas filtradas)
+    municipios_ordenados = sorted(
+        datos_municipios_lista,
         key=lambda x: x['totalRespuestas'],
         reverse=True
-    )[:10]
+    )
+    top_10_municipios = municipios_ordenados[:10]
+    municipios_bar_nombres = [m['nombre'] for m in top_10_municipios]
+    municipios_bar_valores = [m['totalRespuestas'] for m in top_10_municipios]
+
+    # Agrupar datos para JSON de gráficos
+    datos_graficos_dict = {
+        "historial": {
+            "meses": historial_meses,
+            "conteos": historial_conteos
+        },
+        "regiones": {
+            "datos": regiones_pie_datos # Ya tiene formato {name:..., value:...}
+        },
+        "municipios": {
+            "nombres": municipios_bar_nombres,
+            "valores": municipios_bar_valores
+        }
+    }
+
+    # 4. Encuestas Disponibles (Filtradas y con conteo)
+    encuestas_disponibles = []
+    query_encuestas = Encuesta.objects.prefetch_related('respuestas').select_related('region', 'municipio').all()
+    # Aplicar filtros si existen (considerar si el filtro debe aplicar aquí o solo a estadísticas)
+    # if region_id:
+    #     query_encuestas = query_encuestas.filter(region_id=region_id)
+    # if municipio_id:
+    #     query_encuestas = query_encuestas.filter(Q(municipio_id=municipio_id) | Q(municipio__isnull=True)) # O encuestas sin municipio específico?
     
-    # Obtener encuestas disponibles
-    encuestas = []
-    query_encuestas = Encuesta.objects.all()
-    
-    # Aplicar filtros a las encuestas si existen
-    if region_id and region_id != 'todas':
-        query_encuestas = query_encuestas.filter(region_id=region_id)
-    if municipio_id and municipio_id != 'todos':
-        query_encuestas = query_encuestas.filter(municipio_id=municipio_id)
-    
-    # Limitar a 50 encuestas y ordenar por fecha
     query_encuestas = query_encuestas.order_by('-fecha_creacion')[:50]
     
     for encuesta in query_encuestas:
-        total_respuestas_encuesta = RespuestaEncuesta.objects.filter(encuesta=encuesta).count()
-        encuestas.append({
+        # El prefetch_related debería hacer este conteo eficiente
+        total_respuestas_encuesta = encuesta.respuestas.count() 
+        encuestas_disponibles.append({
             'id': encuesta.id,
             'titulo': encuesta.titulo,
             'descripcion': encuesta.descripcion,
             'fecha_creacion': encuesta.fecha_creacion.strftime('%d/%m/%Y'),
             'es_publica': encuesta.es_publica,
+            'activa': getattr(encuesta, 'activa', True), # Asumiendo un campo 'activa' o por defecto True
+            'is_proxima': getattr(encuesta, 'is_proxima', False), # Asumiendo campo
             'total_respuestas': total_respuestas_encuesta,
-            'region': encuesta.region.nombre if encuesta.region else 'No asignada',
-            'municipio': encuesta.municipio.nombre if encuesta.municipio else 'No asignado'
+            'region': encuesta.region.nombre if encuesta.region else 'N/A',
+            'municipio': encuesta.municipio.nombre if encuesta.municipio else 'N/A'
         })
-    
+
+    # --- Contexto Final --- 
     context = {
+        # Datos para selects y UI
         'regiones': regiones,
-        'municipios': todos_municipios,
-        'datos_municipios': datos_municipios,
-        'total_encuestas': total_encuestas,
-        'total_respuestas': total_respuestas,
-        'total_encuestas_completadas': total_encuestas_completadas,
-        'tasa_finalizacion': round(tasa_finalizacion_general, 2),
-        'historial_meses': meses_json,
-        'historial_conteos': conteos_json,
-        'datos_regiones': datos_regiones,
-        'top_municipios': top_municipios,
-        'encuestas': encuestas,
-        'region_seleccionada': region_id,
-        'municipio_seleccionado': municipio_id
+        'municipios': todos_municipios_json, # Para el select JS
+        'encuestas': encuestas_disponibles, # Para la sección de encuestas
+        'region_seleccionada': region_id_str,
+        'municipio_seleccionado': municipio_id_str,
+
+        # Datos para tarjetas de resumen
+        'total_encuestas': total_encuestas_aplicables_general, # Revisar lógica
+        'total_respuestas': total_respuestas_general,
+        'total_encuestas_completadas': total_encuestas_completadas_general, # Revisar lógica
+        'tasa_finalizacion': round(tasa_finalizacion_general, 1),
+
+        # --- JSONs para JavaScript --- 
+        'datos_graficos_json': json.dumps(datos_graficos_dict, cls=DjangoJSONEncoder),
+        'datos_regiones_tabla_json': json.dumps(datos_regiones_lista, cls=DjangoJSONEncoder),
+        'datos_municipios_json': json.dumps(datos_municipios_lista, cls=DjangoJSONEncoder),
     }
     
     return render(request, 'estadisticas/municipios.html', context)
