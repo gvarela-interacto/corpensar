@@ -551,16 +551,17 @@
       
       if (document.body.classList.contains('sidebar-open')) {
         backdrop.style.display = 'block';
-        setTimeout(() => {
+        // Usar requestAnimationFrame para mejor rendimiento de la animación
+        requestAnimationFrame(() => {
           backdrop.style.opacity = '1';
           backdrop.style.visibility = 'visible';
-        }, 10);
+        });
       } else {
         backdrop.style.opacity = '0';
         backdrop.style.visibility = 'hidden';
         setTimeout(() => {
           backdrop.style.display = 'none';
-        }, 300);
+        }, 300); // Tiempo igual a la transición CSS
       }
     }
     
@@ -568,22 +569,27 @@
     if (sidebarToggle) {
       sidebarToggle.addEventListener('click', function(e) {
         e.preventDefault();
+        // Detener la propagación para evitar cerrar dropdowns abiertos
+        e.stopPropagation(); 
         toggleSidebar();
       });
     }
     
     // Evento para cerrar al hacer clic en el backdrop
-    backdrop.addEventListener('click', function() {
+    backdrop.addEventListener('click', function(e) {
+      e.preventDefault();
       if (document.body.classList.contains('sidebar-open')) {
         toggleSidebar();
       }
     });
     
     // Cerrar menú al hacer clic en un enlace (solo en móvil)
-    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    // Asegúrate que el selector sea correcto para tus enlaces del sidebar
+    const navLinks = document.querySelectorAll('.sidebar .nav-link'); 
     navLinks.forEach(link => {
       link.addEventListener('click', function() {
-        if (window.innerWidth < 992) {
+        // Solo cerrar si el menú está abierto y estamos en vista móvil
+        if (window.innerWidth < 992 && document.body.classList.contains('sidebar-open')) {
           toggleSidebar();
         }
       });
@@ -591,17 +597,14 @@
     
     // Cerrar menú al cambiar tamaño de ventana a desktop
     window.addEventListener('resize', function() {
-      if (window.innerWidth > 991) {
-        document.body.classList.remove('sidebar-open');
-        backdrop.style.opacity = '0';
-        backdrop.style.visibility = 'hidden';
-        setTimeout(() => {
-          backdrop.style.display = 'none';
-        }, 300);
+      if (window.innerWidth > 991 && document.body.classList.contains('sidebar-open')) {
+        // Solo cerrar si está abierto y pasamos a tamaño desktop
+        toggleSidebar(); 
       }
     });
     
-    // Manejo del dropdown para dispositivos táctiles
+    // Manejo del dropdown para dispositivos táctiles (si usas Bootstrap 5)
+    // Este código es generalmente estándar y no debería causar problemas
     const dropdownToggle = document.querySelectorAll('.dropdown-toggle');
     if ('ontouchstart' in document.documentElement) {
       dropdownToggle.forEach(item => {

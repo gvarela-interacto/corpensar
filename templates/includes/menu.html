@@ -661,15 +661,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Agregar evento de click a todos los botones de toggle
-    const sidebarToggles = document.querySelectorAll('[data-toggle="sidebar"]');
-    sidebarToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            toggleSidebar();
-        });
-    });
-    
     // Cerrar el menú al hacer clic en el backdrop
     const backdrop = document.getElementById('sidebarBackdrop');
     if (backdrop) {
