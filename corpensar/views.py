@@ -28,7 +28,8 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
-                    PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD)
+                    PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD,
+                    GrupoInteres)
 from .decorators import *
 import locale
 from datetime import timedelta
@@ -370,6 +371,7 @@ def crear_desde_cero(request):
     form = EncuestaForm()
     regiones = Region.objects.all()
     categorias = Categoria.objects.all()
+    grupos_interes = GrupoInteres.objects.all()
 
     if request.method == 'POST':
         # Imprimir todos los datos del POST para debug
@@ -386,9 +388,11 @@ def crear_desde_cero(request):
         # Procesar region_id con más logs
         region_id = request.POST.get('region')
         categoria_id = request.POST.get('categoria')
+        grupo_interes_id = request.POST.get('grupo_interes')
         
         region = None
         categoria = None
+        grupo_interes = None
         try:
             if region_id and region_id.strip():
                 region_id = int(region_id)
@@ -399,13 +403,18 @@ def crear_desde_cero(request):
             if categoria_id and categoria_id.strip():
                 categoria_id = int(categoria_id)
                 categoria = Categoria.objects.get(id=categoria_id)
+                
+            if grupo_interes_id and grupo_interes_id.strip():
+                grupo_interes_id = int(grupo_interes_id)
+                grupo_interes = GrupoInteres.objects.get(id=grupo_interes_id)
             
-        except (ValueError, Region.DoesNotExist, Categoria.DoesNotExist) as e:
-            messages.error(request, f"Error al procesar la región o categoría seleccionada: {e}")
+        except (ValueError, Region.DoesNotExist, Categoria.DoesNotExist, GrupoInteres.DoesNotExist) as e:
+            messages.error(request, f"Error al procesar la región, categoría o grupo de interés seleccionado: {e}")
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
                 'regiones': regiones,
-                'categorias': categorias
+                'categorias': categorias,
+                'grupos_interes': grupos_interes
             })
         
         tema = request.POST.get('tema', 'default')
@@ -423,6 +432,7 @@ def crear_desde_cero(request):
                 creador=request.user,
                 region=region,
                 categoria=categoria,
+                grupo_interes=grupo_interes,
                 municipio=None,
                 tema=tema
             )
@@ -432,7 +442,8 @@ def crear_desde_cero(request):
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
                 'regiones': regiones,
-                'categorias': categorias
+                'categorias': categorias,
+                'grupos_interes': grupos_interes
             })
         
         # Obtener preguntas del formulario
@@ -684,7 +695,8 @@ def crear_desde_cero(request):
     return render(request, 'Encuesta/crear_desde_cero.html', {
         'form': form,
         'regiones': regiones,
-        'categorias': categorias
+        'categorias': categorias,
+        'grupos_interes': grupos_interes
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
@@ -790,14 +802,16 @@ def duplicar_encuesta(request, encuesta_id):
                     texto=pregunta.texto,
                     orden=pregunta.orden,
                     requerida=pregunta.requerida,
-                    permite_otro=pregunta.permite_otro
+                    opcion_otro=pregunta.opcion_otro,
+                    texto_otro=pregunta.texto_otro
                 )
                 
                 # Duplicar opciones
                 for opcion in pregunta.opciones.all():
-                    Opcion.objects.create(
+                    OpcionMultiple.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
+                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
@@ -808,14 +822,18 @@ def duplicar_encuesta(request, encuesta_id):
                     texto=pregunta.texto,
                     orden=pregunta.orden,
                     requerida=pregunta.requerida,
-                    permite_otro=pregunta.permite_otro
+                    opcion_otro=pregunta.opcion_otro,
+                    texto_otro=pregunta.texto_otro,
+                    min_selecciones=pregunta.min_selecciones,
+                    max_selecciones=pregunta.max_selecciones
                 )
                 
                 # Duplicar opciones
                 for opcion in pregunta.opciones.all():
-                    Opcion.objects.create(
+                    OpcionCasillaVerificacion.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
+                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
@@ -830,9 +848,10 @@ def duplicar_encuesta(request, encuesta_id):
                 
                 # Duplicar opciones
                 for opcion in pregunta.opciones.all():
-                    Opcion.objects.create(
+                    OpcionMenuDesplegable.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
+                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
@@ -921,9 +940,10 @@ def editar_encuesta(request, encuesta_id):
     # Ordenar preguntas por orden
     preguntas.sort(key=lambda x: x.orden)
     
-    # Obtener regiones y categorías
+    # Obtener regiones, categorías y grupos de interés
     regiones = Region.objects.all()
     categorias = Categoria.objects.all()
+    grupos_interes = GrupoInteres.objects.all()
     
     # Obtener subcategorías si hay una categoría seleccionada
     subcategorias = []
@@ -936,7 +956,8 @@ def editar_encuesta(request, encuesta_id):
         'preguntas': preguntas,
         'regiones': regiones,
         'categorias': categorias,
-        'subcategorias': subcategorias
+        'subcategorias': subcategorias,
+        'grupos_interes': grupos_interes
     })
 
 # Vista para listar encuestas del usuario
@@ -3407,3 +3428,203 @@ def api_encuestas_por_municipio(request, municipio_id):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def duplicar_encuesta_json(request, encuesta_id):
+    """
+    Duplica una encuesta y todas sus preguntas utilizando serialización JSON.
+    Esta función es más robusta que duplicar_encuesta() ya que serializa todos los campos 
+    automáticamente sin necesidad de listarlos.
+    """
+    encuesta_original = get_object_or_404(Encuesta, id=encuesta_id)
+    
+    if request.method == 'POST':
+        try:
+            # Obtener datos del formulario
+            nuevo_titulo = request.POST.get('titulo', f"{encuesta_original.titulo} (Copia)")
+            
+            # Verificar que el título no esté repetido
+            if Encuesta.objects.filter(titulo=nuevo_titulo).exists():
+                messages.error(request, 'Ya existe una encuesta con este título. Por favor, elige otro.')
+                return redirect('duplicar_encuesta_json', encuesta_id=encuesta_original.id)
+            
+            # Generar slug único
+            from django.utils.text import slugify
+            slug_base = slugify(nuevo_titulo)
+            slug = slug_base
+            counter = 1
+            while Encuesta.objects.filter(slug=slug).exists():
+                slug = f"{slug_base}-{counter}"
+                counter += 1
+                
+            # Crear la nueva encuesta con datos básicos que deben ser diferentes
+            nueva_encuesta = Encuesta.objects.create(
+                titulo=nuevo_titulo,
+                slug=slug,
+                creador=request.user,
+                fecha_creacion=timezone.now(),
+                fecha_inicio=request.POST.get('fecha_inicio'),
+                fecha_fin=request.POST.get('fecha_fin'),
+                activa=request.POST.get('activa') == 'on',
+                es_publica=request.POST.get('es_publica') == 'on',
+                region_id=request.POST.get('region'),
+                categoria_id=request.POST.get('categoria'),
+            )
+            
+            # Copiar todos los demás campos directamente usando __dict__
+            # Excluimos campos que no deben copiarse
+            exclude_fields = ['_state', 'id', 'titulo', 'slug', 'creador_id', 
+                            'fecha_creacion', 'fecha_inicio', 'fecha_fin', 
+                            'activa', 'es_publica', 'region_id', 'categoria_id']
+            
+            for field, value in encuesta_original.__dict__.items():
+                if field not in exclude_fields:
+                    setattr(nueva_encuesta, field, value)
+            
+            nueva_encuesta.save()
+            
+            # Función auxiliar para duplicar preguntas con opciones
+            def duplicar_pregunta_con_opciones(modelo_pregunta, relation_name, 
+                                              modelo_opcion=None, opcion_relation_name=None):
+                """Duplica preguntas de un tipo específico y sus opciones si las tiene"""
+                # Obtener el manager para este tipo de pregunta (por ejemplo, preguntatexto_relacionadas)
+                manager = getattr(encuesta_original, relation_name)
+                
+                for pregunta_orig in manager.all():
+                    # Excluir campos que no deben copiarse
+                    valores_pregunta = {k: v for k, v in pregunta_orig.__dict__.items() 
+                                      if k not in ['_state', 'id', 'encuesta_id']}
+                    
+                    # Asociar a la nueva encuesta
+                    valores_pregunta['encuesta'] = nueva_encuesta
+                    
+                    # Crear la nueva pregunta
+                    nueva_pregunta = modelo_pregunta.objects.create(**valores_pregunta)
+                    
+                    # Si tiene opciones, duplicarlas
+                    if modelo_opcion and opcion_relation_name:
+                        for opcion_orig in getattr(pregunta_orig, opcion_relation_name).all():
+                            valores_opcion = {k: v for k, v in opcion_orig.__dict__.items() 
+                                          if k not in ['_state', 'id', 'pregunta_id']}
+                            valores_opcion['pregunta'] = nueva_pregunta
+                            modelo_opcion.objects.create(**valores_opcion)
+            
+            # Duplicar todos los tipos de preguntas
+            duplicar_pregunta_con_opciones(PreguntaTexto, 'preguntatexto_relacionadas')
+            duplicar_pregunta_con_opciones(PreguntaTextoMultiple, 'preguntatextomultiple_relacionadas')
+            duplicar_pregunta_con_opciones(PreguntaOpcionMultiple, 'preguntaopcionmultiple_relacionadas', 
+                                         OpcionMultiple, 'opciones')
+            duplicar_pregunta_con_opciones(PreguntaCasillasVerificacion, 'preguntacasillasverificacion_relacionadas', 
+                                         OpcionCasillaVerificacion, 'opciones')
+            duplicar_pregunta_con_opciones(PreguntaMenuDesplegable, 'preguntamenudesplegable_relacionadas', 
+                                         OpcionMenuDesplegable, 'opciones')
+            duplicar_pregunta_con_opciones(PreguntaEstrellas, 'preguntaestrellas_relacionadas')
+            duplicar_pregunta_con_opciones(PreguntaFecha, 'preguntafecha_relacionadas')
+            
+            # Para preguntas de escala (sin opciones)
+            duplicar_pregunta_con_opciones(PreguntaEscala, 'preguntaescala_relacionadas')
+            
+            # Caso especial: Preguntas de matriz que tienen una relación con escala y otra con items
+            for pregunta_matriz_orig in encuesta_original.preguntamatriz_relacionadas.all():
+                # Primero duplicar la escala asociada
+                escala_orig = pregunta_matriz_orig.escala
+                valores_escala = {k: v for k, v in escala_orig.__dict__.items() 
+                                if k not in ['_state', 'id', 'encuesta_id']}
+                valores_escala['encuesta'] = nueva_encuesta
+                nueva_escala = PreguntaEscala.objects.create(**valores_escala)
+                
+                # Ahora duplicar la pregunta de matriz
+                valores_matriz = {k: v for k, v in pregunta_matriz_orig.__dict__.items() 
+                               if k not in ['_state', 'id', 'encuesta_id', 'escala_id']}
+                valores_matriz['encuesta'] = nueva_encuesta
+                valores_matriz['escala'] = nueva_escala
+                nueva_matriz = PreguntaMatriz.objects.create(**valores_matriz)
+                
+                # Duplicar los items (filas) de la matriz
+                for item_orig in pregunta_matriz_orig.items.all():
+                    valores_item = {k: v for k, v in item_orig.__dict__.items() 
+                                 if k not in ['_state', 'id', 'pregunta_id']}
+                    valores_item['pregunta'] = nueva_matriz
+                    ItemMatrizPregunta.objects.create(**valores_item)
+            
+            messages.success(request, '¡Encuesta duplicada exitosamente!')
+            return redirect('editar_encuesta', encuesta_id=nueva_encuesta.id)
+            
+        except Exception as e:
+            # Activar esto para depuración en producción si es necesario
+            import traceback
+            print(f"Error al duplicar encuesta: {type(e).__name__} - {str(e)}")
+            traceback.print_exc()
+            
+            messages.error(request, f'Error al duplicar la encuesta: {str(e)}')
+            return redirect('lista_encuestas')
+    
+    # Si es GET, mostrar el formulario de duplicación
+    regiones = Region.objects.all()
+    categorias = Categoria.objects.all()
+    
+    return render(request, 'Encuesta/duplicar_encuesta.html', {
+        'encuesta_original': encuesta_original,
+        'regiones': regiones,
+        'categorias': categorias,
+        'now': timezone.now()
+    })
+
+@login_required
+def grupos_interes(request):
+    """Vista para listar todos los grupos de interés"""
+    grupos = GrupoInteres.objects.all()
+    return render(request, 'grupos_interes/grupos_interes.html', {
+        'grupos': grupos
+    })
+
+@login_required
+def crear_grupo_interes(request):
+    """Vista para crear un nuevo grupo de interés"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion', '')
+        
+        if GrupoInteres.objects.filter(nombre=nombre).exists():
+            messages.error(request, 'Ya existe un grupo de interés con ese nombre.')
+            return redirect('crear_grupo_interes')
+        
+        GrupoInteres.objects.create(
+            nombre=nombre,
+            descripcion=descripcion
+        )
+        messages.success(request, f'Grupo de interés "{nombre}" creado exitosamente.')
+        return redirect('grupos_interes')
+    
+    return render(request, 'grupos_interes/crear_grupo_interes.html')
+
+@login_required
+def eliminar_grupo_interes(request, grupo_id):
+    """Vista para eliminar un grupo de interés"""
+    grupo = get_object_or_404(GrupoInteres, id=grupo_id)
+    
+    # Verificar si hay encuestas asociadas
+    encuestas_asociadas = Encuesta.objects.filter(grupo_interes=grupo).count()
+    
+    if request.method == 'POST':
+        # Si hay encuestas relacionadas, cambiar su grupo a None
+        if encuestas_asociadas:
+            Encuesta.objects.filter(grupo_interes=grupo).update(grupo_interes=None)
+        
+        nombre = grupo.nombre
+        grupo.delete()
+        messages.success(request, f'Grupo de interés "{nombre}" eliminado exitosamente.')
+        return redirect('grupos_interes')
+    
+    # Si la solicitud es GET y proviene de JavaScript AJAX, devolvemos datos JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'encuestas_asociadas': encuestas_asociadas,
+            'nombre': grupo.nombre
+        })
+    
+    # Si es GET normal, mostramos la página de confirmación
+    return render(request, 'grupos_interes/confirmar_eliminar_grupo.html', {
+        'grupo': grupo,
+        'encuestas_asociadas': encuestas_asociadas
+    })

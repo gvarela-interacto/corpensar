@@ -52,6 +52,21 @@ class Municipio(models.Model):
 
 def get_valores_rango(self):
     return range(self.min_valor, self.max_valor + 1)
+
+class GrupoInteres(models.Model):
+    """Grupo de interés para encuestas (comunidades, autoridades locales, trabajadores, líderes, proveedores)"""
+    nombre = models.CharField(max_length=100, verbose_name=_("Nombre"))
+    descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de creación"))
+    
+    class Meta:
+        verbose_name = _("Grupo de interés")
+        verbose_name_plural = _("Grupos de interés")
+        ordering = ['nombre']
+    
+    def __str__(self):
+        return self.nombre
+
 class Encuesta(models.Model):
     """Modelo principal que representa una encuesta completa"""
     TEMAS = (
@@ -109,7 +124,8 @@ class Encuesta(models.Model):
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Región")
     tema = models.CharField(max_length=20, choices=TEMAS, default='default', verbose_name=_("Tema"))
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Categoría")
-    subcategoria = models.ForeignKey('Subcategoria', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Subcategoría") # Se aplica el lazy relationship (permite definir el modelo mas adelante)
+    subcategoria = models.ForeignKey('Subcategoria', on_delete=models.SET_NULL, null=True, blank=True, 
+                                    verbose_name="Subcategoría")
     municipio = models.ForeignKey(
         Municipio, 
         on_delete=models.SET_NULL, 
@@ -117,6 +133,8 @@ class Encuesta(models.Model):
         blank=True, 
         verbose_name="Municipio"
     )
+    grupo_interes = models.ForeignKey(GrupoInteres, null=True, blank=True, on_delete=models.SET_NULL,
+                                    verbose_name=_("Grupo de interés"))
     
     # Campos para personalización del diseño
     imagen_encabezado = models.ImageField(upload_to='encuestas/encabezados/', null=True, blank=True, verbose_name=_("Imagen de encabezado"))

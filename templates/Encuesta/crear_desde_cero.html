@@ -51,6 +51,17 @@
                                 </select>
                                 <div class="form-text">Seleccione la subcategoría específica para la encuesta.</div>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="grupo_interes" class="form-label">Grupo de Interés</label>
+                                <select class="form-select" id="grupo_interes" name="grupo_interes">
+                                    <option value="">Seleccione un grupo de interés</option>
+                                    {% for grupo in grupos_interes %}
+                                        <option value="{{ grupo.id }}">{{ grupo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Seleccione el grupo de interés relacionado con esta encuesta (comunidades, autoridades locales, trabajadores, etc.)</div>
+                            </div>
                             
                             <div class="mb-3">
                                 <label for="tema" class="form-label">Tema de la encuesta</label>
