@@ -1,0 +1,254 @@
+{
+    "titulo": "Encuesta Comunidad CENIT",
+    "slug": "encuesta-comunidad-cenit-2",
+    "descripcion": "Recolectar percepciones de las comunidades frente a las actividades de Cenit y los riesgos que afectan sus derechos y entorno.",
+    "categoria": "Encuesta",
+    "preguntas": [
+      {
+        "tipo": "TEXT",
+        "texto": "Nombre",
+        "requerida": true,
+        "seccion": "General"
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "Sexo",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Hombre", "valor": "hombre"},
+          {"texto": "Mujer", "valor": "mujer"},
+          {"texto": "Otro", "valor": "otro"},
+          {"texto": "Prefiere no decirlo", "valor": "prefiere_no_decirlo"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "Edad",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Menos de 18 años", "valor": "menor_18"},
+          {"texto": "18 a 25 años", "valor": "18_25"},
+          {"texto": "26 a 35 años", "valor": "26_35"},
+          {"texto": "36 a 45 años", "valor": "36_45"},
+          {"texto": "46 a 60 años", "valor": "46_60"},
+          {"texto": "Más de 60 años", "valor": "mayor_60"}
+        ]
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "Grupo diferencial al que pertenece",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Persona con discapacidad", "valor": "discapacidad"},
+          {"texto": "Comunidad indígena", "valor": "indigena"},
+          {"texto": "Comunidad afrodescendiente", "valor": "afro"},
+          {"texto": "Mujer cabeza de familia", "valor": "mujer_cabeza"},
+          {"texto": "Persona LGBTIQ+", "valor": "lgbtiq"},
+          {"texto": "Persona mayor", "valor": "mayor"},
+          {"texto": "Joven", "valor": "joven"},
+          {"texto": "Ninguno", "valor": "ninguno"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿En su comunidad han ocurrido situaciones que afecten la tranquilidad o los derechos de las personas?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha escuchado hablar de la empresa Cenit?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Qué tan informado(a) se siente sobre las actividades de Cenit en su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Muy informado(a)", "valor": "muy_informado"},
+          {"texto": "Poco informado(a)", "valor": "poco_informado"},
+          {"texto": "Nada informado(a)", "valor": "nada_informado"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cree usted que las actividades de Cenit podrían afectar la vida, la tranquilidad o el medio ambiente en su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cuál cree que es el principal origen de los riesgos que afectan a su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Empresa", "valor": "empresa"},
+          {"texto": "Otros actores", "valor": "otros_actores"},
+          {"texto": "Factores ambientales", "valor": "factores_ambientales"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Conoce casos de personas que hayan sido afectadas por alguna actividad de empresas o por el contexto del territorio?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "Prefiero no responder", "valor": "prefiero_no_responder"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Quiénes cree que han sido más afectados por los riesgos en su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Niños", "valor": "ninos"},
+          {"texto": "Mujeres", "valor": "mujeres"},
+          {"texto": "Jóvenes", "valor": "jovenes"},
+          {"texto": "Líderes comunitarios", "valor": "lideres"},
+          {"texto": "Toda la comunidad", "valor": "todos"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿La comunidad ha recibido información clara sobre los proyectos de Cenit en la zona?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha tenido su comunidad espacios para participar o expresar sus opiniones sobre esos proyectos?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Conoce algún canal para reportar quejas o preocupaciones relacionadas con Cenit?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Ha utilizado alguna vez estos canales?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cree usted que Cenit o las autoridades han hecho algo para prevenir o corregir situaciones que afectan a la comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí, y ha funcionado", "valor": "si_funciona"},
+          {"texto": "Sí, pero no ha funcionado", "valor": "si_no_funciona"},
+          {"texto": "No han hecho nada", "valor": "no_han_hecho"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Han ocurrido en su comunidad afectaciones ambientales como derrames, contaminación o daños en fuentes de agua?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Se ha visto afectada la movilidad o seguridad por maquinaria o personal externo en su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Considera que Cenit debería mejorar su relación con la comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Qué debería hacer Cenit para mejorar el respeto por los derechos de la comunidad?",
+        "requerida": true,
+        "seccion": "General"
+      },
+      {
+        "tipo": "CHECK",
+        "texto": "¿Ha presenciado o tenido conocimiento de alguno de los siguientes hechos en su comunidad? (Marque todos los que apliquen)",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Amenazas o ataques a líderes sociales", "valor": "amenazas_lideres"},
+          {"texto": "Violencia o extorsión", "valor": "violencia"},
+          {"texto": "Contaminación ambiental", "valor": "contaminacion"},
+          {"texto": "Obstáculos a la movilidad", "valor": "obstaculos_movilidad"},
+          {"texto": "Afectación económica o laboral", "valor": "afectacion_economica"},
+          {"texto": "Discriminación en contratación", "valor": "discriminacion"},
+          {"texto": "Falta de información", "valor": "falta_informacion"},
+          {"texto": "Falta de participación", "valor": "falta_participacion"},
+          {"texto": "Ninguna", "valor": "ninguna"},
+          {"texto": "Prefiero no responder", "valor": "prefiero_no_responder"}
+        ]
+      },
+      {
+        "tipo": "MTEXT",
+        "texto": "¿Cuál de estas situaciones considera más grave o urgente en su comunidad actualmente?",
+        "requerida": true,
+        "seccion": "General"
+      }
+    ]
+  }

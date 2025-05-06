@@ -1013,14 +1013,15 @@
            plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } }, tooltip: { enabled: false } },
            animation: { animateScale: false, animateRotate: true } // Solo rotación
        };
-       const commonDoughnutOptions = { ...commonPieOptions }; // Pueden ser iguales
+       // Animacion de rotacion con
+       const commonDoughnutOptions = { ...commonPieOptions, cutout: '20%', animation: { animateScale: true, animateRotate: true, duration: 3000, easing: 'easeOutBounce', delay: 1000 }}; // Pueden ser iguales
        // Podrías ajustar cutout aquí si quieres: cutout: '60%'
 
        // --- Crear todos los gráficos iniciales ---
        function initializeAllCharts() {
             createOrUpdateChart('tipoPreguntasChart', 'doughnut', chartData['tipoPreguntasChart'], commonDoughnutOptions);
-            createOrUpdateChart('distribucionCategoriaChart', 'pie', chartData['distribucionCategoriaChart'], commonPieOptions);
-            createOrUpdateChart('distribucionSubcategoriaChart', 'pie', chartData['distribucionSubcategoriaChart'], commonPieOptions); // Nuevo
+            createOrUpdateChart('distribucionCategoriaChart', 'doughnut', chartData['distribucionCategoriaChart'], commonDoughnutOptions);
+            createOrUpdateChart('distribucionSubcategoriaChart', 'doughnut', chartData['distribucionSubcategoriaChart'], commonDoughnutOptions); // Nuevo
             createOrUpdateChart('distribucionTemaChart', 'pie', chartData['distribucionTemaChart'], commonPieOptions); // Nuevo
             createOrUpdateChart('distribucionRegionChart', 'pie', chartData['distribucionRegionChart'], commonPieOptions);
             createOrUpdateChart('distribucionTipoPqrsfdChart', 'pie', chartData['distribucionTipoPqrsfdChart'], commonPieOptions); // Nuevo
@@ -1271,8 +1272,8 @@
 
       if (mapaContainer) {
             map = L.map('mapaColombia').setView([4.5709, -74.2973], 6); // Inicializar map
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors',
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
                 maxZoom: 18, // Limitar zoom máximo
             }).addTo(map);
 
@@ -1295,7 +1296,7 @@
                     totalRespuestas: ['#edf8e9','#bae4b3','#74c476','#31a354','#006d2c'], // Verdes (menos pasos)
                     tasaFinalizacion: ['#feedde','#fdd0a2','#fdae6b','#fd8d3c','#e6550d','#a63603'] // Naranjas (menos pasos)
                 };
-                 const colors = scales[tipo] || scales.totalEncuestas; // Default a encuestas
+                 const colors = scales[tipo] || scales.tasaFinalizacion; // Default a encuestas
                  value = Number(value) || 0; // Asegurar que sea número
 
                  let idx = 0;
@@ -1325,6 +1326,8 @@
             }
 
             function createCustomIcon(color, size = 10) { // Tamaño configurable
+              // Permite personalizar el tipo o la forma en como se va mostrar
+              // el icono de los municipios
                 return L.divIcon({
                     className: 'custom-div-icon',
                     html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 0 3px rgba(0,0,0,0.4);"></div>`,
@@ -1333,215 +1336,216 @@
                 });
             }
 
-             function crearGraficoDoughnutSimple(canvasId, label, valor, total, color) {
-                 const ctx = document.getElementById(canvasId)?.getContext('2d');
-                 if (!ctx) return;
+            function crearGraficoDoughnutSimple(canvasId, label, valor, total, color) {
+              const ctx = document.getElementById(canvasId)?.getContext('2d');
+              if (!ctx) return;
 
-                 if (window.chartInstances[canvasId]) { window.chartInstances[canvasId].destroy(); }
+              if (window.chartInstances[canvasId]) { window.chartInstances[canvasId].destroy(); }
 
-                 valor = Number(valor) || 0;
-                 total = Number(total) || 0;
-                 const restante = Math.max(0, total - valor);
+              valor = Number(valor) || 0;
+              total = Number(total) || 0;
+              const restante = Math.max(0, total - valor);
 
-                 const data = {
-                     datasets: [{
-                         data: [valor, restante],
-                         backgroundColor: [color, '#e9ecef'],
-                         borderColor: ['#ffffff', '#ffffff'],
-                         borderWidth: 1, // Borde más fino
-                         cutout: '75%', // Más delgado
-                     }]
-                 };
-                 const options = {
-                     responsive: true, maintainAspectRatio: false, rotation: -90, circumference: 180, // Semicírculo
-                     plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                     animation: { animateScale: false, animateRotate: true } // Solo rotación
-                 };
+              const data = {
+                datasets: [{
+                    data: [valor, restante],
+                    backgroundColor: [color, '#e9ecef'],
+                    borderColor: ['#ffffff', '#ffffff'],
+                    borderWidth: 1, // Borde más fino
+                    cutout: '75%', // Más delgado
+                }]
+              };
 
-                 window.chartInstances[canvasId] = new Chart(ctx, {
-                     type: 'doughnut', data: data, options: options,
-                     plugins: [{ // Plugin para texto central
-                         id: 'doughnutText',
-                         afterDraw(chart, args, options) {
-                             const {ctx, chartArea: {top, bottom, left, right, width, height}} = chart;
-                             ctx.save();
-                             const text = valor.toLocaleString(); // Formatear número
-                             const textX = width / 2 + left;
-                             const textY = top + (height * 0.75); // Ajustar posición vertical para semicírculo
+              const options = {
+                  responsive: true, maintainAspectRatio: false, rotation: -90, circumference: 180, // Semicírculo
+                  plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                  animation: { animateScale: false, animateRotate: true } // Solo rotación
+              };
 
-                             ctx.font = 'bold 1.1rem Nunito, sans-serif';
-                             ctx.fillStyle = color;
-                             ctx.textAlign = 'center';
-                             ctx.textBaseline = 'middle';
-                             ctx.fillText(text, textX, textY);
+              window.chartInstances[canvasId] = new Chart(ctx, {
+                type: 'doughnut', data: data, options: options,
+                plugins: [{ // Plugin para texto central
+                  id: 'doughnutText',
+                  afterDraw(chart, args, options) {
+                    const {ctx, chartArea: {top, bottom, left, right, width, height}} = chart;
+                    ctx.save();
+                    const text = valor.toLocaleString(); // Formatear número
+                    const textX = width / 2 + left;
+                    const textY = top + (height * 0.75); // Ajustar posición vertical para semicírculo
 
-                             const labelText = label || ''; // Asegurar que labelText sea siempre un string
-                             ctx.font = '0.7rem Nunito, sans-serif';
-                             ctx.fillStyle = '#6c757d';
-                             ctx.fillText(labelText, textX, textY + 16); // Debajo del número
-                             ctx.restore();
-                         }
-                     }]
-                 });
-             }
+                    ctx.font = 'bold 1.1rem Nunito, sans-serif';
+                    ctx.fillStyle = color;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, textX, textY);
+
+                    const labelText = label || ''; // Asegurar que labelText sea siempre un string
+                    ctx.font = '0.7rem Nunito, sans-serif';
+                    ctx.fillStyle = '#6c757d';
+                    ctx.fillText(labelText, textX, textY + 16); // Debajo del número
+                    ctx.restore();
+                  }
+                }]
+              });
+            }
 
 
             function mostrarInfoMunicipio(key) {
-                 // Convertir key a mayúsculas si no lo está ya
-                 const upperKey = key.toUpperCase();
-                 const info = datosEstadisticas[upperKey]; // Buscar siempre con mayúsculas
+              // Convertir key a mayúsculas si no lo está ya
+              const upperKey = key.toUpperCase();
+              const info = datosEstadisticas[upperKey]; // Buscar siempre con mayúsculas
 
-                if (!info || !infoMunicipioPanel) {
-                     console.warn("Información no encontrada para clave:", upperKey, "Datos disponibles:", Object.keys(datosEstadisticas));
-                     if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar si no hay datos
-                     return;
-                }
+              if (!info || !infoMunicipioPanel) {
+                console.warn("Información no encontrada para clave:", upperKey, "Datos disponibles:", Object.keys(datosEstadisticas));
+                if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar si no hay datos
+                return;
+              }
 
-                document.getElementById('nombreMunicipio').textContent = info.nombre || 'N/A';
-                document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas?.toLocaleString() || '0';
-                document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas?.toLocaleString() || '0';
-                document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion + '%';
-                document.getElementById('infoMunicipio').style.display = 'block';
-                
-                // Crear/Actualizar los gráficos del panel usando IDs definidos
-                crearGraficoDoughnutSimple(
-                    canvasRespondidasId, 'Respondidas', info.encuestasRespondidas || 0, info.totalEncuestas || 0, '#1cc88a'
-                );
-                crearGraficoDoughnutSimple(
-                    canvasAsignadasId, 'Asignadas', info.totalEncuestas || 0, info.totalEncuestas || 0, '#4e73df'
-                );
+              document.getElementById('nombreMunicipio').textContent = info.nombre || 'N/A';
+              document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas?.toLocaleString() || '0';
+              document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas?.toLocaleString() || '0';
+              document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion + '%';
+              document.getElementById('infoMunicipio').style.display = 'block';
+              
+              // Crear/Actualizar los gráficos del panel usando IDs definidos
+              crearGraficoDoughnutSimple(
+                canvasRespondidasId, 'Respondidas', info.encuestasRespondidas || 0, info.totalEncuestas || 0, '#1cc88a'
+              );
+              crearGraficoDoughnutSimple(
+                canvasAsignadasId, 'Asignadas', info.totalEncuestas || 0, info.totalEncuestas || 0, '#4e73df'
+              );
             }
 
 
             function cargarMunicipios() {
-                if (loadingElement) loadingElement.style.display = 'block';
-                if (progressElement) progressElement.textContent = '0%';
-                if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar panel
+              if (loadingElement) loadingElement.style.display = 'block';
+              if (progressElement) progressElement.textContent = '0%';
+              if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar panel
 
-                municipiosLayer.clearLayers(); // Limpiar marcadores de municipios
-                if(map.hasLayer(oleoductoLayer)) map.removeLayer(oleoductoLayer); // Quitar oleoductos si están
-                if(!map.hasLayer(municipiosLayer)) map.addLayer(municipiosLayer); // Añadir capa de municipios si no está
+              municipiosLayer.clearLayers(); // Limpiar marcadores de municipios
+              if(map.hasLayer(oleoductoLayer)) map.removeLayer(oleoductoLayer); // Quitar oleoductos si están
+              if(!map.hasLayer(municipiosLayer)) map.addLayer(municipiosLayer); // Añadir capa de municipios si no está
 
-                fetch('/api/estadisticas-municipios/')
-                    .then(res => res.json())
-                    .then(estadisticas => {
-                        datosEstadisticas = estadisticas;
-                        
-                        let total = Object.keys(estadisticas).length;
-                        let count = 0;
-                        
-                        for (const key in estadisticas) {
-                            const municipio = estadisticas[key];
-                            
-                            count++;
-                            let porcentaje = Math.round((count / total) * 100);
-                            progressElement.textContent = porcentaje + '%';
-                            
-                            const lat = municipio.latitud || 4.5709;
-                            const lng = municipio.longitud || -74.2973;
-                            
-                            const marker = L.marker([lat, lng], {
-                                icon: createCustomIcon('#4e73df')
-                            }).bindPopup(`
-                                <div class="popup-content">
-                                    <h6>${municipio.nombre}</h6>
-                                    <p><strong>Región:</strong> ${municipio.region}</p><hr>
-                                    <p><span>${municipio.totalRespuestas?.toLocaleString() || 0}</span> <strong>Respuestas</strong></p>
-                                    <p><span>${municipio.totalEncuestas?.toLocaleString() || 0}</span> <strong>Enc. Asignadas</strong></p>
-                                    <p><span>${(municipio.tasaFinalizacion || 0).toFixed(1)}%</span> <strong>Tasa Finaliz.</strong></p>
-                                </div>`);
-                            
-                            marker.on('click', () => mostrarInfoMunicipio(key));
-                            municipiosLayer.addLayer(marker);
-                        }
-                        
-                        loadingElement.style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error('Error cargando datos de municipios:', error);
-                        loadingElement.style.display = 'none';
-                    });
+              fetch('/api/estadisticas-municipios/')
+              .then(res => res.json())
+              .then(estadisticas => {
+                datosEstadisticas = estadisticas;
+                
+                let total = Object.keys(estadisticas).length;
+                let count = 0;
+                
+                for (const key in estadisticas) {
+                    const municipio = estadisticas[key];
+                    
+                    count++;
+                    let porcentaje = Math.round((count / total) * 100);
+                    progressElement.textContent = porcentaje + '%';
+                    
+                    const lat = municipio.latitud || 4.5709;
+                    const lng = municipio.longitud || -74.2973;
+                    
+                    const marker = L.marker([lat, lng], {
+                        icon: createCustomIcon('red')
+                    }).bindPopup(`
+                        <div class="popup-content">
+                            <h6>${municipio.nombre}</h6>
+                            <p><strong>Región:</strong> ${municipio.region}</p><hr>
+                            <p><span>${municipio.totalRespuestas?.toLocaleString() || 0}</span> <strong>Respuestas</strong></p>
+                            <p><span>${municipio.totalEncuestas?.toLocaleString() || 0}</span> <strong>Enc. Asignadas</strong></p>
+                            <p><span>${(municipio.tasaFinalizacion || 0).toFixed(1)}%</span> <strong>Tasa Finaliz.</strong></p>
+                        </div>`);
+                    
+                    marker.on('click', () => mostrarInfoMunicipio(key));
+                    municipiosLayer.addLayer(marker);
+                }
+                    
+                loadingElement.style.display = 'none';
+              })
+              .catch(error => {
+                  console.error('Error cargando datos de municipios:', error);
+                  loadingElement.style.display = 'none';
+              });
             }
 
             function cargarOleoductos() {
-                 if (loadingElement) loadingElement.style.display = 'block';
-                 if (progressElement) progressElement.textContent = '0%';
-                 if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar panel
+              if (loadingElement) loadingElement.style.display = 'block';
+              if (progressElement) progressElement.textContent = '0%';
+              if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar panel
 
-                oleoductoLayer.clearLayers(); // Limpiar líneas y marcadores de oleoductos
-                 if(map.hasLayer(municipiosLayer)) map.removeLayer(municipiosLayer); // Quitar marcadores de municipios
-                 if(!map.hasLayer(oleoductoLayer)) map.addLayer(oleoductoLayer); // Añadir capa de oleoductos
+              oleoductoLayer.clearLayers(); // Limpiar líneas y marcadores de oleoductos
+              if(map.hasLayer(municipiosLayer)) map.removeLayer(municipiosLayer); // Quitar marcadores de municipios
+              if(!map.hasLayer(oleoductoLayer)) map.addLayer(oleoductoLayer); // Añadir capa de oleoductos
 
                 // 1. Cargar Estadísticas
-                fetch('/api/estadisticas-municipios/')
-                    .then(res => res.ok ? res.json() : Promise.reject(`Estadisticas HTTP error! status: ${res.status}`))
-                    .then(estadisticas => {
-                        datosEstadisticas = estadisticas;
-                        progressElement.textContent = '30%';
+              fetch('/api/estadisticas-municipios/')
+              .then(res => res.ok ? res.json() : Promise.reject(`Estadisticas HTTP error! status: ${res.status}`))
+              .then(estadisticas => {
+                datosEstadisticas = estadisticas;
+                progressElement.textContent = '30%';
 
-                        // 2. Cargar GeoJSON
-                        fetch("{% static 'kml/Trazado_oleoducto_Cenit.geojson' %}")
-                            .then(res => res.json())
-                            .then(geoJson => {
-                                progressElement.textContent = '60%';
+                // 2. Cargar GeoJSON
+                fetch("{% static 'kml/Trazado_oleoducto_Cenit.geojson' %}")
+                .then(res => res.json())
+                .then(geoJson => {
+                  progressElement.textContent = '60%';
 
-                                const geoJsonLayer = L.geoJSON(geoJson, { // Guardamos la capa GeoJSON aquí
-                                    style: feature => {
-                                        // Usar nombre en MAYUSCULAS como clave
-                                        const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
-                                        const d = datosEstadisticas[key] || {};
-                                        const color = getColorForValue(d.totalEncuestas || 0, 'totalEncuestas');
+                  const geoJsonLayer = L.geoJSON(geoJson, { // Guardamos la capa GeoJSON aquí
+                    style: feature => {
+                      // Usar nombre en MAYUSCULAS como clave
+                      const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
+                      const d = datosEstadisticas[key] || {};
+                      const color = getColorForValue(d.totalEncuestas || 0, 'totalEncuestas');
 
-                                        if (feature.geometry.type.includes('LineString')) {
-                                             return { color: color, weight: 4, opacity: 0.7, dashArray: '8,4' };
-                                        }
-                                        // Estilo para polígonos (si aplica)
-                                        return { fillColor: color, color: 'white', weight:1, fillOpacity:0.7 };
-                                    },
-                                    onEachFeature: (feature, layer) => {
-                                        const p = feature.properties;
-                                        const key = (p.nombre || p.name || '').toUpperCase();
-                                        const d = datosEstadisticas[key] || {};
+                      if (feature.geometry.type.includes('LineString')) {
+                            return { color: color, weight: 4, opacity: 0.7, dashArray: '8,4' };
+                      }
+                      // Estilo para polígonos (si aplica)
+                      return { fillColor: color, color: 'white', weight:1, fillOpacity:0.7 };
+                    },
+                    onEachFeature: (feature, layer) => {
+                      const p = feature.properties;
+                      const key = (p.nombre || p.name || '').toUpperCase();
+                      const d = datosEstadisticas[key] || {};
 
-                                        const popupHtml = `
-                                            <div class="popup-content">
-                                                <h6>${p.nombre || p.name}</h6>
-                                                <p><strong>Región:</strong> ${d.region}</p><hr>
-                                                <p><strong>Respuestas:</strong> ${d.totalRespuestas?.toLocaleString() || 0}</p>
-                                            </div>`;
-                                        layer.bindPopup(popupHtml);
+                      const popupHtml = `
+                          <div class="popup-content">
+                              <h6>${p.nombre || p.name}</h6>
+                              <p><strong>Región:</strong> ${d.region}</p><hr>
+                              <p><strong>Respuestas:</strong> ${d.totalRespuestas?.toLocaleString() || 0}</p>
+                          </div>`;
+                      layer.bindPopup(popupHtml);
 
-                                        layer.on({
-                                            mouseover: (e) => e.target.setStyle({ weight:5 }), // Resaltar
-                                            mouseout: (e) => geoJsonLayer.resetStyle(e.target), // CORRECCIÓN: usar geoJsonLayer.resetStyle
-                                            click: () => mostrarInfoMunicipio(key) // Mostrar info al hacer clic
-                                        });
-                                    }
-                                });
+                      layer.on({
+                          mouseover: (e) => e.target.setStyle({ weight:5 }), // Resaltar
+                          mouseout: (e) => geoJsonLayer.resetStyle(e.target), // CORRECCIÓN: usar geoJsonLayer.resetStyle
+                          click: () => mostrarInfoMunicipio(key) // Mostrar info al hacer clic
+                      });
+                    }
+                  });
 
-                                oleoductoLayer.addLayer(geoJsonLayer); // Añadir la capa GeoJSON al grupo
-                                
-                                progressElement.textContent = '80%';
-                                
-                                const b = geoJsonLayer.getBounds();
-                                if (b.isValid && b.isValid()) map.fitBounds(b);
-                                else map.setView([4.5709, -74.2973], 6);
-                                
-                                setTimeout(() => {
-                                  progressElement.textContent = '100%';
-                                  loadingElement.style.display = 'none';
-                                }, 500);
-                            })
-                            .catch(err => {
-                                console.error('Error cargando GeoJSON:', err);
-                                map.setView([4.5709, -74.2973], 6);
-                                loadingElement.style.display = 'none';
-                            });
-                    })
-                    .catch(err => {
-                        console.error('Error al cargar estadísticas para oleoductos:', err);
-                        loadingElement.style.display = 'none';
-                    });
+                  oleoductoLayer.addLayer(geoJsonLayer); // Añadir la capa GeoJSON al grupo
+                  
+                  progressElement.textContent = '80%';
+                  
+                  const b = geoJsonLayer.getBounds();
+                  if (b.isValid && b.isValid()) map.fitBounds(b);
+                  else map.setView([4.5709, -74.2973], 6);
+                  
+                  setTimeout(() => {
+                    progressElement.textContent = '100%';
+                    loadingElement.style.display = 'none';
+                  }, 500);
+                })
+                .catch(err => {
+                    console.error('Error cargando GeoJSON:', err);
+                    map.setView([4.5709, -74.2973], 6);
+                    loadingElement.style.display = 'none';
+                });
+              })
+              .catch(err => {
+                  console.error('Error al cargar estadísticas para oleoductos:', err);
+                  loadingElement.style.display = 'none';
+              });
             }
 
             // Configuración de botones de control
@@ -1549,20 +1553,20 @@
             const btnOleoductos = document.getElementById('btnMostrarOleoductos');
 
             if(btnMunicipios && btnOleoductos) {
-                btnMunicipios.addEventListener('click', function() {
-                    if (!this.classList.contains('active')) {
-                        this.classList.add('active');
-                        btnOleoductos.classList.remove('active');
-                        cargarMunicipios();
-                    }
-                });
-                btnOleoductos.addEventListener('click', function() {
-                     if (!this.classList.contains('active')) {
-                        this.classList.add('active');
-                        btnMunicipios.classList.remove('active');
-                        cargarOleoductos();
-                     }
-                });
+              btnMunicipios.addEventListener('click', function() {
+                if (!this.classList.contains('active')) {
+                    this.classList.add('active');
+                    btnOleoductos.classList.remove('active');
+                    cargarMunicipios();
+                }
+              });
+              btnOleoductos.addEventListener('click', function() {
+                if (!this.classList.contains('active')) {
+                  this.classList.add('active');
+                  btnMunicipios.classList.remove('active');
+                  cargarOleoductos();
+                }
+              });
             }
 
             // Cargar oleoductos por defecto al iniciar
