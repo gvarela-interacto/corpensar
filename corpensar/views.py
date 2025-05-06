@@ -2912,51 +2912,68 @@ def agregar_caracterizacion(request, encuesta_id):
         preguntas = [
             {
                 'tipo': 'TEXT',
-                'texto': '¿Cuál es su nombre completo?',
+                'texto': 'Entrevistador',
                 'orden': ultimo_orden + 1,
                 'seccion': 'Caracterización',
                 'requerida': requeridas
             },
             {
+                'tipo': 'TEXT',
+                'texto': '¿Cuál es su nombre completo?',
+                'orden': ultimo_orden + 2,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Correo electrónico',
+                'orden': ultimo_orden + 3,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+            },
+            {
                 'tipo': 'RADIO',
                 'texto': '¿Cuál es su sexo?',
-                'orden': ultimo_orden + 2,
+                'orden': ultimo_orden + 4,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
-                    {'texto': 'Masculino', 'valor': 'a'},
-                    {'texto': 'Femenino', 'valor': 'b'},
-                    {'texto': 'Otro', 'valor': 'c'},
-                    {'texto': 'Prefiero no responder', 'valor': 'd'}
+                    {'texto': 'Masculino', 'valor': 'a', 'orden': 1},
+                    {'texto': 'Femenino', 'valor': 'b', 'orden': 2},
+                    {'texto': 'Otro', 'valor': 'c', 'orden': 3},
+                    {'texto': 'Prefiero no responder', 'valor': 'd', 'orden': 4}
                 ]
             },
             {
                 'tipo': 'RADIO',
                 'texto': '¿Cuál es su rango de edad?',
-                'orden': ultimo_orden + 3,
+                'orden': ultimo_orden + 5,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
-                    {'texto': 'Menos de 18 años', 'valor': 'a'},
-                    {'texto': '18 a 25 años', 'valor': 'b'},
-                    {'texto': '26 a 35 años', 'valor': 'c'},
-                    {'texto': '36 a 45 años', 'valor': 'd'},
-                    {'texto': '46 a 60 años', 'valor': 'e'},
-                    {'texto': 'Más de 60 años', 'valor': 'f'}
+                    {'texto': 'Menos de 18 años', 'valor': 'a', 'orden': 1},
+                    {'texto': '18 a 25 años', 'valor': 'b', 'orden': 2},
+                    {'texto': '26 a 35 años', 'valor': 'c', 'orden': 3},
+                    {'texto': '36 a 45 años', 'valor': 'd', 'orden': 4},
+                    {'texto': '46 a 60 años', 'valor': 'e', 'orden': 5},
+                    {'texto': 'Más de 60 años', 'valor': 'f', 'orden': 6}
                 ]
             },
             {
                 'tipo': 'CHECK',
                 'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
-                'orden': ultimo_orden + 4,
+                'orden': ultimo_orden + 6,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
-                    {'texto': 'Comunidad Indígena', 'valor': 'a'},
-                    {'texto': 'Comunidad Afrodescendiente', 'valor': 'b'},
-                    {'texto': 'Comunidad Campesina', 'valor': 'c'},
-                    {'texto': 'Persona con Discapacidad', 'valor': 'd'},
-                    {'texto': 'Ninguno', 'valor': 'e'}
+                    {'texto': 'Comunidad Indígena', 'valor': 'a', 'orden': 1},
+                    {'texto': 'Comunidad Afrodescendiente', 'valor': 'b', 'orden': 2},
+                    {'texto': 'Comunidad Campesina', 'valor': 'c', 'orden': 3},
+                    {'texto': 'Persona con Discapacidad', 'valor': 'd', 'orden': 4},
+                    {'texto': 'LGBTIQ+', 'valor': 'e', 'orden': 5},
+                    {'texto': 'Victima del conflicto armado', 'valor': 'f', 'orden': 6},
+                    {'texto': 'Otro', 'valor': 'g', 'orden': 7},
+                    {'texto': 'Ninguno', 'valor': 'h', 'orden': 8}
                 ]
             }
         ]
@@ -2970,7 +2987,9 @@ def agregar_caracterizacion(request, encuesta_id):
                     tipo=pregunta_data['tipo'],
                     requerida=pregunta_data['requerida'],
                     orden=pregunta_data['orden'],
-                    seccion=pregunta_data['seccion']
+                    seccion=pregunta_data['seccion'],
+                    ayuda=pregunta_data.get('ayuda', ''),
+                    placeholder=pregunta_data.get('placeholder', '')
                 )
             elif pregunta_data['tipo'] == 'RADIO':
                 pregunta = PreguntaOpcionMultiple.objects.create(
@@ -2986,7 +3005,8 @@ def agregar_caracterizacion(request, encuesta_id):
                     OpcionMultiple.objects.create(
                         pregunta=pregunta,
                         texto=opcion_data['texto'],
-                        valor=opcion_data['valor']
+                        valor=opcion_data['valor'],
+                        orden=opcion_data['orden']
                     )
             elif pregunta_data['tipo'] == 'CHECK':
                 pregunta = PreguntaCasillasVerificacion.objects.create(
@@ -3002,7 +3022,8 @@ def agregar_caracterizacion(request, encuesta_id):
                     OpcionCasillaVerificacion.objects.create(
                         pregunta=pregunta,
                         texto=opcion_data['texto'],
-                        valor=opcion_data['valor']
+                        valor=opcion_data['valor'],
+                        orden=opcion_data['orden']
                     )
         
         messages.success(request, 'Preguntas de caracterización agregadas exitosamente.')
