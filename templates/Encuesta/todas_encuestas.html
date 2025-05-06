@@ -171,239 +171,264 @@
         </div>
     </div>
     
-    <!-- Vista de tabla -->
-    <div class="card shadow-sm mb-4" id="vistaTabla">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="border-0" style="width: 35%;">Título</th>
-                        {% if user.is_superuser %}
-                        <th class="border-0 text-center" style="width: 90px;">Estado</th>
-                        {% endif %}
-                        <th class="border-0 d-none d-md-table-cell" style="width: 120px;">Región</th>
-                        <th class="border-0 d-none d-md-table-cell" style="width: 120px;">Categoría</th>
-                        <th class="border-0 d-none d-lg-table-cell" style="width: 100px;">Fecha</th>
-                        {% if user.is_superuser %}
-                        <th class="border-0 d-none d-lg-table-cell" style="width: 120px;">Creador</th>
-                        {% endif %}
-                        <th class="border-0 text-end" style="width: 150px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for encuesta in encuestas %}
-                    <tr>
-                        <td class="align-middle text-wrap">
-                            <div class="d-flex align-items-start">
-                                <div class="avatar-sm bg-light rounded-circle text-center me-2 flex-shrink-0">
-                                    <i class="fas fa-poll text-primary my-2"></i>
+    <!-- Vista de tabla agrupada por categorías -->
+    <div id="vistaTabla">
+        {% regroup encuestas|dictsort:"categoria.nombre" by categoria as encuestas_por_categoria %}
+        
+        {% for categoria_grupo in encuestas_por_categoria %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-tag me-2"></i>
+                    {% if categoria_grupo.grouper %}
+                        {{ categoria_grupo.grouper.nombre }}
+                    {% else %}
+                        Sin categoría
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0" style="width: 35%;">Título</th>
+                            {% if user.is_superuser %}
+                            <th class="border-0 text-center" style="width: 90px;">Estado</th>
+                            {% endif %}
+                            <th class="border-0 d-none d-md-table-cell" style="width: 120px;">Región</th>
+                            <th class="border-0 d-none d-md-table-cell" style="width: 120px;">Subcategoría</th>
+                            <th class="border-0 d-none d-lg-table-cell" style="width: 100px;">Fecha</th>
+                            {% if user.is_superuser %}
+                            <th class="border-0 d-none d-lg-table-cell" style="width: 120px;">Creador</th>
+                            {% endif %}
+                            <th class="border-0 text-end" style="width: 150px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for encuesta in categoria_grupo.list %}
+                        <tr>
+                            <td class="align-middle text-wrap">
+                                <div class="d-flex align-items-start">
+                                    <div class="avatar-sm bg-light rounded-circle text-center me-2 flex-shrink-0">
+                                        <i class="fas fa-poll text-primary my-2"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-width-0">
+                                        <h6 class="mb-0 text-wrap">{{ encuesta.titulo }}</h6>
+                                        <small class="text-muted d-none d-md-inline">ID: {{ encuesta.id }}</small>
+                                        <div class="d-block d-md-none">
+                                            <small class="d-block text-muted text-wrap">{{ encuesta.region.nombre|default:"Sin región" }}</small>
+                                            <small class="d-block text-muted text-wrap">{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</small>
+                                            <small class="d-block text-muted">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</small>
+                                            {% if user.is_superuser %}
+                                            <small class="d-block text-muted text-wrap">{{ encuesta.creador.username }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex-grow-1 min-width-0">
-                                    <h6 class="mb-0 text-wrap">{{ encuesta.titulo }}</h6>
-                                    <small class="text-muted d-none d-md-inline">ID: {{ encuesta.id }}</small>
-                                    <div class="d-block d-md-none">
-                                        <small class="d-block text-muted text-wrap">{{ encuesta.region.nombre|default:"Sin región" }}</small>
-                                        <small class="d-block text-muted text-wrap">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</small>
-                                        <small class="d-block text-muted">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</small>
+                            </td>
+                            {% if user.is_superuser %}
+                            <td class="align-middle text-center">
+                                {% if encuesta.activa %}
+                                <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
+                                {% else %}
+                                <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            <td class="align-middle d-none d-md-table-cell">{{ encuesta.region.nombre|default:"Sin región" }}</td>
+                            <td class="align-middle d-none d-md-table-cell">{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</td>
+                            <td class="align-middle d-none d-lg-table-cell">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
+                            {% if user.is_superuser %}
+                            <td class="align-middle d-none d-lg-table-cell">{{ encuesta.creador.username }}</td>
+                            {% endif %}
+                            <td class="align-middle text-end">
+                                <div class="d-flex justify-content-end">
+                                    <!-- Menú de acciones desplegable para móviles -->
+                                    <div class="dropdown d-md-none">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="actionDropdown-{{ encuesta.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown-{{ encuesta.id }}">
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'responder_encuesta' encuesta.slug %}">
+                                                    <i class="fas fa-clipboard-check text-primary"></i> Responder
+                                                </a>
+                                            </li>
+                                            {% if user == encuesta.creador or user.is_superuser %}
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'resultados_encuesta' encuesta.id %}">
+                                                    <i class="fas fa-chart-bar text-success"></i> Resultados
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                            {% if user.is_superuser %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'editar_encuesta' encuesta.id %}">
+                                                    <i class="fas fa-edit text-primary"></i> Editar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'duplicar_encuesta' encuesta.id %}">
+                                                    <i class="fas fa-copy text-info"></i> Duplicar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'eliminar_encuesta' encuesta.id %}" onclick="return confirm('¿Estás seguro de que deseas eliminar esta encuesta?')">
+                                                    <i class="fas fa-trash-alt text-danger"></i> Eliminar
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- Botones para desktop -->
+                                    <div class="d-none d-md-flex">
+                                        <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" title="Responder">
+                                            <i class="fas fa-clipboard-check"></i>
+                                        </a>
+                                        {% if user == encuesta.creador or user.is_superuser %}
+                                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-success me-1" data-bs-toggle="tooltip" title="Ver resultados">
+                                            <i class="fas fa-chart-bar"></i>
+                                        </a>
+                                        {% endif %}
                                         {% if user.is_superuser %}
-                                        <small class="d-block text-muted text-wrap">{{ encuesta.creador.username }}</small>
+                                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'duplicar_encuesta' encuesta.id %}" class="btn btn-sm btn-warning me-1" data-bs-toggle="tooltip" title="Duplicar">
+                                            <i class="fas fa-copy"></i>
+                                        </a>
+                                        <a href="{% url 'eliminar_encuesta' encuesta.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar esta encuesta?')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
                                         {% endif %}
                                     </div>
                                 </div>
-                            </div>
-                        </td>
-                        {% if user.is_superuser %}
-                        <td class="align-middle text-center">
-                            {% if encuesta.activa %}
-                            <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
-                            {% else %}
-                            <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
-                            {% endif %}
-                        </td>
-                        {% endif %}
-                        <td class="align-middle d-none d-md-table-cell">{{ encuesta.region.nombre|default:"Sin región" }}</td>
-                        <td class="align-middle d-none d-md-table-cell">{{ encuesta.categoria.nombre|default:"Sin categoría" }}</td>
-                        <td class="align-middle d-none d-lg-table-cell">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</td>
-                        {% if user.is_superuser %}
-                        <td class="align-middle d-none d-lg-table-cell">{{ encuesta.creador.username }}</td>
-                        {% endif %}
-                        <td class="align-middle text-end">
-                            <div class="d-flex justify-content-end">
-                                <!-- Menú de acciones desplegable para móviles -->
-                                <div class="dropdown d-md-none">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="actionDropdown-{{ encuesta.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown-{{ encuesta.id }}">
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'responder_encuesta' encuesta.slug %}">
-                                                <i class="fas fa-clipboard-check text-primary"></i> Responder
-                                            </a>
-                                        </li>
-                                        {% if user == encuesta.creador or user.is_superuser %}
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'resultados_encuesta' encuesta.id %}">
-                                                <i class="fas fa-chart-bar text-success"></i> Resultados
-                                            </a>
-                                        </li>
-                                        {% endif %}
-                                        {% if user.is_superuser %}
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'editar_encuesta' encuesta.id %}">
-                                                <i class="fas fa-edit text-primary"></i> Editar
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'duplicar_encuesta' encuesta.id %}">
-                                                <i class="fas fa-copy text-info"></i> Duplicar
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{% url 'eliminar_encuesta' encuesta.id %}" onclick="return confirm('¿Estás seguro de que deseas eliminar esta encuesta?')">
-                                                <i class="fas fa-trash-alt text-danger"></i> Eliminar
-                                            </a>
-                                        </li>
-                                        {% endif %}
-                                    </ul>
-                                </div>
-                                
-                                <!-- Botones para desktop -->
-                                <div class="d-none d-md-flex">
-                                    <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-sm btn-primary me-1" data-bs-toggle="tooltip" title="Responder">
-                                        <i class="fas fa-clipboard-check"></i>
-                                    </a>
-                                    {% if user == encuesta.creador or user.is_superuser %}
-                                    <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-success me-1" data-bs-toggle="tooltip" title="Ver resultados">
-                                        <i class="fas fa-chart-bar"></i>
-                                    </a>
-                                    {% endif %}
-                                    {% if user.is_superuser %}
-                                    <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-info me-1" data-bs-toggle="tooltip" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{% url 'duplicar_encuesta' encuesta.id %}" class="btn btn-sm btn-warning me-1" data-bs-toggle="tooltip" title="Duplicar">
-                                        <i class="fas fa-copy"></i>
-                                    </a>
-                                    <a href="{% url 'eliminar_encuesta' encuesta.id %}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar esta encuesta?')">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">
-                            <i class="fas fa-search fa-3x mb-3"></i>
-                            <p class="mb-0">No se encontraron encuestas con los filtros aplicados.</p>
-                            <a href="{% url 'todas_encuestas' %}" class="btn btn-outline-primary mt-2">
-                                <i class="fas fa-undo me-1"></i> Restablecer filtros
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+        {% empty %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center py-4">
+                <i class="fas fa-search fa-3x mb-3"></i>
+                <p class="mb-0">No se encontraron encuestas con los filtros aplicados.</p>
+                <a href="{% url 'todas_encuestas' %}" class="btn btn-outline-primary mt-2">
+                    <i class="fas fa-undo me-1"></i> Restablecer filtros
+                </a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
     
-    <!-- Vista de tarjetas -->
-    <div id="vistaTarjetas" class="mb-4" style="display: none;">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            {% for encuesta in encuestas %}
-            <div class="col">
-                <div class="card h-100 shadow-sm card-hover">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <span class="text-muted small">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</span>
-                        {% if encuesta.activa %}
-                        <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
-                        {% else %}
-                        <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="avatar-sm bg-primary rounded-circle text-center me-3">
-                                <i class="fas fa-poll text-white my-2"></i>
+    <!-- Vista de tarjetas agrupadas por categorías -->
+    <div id="vistaTarjetas" style="display: none;">
+        {% regroup encuestas|dictsort:"categoria.nombre" by categoria as encuestas_por_categoria %}
+        
+        {% for categoria_grupo in encuestas_por_categoria %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-tag me-2"></i>
+                    {% if categoria_grupo.grouper %}
+                        {{ categoria_grupo.grouper.nombre }}
+                    {% else %}
+                        Sin categoría
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for encuesta in categoria_grupo.list %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm card-hover">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">{{ encuesta.fecha_creacion|date:"d/m/Y" }}</span>
+                                {% if encuesta.activa %}
+                                <span class="badge bg-success rounded-pill px-3 py-2">Activa</span>
+                                {% else %}
+                                <span class="badge bg-warning rounded-pill px-3 py-2">Inactiva</span>
+                                {% endif %}
                             </div>
-                            <h5 class="card-title mb-0">{{ encuesta.titulo }}</h5>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-sm bg-primary rounded-circle text-center me-3">
+                                        <i class="fas fa-poll text-white my-2"></i>
+                                    </div>
+                                    <h5 class="card-title mb-0">{{ encuesta.titulo }}</h5>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>Región:</span>
+                                        <span>{{ encuesta.region.nombre|default:"Sin región" }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted"><i class="fas fa-tags me-1"></i>Subcategoría:</span>
+                                        <span>{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted"><i class="fas fa-palette me-1"></i>Tema:</span>
+                                        <span>{{ encuesta.get_tema_display|default:"Sin tema" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-top-0 pt-0">
+                                <div class="d-grid gap-2">
+                                    {% if encuesta.slug %}
+                                    <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye me-1"></i> Ver encuesta
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        <i class="fas fa-eye-slash me-1"></i> Sin URL
+                                    </button>
+                                    {% endif %}
+                                    {% if user == encuesta.creador or user.is_superuser %}
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                            <i class="fas fa-edit me-1"></i> Editar
+                                        </a>
+                                        <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success flex-grow-1">
+                                            <i class="fas fa-chart-bar me-1"></i> Resultados
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'exportar_encuesta_json' encuesta.id %}" class="btn btn-sm btn-outline-info flex-grow-1">
+                                            <i class="fas fa-file-export me-1"></i> Exportar JSON
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info flex-grow-1">
+                                            <i class="fas fa-qrcode me-1"></i> Generar QR
+                                        </button>
+                                        <button onclick="confirmarEliminar('{{ encuesta.id }}', '{{ encuesta.titulo }}')" class="btn btn-sm btn-outline-danger flex-grow-1">
+                                            <i class="fas fa-trash-alt me-1"></i> Eliminar
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>Región:</span>
-                                <span>{{ encuesta.region.nombre|default:"Sin región" }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted"><i class="fas fa-tags me-1"></i>Categoría:</span>
-                                <span>{{ encuesta.categoria.nombre|default:"Sin categoría" }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted"><i class="fas fa-tags me-1"></i>Subcategoría:</span>
-                                <span>{{ encuesta.subcategoria.nombre|default:"Sin subcategoría" }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted"><i class="fas fa-palette me-1"></i>Tema:</span>
-                                <span>{{ encuesta.get_tema_display|default:"Sin tema" }}</span>
-                            </div>
-                        </div>
                     </div>
-                    <div class="card-footer bg-white border-top-0 pt-0">
-                        <div class="d-grid gap-2">
-                            {% if encuesta.slug %}
-                            <a href="{% url 'responder_encuesta' encuesta.slug %}" target="_blank" class="btn btn-sm btn-outline-info">
-                                <i class="fas fa-eye me-1"></i> Ver encuesta
-                            </a>
-                            {% else %}
-                            <button class="btn btn-sm btn-outline-secondary" disabled>
-                                <i class="fas fa-eye-slash me-1"></i> Sin URL
-                            </button>
-                            {% endif %}
-                            {% if user == encuesta.creador or user.is_superuser %}
-                            <div class="d-flex gap-2">
-                                <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-primary flex-grow-1">
-                                    <i class="fas fa-edit me-1"></i> Editar
-                                </a>
-                                <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-sm btn-outline-success flex-grow-1">
-                                    <i class="fas fa-chart-bar me-1"></i> Resultados
-                                </a>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <a href="{% url 'exportar_encuesta_json' encuesta.id %}" class="btn btn-sm btn-outline-info flex-grow-1">
-                                    <i class="fas fa-file-export me-1"></i> Exportar JSON
-                                </a>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button onclick="generarQR('{{ encuesta.slug }}')" class="btn btn-sm btn-outline-info flex-grow-1">
-                                    <i class="fas fa-qrcode me-1"></i> Generar QR
-                                </button>
-                                <button onclick="confirmarEliminar('{{ encuesta.id }}', '{{ encuesta.titulo }}')" class="btn btn-sm btn-outline-danger flex-grow-1">
-                                    <i class="fas fa-trash-alt me-1"></i> Eliminar
-                                </button>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12">
-                <div class="card shadow-sm">
-                    <div class="card-body text-center py-5">
-                        <div class="empty-state">
-                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                            <h5>No tienes encuestas creadas aún</h5>
-                            <p class="text-muted">Comienza a crear tu primera encuesta con el botón "Nueva Encuesta"</p>
-                            <a href="{% url 'seleccionar_metodo' %}" class="btn btn-primary mt-2">
-                                <i class="fas fa-plus me-1"></i> Crear encuesta
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
         </div>
+        {% empty %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center py-4">
+                <i class="fas fa-search fa-3x mb-3"></i>
+                <p class="mb-0">No se encontraron encuestas con los filtros aplicados.</p>
+                <a href="{% url 'todas_encuestas' %}" class="btn btn-outline-primary mt-2">
+                    <i class="fas fa-undo me-1"></i> Restablecer filtros
+                </a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
     
     <!-- Paginación -->
@@ -497,7 +522,7 @@
             
             tarjetasView.addEventListener('click', function() {
                 vistaTabla.style.display = 'none';
-                vistaTarjetas.style.display = 'flex';
+                vistaTarjetas.style.display = 'block';
                 tablaView.classList.remove('active');
                 tarjetasView.classList.add('active');
                 // Guardar preferencia en localStorage
@@ -508,7 +533,7 @@
             const vistaPreferida = localStorage.getItem('vista_encuestas');
             if (vistaPreferida === 'tarjetas') {
                 vistaTabla.style.display = 'none';
-                vistaTarjetas.style.display = 'flex';
+                vistaTarjetas.style.display = 'block';
                 tablaView.classList.remove('active');
                 tarjetasView.classList.add('active');
             }
