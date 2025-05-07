@@ -427,6 +427,12 @@
                         <span class="menu-title">Todas las encuestas</span>
                     </a>
                 </li>
+                <li class="nav-item {% if 'generar_certificado' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'generar_certificado' %}">
+                        <i class="menu-icon mdi mdi-certificate"></i>
+                        <span class="menu-title">Generar Certificados</span>
+                    </a>
+                </li>
             </div>
         </div>
 

@@ -1514,6 +1514,52 @@ def guardar_respuesta(request, encuesta_id):
         procesar_preguntas_estrellas(request, respuesta)
         procesar_archivos_adjuntos(request, respuesta)
 
+        # Verificar si se marcó la opción de generar certificado
+        generar_certificado_opcion = request.POST.get('generar_certificado')
+        
+        if generar_certificado_opcion:
+            # Intentamos obtener el nombre de la caracterización
+            nombre_completo = None
+            
+            # Buscar en las respuestas de texto el nombre de la persona
+            nombre_preguntas = ['nombre completo', '¿cuál es su nombre completo?', 'nombre']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in nombre_preguntas):
+                    respuesta_nombre = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_nombre:
+                        nombre_completo = respuesta_nombre.valor
+                        break
+            
+            # Buscar el número de identificación
+            documento = None
+            doc_preguntas = ['identificación', 'documento', 'cédula', 'número de documento']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in doc_preguntas):
+                    respuesta_doc = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_doc:
+                        documento = respuesta_doc.valor
+                        break
+            
+            # Si tenemos los datos, enviamos directamente al certificado
+            if nombre_completo and documento:
+                fecha_actual = timezone.now().strftime('%d/%m/%Y')
+                context = {
+                    'encuesta': encuesta,
+                    'nombre_completo': nombre_completo,
+                    'numero_identificacion': documento,
+                    'fecha_actual': fecha_actual
+                }
+                return render(request, 'certificado_template.html', context)
+            else:
+                # Si no los encontramos, redirigimos a la página de certificado para que los ingrese
+                return redirect(f'/certificados/generar/?encuesta_id={encuesta.id}')
+        
         # Redirigir a la página de encuesta completada
         return redirect('encuesta_completada', slug=encuesta.slug)
 
@@ -3652,6 +3698,34 @@ def editar_grupo_interes(request, grupo_id):
     
     return render(request, 'grupos_interes/editar_grupo_interes.html', {
         'grupo': grupo
+    })
+
+def generar_certificado(request):
+    """Vista para generar certificados a partir de formularios completados"""
+    if request.method == 'POST':
+        form_id = request.POST.get('formulario_id')
+        nombre = request.POST.get('nombre_completo')
+        documento = request.POST.get('numero_identificacion')
+        
+        if form_id and nombre and documento:
+            encuesta = get_object_or_404(Encuesta, id=form_id)
+            fecha_actual = timezone.now().strftime('%d/%m/%Y')
+            
+            context = {
+                'encuesta': encuesta,
+                'nombre_completo': nombre,
+                'numero_identificacion': documento,
+                'fecha_actual': fecha_actual
+            }
+            
+            return render(request, 'certificado_template.html', context)
+    
+    # Si llegamos aquí, no se enviaron los datos correctamente
+    # Obtener la lista de encuestas disponibles para seleccionar
+    encuestas = Encuesta.objects.all().order_by('-fecha_creacion')
+    
+    return render(request, 'generar_certificado.html', {
+        'encuestas': encuestas
     })
 
 

@@ -92,5 +92,8 @@ urlpatterns = [
   path('grupos-interes/<int:grupo_id>/eliminar/', views.eliminar_grupo_interes, name='eliminar_grupo_interes'),
   path('grupos-interes/<int:grupo_id>/editar/', views.editar_grupo_interes, name='editar_grupo_interes'),
 
+  # Ruta para la generación de certificados
+  path('certificados/generar/', views.generar_certificado, name='generar_certificado'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

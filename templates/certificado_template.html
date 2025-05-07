@@ -1,7 +1,18 @@
 <!-- certificado_template.html -->
 {% load static %}
-
-{% block content %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Certificado de Participación" %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
 <style>
     body {
         font-family: 'Montserrat', 'Arial', sans-serif;
@@ -9,6 +20,7 @@
         margin: 0;
         padding: 20px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
@@ -21,6 +33,7 @@
         padding: 50px 40px 40px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         border-radius: 5px;
+        margin-bottom: 30px;
     }
     .certificate-header {
         text-align: center;
@@ -180,6 +193,54 @@
         display: inline-block;
         border-radius: 3px;
     }
+    .actions-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        width: 100%;
+        max-width: 800px;
+    }
+    .action-button {
+        padding: 12px 25px;
+        border-radius: 6px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .download-btn {
+        background-color: #4361ee;
+        color: white;
+    }
+    .download-btn:hover {
+        background-color: #3a0ca3;
+        color: white;
+    }
+    .whatsapp-btn {
+        background-color: #25D366;
+        color: white;
+    }
+    .whatsapp-btn:hover {
+        background-color: #128C7E;
+        color: white;
+    }
+    .return-btn {
+        background-color: #f72585;
+        color: white;
+    }
+    .return-btn:hover {
+        background-color: #b5179e;
+        color: white;
+    }
+    .phone-input-container {
+        margin: 20px 0;
+        max-width: 400px;
+        width: 100%;
+    }
     @media print {
         body {
             background-color: white;
@@ -189,9 +250,13 @@
         .certificate-container {
             box-shadow: none;
         }
+        .actions-container, .phone-input-container {
+            display: none;
+        }
     }
 </style>
-<div class="certificate-container">
+
+<div id="certificado" class="certificate-container">
     <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo">
     <div class="certificate-border"></div>
     
@@ -233,4 +298,74 @@
         <div class="seal-inner">CERTIFICADO OFICIAL</div>
     </div>
 </div>
-{% endblock %}
+
+<div class="phone-input-container">
+    <div class="input-group">
+        <span class="input-group-text">+</span>
+        <input type="text" id="phone" class="form-control" placeholder="{% trans 'Número de teléfono para WhatsApp (ej: 573001234567)' %}">
+    </div>
+</div>
+
+<div class="actions-container">
+    <a href="#" id="download-btn" class="action-button download-btn">
+        <i class="fas fa-download"></i> {% trans "Descargar Certificado" %}
+    </a>
+    <a href="#" id="whatsapp-btn" class="action-button whatsapp-btn">
+        <i class="fab fa-whatsapp"></i> {% trans "Enviar por WhatsApp" %}
+    </a>
+    <a href="{% url 'generar_certificado' %}" class="action-button return-btn">
+        <i class="fas fa-arrow-left"></i> {% trans "Volver" %}
+    </a>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<!-- HTML2Canvas -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para descargar el certificado
+    document.getElementById('download-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const certificadoDiv = document.getElementById('certificado');
+        
+        html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
+            const enlace = document.createElement('a');
+            enlace.download = `certificado_{{ nombre_completo|slugify }}.png`;
+            enlace.href = canvas.toDataURL('image/png');
+            enlace.click();
+        });
+    });
+    
+    // Función para compartir por WhatsApp
+    document.getElementById('whatsapp-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const phone = document.getElementById('phone').value.trim();
+        
+        if (!phone) {
+            alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
+            return;
+        }
+        
+        const certificadoDiv = document.getElementById('certificado');
+        
+        html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
+            // Guardar temporalmente la imagen como Data URL
+            const imageData = canvas.toDataURL('image/png');
+            
+            // Crear un mensaje para WhatsApp
+            const message = encodeURIComponent("{% trans 'Hola, te comparto tu certificado de participación de Corpensar!' %}");
+            
+            // Abrir ventana de WhatsApp web
+            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+            
+            // Nota: No es posible adjuntar archivos directamente a través de la API de WhatsApp Web,
+            // por lo que el usuario tendría que descargar primero la imagen y luego adjuntarla manualmente.
+            alert("{% trans 'Se abrirá WhatsApp. Para enviar el certificado, descárguelo primero y luego adjúntelo a la conversación.' %}");
+        });
+    });
+});
+</script>
+</body>
+</html>

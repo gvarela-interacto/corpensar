@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Generación de Certificados" %}{% endblock %}
+
+{% block content %}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{% trans "Generación de Certificados" %}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead mb-4">{% trans "Complete el formulario para generar un certificado de participación." %}</p>
+                    
+                    <form method="post" action="{% url 'generar_certificado' %}" id="form-certificado">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="formulario_id" class="form-label fw-bold">{% trans "Seleccione el formulario" %}</label>
+                            <select name="formulario_id" id="formulario_id" class="form-select form-select-lg" required>
+                                <option value="">{% trans "Seleccione un formulario" %}</option>
+                                {% for encuesta in encuestas %}
+                                    <option value="{{ encuesta.id }}">{{ encuesta.titulo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="nombre_completo" class="form-label fw-bold">{% trans "Nombre completo" %}</label>
+                                    <input type="text" class="form-control form-control-lg" id="nombre_completo" name="nombre_completo" placeholder="{% trans 'Ingrese el nombre completo' %}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="numero_identificacion" class="form-label fw-bold">{% trans "Número de identificación" %}</label>
+                                    <input type="text" class="form-control form-control-lg" id="numero_identificacion" name="numero_identificacion" placeholder="{% trans 'Ingrese el número de documento' %}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-certificate me-2"></i> {% trans "Generar certificado" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Obtener parámetros de la URL
+function obtenerParametroURL(nombre) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(nombre);
+}
+
+// Al cargar la página, verificar si hay un ID de encuesta en la URL
+document.addEventListener('DOMContentLoaded', function() {
+    const encuestaId = obtenerParametroURL('encuesta_id');
+    if (encuestaId) {
+        const selectFormulario = document.getElementById('formulario_id');
+        if (selectFormulario) {
+            selectFormulario.value = encuestaId;
+        }
+    }
+});
+</script>
+
+{% endblock %} 

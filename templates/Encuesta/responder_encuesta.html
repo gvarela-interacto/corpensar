@@ -1,4 +1,5 @@
 {% load custom_filters %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1022,18 +1023,21 @@
                 {% endfor %}
             {% endfor %}
             
-            <div class="survey-footer">
-                <div class="container">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <button type="button" class="btn btn-outline-secondary" id="prev-section-btn" style="display: none;">
-                            <i class="fas fa-arrow-left me-2"></i>Anterior
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="submit-button">
-                            <i class="fas fa-paper-plane me-2"></i>Enviar respuestas
-                        </button>
-                    </div>
+            <!-- Botones de acción al final del formulario -->
+            <div class="mt-5 mb-4">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" value="1" id="generar_certificado" name="generar_certificado">
+                    <label class="form-check-label fw-bold" for="generar_certificado">
+                        {% trans "Generar certificado al finalizar" %}
+                    </label>
+                    <div class="text-muted small">{% trans "Marque esta opción si desea generar un certificado de participación al finalizar la encuesta." %}</div>
                 </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-paper-plane me-2"></i> {% trans "Enviar Respuestas" %}
+                </button>
             </div>
+            
         </form>
     </div>
     
