@@ -2546,9 +2546,15 @@ def public_home(request):
         encuesta__in=encuestas_publicas
     ).distinct()
 
+    # Obtener grupos de interes unicos
+    grupos_interes_unicos = GrupoInteres.objects.filter(
+        encuesta__in=encuestas_publicas
+    ).distinct()
+
     context = {
         'encuestas_publicas': encuestas_publicas,
         'categorias_unicas': categorias_unicas,
+        'grupos_interes_unicos': grupos_interes_unicos,
     }
     return render(request, 'public/home.html', context)
 
@@ -3628,3 +3634,24 @@ def eliminar_grupo_interes(request, grupo_id):
         'grupo': grupo,
         'encuestas_asociadas': encuestas_asociadas
     })
+
+@login_required
+def editar_grupo_interes(request, grupo_id):
+    """Vista para editar un grupo de interés"""
+    grupo = get_object_or_404(GrupoInteres, id=grupo_id)
+    
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion', '')
+        
+        grupo.nombre = nombre
+        grupo.descripcion = descripcion
+        grupo.save()
+        messages.success(request, f'Grupo de interés "{nombre}" actualizado exitosamente.')
+        return redirect('grupos_interes')
+    
+    return render(request, 'grupos_interes/editar_grupo_interes.html', {
+        'grupo': grupo
+    })
+
+

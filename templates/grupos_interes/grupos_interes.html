@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <div class="card shadow-sm">
@@ -34,6 +34,9 @@
                                             <a href="{% url 'eliminar_grupo_interes' grupo.id %}" class="btn btn-danger btn-sm delete-btn" 
                                                data-nombre="{{ grupo.nombre }}" data-id="{{ grupo.id }}">
                                                 <i class="fas fa-trash"></i>
+                                            </a>
+                                            <a href="{% url 'editar_grupo_interes' grupo.id %}" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-edit"></i>
                                             </a>
                                         </td>
                                     </tr>

@@ -38,18 +38,18 @@
         </div>
 
         {% if encuestas_publicas %}
-            <!-- Menú de filtro de categorías -->
+            <!-- Menú de filtro por grupos de interes -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="category-filter bg-light p-3 rounded shadow-sm" data-aos="fade-up">
-                        <label class="fw-bold mb-2 text-primary"><i class="fas fa-filter me-2"></i>Filtrar por categoría:</label>
+                        <label class="fw-bold mb-2 text-primary"><i class="fas fa-filter me-2"></i>Filtrar por grupo de interes:</label>
                         <div class="d-flex flex-wrap">
-                            <a href="#all" class="btn btn-sm btn-outline-primary m-1 category-btn active" data-category="all">
+                            <a href="#all" class="btn btn-sm btn-outline-primary m-1 category-btn active" data-grupo_interes="all">
                                 <i class="fas fa-th-large me-1"></i>Todas
                             </a>
-                            {% for categoria in categorias_unicas %}
-                                <a href="#{{ categoria.id }}" class="btn btn-sm btn-outline-primary m-1 category-btn" data-category="{{ categoria.id }}">
-                                    <i class="fas fa-tag me-1"></i>{{ categoria.nombre }}
+                            {% for grupo_interes in grupos_interes_unicos %}
+                                <a href="#{{ grupo_interes.id }}" class="btn btn-sm btn-outline-primary m-1 category-btn" data-grupo_interes="{{ grupo_interes.nombre }}">
+                                    <i class="fas fa-tag me-1"></i>{{ grupo_interes.nombre }}
                                 </a>
                             {% endfor %}
                         </div>
@@ -59,12 +59,19 @@
 
             <!-- Contenedor de encuestas -->
             <div id="encuestas-container">
-                <div id="sin-categoria" class="encuesta-group mb-5">
-                    <!-- Mostrar encuestas sin categoría al inicio -->
+
+                <!-- Mostrar encuestas agrupadas por categoría -->
+                
+                <div id="categoria-3" class="encuesta-group mb-5" data-category="3">
+                    <!-- Título de la categoría -->
+                    <div class="category-header mt-4 mb-4 border-start border-warning border-4 ps-3" data-category="3" data-aos="fade-up">
+                        <h2 class="mb-0">Encuestas</h2>
+                    </div>
+                    
                     <div class="row g-4">
                         {% for encuesta in encuestas_publicas %}
-                            {% if not encuesta.categoria %}
-                                <div class="col-md-6 col-lg-4 encuesta-card" data-aos="fade-up" data-category="all">
+                            {% if encuesta.categoria.id == 3 %}
+                                <div class="col-md-6 col-lg-4 encuesta-card" data-aos="fade-up" data-category="{{ categoria.id }}" data-grupo-interes="{% if encuesta.grupo_interes %}{{ encuesta.grupo_interes.nombre }}{% endif %}">
                                     <div class="card h-100 shadow-sm hover-card">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center mb-3">
@@ -74,7 +81,13 @@
                                             <h5 class="card-title mb-3">{{ encuesta.titulo }}</h5>
                                             <p class="card-text text-muted">{{ encuesta.descripcion|truncatewords:20 }}</p>
                                             <div class="d-flex flex-wrap gap-1 mb-2">
-                                                <span class="badge bg-secondary">Sin categoría</span>
+                                                <span class="badge bg-primary">{{ categoria.nombre }}</span>
+                                                {% if encuesta.subcategoria %}
+                                                    <span class="badge bg-info">{{ encuesta.subcategoria.nombre }}</span>
+                                                {% endif %}
+                                                {% if encuesta.grupo_interes %}
+                                                    <span class="badge bg-warning">{{ encuesta.grupo_interes.nombre }}</span>
+                                                {% endif %}
                                             </div>
                                             <p class="text-muted small">
                                                 <i class="fas fa-calendar-alt me-1"></i>
@@ -92,50 +105,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
-                <!-- Mostrar encuestas agrupadas por categoría -->
-                {% for categoria in categorias_unicas %}
-                    <div id="categoria-{{ categoria.id }}" class="encuesta-group mb-5" data-category="{{ categoria.id }}">
-                        <!-- Título de la categoría -->
-                        <div class="category-header mt-4 mb-4 border-start border-warning border-4 ps-3" data-category="{{ categoria.id }}" data-aos="fade-up">
-                            <h2 class="mb-0">{{ categoria.nombre }}</h2>
-                        </div>
-                        
-                        <div class="row g-4">
-                            {% for encuesta in encuestas_publicas %}
-                                {% if encuesta.categoria == categoria %}
-                                    <div class="col-md-6 col-lg-4 encuesta-card" data-aos="fade-up" data-category="{{ categoria.id }}">
-                                        <div class="card h-100 shadow-sm hover-card">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <span class="badge bg-success me-2"><i class="fas fa-check-circle me-1"></i>Activa</span>
-                                                    <small class="text-muted">Inicio: {{ encuesta.fecha_inicio|date:"d M, Y" }}</small>
-                                                </div>
-                                                <h5 class="card-title mb-3">{{ encuesta.titulo }}</h5>
-                                                <p class="card-text text-muted">{{ encuesta.descripcion|truncatewords:20 }}</p>
-                                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                                    <span class="badge bg-primary">{{ categoria.nombre }}</span>
-                                                    {% if encuesta.subcategoria %}
-                                                        <span class="badge bg-info">{{ encuesta.subcategoria.nombre }}</span>
-                                                    {% endif %}
-                                                </div>
-                                                <p class="text-muted small">
-                                                    <i class="fas fa-calendar-alt me-1"></i>
-                                                    Cierre: {{ encuesta.fecha_fin|date:"d M, Y" }}
-                                                </p>
-                                            </div>
-                                            <div class="card-footer bg-transparent border-0">
-                                                <a href="{% url 'responder_encuesta' encuesta.slug %}" class="btn btn-primary w-100" target="_blank">
-                                                    <i class="fas fa-clipboard-list me-2"></i>Participar
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
             </div>
 
             <!-- Mensaje para mostrar cuando no hay resultados para el filtro -->
@@ -148,24 +117,25 @@
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const categoryButtons = document.querySelectorAll('.category-btn');
-                    const encuestaGroups = document.querySelectorAll('.encuesta-group');
+                    const encuestaCards = document.querySelectorAll('.encuesta-card');
                     const noResultsMessage = document.getElementById('no-results-message');
                     const encuestasContainer = document.getElementById('encuestas-container');
                     
-                    function filterByCategory(category) {
+                    function filterByGrupoInteres(grupo_interes) {
                         let hasVisibleItems = false;
                         
                         // Ocultar temporalmente el contenedor durante la transición
                         encuestasContainer.style.opacity = '0.6';
-                        encuestasContainer.style.height = 'auto';
                         
-                        // Aplicar filtro
-                        encuestaGroups.forEach(group => {
-                            if (category === 'all' || group.dataset.category === category) {
-                                group.classList.remove('d-none');
+                        // Aplicar filtro a cada tarjeta individual
+                        encuestaCards.forEach(card => {
+                            const cardGrupoInteres = card.getAttribute('data-grupo-interes');
+                            
+                            if (grupo_interes === 'all' || cardGrupoInteres === grupo_interes) {
+                                card.classList.remove('d-none');
                                 hasVisibleItems = true;
                             } else {
-                                group.classList.add('d-none');
+                                card.classList.add('d-none');
                             }
                         });
                         
@@ -179,22 +149,20 @@
                         // Restaurar visibilidad con transición suave
                         setTimeout(() => {
                             encuestasContainer.style.opacity = '1';
-                            // Ajustar altura del contenedor al contenido
-                            encuestasContainer.style.height = 'auto';
                         }, 300);
                     }
                     
                     categoryButtons.forEach(button => {
                         button.addEventListener('click', function(e) {
                             e.preventDefault();
-                            const category = this.dataset.category;
+                            const grupo_interes = this.dataset.grupo_interes;
                             
                             // Actualizar botones activos
                             categoryButtons.forEach(btn => btn.classList.remove('active'));
                             this.classList.add('active');
                             
                             // Filtrar encuestas
-                            filterByCategory(category);
+                            filterByGrupoInteres(grupo_interes);
                             
                             // Actualizar URL con el hash
                             history.pushState(null, null, this.getAttribute('href'));
@@ -208,7 +176,7 @@
                     // Inicializar filtro según hash en URL al cargar
                     const hash = window.location.hash.substring(1);
                     if (hash) {
-                        const activeButton = document.querySelector(`.category-btn[data-category="${hash}"]`);
+                        const activeButton = document.querySelector(`.category-btn[data-grupo_interes="${hash}"]`);
                         if (activeButton) {
                             activeButton.click();
                         }

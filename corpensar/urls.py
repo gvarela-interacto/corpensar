@@ -90,6 +90,7 @@ urlpatterns = [
   path('grupos-interes/', views.grupos_interes, name='grupos_interes'),
   path('grupos-interes/crear/', views.crear_grupo_interes, name='crear_grupo_interes'),
   path('grupos-interes/<int:grupo_id>/eliminar/', views.eliminar_grupo_interes, name='eliminar_grupo_interes'),
+  path('grupos-interes/<int:grupo_id>/editar/', views.editar_grupo_interes, name='editar_grupo_interes'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
   + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
