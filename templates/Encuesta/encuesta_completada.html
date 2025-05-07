@@ -210,102 +210,11 @@
                         </a>
                         {% endif %}
                     </div>
-
-                    <div class="mt-5">
-                        <form id="form-certificado" onsubmit="generarCertificado(event)" class="p-4 bg-light rounded shadow-sm border">
-                            <h4 class="mb-4 text-center">{% trans "Generar certificado de participación" %}</h4>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <div class="form-group">
-                                        <label for="nombre_completo" class="font-weight-bold">{% trans "Nombre completo" %}</label>
-                                        <input type="text" class="form-control form-control-lg" id="nombre_completo" name="nombre_completo" placeholder="{% trans 'Ingrese su nombre completo' %}" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="form-group">
-                                        <label for="numero_identificacion" class="font-weight-bold">{% trans "Número de identificación" %}</label>
-                                        <input type="text" class="form-control form-control-lg" id="numero_identificacion" name="numero_identificacion" placeholder="{% trans 'Ingrese su número de documento' %}" required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-center mt-3">
-                                <button type="submit" class="btn btn-primary btn-lg px-5">
-                                    <i class="fas fa-certificate mr-2"></i> {% trans "Generar certificado" %}
-                                </button>
-                            </div>
-                        </form>
-                    </div> 
-
-                    <div id="certificado" class="certificate-container" style="display: none;">
-                        <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo">
-                        <div class="certificate-border"></div>
-                        
-                        <div class="certificate-header">
-                            <div class="certificate-title">Certificado</div>
-                            <div class="certificate-subtitle">de Participación</div>
-                        </div>
-                        
-                        <div class="certificate-content">
-                            <div class="certificate-text">
-                                Corpensar certifica a:
-                            </div>
-                            <div id="nombre-certificado" class="certificate-name"></div>
-                            <div id="identificacion-certificado" class="certificate-id"></div>
-                            <div class="certificate-text">
-                                {% if encuesta.categoria.nombre == 'Grupo focal' %}
-                                    Por su valiosa participación en el {{ encuesta.categoria.nombre }}:
-                                {% else %}
-                                    Por su valiosa participación en la {{ encuesta.categoria.nombre }}:
-                                {% endif %}
-                            </div>
-                            <div class="course-title">
-                                "{{ encuesta.titulo }}"
-                            </div>
-                            
-                            <div class="certificate-details">
-                                <div class="detail-item">
-                                    <div class="field-label">Fecha de expedición</div>
-                                    <div id="fecha-certificado" class="field-value"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="certificate-seal">
-                            <div class="seal-inner">CERTIFICADO OFICIAL</div>
-                        </div>
-                    </div>
                     
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-<script>
-function generarCertificado(event) {
-    event.preventDefault();
-
-    const nombre = document.getElementById('nombre_completo').value;
-    const identificacion = document.getElementById('numero_identificacion').value;
-    const hoy = new Date().toLocaleDateString('es-CO');
-
-    document.getElementById('nombre-certificado').innerText = nombre;
-    document.getElementById('identificacion-certificado').innerText = "Identificación: " + identificacion;
-    document.getElementById('fecha-certificado').innerText = hoy;
-
-    const certificadoDiv = document.getElementById('certificado');
-    certificadoDiv.style.display = 'block';
-
-    html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
-        const enlace = document.createElement('a');
-        enlace.download = `certificado_${nombre}.png`;
-        enlace.href = canvas.toDataURL('image/png');
-        enlace.click();
-        certificadoDiv.style.display = 'none';
-    });
-}
-</script>
 
 {% endblock %}

@@ -1,4 +1,5 @@
 {% load custom_filters %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -141,7 +142,7 @@
             margin: 40px auto;
             background: #fff;
             border-radius: {% if encuesta.estilo_bordes == 'cuadrado' %}0px{% elif encuesta.estilo_bordes == 'suave' %}8px{% else %}16px{% endif %};
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             transition: all 0.3s ease;
         }
@@ -201,36 +202,43 @@
         }
         
         .question {
+            position: relative;
+            padding: 25px;
             margin-bottom: 40px;
-            padding-bottom: 30px;
-            border-bottom: 1px solid var(--medium-gray);
+            border-radius: 8px;
+            border: 1px solid var(--medium-gray);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
             transition: all 0.3s ease;
         }
         
         .question:hover {
-            transform: translateY(-3px);
-        }
-        
-        .question:last-child {
-            border-bottom: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            border-color: rgba(67, 97, 238, 0.3);
         }
         
         .question-title {
-            font-weight: 600;
-            margin-bottom: 18px;
-            color: var(--dark-gray);
             display: flex;
-            align-items: center;
+            align-items: baseline;
+            margin-bottom: 18px;
+            position: relative;
+            padding-right: 100px; /* Espacio para la etiqueta "requerido" */
+        }
+        
+        .question-title span:first-child {
+            font-weight: 600;
             font-size: 18px;
+            color: var(--dark-gray);
         }
         
         .required-badge {
-            background-color: var(--accent-color);
+            position: absolute;
+            right: 0;
+            top: 0;
+            background-color: #ff3e71;
             color: white;
             border-radius: 20px;
-            padding: 3px 10px;
+            padding: 3px 12px;
             font-size: 12px;
-            margin-left: 10px;
             text-transform: uppercase;
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -242,22 +250,24 @@
             margin-bottom: 20px;
             font-style: italic;
             background-color: rgba(77, 201, 240, 0.1);
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 8px;
             border-left: 3px solid var(--success-color);
         }
         
         .form-control, .form-select {
-            padding: 12px 15px;
+            padding: 14px 16px;
             border-radius: {% if encuesta.estilo_bordes == 'cuadrado' %}0px{% elif encuesta.estilo_bordes == 'suave' %}4px{% else %}8px{% endif %};
             border: 2px solid var(--medium-gray);
             font-size: 16px;
             transition: all 0.3s ease;
+            background-color: #fbfbfb;
         }
         
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+            background-color: #fff;
         }
         
         textarea.form-control {
@@ -267,19 +277,40 @@
         .form-check {
             margin-bottom: 12px;
             padding-left: 30px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .form-check:hover {
+            background-color: rgba(0,0,0,0.02);
+            border-radius: 4px;
         }
         
         .form-check-input {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             margin-top: 2px;
             margin-left: -30px;
             cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
         }
         
         .form-check-input:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
+            animation: pulse 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .form-check-label {
+            padding: 3px 0;
+            cursor: pointer;
         }
         
         .star-rating {
@@ -367,6 +398,9 @@
             padding: 25px 40px;
             text-align: right;
             border-top: 1px solid var(--medium-gray);
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
         }
         
         .btn {
@@ -398,6 +432,18 @@
             font-size: 22px;
             color: var(--secondary-color);
             letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title:before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            display: inline-block;
+            margin-right: 10px;
+            border-radius: 50%;
         }
         
         .section-title:first-child {
@@ -440,13 +486,14 @@
             }
             
             .question-title {
-                font-size: 16px;
-                flex-wrap: wrap;
+                padding-right: 0;
+                padding-bottom: 30px;
             }
             
             .required-badge {
-                margin-top: 5px;
-                margin-left: 0;
+                top: auto;
+                bottom: 0;
+                right: 0;
             }
             
             .btn {
@@ -489,7 +536,20 @@
             {% endif %}
         </div>
         
-        <form method="post" action="{% url 'guardar_respuesta' encuesta.id %}" enctype="multipart/form-data" class="survey-body">
+        <!-- Barra de progreso para indicar avance -->
+        <div class="progress-container">
+            <div class="container">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="progress-text small">Progreso: <span id="progress-percentage">0%</span></span>
+                    <span class="small text-muted" id="questions-counter">0 de {{ preguntas|length }} preguntas</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar" id="form-progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post" action="{% url 'guardar_respuesta' encuesta.id %}" enctype="multipart/form-data" class="survey-body" id="survey-form">
             {% csrf_token %}
             
             <div class="mb-4">
@@ -521,12 +581,21 @@
 
                         <!-- Para preguntas de texto simple -->
                         {% if pregunta.tipo == 'TEXT' %}
-                        <input type="text" 
-                            class="form-control" 
-                            name="pregunta_texto_{{ pregunta.id }}" 
-                            placeholder="{{ pregunta.placeholder }}" 
-                            maxlength="{{ pregunta.max_longitud }}"
-                            {% if pregunta.requerida %}required{% endif %}>
+                            {% if "correo electrónico" in pregunta.texto|lower %}
+                            <input type="email" 
+                                class="form-control" 
+                                name="pregunta_texto_{{ pregunta.id }}" 
+                                placeholder="{{ pregunta.placeholder }}" 
+                                maxlength="{{ pregunta.max_longitud }}"
+                                {% if pregunta.requerida %}required{% endif %}>
+                            {% else %}
+                            <input type="text" 
+                                class="form-control" 
+                                name="pregunta_texto_{{ pregunta.id }}" 
+                                placeholder="{{ pregunta.placeholder }}" 
+                                maxlength="{{ pregunta.max_longitud }}"
+                                {% if pregunta.requerida %}required{% endif %}>
+                            {% endif %}
 
                         <!-- Para preguntas de texto múltiple -->
                         {% elif pregunta.tipo == 'MTEXT' %}
@@ -737,12 +806,21 @@
 
                             <!-- Para preguntas de texto simple -->
                             {% if pregunta.tipo == 'TEXT' %}
-                            <input type="text" 
-                                class="form-control" 
-                                name="pregunta_texto_{{ pregunta.id }}" 
-                                placeholder="{{ pregunta.placeholder }}" 
-                                maxlength="{{ pregunta.max_longitud }}"
-                                {% if pregunta.requerida %}required{% endif %}>
+                                {% if "correo electrónico" in pregunta.texto|lower %}
+                                <input type="email" 
+                                    class="form-control" 
+                                    name="pregunta_texto_{{ pregunta.id }}" 
+                                    placeholder="{{ pregunta.placeholder }}" 
+                                    maxlength="{{ pregunta.max_longitud }}"
+                                    {% if pregunta.requerida %}required{% endif %}>
+                                {% else %}
+                                <input type="text" 
+                                    class="form-control" 
+                                    name="pregunta_texto_{{ pregunta.id }}" 
+                                    placeholder="{{ pregunta.placeholder }}" 
+                                    maxlength="{{ pregunta.max_longitud }}"
+                                    {% if pregunta.requerida %}required{% endif %}>
+                                {% endif %}
 
                             <!-- Para preguntas de texto múltiple -->
                             {% elif pregunta.tipo == 'MTEXT' %}
@@ -945,11 +1023,21 @@
                 {% endfor %}
             {% endfor %}
             
-            <div class="survey-footer">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane me-2"></i>Enviar respuestas
+            <!-- Botones de acción al final del formulario -->
+            <div class="mt-5 mb-4">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" value="1" id="generar_certificado" name="generar_certificado">
+                    <label class="form-check-label fw-bold" for="generar_certificado">
+                        {% trans "Generar certificado al finalizar" %}
+                    </label>
+                    <div class="text-muted small">{% trans "Marque esta opción si desea generar un certificado de participación al finalizar la encuesta." %}</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-paper-plane me-2"></i> {% trans "Enviar Respuestas" %}
                 </button>
             </div>
+            
         </form>
     </div>
     
@@ -988,6 +1076,78 @@
                 }
             });
         }
+        
+        // Script para el cálculo del progreso
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('survey-form');
+            const inputs = form.querySelectorAll('input, textarea, select');
+            const questions = document.querySelectorAll('.question');
+            const progressBar = document.getElementById('form-progress-bar');
+            const progressText = document.getElementById('progress-percentage');
+            const questionsCounter = document.getElementById('questions-counter');
+            const progressContainer = document.querySelector('.progress-container');
+            
+            let completedQuestions = 0;
+            const totalQuestions = questions.length;
+            
+            questionsCounter.textContent = `0 de ${totalQuestions} preguntas`;
+            
+            // Actualizar progreso cuando cambia cualquier input
+            inputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    updateProgress();
+                });
+            });
+            
+            // Función para actualizar la barra de progreso
+            function updateProgress() {
+                completedQuestions = 0;
+                
+                questions.forEach(question => {
+                    const inputs = question.querySelectorAll('input, textarea, select');
+                    let questionAnswered = false;
+                    
+                    inputs.forEach(input => {
+                        if (
+                            (input.type === 'text' && input.value.trim() !== '') || 
+                            (input.type === 'email' && input.value.trim() !== '') || 
+                            (input.type === 'radio' && input.checked) || 
+                            (input.type === 'checkbox' && input.checked) || 
+                            (input.type === 'textarea' && input.value.trim() !== '') || 
+                            (input.type === 'select-one' && input.value !== '') ||
+                            (input.type === 'range' && input.value !== input.defaultValue) ||
+                            (input.type === 'date' && input.value !== '')
+                        ) {
+                            questionAnswered = true;
+                        }
+                    });
+                    
+                    if (questionAnswered) {
+                        completedQuestions++;
+                        question.classList.add('question-answered');
+                    } else {
+                        question.classList.remove('question-answered');
+                    }
+                });
+                
+                const progressPercent = Math.round((completedQuestions / totalQuestions) * 100);
+                progressBar.style.width = `${progressPercent}%`;
+                progressText.textContent = `${progressPercent}%`;
+                questionsCounter.textContent = `${completedQuestions} de ${totalQuestions} preguntas`;
+            }
+            
+            // Efecto de estilo en la barra de progreso al hacer scroll
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 100) {
+                    progressContainer.classList.add('is-scrolled');
+                } else {
+                    progressContainer.classList.remove('is-scrolled');
+                }
+            });
+            
+            // Mejorar experiencia en la carga
+            setTimeout(updateProgress, 500);
+        });
     </script>
 </body>
 </html>

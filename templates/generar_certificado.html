@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Generación de Certificados" %}{% endblock %}
+
+{% block content %}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{% trans "Generación de Certificados" %}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead mb-4">{% trans "Complete el formulario para generar un certificado de participación." %}</p>
+                    
+                    <form method="post" action="{% url 'generar_certificado' %}" id="form-certificado">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="formulario_id" class="form-label fw-bold">{% trans "Seleccione el formulario" %}</label>
+                            <select name="formulario_id" id="formulario_id" class="form-select form-select-lg" required>
+                                <option value="">{% trans "Seleccione un formulario" %}</option>
+                                {% for encuesta in encuestas %}
+                                    <option value="{{ encuesta.id }}">{{ encuesta.titulo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="nombre_completo" class="form-label fw-bold">{% trans "Nombre completo" %}</label>
+                                    <input type="text" class="form-control form-control-lg" id="nombre_completo" name="nombre_completo" placeholder="{% trans 'Ingrese el nombre completo' %}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="numero_identificacion" class="form-label fw-bold">{% trans "Número de identificación" %}</label>
+                                    <input type="text" class="form-control form-control-lg" id="numero_identificacion" name="numero_identificacion" placeholder="{% trans 'Ingrese el número de documento' %}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="correo" class="form-label fw-bold">{% trans "Correo electrónico" %}</label>
+                                    <input type="email" class="form-control form-control-lg" id="correo" name="correo" placeholder="{% trans 'ejemplo@correo.com' %}">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="telefono" class="form-label fw-bold">{% trans "Número de teléfono" %}</label>
+                                    <input type="tel" class="form-control form-control-lg" id="telefono" name="telefono" placeholder="{% trans 'Ej: 3001234567' %}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-certificate me-2"></i> {% trans "Generar certificado" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para cargar datos desde localStorage
+function cargarDatosCertificado() {
+    // Verificar si existe un timestamp para los datos
+    const timestamp = localStorage.getItem('certificado_timestamp');
+    
+    // Si no hay datos o han pasado más de 30 minutos (1800000 ms), no cargar datos
+    if (!timestamp || (Date.now() - parseInt(timestamp)) > 1800000) {
+        // Limpiar datos antiguos
+        limpiarDatosCertificado();
+        return;
+    }
+    
+    // Obtener datos del localStorage
+    const encuestaId = localStorage.getItem('certificado_encuesta_id');
+    const nombre = localStorage.getItem('certificado_nombre');
+    const documento = localStorage.getItem('certificado_documento');
+    const correo = localStorage.getItem('certificado_correo');
+    const telefono = localStorage.getItem('certificado_telefono');
+    
+    // Rellenar el formulario si hay datos
+    if (encuestaId) {
+        document.getElementById('formulario_id').value = encuestaId;
+    }
+    
+    if (nombre) {
+        document.getElementById('nombre_completo').value = nombre;
+    }
+    
+    if (documento) {
+        document.getElementById('numero_identificacion').value = documento;
+    }
+    
+    if (correo) {
+        document.getElementById('correo').value = correo;
+    }
+    
+    if (telefono) {
+        document.getElementById('telefono').value = telefono;
+    }
+}
+
+// Función para limpiar los datos del localStorage
+function limpiarDatosCertificado() {
+    localStorage.removeItem('certificado_encuesta_id');
+    localStorage.removeItem('certificado_nombre');
+    localStorage.removeItem('certificado_documento');
+    localStorage.removeItem('certificado_correo');
+    localStorage.removeItem('certificado_telefono');
+    localStorage.removeItem('certificado_timestamp');
+}
+
+// Obtener parámetros de la URL
+function obtenerParametroURL(nombre) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(nombre);
+}
+
+// Al cargar la página, verificar si hay un ID de encuesta en la URL
+document.addEventListener('DOMContentLoaded', function() {
+    // Intentar cargar datos desde localStorage
+    cargarDatosCertificado();
+    
+    // Si hay parámetro en la URL, establecerlo
+    const encuestaId = obtenerParametroURL('encuesta_id');
+    if (encuestaId) {
+        const selectFormulario = document.getElementById('formulario_id');
+        if (selectFormulario) {
+            selectFormulario.value = encuestaId;
+        }
+    }
+    
+    // Limpiar datos después de enviar el formulario
+    document.getElementById('form-certificado').addEventListener('submit', function() {
+        limpiarDatosCertificado();
+    });
+});
+</script>
+
+{% endblock %} 

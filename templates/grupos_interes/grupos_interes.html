@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Grupos de Interés</h4>
+                    <a href="{% url 'crear_grupo_interes' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus"></i> Nuevo Grupo
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if grupos %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Fecha de creación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grupo in grupos %}
+                                    <tr>
+                                        <td>{{ grupo.nombre }}</td>
+                                        <td>{{ grupo.descripcion|truncatechars:50 }}</td>
+                                        <td>{{ grupo.fecha_creacion|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'eliminar_grupo_interes' grupo.id %}" class="btn btn-danger btn-sm delete-btn" 
+                                               data-nombre="{{ grupo.nombre }}" data-id="{{ grupo.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            <a href="{% url 'editar_grupo_interes' grupo.id %}" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No hay grupos de interés registrados.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'index' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Panel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar el grupo de interés <strong id="groupName"></strong>?</p>
+                <div id="encuestasWarning" class="alert alert-warning d-none">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Este grupo está asociado a <span id="encuestasCount"></span> encuesta(s).
+                    Al eliminarlo, estas encuestas quedarán sin grupo de interés asignado.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configurar modal de eliminación
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        const deleteForm = document.getElementById('deleteForm');
+        const groupNameElement = document.getElementById('groupName');
+        const encuestasWarning = document.getElementById('encuestasWarning');
+        const encuestasCount = document.getElementById('encuestasCount');
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const nombre = this.dataset.nombre;
+                groupNameElement.textContent = nombre;
+                deleteForm.action = "{% url 'eliminar_grupo_interes' 0 %}".replace('0', id);
+                
+                // Verificar si hay encuestas asociadas (AJAX)
+                fetch(`/grupos-interes/${id}/eliminar/`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.encuestas_asociadas > 0) {
+                        encuestasWarning.classList.remove('d-none');
+                        encuestasCount.textContent = data.encuestas_asociadas;
+                    } else {
+                        encuestasWarning.classList.add('d-none');
+                    }
+                    deleteModal.show();
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

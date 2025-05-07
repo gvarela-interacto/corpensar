@@ -12,7 +12,7 @@ from .models import (
     RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
     RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD,
-    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD
+    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD, GrupoInteres
 )
 
 
@@ -320,10 +320,19 @@ class PreguntaFechaInline(StackedInline):
     verbose_name = "Pregunta de Fecha/Hora"
     verbose_name_plural = "Preguntas de Fecha/Hora"
 
+# Registro de GrupoInteres
+class GrupoInteresAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'descripcion', 'fecha_creacion']
+    search_fields = ['nombre', 'descripcion']
+    list_per_page = 20
+    date_hierarchy = 'fecha_creacion'
+
+admin.site.register(GrupoInteres, GrupoInteresAdmin)
+
 # Admin principal para Encuesta
 class EncuestaAdmin(admin.ModelAdmin):
-    list_display = ['titulo', 'creador', 'region', 'categoria', 'fecha_creacion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
-    list_filter = ['activa', 'es_publica', 'region', 'categoria', 'creador', 'fecha_creacion', 'tema']
+    list_display = ['titulo', 'creador', 'region', 'categoria', 'grupo_interes', 'fecha_creacion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema']
+    list_filter = ['activa', 'es_publica', 'region', 'categoria', 'grupo_interes', 'creador', 'fecha_creacion', 'tema']
     search_fields = ['titulo', 'descripcion', 'creador__username']
     list_per_page = 20
     prepopulated_fields = {'slug': ('titulo',)}
@@ -337,7 +346,7 @@ class EncuestaAdmin(admin.ModelAdmin):
             'fields': ('titulo', 'slug', 'descripcion', 'creador')
         }),
         ('Clasificación', {
-            'fields': ('region', 'categoria')
+            'fields': ('region', 'categoria', 'grupo_interes')
         }),
         ('Fechas', {
             'fields': ('fecha_inicio', 'fecha_fin', 'fecha_creacion', 'fecha_actualizacion')

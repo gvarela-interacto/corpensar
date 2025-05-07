@@ -1,7 +1,18 @@
 <!-- certificado_template.html -->
 {% load static %}
-
-{% block content %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Certificado de Participación" %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
 <style>
     body {
         font-family: 'Montserrat', 'Arial', sans-serif;
@@ -9,6 +20,7 @@
         margin: 0;
         padding: 20px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
@@ -21,6 +33,7 @@
         padding: 50px 40px 40px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         border-radius: 5px;
+        margin-bottom: 30px;
     }
     .certificate-header {
         text-align: center;
@@ -180,6 +193,54 @@
         display: inline-block;
         border-radius: 3px;
     }
+    .actions-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        width: 100%;
+        max-width: 800px;
+    }
+    .action-button {
+        padding: 12px 25px;
+        border-radius: 6px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .download-btn {
+        background-color: #4361ee;
+        color: white;
+    }
+    .download-btn:hover {
+        background-color: #3a0ca3;
+        color: white;
+    }
+    .whatsapp-btn {
+        background-color: #25D366;
+        color: white;
+    }
+    .whatsapp-btn:hover {
+        background-color: #128C7E;
+        color: white;
+    }
+    .return-btn {
+        background-color: #f72585;
+        color: white;
+    }
+    .return-btn:hover {
+        background-color: #b5179e;
+        color: white;
+    }
+    .phone-input-container {
+        margin: 20px 0;
+        max-width: 400px;
+        width: 100%;
+    }
     @media print {
         body {
             background-color: white;
@@ -189,9 +250,13 @@
         .certificate-container {
             box-shadow: none;
         }
+        .actions-container, .phone-input-container {
+            display: none;
+        }
     }
 </style>
-<div class="certificate-container">
+
+<div id="certificado" class="certificate-container">
     <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo">
     <div class="certificate-border"></div>
     
@@ -233,4 +298,107 @@
         <div class="seal-inner">CERTIFICADO OFICIAL</div>
     </div>
 </div>
-{% endblock %}
+
+<div class="phone-input-container">
+    <div class="input-group">
+        <select id="country-code" class="form-select" style="max-width: 120px;">
+            <option value="57" selected>+57 (Colombia)</option>
+            <option value="1">+1 (USA/Canadá)</option>
+            <option value="52">+52 (México)</option>
+            <option value="51">+51 (Perú)</option>
+            <option value="56">+56 (Chile)</option>
+            <option value="54">+54 (Argentina)</option>
+            <option value="593">+593 (Ecuador)</option>
+            <option value="58">+58 (Venezuela)</option>
+            <option value="591">+591 (Bolivia)</option>
+            <option value="595">+595 (Paraguay)</option>
+            <option value="598">+598 (Uruguay)</option>
+        </select>
+        <input type="tel" id="phone" class="form-control" placeholder="{% trans 'Número telefónico (sin prefijo)' %}" value="{{ telefono }}">
+    </div>
+</div>
+
+<div class="actions-container">
+    <a href="#" id="download-btn" class="action-button download-btn">
+        <i class="fas fa-download"></i> {% trans "Descargar Certificado" %}
+    </a>
+    <a href="#" id="whatsapp-btn" class="action-button whatsapp-btn">
+        <i class="fab fa-whatsapp"></i> {% trans "Enviar por WhatsApp" %}
+    </a>
+    <a href="{% url 'generar_certificado' %}" class="action-button return-btn">
+        <i class="fas fa-arrow-left"></i> {% trans "Volver" %}
+    </a>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<!-- HTML2Canvas -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Si llegamos desde una redirección con datos para guardar, guardarlos en localStorage
+    {% if guardar_datos %}
+    // Guardar datos en localStorage para su posible uso futuro
+    localStorage.setItem('certificado_encuesta_id', '{{ encuesta.id }}');
+    localStorage.setItem('certificado_nombre', '{{ nombre_completo }}');
+    localStorage.setItem('certificado_documento', '{{ numero_identificacion }}');
+    {% if correo %}localStorage.setItem('certificado_correo', '{{ correo }}');{% endif %}
+    {% if telefono %}localStorage.setItem('certificado_telefono', '{{ telefono }}');{% endif %}
+    localStorage.setItem('certificado_timestamp', String(Date.now()));
+    {% endif %}
+    
+    // Función para descargar el certificado
+    document.getElementById('download-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const certificadoDiv = document.getElementById('certificado');
+        
+        html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
+            const enlace = document.createElement('a');
+            enlace.download = `certificado_{{ nombre_completo|slugify }}_{{ encuesta.titulo|slugify }}.png`;
+            enlace.href = canvas.toDataURL('image/png');
+            enlace.click();
+        });
+    });
+    
+    // Función para compartir por WhatsApp
+    document.getElementById('whatsapp-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const phoneNumber = document.getElementById('phone').value.trim();
+        const countryCode = document.getElementById('country-code').value;
+        
+        if (!phoneNumber) {
+            alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
+            return;
+        }
+        
+        const certificadoDiv = document.getElementById('certificado');
+        
+        html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
+            // Generar imagen y guardarla como data URL
+            const imageData = canvas.toDataURL('image/png');
+            
+            // Crear mensaje para WhatsApp con el nombre del certificado
+            const message = encodeURIComponent(`{% trans 'Hola, te comparto tu certificado de participación de Corpensar. Certificado para: ' %}{{ nombre_completo }}`);
+            
+            // Construir la URL completa con el prefijo de país
+            const fullPhoneNumber = countryCode + phoneNumber;
+            const whatsappURL = `https://wa.me/${fullPhoneNumber}?text=${message}`;
+            
+            // Abrir ventana de WhatsApp con el mensaje
+            window.open(whatsappURL, '_blank');
+            
+            // Descargar la imagen automáticamente para que el usuario pueda compartirla
+            const enlace = document.createElement('a');
+            enlace.download = `certificado_{{ nombre_completo|slugify }}.png`;
+            enlace.href = imageData;
+            enlace.click();
+            
+            // Mostrar instrucciones
+            alert("{% trans 'Se ha descargado automáticamente el certificado y se abrirá WhatsApp. Adjunte la imagen descargada a la conversación.' %}");
+        });
+    });
+});
+</script>
+</body>
+</html>

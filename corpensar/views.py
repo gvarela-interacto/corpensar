@@ -10,7 +10,7 @@ from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import Form
-from django.db.models import Count, Avg, F, Max
+from django.db.models import Count, Avg, F, Max, Q # Añadir Q
 from django.db.models.functions import TruncDate
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
@@ -28,13 +28,15 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMultiple, RespuestaCasillasVerificacion,
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
-                    PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD)
+                    PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD,
+                    GrupoInteres)
 from .decorators import *
 import locale
 from datetime import timedelta
 from django.template.defaulttags import register
 import os
 from django.urls import reverse
+from django.core.serializers.json import DjangoJSONEncoder
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -66,128 +68,196 @@ def custom_logout(request):
 
 @login_required
 def index_view(request):
+    """
+    Vista principal del dashboard que muestra estadísticas y métricas del sistema.
+    Esta función recopila y procesa datos para mostrar:
+    - Estadísticas generales de encuestas
+    - Distribución de respuestas
+    - Tendencias y métricas de participación
+    - Alertas y estados de PQRSFD
+    """
     now = timezone.now()
-    
-    # Estadísticas básicas
+    one_week_ago = now - timedelta(days=7)
+    thirty_days_ago = now - timedelta(days=30)
+
+    # ===== ESTADÍSTICAS GENERALES ENCUESTAS =====
     total_encuestas = Encuesta.objects.count()
-    encuestas_activas = Encuesta.objects.filter(
+    total_respuestas = RespuestaEncuesta.objects.count()
+    encuestas_activas_qs = Encuesta.objects.filter(
         activa=True,
         fecha_inicio__lte=now,
         fecha_fin__gte=now
+    )
+    encuestas_activas = encuestas_activas_qs.count()
+    encuestas_publicas_activas_qs = encuestas_activas_qs.filter(es_publica=True)
+    encuestas_publicas_activas = list(encuestas_publicas_activas_qs) # Mantener lista para otras partes
+    encuestas_publicas_count = len(encuestas_publicas_activas) # Conteo específico de públicas y activas
+
+    # Conteo Total Públicas vs Privadas
+    conteo_publicas_privadas = Encuesta.objects.aggregate(
+        publicas=Count('id', filter=Q(es_publica=True)),
+        privadas=Count('id', filter=Q(es_publica=False))
+    )
+
+    # Encuestas creadas recientemente
+    encuestas_creadas_7d = Encuesta.objects.filter(fecha_creacion__gte=one_week_ago).count()
+    encuestas_creadas_30d = Encuesta.objects.filter(fecha_creacion__gte=thirty_days_ago).count()
+
+    # ===== CÁLCULO DE ENCUESTAS RESPONDIDAS =====
+    encuestas_con_respuestas_ids = RespuestaEncuesta.objects.values_list('encuesta_id', flat=True).distinct()
+    total_encuesta_respondidas = len(encuestas_con_respuestas_ids)
+
+    # Encuestas respondidas activas (contar respuestas de encuestas públicas y activas)
+    total_encuestas_respondidas_activas_count = RespuestaEncuesta.objects.filter(
+        encuesta__in=encuestas_publicas_activas_qs # Usar el queryset ya filtrado
     ).count()
 
-    total_respuestas = RespuestaEncuesta.objects.count()
+    # ===== MÉTRICAS DE PARTICIPACIÓN =====
     avg_respuestas = Encuesta.objects.annotate(
         num_respuestas=Count('respuestas')
     ).aggregate(avg=Avg('num_respuestas'))['avg'] or 0
 
-    # Alertas
+    # Encuestas activas SIN respuestas
+    encuestas_activas_ids = encuestas_activas_qs.values_list('id', flat=True) # Usar queryset ya filtrado
+    encuestas_activas_con_respuestas_ids = RespuestaEncuesta.objects.filter(
+        encuesta_id__in=encuestas_activas_ids
+    ).values_list('encuesta_id', flat=True).distinct()
+    encuestas_sin_respuestas_count = len(encuestas_activas_ids) - len(encuestas_activas_con_respuestas_ids)
+
+    tasa_finalizacion = (total_encuesta_respondidas / total_encuestas) * 100 if total_encuestas > 0 else 0
+
+    # ===== ALERTAS Y NOTIFICACIONES =====
     encuestas_proximo_fin = Encuesta.objects.filter(
+        activa=True,
         fecha_fin__gte=now,
         fecha_fin__lte=now + timezone.timedelta(days=3)
-    )
+    ).order_by('fecha_fin')
+
+    # ===== DISTRIBUCIONES Y TENDENCIAS (ENCUESTAS) =====
+
+    # --- Colores base para gráficos (más opciones) ---
+    base_colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69', '#6f42c1', '#20c997', '#6610f2', '#fd7e14', '#dc3545', '#6c757d', '#28a745', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
     
-    encuestas_sin_respuestas = Encuesta.objects.filter(
-        activa=True
-    ).annotate(
-        num_respuestas=Count('respuestas')
-    ).filter(num_respuestas=0).count()
-
-    # Distribución por categoría
-    distribucion_categoria = Encuesta.objects.values('categoria__nombre').annotate(
+    # --- Distribución por categoría ---
+    distribucion_categoria_qs = Encuesta.objects.values('categoria__nombre').annotate(
         total=Count('id')
     ).order_by('-total')
+    categoria_labels = [item['categoria__nombre'] or 'Sin Categoría' for item in distribucion_categoria_qs]
+    categoria_data = [item['total'] for item in distribucion_categoria_qs]
+    distribucion_categoria_chart_data = {
+        'labels': categoria_labels,
+        'datasets': [{
+            'label': 'Encuestas por Categoría',
+            'data': categoria_data,
+            'backgroundColor': base_colors[:len(categoria_labels)],
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_categoria_json = json.dumps(distribucion_categoria_chart_data)
 
-    # Distribución por región
-    distribucion_region = Encuesta.objects.values(
-        'region__nombre'
-    ).annotate(
+    # --- Distribución por Subcategoría ---
+    distribucion_subcategoria_qs = Encuesta.objects.values('subcategoria__nombre').annotate(
+        total=Count('id')
+    ).exclude(subcategoria__nombre__isnull=True).order_by('-total') # Excluir nulos
+    subcategoria_labels = [item['subcategoria__nombre'] for item in distribucion_subcategoria_qs]
+    subcategoria_data = [item['total'] for item in distribucion_subcategoria_qs]
+    distribucion_subcategoria_chart_data = {
+        'labels': subcategoria_labels,
+        'datasets': [{
+            'label': 'Encuestas por Subcategoría',
+            'data': subcategoria_data,
+            'backgroundColor': base_colors[len(categoria_labels):len(categoria_labels)+len(subcategoria_labels)], # Usar colores diferentes
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_subcategoria_json = json.dumps(distribucion_subcategoria_chart_data)
+
+
+    # --- Distribución por Tema ---
+    distribucion_tema_qs = Encuesta.objects.values('tema').annotate(
         total=Count('id')
     ).order_by('-total')
+    # Mapear códigos de tema a nombres legibles si es necesario (usando TEMAS del modelo Encuesta)
+    tema_dict = dict(Encuesta.TEMAS)
+    tema_labels = [str(tema_dict.get(item['tema'], item['tema'] or 'Sin Tema')) for item in distribucion_tema_qs]
+    tema_data = [item['total'] for item in distribucion_tema_qs]
+    distribucion_tema_chart_data = {
+        'labels': tema_labels,
+        'datasets': [{
+            'label': 'Encuestas por Tema',
+            'data': tema_data,
+            'backgroundColor': base_colors[len(subcategoria_labels):len(subcategoria_labels)+len(tema_labels)], # Usar colores diferentes
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_tema_json = json.dumps(distribucion_tema_chart_data)
 
-    # Tendencia de respuestas últimos 7 días
-    una_semana_atras = now - timedelta(days=7)
-    tendencia_respuestas = RespuestaEncuesta.objects.filter(
-        fecha_respuesta__gte=una_semana_atras
+    # --- Distribución por región ---
+    distribucion_region_qs = Encuesta.objects.values('region__nombre').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    region_labels = [item['region__nombre'] or 'Sin Región' for item in distribucion_region_qs]
+    region_data = [item['total'] for item in distribucion_region_qs]
+    distribucion_region_chart_data = {
+        'labels': region_labels,
+        'datasets': [{
+            'label': 'Encuestas por Región',
+            'data': region_data,
+            'backgroundColor': base_colors[:len(region_labels)], # Reusar colores si es necesario
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_region_json = json.dumps(distribucion_region_chart_data)
+
+    # --- Tendencia de respuestas últimos 7 días ---
+    tendencia_respuestas_qs = RespuestaEncuesta.objects.filter(
+        fecha_respuesta__gte=one_week_ago # Usar variable
     ).annotate(
         fecha=TruncDate('fecha_respuesta')
     ).values('fecha').annotate(
         total=Count('id')
     ).order_by('fecha')
+    # (Estos datos se usan directamente en la plantilla o se podrían formatear para un gráfico)
 
-    # Top municipios con más respuestas
-    top_municipios = RespuestaEncuesta.objects.values(
-        'municipio__nombre'
-    ).annotate(
+    # --- Top municipios con más respuestas ---
+    top_municipios_qs = RespuestaEncuesta.objects.values('municipio__nombre').annotate(
         total=Count('id')
-    ).order_by('-total')[:5]
+    ).order_by('-total')[:5] # Mantener top 5
 
-    # Tasa de finalización
-    encuestas_stats = Encuesta.objects.annotate(
-        total_preguntas=Count('preguntatexto_relacionadas') + 
-                        Count('preguntaopcionmultiple_relacionadas') + 
-                        Count('preguntacasillasverificacion_relacionadas') + 
-                        Count('preguntamenudesplegable_relacionadas') + 
-                        Count('preguntaestrellas_relacionadas') + 
-                        Count('preguntaescala_relacionadas') + 
-                        Count('preguntamatriz_relacionadas') + 
-                        Count('preguntafecha_relacionadas'),
-        respuestas_completas=Count('respuestas', distinct=True)
-    ).aggregate(
-        tasa_finalizacion=Avg(F('respuestas_completas') * 100.0 / F('total_preguntas'))
-    )
-
-    # Tipos de preguntas
+    # ===== TIPOS DE PREGUNTAS =====
     tipos_preguntas = []
-    
-    # Contar cada tipo de pregunta
-    texto_count = PreguntaTexto.objects.count()
-    if texto_count > 0:
-        tipos_preguntas.append({'tipo': 'Texto', 'total': texto_count})
-    
-    texto_multiple_count = PreguntaTextoMultiple.objects.count()
-    if texto_multiple_count > 0:
-        tipos_preguntas.append({'tipo': 'Texto Múltiple', 'total': texto_multiple_count})
-    
-    opcion_multiple_count = PreguntaOpcionMultiple.objects.count()
-    if opcion_multiple_count > 0:
-        tipos_preguntas.append({'tipo': 'Opción Múltiple', 'total': opcion_multiple_count})
-    
-    casillas_count = PreguntaCasillasVerificacion.objects.count()
-    if casillas_count > 0:
-        tipos_preguntas.append({'tipo': 'Casillas', 'total': casillas_count})
-    
-    menu_count = PreguntaMenuDesplegable.objects.count()
-    if menu_count > 0:
-        tipos_preguntas.append({'tipo': 'Menú Desplegable', 'total': menu_count})
-    
-    estrellas_count = PreguntaEstrellas.objects.count()
-    if estrellas_count > 0:
-        tipos_preguntas.append({'tipo': 'Estrellas', 'total': estrellas_count})
-    
-    escala_count = PreguntaEscala.objects.count()
-    if escala_count > 0:
-        tipos_preguntas.append({'tipo': 'Escala', 'total': escala_count})
-    
-    matriz_count = PreguntaMatriz.objects.count()
-    if matriz_count > 0:
-        tipos_preguntas.append({'tipo': 'Matriz', 'total': matriz_count})
-    
-    fecha_count = PreguntaFecha.objects.count()
-    if fecha_count > 0:
-        tipos_preguntas.append({'tipo': 'Fecha', 'total': fecha_count})
+    tipos_preguntas_data_map = [
+        ('Texto', PreguntaTexto), ('Texto Múltiple', PreguntaTextoMultiple),
+        ('Opción Múltiple', PreguntaOpcionMultiple), ('Casillas', PreguntaCasillasVerificacion),
+        ('Menú Desplegable', PreguntaMenuDesplegable), ('Estrellas', PreguntaEstrellas),
+        ('Escala', PreguntaEscala), ('Matriz', PreguntaMatriz), ('Fecha', PreguntaFecha)
+    ]
+    tipos_labels = []
+    tipos_data = []
+    for tipo_nombre, modelo in tipos_preguntas_data_map:
+        count = modelo.objects.count()
+        if count > 0:
+            tipos_preguntas.append({'tipo': tipo_nombre, 'total': count})
+            tipos_labels.append(tipo_nombre)
+            tipos_data.append(count)
 
-    ultimas_respuestas = RespuestaEncuesta.objects.select_related(
-        'encuesta', 'usuario'
-    ).order_by('-fecha_respuesta')[:10]
+    tipos_preguntas_chart_data = {
+        'labels': tipos_labels,
+        'datasets': [{
+            'data': tipos_data,
+            'backgroundColor': base_colors[:len(tipos_labels)], # Ajustar colores
+            'hoverOffset': 10
+        }]
+    }
+    tipos_preguntas_json = json.dumps(tipos_preguntas_chart_data)
 
-    encuestas_detalle = Encuesta.objects.annotate(
-        cantidad_respuestas=Count('respuestas'),
-        promedio_respuestas=Avg('respuestas__id')
-    ).order_by('-fecha_creacion')
-    
-    # Contar PQRSFD por estado
-    conteo_estados = {
+    # ===== ESTADÍSTICAS PQRSFD =====
+    # Conteo por estado (existente)
+    conteo_estados_pqrsfd = {
         'P': PQRSFD.objects.filter(estado='P').count(),
         'E': PQRSFD.objects.filter(estado='E').count(),
         'R': PQRSFD.objects.filter(estado='R').count(),
@@ -196,22 +266,83 @@ def index_view(request):
         'vencidos': sum(1 for p in PQRSFD.objects.filter(estado__in=['P', 'E']) if p.esta_vencido())
     }
 
+    # Distribución por Tipo
+    distribucion_tipo_pqrsfd_qs = PQRSFD.objects.values('tipo').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    tipo_pqrsfd_dict = dict(PQRSFD.TIPO_CHOICES)
+    tipo_pqrsfd_labels = [str(tipo_pqrsfd_dict.get(item['tipo'], item['tipo'] or 'Sin Tipo')) for item in distribucion_tipo_pqrsfd_qs]
+    tipo_pqrsfd_data = [item['total'] for item in distribucion_tipo_pqrsfd_qs]
+    distribucion_tipo_pqrsfd_chart_data = {
+        'labels': tipo_pqrsfd_labels,
+        'datasets': [{
+            'label': 'PQRSFD por Tipo',
+            'data': tipo_pqrsfd_data,
+            'backgroundColor': base_colors[:len(tipo_pqrsfd_labels)], # Reusar colores si es necesario
+            'borderColor': 'rgba(255, 255, 255, 0.8)',
+            'borderWidth': 1
+        }]
+    }
+    distribucion_tipo_pqrsfd_json = json.dumps(distribucion_tipo_pqrsfd_chart_data)
+
+    # PQRSFD Recientes
+    pqrsfd_creados_7d = PQRSFD.objects.filter(fecha_creacion__gte=one_week_ago).count()
+    pqrsfd_creados_30d = PQRSFD.objects.filter(fecha_creacion__gte=thirty_days_ago).count()
+    # Usar fecha_actualizacion como proxy para resueltos/cerrados recientes
+    pqrsfd_resueltos_cerrados_7d = PQRSFD.objects.filter(estado__in=['R', 'C'], fecha_actualizacion__gte=one_week_ago).count()
+    pqrsfd_resueltos_cerrados_30d = PQRSFD.objects.filter(estado__in=['R', 'C'], fecha_actualizacion__gte=thirty_days_ago).count()
+
+
+    # ===== DATOS ADICIONALES =====
+    ultimas_respuestas = RespuestaEncuesta.objects.select_related(
+        'encuesta', 'usuario'
+    ).order_by('-fecha_respuesta')[:10] # Mantener ultimas 10
+
+    # ===== CONTEXTO PARA LA PLANTILLA =====
     context = {
+        # --- Estadísticas generales Encuestas ---
         'total_encuestas': total_encuestas,
-        'encuestas_activas': encuestas_activas,
-        'total_respuestas': total_respuestas,
+        'total_encuesta_respondidas': total_encuesta_respondidas, # Total histórico respondidas
+        'total_encuesta_respondidas_activas': total_encuestas_respondidas_activas_count, # Respuestas a encuestas públicas activas
+        'total_respuestas': total_respuestas, # Total histórico de objetos RespuestaEncuesta
         'avg_respuestas': round(avg_respuestas, 1),
+        'encuestas_activas': encuestas_activas, # Total activas (públicas + privadas)
+        'encuestas_publicas': encuestas_publicas_count, # Total públicas y activas
+        'conteo_publicas_privadas': conteo_publicas_privadas, # Total públicas vs privadas (histórico)
+        'encuestas_creadas_7d': encuestas_creadas_7d,
+        'encuestas_creadas_30d': encuestas_creadas_30d,
+        'tasa_finalizacion': round(tasa_finalizacion, 1), # Basada en total histórico
+
+        # --- Alertas y notificaciones ---
         'encuestas_proximo_fin': encuestas_proximo_fin,
-        'encuestas_sin_respuestas': encuestas_sin_respuestas,
-        'distribucion_region': distribucion_region,
-        'tendencia_respuestas': tendencia_respuestas,
-        'top_municipios': top_municipios,
-        'tasa_finalizacion': round(encuestas_stats['tasa_finalizacion'] or 0, 1),
-        'tipos_preguntas': tipos_preguntas,
+        'encuestas_sin_respuestas': encuestas_sin_respuestas_count, # Activas sin respuestas
+
+        # --- Datos para tablas y listas (QuerySets/Listas) ---
+        'distribucion_region': distribucion_region_qs, # Para posible tabla
+        'tendencia_respuestas': tendencia_respuestas_qs, # Para posible tabla
+        'top_municipios': top_municipios_qs,
+        'distribucion_categoria': distribucion_categoria_qs, # Para posible tabla
+        'distribucion_subcategoria': distribucion_subcategoria_qs, # Para posible tabla
+        'distribucion_tema': distribucion_tema_qs, # Para posible tabla
+        'tipos_preguntas': tipos_preguntas, # Para posible tabla
         'ultimas_respuestas': ultimas_respuestas,
-        'encuestas_detalle': encuestas_detalle,
-        'distribucion_categoria': distribucion_categoria,
-        'conteo_estados': conteo_estados,
+        'encuestas_publicas_activas': encuestas_publicas_activas, # Lista de encuestas públicas activas
+
+        # --- Estadísticas PQRSFD ---
+        'conteo_estados_pqrsfd': conteo_estados_pqrsfd, # Renombrado para claridad
+        'distribucion_tipo_pqrsfd': distribucion_tipo_pqrsfd_qs, # Para posible tabla
+        'pqrsfd_creados_7d': pqrsfd_creados_7d,
+        'pqrsfd_creados_30d': pqrsfd_creados_30d,
+        'pqrsfd_resueltos_cerrados_7d': pqrsfd_resueltos_cerrados_7d,
+        'pqrsfd_resueltos_cerrados_30d': pqrsfd_resueltos_cerrados_30d,
+
+        # --- JSON para Gráficos ---
+        'tipos_preguntas_json': tipos_preguntas_json,
+        'distribucion_categoria_json': distribucion_categoria_json,
+        'distribucion_subcategoria_json': distribucion_subcategoria_json, # Nuevo
+        'distribucion_tema_json': distribucion_tema_json, # Nuevo
+        'distribucion_region_json': distribucion_region_json,
+        'distribucion_tipo_pqrsfd_json': distribucion_tipo_pqrsfd_json, # Nuevo
     }
 
     return render(request, 'index.html', context)
@@ -240,6 +371,7 @@ def crear_desde_cero(request):
     form = EncuestaForm()
     regiones = Region.objects.all()
     categorias = Categoria.objects.all()
+    grupos_interes = GrupoInteres.objects.all()
 
     if request.method == 'POST':
         # Imprimir todos los datos del POST para debug
@@ -256,9 +388,11 @@ def crear_desde_cero(request):
         # Procesar region_id con más logs
         region_id = request.POST.get('region')
         categoria_id = request.POST.get('categoria')
+        grupo_interes_id = request.POST.get('grupo_interes')
         
         region = None
         categoria = None
+        grupo_interes = None
         try:
             if region_id and region_id.strip():
                 region_id = int(region_id)
@@ -269,13 +403,18 @@ def crear_desde_cero(request):
             if categoria_id and categoria_id.strip():
                 categoria_id = int(categoria_id)
                 categoria = Categoria.objects.get(id=categoria_id)
+                
+            if grupo_interes_id and grupo_interes_id.strip():
+                grupo_interes_id = int(grupo_interes_id)
+                grupo_interes = GrupoInteres.objects.get(id=grupo_interes_id)
             
-        except (ValueError, Region.DoesNotExist, Categoria.DoesNotExist) as e:
-            messages.error(request, f"Error al procesar la región o categoría seleccionada: {e}")
+        except (ValueError, Region.DoesNotExist, Categoria.DoesNotExist, GrupoInteres.DoesNotExist) as e:
+            messages.error(request, f"Error al procesar la región, categoría o grupo de interés seleccionado: {e}")
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
                 'regiones': regiones,
-                'categorias': categorias
+                'categorias': categorias,
+                'grupos_interes': grupos_interes
             })
         
         tema = request.POST.get('tema', 'default')
@@ -293,6 +432,7 @@ def crear_desde_cero(request):
                 creador=request.user,
                 region=region,
                 categoria=categoria,
+                grupo_interes=grupo_interes,
                 municipio=None,
                 tema=tema
             )
@@ -302,7 +442,8 @@ def crear_desde_cero(request):
             return render(request, 'Encuesta/crear_desde_cero.html', {
                 'form': form,
                 'regiones': regiones,
-                'categorias': categorias
+                'categorias': categorias,
+                'grupos_interes': grupos_interes
             })
         
         # Obtener preguntas del formulario
@@ -549,12 +690,152 @@ def crear_desde_cero(request):
                 )
 
         # Redirigir a alguna vista después de crear la encuesta
+        # Comprobar si se solicitó incluir caracterización
+        incluir_caracterizacion = request.POST.get('incluir_caracterizacion') == 'true'
+        if incluir_caracterizacion:
+            preguntas_obligatorias = request.POST.get('preguntas_obligatorias') == 'true'
+            
+            # Este bloque de código es similar a la función agregar_caracterizacion
+            # Definir orden inicial
+            ultimo_orden = 0
+            for pregunta in encuesta.obtener_preguntas():
+                if pregunta.orden > ultimo_orden:
+                    ultimo_orden = pregunta.orden
+            
+            # Crear las preguntas de caracterización
+            preguntas = [
+                {
+                    'tipo': 'TEXT',
+                    'texto': 'Entrevistador',
+                    'orden': ultimo_orden + 1,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias
+                },
+                {
+                    'tipo': 'TEXT',
+                    'texto': '¿Cuál es su nombre completo?',
+                    'orden': ultimo_orden + 2,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias
+                },
+                {
+                    'tipo': 'TEXT',
+                    'texto': 'Correo electrónico',
+                    'orden': ultimo_orden + 3,
+                    'seccion': 'Caracterización',
+                    'requerida': False,
+                    'placeholder': 'ejemplo@correo.com'
+                },
+                {
+                    'tipo': 'TEXT',
+                    'texto': 'Número de teléfono o celular',
+                    'orden': ultimo_orden + 4,
+                    'seccion': 'Caracterización',
+                    'requerida': False,
+                    'placeholder': 'Ej: 3001234567'
+                },
+                {
+                    'tipo': 'RADIO',
+                    'texto': '¿Cuál es su sexo?',
+                    'orden': ultimo_orden + 5,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias,
+                    'opciones': [
+                        {'texto': 'Masculino', 'valor': 'a', 'orden': 1},
+                        {'texto': 'Femenino', 'valor': 'b', 'orden': 2},
+                        {'texto': 'Otro', 'valor': 'c', 'orden': 3},
+                        {'texto': 'Prefiero no responder', 'valor': 'd', 'orden': 4}
+                    ]
+                },
+                {
+                    'tipo': 'RADIO',
+                    'texto': '¿Cuál es su rango de edad?',
+                    'orden': ultimo_orden + 6,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias,
+                    'opciones': [
+                        {'texto': 'Menos de 18 años', 'valor': 'a', 'orden': 1},
+                        {'texto': '18 a 25 años', 'valor': 'b', 'orden': 2},
+                        {'texto': '26 a 35 años', 'valor': 'c', 'orden': 3},
+                        {'texto': '36 a 45 años', 'valor': 'd', 'orden': 4},
+                        {'texto': '46 a 60 años', 'valor': 'e', 'orden': 5},
+                        {'texto': 'Más de 60 años', 'valor': 'f', 'orden': 6}
+                    ]
+                },
+                {
+                    'tipo': 'CHECK',
+                    'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
+                    'orden': ultimo_orden + 7,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias,
+                    'opciones': [
+                        {'texto': 'Comunidad Indígena', 'valor': 'a', 'orden': 1},
+                        {'texto': 'Comunidad Afrodescendiente', 'valor': 'b', 'orden': 2},
+                        {'texto': 'Comunidad Campesina', 'valor': 'c', 'orden': 3},
+                        {'texto': 'Persona con Discapacidad', 'valor': 'd', 'orden': 4},
+                        {'texto': 'LGBTIQ+', 'valor': 'e', 'orden': 5},
+                        {'texto': 'Victima del conflicto armado', 'valor': 'f', 'orden': 6},
+                        {'texto': 'Otro', 'valor': 'g', 'orden': 7},
+                        {'texto': 'Ninguno', 'valor': 'h', 'orden': 8}
+                    ]
+                }
+            ]
+            
+            # Crear cada pregunta
+            for pregunta_data in preguntas:
+                if pregunta_data['tipo'] == 'TEXT':
+                    pregunta = PreguntaTexto.objects.create(
+                        encuesta=encuesta,
+                        texto=pregunta_data['texto'],
+                        tipo=pregunta_data['tipo'],
+                        requerida=pregunta_data['requerida'],
+                        orden=pregunta_data['orden'],
+                        seccion=pregunta_data['seccion'],
+                        ayuda=pregunta_data.get('ayuda', ''),
+                        placeholder=pregunta_data.get('placeholder', '')
+                    )
+                elif pregunta_data['tipo'] == 'RADIO':
+                    pregunta = PreguntaOpcionMultiple.objects.create(
+                        encuesta=encuesta,
+                        texto=pregunta_data['texto'],
+                        tipo=pregunta_data['tipo'],
+                        requerida=pregunta_data['requerida'],
+                        orden=pregunta_data['orden'],
+                        seccion=pregunta_data['seccion']
+                    )
+                    # Agregar opciones
+                    for opcion_data in pregunta_data['opciones']:
+                        OpcionMultiple.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_data['texto'],
+                            valor=opcion_data['valor'],
+                            orden=opcion_data['orden']
+                        )
+                elif pregunta_data['tipo'] == 'CHECK':
+                    pregunta = PreguntaCasillasVerificacion.objects.create(
+                        encuesta=encuesta,
+                        texto=pregunta_data['texto'],
+                        tipo=pregunta_data['tipo'],
+                        requerida=pregunta_data['requerida'],
+                        orden=pregunta_data['orden'],
+                        seccion=pregunta_data['seccion']
+                    )
+                    # Agregar opciones
+                    for opcion_data in pregunta_data['opciones']:
+                        OpcionCasillaVerificacion.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_data['texto'],
+                            valor=opcion_data['valor'],
+                            orden=opcion_data['orden']
+                        )
+        
         return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
         'form': form,
         'regiones': regiones,
-        'categorias': categorias
+        'categorias': categorias,
+        'grupos_interes': grupos_interes
     })
 
 # Vista para crear encuesta con IA (versión simplificada)
@@ -660,14 +941,16 @@ def duplicar_encuesta(request, encuesta_id):
                     texto=pregunta.texto,
                     orden=pregunta.orden,
                     requerida=pregunta.requerida,
-                    permite_otro=pregunta.permite_otro
+                    opcion_otro=pregunta.opcion_otro,
+                    texto_otro=pregunta.texto_otro
                 )
                 
                 # Duplicar opciones
                 for opcion in pregunta.opciones.all():
-                    Opcion.objects.create(
+                    OpcionMultiple.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
+                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
@@ -678,14 +961,18 @@ def duplicar_encuesta(request, encuesta_id):
                     texto=pregunta.texto,
                     orden=pregunta.orden,
                     requerida=pregunta.requerida,
-                    permite_otro=pregunta.permite_otro
+                    opcion_otro=pregunta.opcion_otro,
+                    texto_otro=pregunta.texto_otro,
+                    min_selecciones=pregunta.min_selecciones,
+                    max_selecciones=pregunta.max_selecciones
                 )
                 
                 # Duplicar opciones
                 for opcion in pregunta.opciones.all():
-                    Opcion.objects.create(
+                    OpcionCasillaVerificacion.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
+                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
@@ -700,9 +987,10 @@ def duplicar_encuesta(request, encuesta_id):
                 
                 # Duplicar opciones
                 for opcion in pregunta.opciones.all():
-                    Opcion.objects.create(
+                    OpcionMenuDesplegable.objects.create(
                         pregunta=nueva_pregunta,
                         texto=opcion.texto,
+                        valor=opcion.valor,
                         orden=opcion.orden
                     )
             
@@ -791,9 +1079,10 @@ def editar_encuesta(request, encuesta_id):
     # Ordenar preguntas por orden
     preguntas.sort(key=lambda x: x.orden)
     
-    # Obtener regiones y categorías
+    # Obtener regiones, categorías y grupos de interés
     regiones = Region.objects.all()
     categorias = Categoria.objects.all()
+    grupos_interes = GrupoInteres.objects.all()
     
     # Obtener subcategorías si hay una categoría seleccionada
     subcategorias = []
@@ -806,7 +1095,8 @@ def editar_encuesta(request, encuesta_id):
         'preguntas': preguntas,
         'regiones': regiones,
         'categorias': categorias,
-        'subcategorias': subcategorias
+        'subcategorias': subcategorias,
+        'grupos_interes': grupos_interes
     })
 
 # Vista para listar encuestas del usuario
@@ -1363,6 +1653,101 @@ def guardar_respuesta(request, encuesta_id):
         procesar_preguntas_estrellas(request, respuesta)
         procesar_archivos_adjuntos(request, respuesta)
 
+        # Verificar si se marcó la opción de generar certificado
+        generar_certificado_opcion = request.POST.get('generar_certificado')
+        
+        if generar_certificado_opcion:
+            # Intentamos obtener el nombre de la caracterización
+            nombre_completo = None
+            documento = None
+            correo = None
+            telefono = None
+            
+            # Buscar en las respuestas de texto el nombre de la persona
+            nombre_preguntas = ['nombre completo', '¿cuál es su nombre completo?', 'nombre']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in nombre_preguntas):
+                    respuesta_nombre = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_nombre:
+                        nombre_completo = respuesta_nombre.valor
+                        break
+            
+            # Buscar el número de identificación
+            doc_preguntas = ['identificación', 'documento', 'cédula', 'número de documento']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in doc_preguntas):
+                    respuesta_doc = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_doc:
+                        documento = respuesta_doc.valor
+                        break
+            
+            # Buscar el correo electrónico
+            correo_preguntas = ['correo electrónico', 'email', 'e-mail', 'correo']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in correo_preguntas):
+                    respuesta_correo = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_correo:
+                        correo = respuesta_correo.valor
+                        break
+            
+            # Buscar el teléfono celular
+            telefono_preguntas = ['teléfono', 'celular', 'móvil', 'número de teléfono', 'número telefónico']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in telefono_preguntas):
+                    respuesta_telefono = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_telefono:
+                        telefono = respuesta_telefono.valor
+                        break
+            
+            # Si tenemos los datos, enviamos directamente al certificado
+            if nombre_completo and documento:
+                # Preparar datos para enviar a la plantilla
+                fecha_actual = timezone.now().strftime('%d/%m/%Y')
+                context = {
+                    'encuesta': encuesta,
+                    'nombre_completo': nombre_completo,
+                    'numero_identificacion': documento,
+                    'correo': correo,
+                    'telefono': telefono,
+                    'fecha_actual': fecha_actual,
+                    'guardar_datos': True  # Indicar que se deben guardar los datos
+                }
+                return render(request, 'certificado_template.html', context)
+            else:
+                # Si no los encontramos, redirigimos a la página de certificado con los datos que tengamos
+                # Crear el contexto para JavaScript con datos escapados correctamente
+                import json
+                from django.utils.safestring import mark_safe
+                
+                datos_js = {
+                    'encuesta_id': encuesta.id,
+                    'nombre_completo': nombre_completo or '',
+                    'numero_identificacion': documento or '',
+                    'correo': correo or '',
+                    'telefono': telefono or ''
+                }
+                
+                context = {
+                    'encuesta': encuesta,
+                    'datos_certificado_json': mark_safe(json.dumps(datos_js)),
+                    'redirigir_certificado': True
+                }
+                
+                # Renderizar una página intermedia que guardará los datos y redirigirá
+                return render(request, 'redirect_certificado.html', context)
+        
         # Redirigir a la página de encuesta completada
         return redirect('encuesta_completada', slug=encuesta.slug)
 
@@ -1597,12 +1982,24 @@ def crear_municipio(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre", "").strip()
         region_id = request.POST.get("region")
+        latitud = request.POST.get("latitud")
+        longitud = request.POST.get("longitud")
         
         if nombre and region_id:
             region = Region.objects.filter(id=region_id).first()
             if region:
-                Municipio.objects.get_or_create(nombre=nombre, region=region)
-                messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                municipio, created = Municipio.objects.get_or_create(
+                    nombre=nombre,
+                    region=region,
+                    defaults={
+                        'latitud': latitud if latitud else None,
+                        'longitud': longitud if longitud else None
+                    }
+                )
+                if created:
+                    messages.success(request, f"Municipio '{nombre}' creado en región '{region.nombre}'.")
+                else:
+                    messages.info(request, f"El municipio '{nombre}' ya existe en la región '{region.nombre}'.")
                 return redirect('crear_municipio')
             else:
                 messages.error(request, "Región no encontrada.")
@@ -2148,259 +2545,222 @@ def eliminar_municipio(request, municipio_id):
 
 @login_required
 def estadisticas_municipios(request):
-    """Obtiene estadísticas de encuestas por municipio"""
-    try:
-        now = timezone.now()
-        municipios = Municipio.objects.select_related('region').all()
-        data = {}
-        
-        for municipio in municipios:
-            # Obtener encuestas activas para este municipio
-            encuestas_activas = Encuesta.objects.filter(
-                region=municipio.region
-            )
-            
-            # Obtener respuestas para este municipio
-            respuestas = RespuestaEncuesta.objects.filter(
-                municipio=municipio
-            )
-            
-            # Contar respuestas únicas por encuesta
-            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
-            
-            # Calcular estadísticas
-            total_encuestas = encuestas_activas.count()
-            total_respuestas = respuestas.count()
+    """Vista para mostrar la página de estadísticas de municipios con datos precargados"""
+    
+    # Obtener todas las regiones y municipios para los selects
+    regiones = Region.objects.all()
+    todos_municipios_lista = list(Municipio.objects.values('id', 'nombre', 'region_id')) # Corregido: seleccionar el campo existente
+    todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder)
 
-            # print(Encuesta.objects.all())
+    # --- Filtros --- 
+    region_id_str = request.GET.get('region', 'todas')
+    municipio_id_str = request.GET.get('municipio', 'todos')
+    
+    # Convertir IDs a int si no son 'todas' o 'todos'
+    region_id = int(region_id_str) if region_id_str.isdigit() else None
+    municipio_id = int(municipio_id_str) if municipio_id_str.isdigit() else None
 
-            # print(f"Total encuestas: {total_encuestas}")
-            # print(f"Total respuestas: {total_respuestas}")
-            # print(f"Encuestas respondidas: {encuestas_respondidas}")
-            # print(f"Municipio: {municipio.nombre}")
-            # print(f"Region: {municipio.region.nombre if municipio.region else 'No asignada'}")
-            # print(f"Encuestas activas: {encuestas_activas}")
-            
-            # Calcular tasa de finalización
-            tasa_finalizacion = 0
-            if total_encuestas > 0:
-                tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
-            
-            # Usar el nombre del municipio en mayúsculas como clave
-            data[municipio.nombre.upper()] = {
-                'nombre': municipio.nombre,
-                'region': municipio.region.nombre if municipio.region else 'No asignada',
-                'totalEncuestas': total_encuestas,
-                'totalRespuestas': total_respuestas,
-                'encuestasRespondidas': encuestas_respondidas,
-                'tasaFinalizacion': round(tasa_finalizacion, 2)
-            }
-        
-        return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+    # --- Cálculo de Estadísticas --- 
+    
+    # 1. Estadísticas por Municipio (Filtradas)
+    municipios_filtrados = Municipio.objects.select_related('region').all()
+    if region_id:
+        municipios_filtrados = municipios_filtrados.filter(region_id=region_id)
+    if municipio_id:
+        municipios_filtrados = municipios_filtrados.filter(id=municipio_id)
 
-@login_required
-def respuestas_historicas_municipio(request, municipio_nombre):
-    """
-    Endpoint para obtener las respuestas históricas de un municipio específico.
-    Devuelve datos agrupados por mes para los últimos 6 meses.
-    """
-    from django.db.models.functions import TruncMonth
-    from django.db.models import Count
-    from datetime import datetime, timedelta
-    from django.http import JsonResponse
-    # Corregir la importación - parece que Respuesta no está en corpensar.models
-    # Intentar encontrar el modelo correcto
-    try:
-        # Intento 1: buscar en aplicaciones específicas
-        from Encuesta.models import Respuesta, Encuesta, Municipio
-    except ImportError:
-        try:
-            # Intento 2: la estructura podría ser diferente
-            from Encuesta.models import Respuesta, Encuesta
-            from .models import Municipio
-        except ImportError:
-            # Si ninguna importación funciona, usar solo lo que podamos
-            # y generar datos de muestra
-            from .models import Municipio
-            
-    import logging
-    from django.conf import settings
-    import traceback
-    
-    logger = logging.getLogger(__name__)
-    logger.info(f"Solicitando datos para municipio: {municipio_nombre}")
-    
-    # Datos de fallback para mostrar cuando hay errores
-    meses_espanol = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-                     'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-    
-    def generar_ultimos_meses():
-        """Genera etiquetas para los últimos 6 meses"""
-        labels = []
-        now = datetime.now()
-        for i in range(5, -1, -1):
-            mes = now.month - i
-            año = now.year
-            if mes <= 0:
-                mes += 12
-                año -= 1
-            labels.append(f"{meses_espanol[mes-1]} {año}")
-        return labels
-    
-    try:
-        # Verificar si el parámetro tiene un formato correcto
-        if not municipio_nombre or len(municipio_nombre) < 2:
-            return JsonResponse({
-                'labels': generar_ultimos_meses(),
-                'data': [5, 10, 15, 20, 25, 30],
-                'info': 'Datos de muestra - nombre de municipio inválido'
-            })
+    datos_municipios_lista = []
+    total_respuestas_general = 0
+    total_encuestas_completadas_general = 0 # Ojo: Esta lógica puede necesitar revisión
+    total_encuestas_aplicables_general = Encuesta.objects.count() # Simplificación inicial, ajustar si las encuestas dependen de región/municipio
+
+    for municipio in municipios_filtrados:
+        respuestas_municipio = RespuestaEncuesta.objects.filter(municipio=municipio)
+        num_respuestas = respuestas_municipio.count()
+        # Contar encuestas únicas respondidas en este municipio
+        encuestas_respondidas_ids = respuestas_municipio.values_list('encuesta_id', flat=True).distinct()
+        num_encuestas_respondidas = len(encuestas_respondidas_ids)
         
-        # Buscar el municipio
-        try:
-            municipio = Municipio.objects.get(nombre__iexact=municipio_nombre)
-            logger.info(f"Municipio encontrado: {municipio.nombre} (id: {municipio.id})")
-        except Municipio.DoesNotExist:
-            # Intentar búsqueda parcial
-            municipios = Municipio.objects.filter(nombre__icontains=municipio_nombre)
-            if municipios.exists():
-                municipio = municipios.first()
-                logger.info(f"Municipio encontrado con búsqueda parcial: {municipio.nombre}")
-            else:
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [2, 5, 8, 12, 15, 18],
-                    'info': f'Municipio no encontrado: {municipio_nombre}'
-                })
+        # Calcular tasa - Necesita el número total de encuestas *aplicables* a este municipio
+        # Esta parte es compleja y depende de tu lógica de negocio.
+        # Asumiremos un total general por ahora, pero idealmente filtrarías Encuesta por región/municipio si aplica.
+        total_encuestas_aplicables_municipio = total_encuestas_aplicables_general # Simplificación
+        tasa_finalizacion = 0
+        if total_encuestas_aplicables_municipio > 0:
+            tasa_finalizacion = (num_encuestas_respondidas / total_encuestas_aplicables_municipio) * 100
         
-        # Fecha límite (6 meses atrás)
-        fecha_limite = datetime.now() - timedelta(days=180)
-        
-        # Variable para almacenar resultados
-        labels = []
-        data = []
-        
-        # Comprobar si tenemos acceso al modelo Respuesta
-        if 'Respuesta' not in globals():
-            logger.error("No se pudo importar el modelo Respuesta")
-            return JsonResponse({
-                'labels': generar_ultimos_meses(),
-                'data': [8, 15, 22, 30, 38, 45],
-                'info': 'Datos de muestra - no se pudo importar el modelo Respuesta'
-            })
-        
-        # Intentar obtener datos históricos
-        try:
-            # Verificar si hay relación entre encuesta y municipio
-            from django.db import models
-            
-            # Verificar si Encuesta está disponible
-            if 'Encuesta' not in globals():
-                logger.error("No se pudo importar el modelo Encuesta")
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [10, 18, 25, 32, 40, 48],
-                    'info': 'Datos de muestra - no se pudo importar el modelo Encuesta'
-                })
-            
-            # Verificar si Encuesta tiene el campo municipio
-            encuesta_fields = [f.name for f in Encuesta._meta.get_fields()]
-            
-            if 'municipio' not in encuesta_fields:
-                # Si no hay campo municipio directo, verificar si hay relación indirecta
-                logger.warning("No se encontró campo 'municipio' en Encuesta")
-                # Devolver datos simulados
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [25, 30, 35, 40, 45, 50],
-                    'info': 'Datos de muestra - no hay relación directa Encuesta-Municipio'
-                })
-            
-            # Verificar si Respuesta tiene fecha_respuesta
-            respuesta_fields = [f.name for f in Respuesta._meta.get_fields()]
-            if 'fecha_respuesta' not in respuesta_fields:
-                logger.warning("No se encontró campo 'fecha_respuesta' en Respuesta")
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [15, 20, 25, 30, 35, 40],
-                    'info': 'Datos de muestra - no hay campo fecha_respuesta'
-                })
-            
-            # Consultar datos reales
-            respuestas_por_mes = Respuesta.objects.filter(
-                encuesta__municipio=municipio,
-                fecha_respuesta__gte=fecha_limite
-            ).annotate(
-                mes=TruncMonth('fecha_respuesta')
-            ).values('mes').annotate(
-                total=Count('id')
-            ).order_by('mes')
-            
-            # Procesar resultados
-            for item in respuestas_por_mes:
-                try:
-                    fecha = item['mes']
-                    mes_formateado = f"{meses_espanol[fecha.month-1]} {fecha.year}"
-                    labels.append(mes_formateado)
-                    data.append(item['total'])
-                except Exception as e:
-                    logger.error(f"Error al procesar fecha: {str(e)}")
-            
-            # Si no hay datos, generar etiquetas para los últimos 6 meses con valores 0
-            if not labels:
-                labels = generar_ultimos_meses()
-                data = [0, 0, 0, 0, 0, 0]
-                
-            return JsonResponse({
-                'labels': labels,
-                'data': data
-            })
-            
-        except Exception as e:
-            logger.error(f"Error al consultar datos históricos: {str(e)}")
-            stack = traceback.format_exc()
-            logger.error(stack)
-            
-            # Plan B: intentar obtener al menos el total de respuestas para este municipio
-            try:
-                total_respuestas = Respuesta.objects.filter(
-                    encuesta__municipio=municipio
-                ).count()
-                
-                # Distribuir el total en los últimos 6 meses
-                labels = generar_ultimos_meses()
-                total_por_mes = total_respuestas / 6
-                data = [int(total_por_mes * (0.7 + i * 0.1)) for i in range(1, 7)]
-                
-                return JsonResponse({
-                    'labels': labels,
-                    'data': data,
-                    'info': 'Estimación basada en total de respuestas'
-                })
-            except Exception as inner_e:
-                logger.error(f"Error en consulta alternativa: {str(inner_e)}")
-                
-                # Último recurso: datos simulados
-                return JsonResponse({
-                    'labels': generar_ultimos_meses(),
-                    'data': [5, 10, 15, 20, 25, 30],
-                    'info': 'Datos de muestra debido a errores en consultas'
-                })
-    
-    except Exception as e:
-        logger.error(f"Error general en respuestas_historicas_municipio: {str(e)}")
-        stack = traceback.format_exc()
-        logger.error(stack)
-        
-        # Siempre devolver datos para que el frontend pueda mostrar algo
-        return JsonResponse({
-            'labels': generar_ultimos_meses(),
-            'data': [3, 6, 9, 12, 15, 18],
-            'error': str(e),
-            'info': 'Datos de muestra debido a error general'
+        datos_municipios_lista.append({
+            'id': municipio.id,
+            'nombre': municipio.nombre,
+            'region': municipio.region.nombre,
+            'region_id': municipio.region.id,
+            'totalEncuestas': total_encuestas_aplicables_municipio, # Revisar esta lógica
+            'totalRespuestas': num_respuestas,
+            'encuestasRespondidas': num_encuestas_respondidas,
+            'tasaFinalizacion': round(tasa_finalizacion, 1),
+            # 'latitud': municipio.latitud, # Descomentar si se necesita para mapas
+            # 'longitud': municipio.longitud
         })
+        
+        total_respuestas_general += num_respuestas
+        total_encuestas_completadas_general += num_encuestas_respondidas
+
+    # Calcular tasa de finalización general (basada en filtros)
+    tasa_finalizacion_general = 0
+    if total_encuestas_aplicables_general > 0: # Usar el total aplicable calculado
+        # Necesitamos el total *único* de encuestas respondidas *dentro del filtro*
+        respuestas_filtradas_general = RespuestaEncuesta.objects.all()
+        if region_id:
+             respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio__region_id=region_id)
+        if municipio_id:
+             respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio_id=municipio_id)
+        total_encuestas_completadas_general = respuestas_filtradas_general.values('encuesta_id').distinct().count()
+
+        tasa_finalizacion_general = (total_encuestas_completadas_general / total_encuestas_aplicables_general) * 100
+
+    # 2. Estadísticas por Región (Agregadas)
+    datos_regiones_lista = []
+    regiones_para_tabla = regiones # Usar todas las regiones o filtrar si es necesario
+    if region_id:
+        regiones_para_tabla = regiones_para_tabla.filter(id=region_id)
+    
+    for region in regiones_para_tabla:
+        respuestas_region = RespuestaEncuesta.objects.filter(municipio__region=region)
+        num_respuestas_region = respuestas_region.count()
+        encuestas_respondidas_region_ids = respuestas_region.values_list('encuesta_id', flat=True).distinct()
+        num_encuestas_respondidas_region = len(encuestas_respondidas_region_ids)
+        
+        # Total encuestas aplicables a la región (Simplificación)
+        total_encuestas_aplicables_region = Encuesta.objects.filter(region=region).count() if Encuesta._meta.get_field('region') else total_encuestas_aplicables_general
+
+        tasa_finalizacion_region = 0
+        if total_encuestas_aplicables_region > 0:
+            tasa_finalizacion_region = (num_encuestas_respondidas_region / total_encuestas_aplicables_region) * 100
+
+        datos_regiones_lista.append({
+            'id': region.id,
+            'nombre': region.nombre,
+            'totalEncuestas': total_encuestas_aplicables_region, # Revisar lógica
+            'totalRespuestas': num_respuestas_region,
+            'encuestasRespondidas': num_encuestas_respondidas_region,
+            'tasaFinalizacion': round(tasa_finalizacion_region, 1)
+        })
+
+    # 3. Datos para Gráficos
+    
+    # Historial (últimos 6 meses, filtrado)
+    fecha_inicio = timezone.now() - timedelta(days=180)
+    respuestas_historial = RespuestaEncuesta.objects.filter(fecha_respuesta__gte=fecha_inicio)
+    if region_id:
+        respuestas_historial = respuestas_historial.filter(municipio__region_id=region_id)
+    if municipio_id:
+        respuestas_historial = respuestas_historial.filter(municipio_id=municipio_id)
+        
+    respuestas_por_mes = {}
+    # Crear todos los meses en el rango para asegurar que aparezcan aunque no tengan datos
+    current_date = fecha_inicio
+    end_date = timezone.now()
+    while current_date <= end_date:
+        mes_key = current_date.strftime('%Y-%m')
+        mes_label = current_date.strftime('%b %Y')
+        respuestas_por_mes[mes_key] = {'label': mes_label, 'count': 0}
+        # Avanzar al siguiente mes (aproximado)
+        next_month = current_date.replace(day=28) + timedelta(days=4) # Ir al final del mes y sumar 4 días
+        current_date = next_month - timedelta(days=next_month.day - 1) # Ir al primer día del siguiente mes
+
+    for respuesta in respuestas_historial:
+        mes_key = respuesta.fecha_respuesta.strftime('%Y-%m')
+        if mes_key in respuestas_por_mes:
+             respuestas_por_mes[mes_key]['count'] += 1
+        # else: Manejar respuestas fuera del rango si es necesario
+    
+    respuestas_ordenadas = sorted(respuestas_por_mes.items())
+    historial_meses = [datos['label'] for _, datos in respuestas_ordenadas]
+    historial_conteos = [datos['count'] for _, datos in respuestas_ordenadas]
+
+    # Distribución por Región (basado en respuestas filtradas)
+    distribucion_regiones = {} # { 'Region A': 100, 'Region B': 50 }
+    # Usar los datos ya calculados para la tabla de regiones
+    for region_data in datos_regiones_lista:
+         distribucion_regiones[region_data['nombre']] = region_data['totalRespuestas']
+         
+    # Formatear para Plotly Pie
+    regiones_pie_datos = [{'name': nombre, 'value': valor} for nombre, valor in distribucion_regiones.items()]
+
+    # Top 10 Municipios (basado en respuestas filtradas)
+    municipios_ordenados = sorted(
+        datos_municipios_lista,
+        key=lambda x: x['totalRespuestas'],
+        reverse=True
+    )
+    top_10_municipios = municipios_ordenados[:10]
+    municipios_bar_nombres = [m['nombre'] for m in top_10_municipios]
+    municipios_bar_valores = [m['totalRespuestas'] for m in top_10_municipios]
+
+    # Agrupar datos para JSON de gráficos
+    datos_graficos_dict = {
+        "historial": {
+            "meses": historial_meses,
+            "conteos": historial_conteos
+        },
+        "regiones": {
+            "datos": regiones_pie_datos # Ya tiene formato {name:..., value:...}
+        },
+        "municipios": {
+            "nombres": municipios_bar_nombres,
+            "valores": municipios_bar_valores
+        }
+    }
+
+    # 4. Encuestas Disponibles (Filtradas y con conteo)
+    encuestas_disponibles = []
+    query_encuestas = Encuesta.objects.prefetch_related('respuestas').select_related('region', 'municipio').all()
+    # Aplicar filtros si existen (considerar si el filtro debe aplicar aquí o solo a estadísticas)
+    # if region_id:
+    #     query_encuestas = query_encuestas.filter(region_id=region_id)
+    # if municipio_id:
+    #     query_encuestas = query_encuestas.filter(Q(municipio_id=municipio_id) | Q(municipio__isnull=True)) # O encuestas sin municipio específico?
+    
+    query_encuestas = query_encuestas.order_by('-fecha_creacion')[:50]
+    
+    for encuesta in query_encuestas:
+        # El prefetch_related debería hacer este conteo eficiente
+        total_respuestas_encuesta = encuesta.respuestas.count() 
+        encuestas_disponibles.append({
+            'id': encuesta.id,
+            'titulo': encuesta.titulo,
+            'descripcion': encuesta.descripcion,
+            'fecha_creacion': encuesta.fecha_creacion.strftime('%d/%m/%Y'),
+            'es_publica': encuesta.es_publica,
+            'activa': getattr(encuesta, 'activa', True), # Asumiendo un campo 'activa' o por defecto True
+            'is_proxima': getattr(encuesta, 'is_proxima', False), # Asumiendo campo
+            'total_respuestas': total_respuestas_encuesta,
+            'region': encuesta.region.nombre if encuesta.region else 'N/A',
+            'municipio': encuesta.municipio.nombre if encuesta.municipio else 'N/A'
+        })
+
+    # --- Contexto Final --- 
+    context = {
+        # Datos para selects y UI
+        'regiones': regiones,
+        'municipios': todos_municipios_json, # Para el select JS
+        'encuestas': encuestas_disponibles, # Para la sección de encuestas
+        'region_seleccionada': region_id_str,
+        'municipio_seleccionado': municipio_id_str,
+
+        # Datos para tarjetas de resumen
+        'total_encuestas': total_encuestas_aplicables_general, # Revisar lógica
+        'total_respuestas': total_respuestas_general,
+        'total_encuestas_completadas': total_encuestas_completadas_general, # Revisar lógica
+        'tasa_finalizacion': round(tasa_finalizacion_general, 1),
+
+        # --- JSONs para JavaScript --- 
+        'datos_graficos_json': json.dumps(datos_graficos_dict, cls=DjangoJSONEncoder),
+        'datos_regiones_tabla_json': json.dumps(datos_regiones_lista, cls=DjangoJSONEncoder),
+        'datos_municipios_json': json.dumps(datos_municipios_lista, cls=DjangoJSONEncoder),
+    }
+    
+    return render(request, 'estadisticas/municipios.html', context)
 
 def public_home(request):
     """
@@ -2420,9 +2780,15 @@ def public_home(request):
         encuesta__in=encuestas_publicas
     ).distinct()
 
+    # Obtener grupos de interes unicos
+    grupos_interes_unicos = GrupoInteres.objects.filter(
+        encuesta__in=encuestas_publicas
+    ).distinct()
+
     context = {
         'encuestas_publicas': encuestas_publicas,
         'categorias_unicas': categorias_unicas,
+        'grupos_interes_unicos': grupos_interes_unicos,
     }
     return render(request, 'public/home.html', context)
 
@@ -2497,6 +2863,7 @@ def listar_pqrsfd(request):
         'conteo_estados': conteo_estados,
         'ESTADO_CHOICES': dict(PQRSFD.ESTADO_CHOICES)
     }
+    
     
     return render(request, 'admin/listar_pqrsfd.html', context)
 
@@ -2795,7 +3162,7 @@ def agregar_caracterizacion(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
     
     if request.method == 'POST':
-        requeridas = request.POST.get('requeridas', 'true').lower() == 'true'
+        requeridas = request.POST.get('preguntas_obligatorias', 'false') == 'true'
         
         # Obtener el último orden de las preguntas existentes
         ultimo_orden = 0
@@ -2807,51 +3174,84 @@ def agregar_caracterizacion(request, encuesta_id):
         preguntas = [
             {
                 'tipo': 'TEXT',
-                'texto': '¿Cuál es su nombre completo?',
+                'texto': 'Nombre del Entrevistador',
                 'orden': ultimo_orden + 1,
                 'seccion': 'Caracterización',
                 'requerida': requeridas
             },
             {
+                'tipo': 'TEXT',
+                'texto': '¿Cuál es su nombre completo?',
+                'orden': ultimo_orden + 2,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Identificación',
+                'orden': ultimo_orden + 3,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Correo electrónico',
+                'orden': ultimo_orden + 4,
+                'seccion': 'Caracterización',
+                'requerida': False,
+                'placeholder': 'ejemplo@correo.com'
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Número de teléfono o celular',
+                'orden': ultimo_orden + 5,
+                'seccion': 'Caracterización',
+                'requerida': False,
+                'placeholder': 'Ej: 3001234567'
+            },
+            {
                 'tipo': 'RADIO',
                 'texto': '¿Cuál es su sexo?',
-                'orden': ultimo_orden + 2,
+                'orden': ultimo_orden + 6,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
-                    {'texto': 'Masculino', 'valor': 'a'},
-                    {'texto': 'Femenino', 'valor': 'b'},
-                    {'texto': 'Otro', 'valor': 'c'},
-                    {'texto': 'Prefiero no responder', 'valor': 'd'}
+                    {'texto': 'Masculino', 'valor': 'a', 'orden': 1},
+                    {'texto': 'Femenino', 'valor': 'b', 'orden': 2},
+                    {'texto': 'Otro', 'valor': 'c', 'orden': 3},
+                    {'texto': 'Prefiero no responder', 'valor': 'd', 'orden': 4}
                 ]
             },
             {
                 'tipo': 'RADIO',
                 'texto': '¿Cuál es su rango de edad?',
-                'orden': ultimo_orden + 3,
+                'orden': ultimo_orden + 7,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
-                    {'texto': 'Menos de 18 años', 'valor': 'a'},
-                    {'texto': '18 a 25 años', 'valor': 'b'},
-                    {'texto': '26 a 35 años', 'valor': 'c'},
-                    {'texto': '36 a 45 años', 'valor': 'd'},
-                    {'texto': '46 a 60 años', 'valor': 'e'},
-                    {'texto': 'Más de 60 años', 'valor': 'f'}
+                    {'texto': 'Menos de 18 años', 'valor': 'a', 'orden': 1},
+                    {'texto': '18 a 25 años', 'valor': 'b', 'orden': 2},
+                    {'texto': '26 a 35 años', 'valor': 'c', 'orden': 3},
+                    {'texto': '36 a 45 años', 'valor': 'd', 'orden': 4},
+                    {'texto': '46 a 60 años', 'valor': 'e', 'orden': 5},
+                    {'texto': 'Más de 60 años', 'valor': 'f', 'orden': 6}
                 ]
             },
             {
                 'tipo': 'CHECK',
                 'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
-                'orden': ultimo_orden + 4,
+                'orden': ultimo_orden + 8,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
-                    {'texto': 'Comunidad Indígena', 'valor': 'a'},
-                    {'texto': 'Comunidad Afrodescendiente', 'valor': 'b'},
-                    {'texto': 'Comunidad Campesina', 'valor': 'c'},
-                    {'texto': 'Persona con Discapacidad', 'valor': 'd'},
-                    {'texto': 'Ninguno', 'valor': 'e'}
+                    {'texto': 'Comunidad Indígena', 'valor': 'a', 'orden': 1},
+                    {'texto': 'Comunidad Afrodescendiente', 'valor': 'b', 'orden': 2},
+                    {'texto': 'Comunidad Campesina', 'valor': 'c', 'orden': 3},
+                    {'texto': 'Persona con Discapacidad', 'valor': 'd', 'orden': 4},
+                    {'texto': 'LGBTIQ+', 'valor': 'e', 'orden': 5},
+                    {'texto': 'Victima del conflicto armado', 'valor': 'f', 'orden': 6},
+                    {'texto': 'Otro', 'valor': 'g', 'orden': 7},
+                    {'texto': 'Ninguno', 'valor': 'h', 'orden': 8}
                 ]
             }
         ]
@@ -2865,7 +3265,9 @@ def agregar_caracterizacion(request, encuesta_id):
                     tipo=pregunta_data['tipo'],
                     requerida=pregunta_data['requerida'],
                     orden=pregunta_data['orden'],
-                    seccion=pregunta_data['seccion']
+                    seccion=pregunta_data['seccion'],
+                    ayuda=pregunta_data.get('ayuda', ''),
+                    placeholder=pregunta_data.get('placeholder', '')
                 )
             elif pregunta_data['tipo'] == 'RADIO':
                 pregunta = PreguntaOpcionMultiple.objects.create(
@@ -2881,7 +3283,8 @@ def agregar_caracterizacion(request, encuesta_id):
                     OpcionMultiple.objects.create(
                         pregunta=pregunta,
                         texto=opcion_data['texto'],
-                        valor=opcion_data['valor']
+                        valor=opcion_data['valor'],
+                        orden=opcion_data['orden']
                     )
             elif pregunta_data['tipo'] == 'CHECK':
                 pregunta = PreguntaCasillasVerificacion.objects.create(
@@ -2897,7 +3300,8 @@ def agregar_caracterizacion(request, encuesta_id):
                     OpcionCasillaVerificacion.objects.create(
                         pregunta=pregunta,
                         texto=opcion_data['texto'],
-                        valor=opcion_data['valor']
+                        valor=opcion_data['valor'],
+                        orden=opcion_data['orden']
                     )
         
         messages.success(request, 'Preguntas de caracterización agregadas exitosamente.')
@@ -3141,3 +3545,396 @@ def crear_usuario(request):
     return render(request, 'usuarios/crear_usuario.html', {
         'form': form
     })
+
+# API Views para el mapa y estadísticas
+def api_estadisticas_municipios(request):
+    """
+    API que devuelve estadísticas de municipios en formato JSON para el mapa
+    """
+    try:
+        # Obtener todas las regiones y municipios
+        regiones = Region.objects.all()
+        todos_municipios = Municipio.objects.select_related('region').all()
+        
+        # Filtros aplicados (opcional)
+        region_id = request.GET.get('region')
+        municipio_id = request.GET.get('municipio')
+        
+        # Consulta base para municipios
+        municipios_query = todos_municipios
+        
+        # Aplicar filtros si existen
+        if region_id and region_id != 'todas':
+            municipios_query = municipios_query.filter(region_id=region_id)
+        if municipio_id and municipio_id != 'todos':
+            municipios_query = municipios_query.filter(id=municipio_id)
+        
+        # Estadísticas por municipio
+        datos_municipios = {}
+        
+        for municipio in municipios_query:
+            # Obtener encuestas activas para este municipio
+            encuestas_activas = Encuesta.objects.filter(region=municipio.region)
+            
+            # Obtener respuestas para este municipio
+            respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+            
+            # Contar respuestas únicas por encuesta
+            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+            
+            # Calcular estadísticas
+            municipio_total_encuestas = encuestas_activas.count()
+            municipio_total_respuestas = respuestas.count()
+            
+            # Calcular tasa de finalización
+            tasa_finalizacion = 0
+            if municipio_total_encuestas > 0:
+                tasa_finalizacion = (encuestas_respondidas / municipio_total_encuestas) * 100
+            
+            # La clave debe ser el nombre del municipio en mayúsculas ya que así lo espera el código JS
+            datos_municipios[municipio.nombre.upper()] = {
+                'id': municipio.id,
+                'nombre': municipio.nombre,
+                'region': municipio.region.nombre,
+                'region_id': municipio.region.id,
+                'totalEncuestas': municipio_total_encuestas,
+                'totalRespuestas': municipio_total_respuestas,
+                'encuestasRespondidas': encuestas_respondidas,
+                'tasaFinalizacion': round(tasa_finalizacion, 2),
+                'latitud': municipio.latitud,
+                'longitud': municipio.longitud
+            }
+        
+        # Retornar directamente el diccionario sin envolverlo en otro objeto
+        return JsonResponse(datos_municipios)
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
+def api_mapa_municipios(request):
+    """
+    API que devuelve datos de municipios para el mapa
+    """
+    try:
+        # Obtener todos los municipios con coordenadas
+        municipios = Municipio.objects.select_related('region').all()
+        
+        # Filtrar por región si se proporciona
+        region_id = request.GET.get('region')
+        if region_id and region_id != 'todas':
+            municipios = municipios.filter(region_id=region_id)
+        
+        # Preparar datos para el mapa
+        datos_mapa = {}
+        for municipio in municipios:
+            if municipio.latitud and municipio.longitud:  # Solo incluir si tiene coordenadas
+                # Contar respuestas para este municipio
+                respuestas = RespuestaEncuesta.objects.filter(municipio=municipio).count()
+                
+                # La clave debe ser el nombre del municipio en mayúsculas
+                datos_mapa[municipio.nombre.upper()] = {
+                    'id': municipio.id,
+                    'nombre': municipio.nombre,
+                    'region': municipio.region.nombre,
+                    'region_id': municipio.region.id,
+                    'latitud': municipio.latitud,
+                    'longitud': municipio.longitud,
+                    'totalRespuestas': respuestas,
+                    'totalEncuestas': Encuesta.objects.filter(region=municipio.region).count(),
+                    'tasaFinalizacion': 0  # Se calculará correctamente si es necesario
+                }
+        
+        # Retornar directamente el diccionario como lo espera el frontend
+        return JsonResponse(datos_mapa)
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
+# --- NUEVA VISTA API ---
+def api_encuestas_por_municipio(request, municipio_id):
+    """
+    API que devuelve una lista de encuestas activas y públicas
+    asociadas a la región del municipio especificado.
+    """
+    # Validar que el municipio exista
+    municipio = get_object_or_404(Municipio.objects.select_related('region'), id=municipio_id)
+    region_id = municipio.region.id
+
+    try:
+        # Filtrar encuestas: activas, públicas y de la misma región que el municipio
+        # También podrías filtrar directamente por municipio si una encuesta pertenece a uno solo:
+        # encuestas = Encuesta.objects.filter(municipio_id=municipio_id, activa=True, es_publica=True)
+        encuestas = Encuesta.objects.filter(
+            Q(region_id=region_id), # De la misma región
+            # Opcional: incluir encuestas sin región específica si aplica
+            # Q(region__isnull=True) |
+            activa=True,
+            es_publica=True,
+            fecha_inicio__lte=timezone.now(), # Que ya hayan iniciado
+            fecha_fin__gte=timezone.now() # Que no hayan terminado
+        ).values(
+            'id', 'titulo', 'slug' # Devolver solo campos necesarios
+        ).order_by('-fecha_creacion')[:10] # Limitar a 10 más recientes
+
+        # Convertir QuerySet a lista de diccionarios
+        lista_encuestas = list(encuestas)
+
+        return JsonResponse(lista_encuestas, safe=False) # safe=False porque devolvemos una lista
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def duplicar_encuesta_json(request, encuesta_id):
+    """
+    Duplica una encuesta y todas sus preguntas utilizando serialización JSON.
+    Esta función es más robusta que duplicar_encuesta() ya que serializa todos los campos 
+    automáticamente sin necesidad de listarlos.
+    """
+    encuesta_original = get_object_or_404(Encuesta, id=encuesta_id)
+    
+    if request.method == 'POST':
+        try:
+            # Obtener datos del formulario
+            nuevo_titulo = request.POST.get('titulo', f"{encuesta_original.titulo} (Copia)")
+            
+            # Verificar que el título no esté repetido
+            if Encuesta.objects.filter(titulo=nuevo_titulo).exists():
+                messages.error(request, 'Ya existe una encuesta con este título. Por favor, elige otro.')
+                return redirect('duplicar_encuesta_json', encuesta_id=encuesta_original.id)
+            
+            # Generar slug único
+            from django.utils.text import slugify
+            slug_base = slugify(nuevo_titulo)
+            slug = slug_base
+            counter = 1
+            while Encuesta.objects.filter(slug=slug).exists():
+                slug = f"{slug_base}-{counter}"
+                counter += 1
+                
+            # Crear la nueva encuesta con datos básicos que deben ser diferentes
+            nueva_encuesta = Encuesta.objects.create(
+                titulo=nuevo_titulo,
+                slug=slug,
+                creador=request.user,
+                fecha_creacion=timezone.now(),
+                fecha_inicio=request.POST.get('fecha_inicio'),
+                fecha_fin=request.POST.get('fecha_fin'),
+                activa=request.POST.get('activa') == 'on',
+                es_publica=request.POST.get('es_publica') == 'on',
+                region_id=request.POST.get('region'),
+                categoria_id=request.POST.get('categoria'),
+            )
+            
+            # Copiar todos los demás campos directamente usando __dict__
+            # Excluimos campos que no deben copiarse
+            exclude_fields = ['_state', 'id', 'titulo', 'slug', 'creador_id', 
+                            'fecha_creacion', 'fecha_inicio', 'fecha_fin', 
+                            'activa', 'es_publica', 'region_id', 'categoria_id']
+            
+            for field, value in encuesta_original.__dict__.items():
+                if field not in exclude_fields:
+                    setattr(nueva_encuesta, field, value)
+            
+            nueva_encuesta.save()
+            
+            # Función auxiliar para duplicar preguntas con opciones
+            def duplicar_pregunta_con_opciones(modelo_pregunta, relation_name, 
+                                              modelo_opcion=None, opcion_relation_name=None):
+                """Duplica preguntas de un tipo específico y sus opciones si las tiene"""
+                # Obtener el manager para este tipo de pregunta (por ejemplo, preguntatexto_relacionadas)
+                manager = getattr(encuesta_original, relation_name)
+                
+                for pregunta_orig in manager.all():
+                    # Excluir campos que no deben copiarse
+                    valores_pregunta = {k: v for k, v in pregunta_orig.__dict__.items() 
+                                      if k not in ['_state', 'id', 'encuesta_id']}
+                    
+                    # Asociar a la nueva encuesta
+                    valores_pregunta['encuesta'] = nueva_encuesta
+                    
+                    # Crear la nueva pregunta
+                    nueva_pregunta = modelo_pregunta.objects.create(**valores_pregunta)
+                    
+                    # Si tiene opciones, duplicarlas
+                    if modelo_opcion and opcion_relation_name:
+                        for opcion_orig in getattr(pregunta_orig, opcion_relation_name).all():
+                            valores_opcion = {k: v for k, v in opcion_orig.__dict__.items() 
+                                          if k not in ['_state', 'id', 'pregunta_id']}
+                            valores_opcion['pregunta'] = nueva_pregunta
+                            modelo_opcion.objects.create(**valores_opcion)
+            
+            # Duplicar todos los tipos de preguntas
+            duplicar_pregunta_con_opciones(PreguntaTexto, 'preguntatexto_relacionadas')
+            duplicar_pregunta_con_opciones(PreguntaTextoMultiple, 'preguntatextomultiple_relacionadas')
+            duplicar_pregunta_con_opciones(PreguntaOpcionMultiple, 'preguntaopcionmultiple_relacionadas', 
+                                         OpcionMultiple, 'opciones')
+            duplicar_pregunta_con_opciones(PreguntaCasillasVerificacion, 'preguntacasillasverificacion_relacionadas', 
+                                         OpcionCasillaVerificacion, 'opciones')
+            duplicar_pregunta_con_opciones(PreguntaMenuDesplegable, 'preguntamenudesplegable_relacionadas', 
+                                         OpcionMenuDesplegable, 'opciones')
+            duplicar_pregunta_con_opciones(PreguntaEstrellas, 'preguntaestrellas_relacionadas')
+            duplicar_pregunta_con_opciones(PreguntaFecha, 'preguntafecha_relacionadas')
+            
+            # Para preguntas de escala (sin opciones)
+            duplicar_pregunta_con_opciones(PreguntaEscala, 'preguntaescala_relacionadas')
+            
+            # Caso especial: Preguntas de matriz que tienen una relación con escala y otra con items
+            for pregunta_matriz_orig in encuesta_original.preguntamatriz_relacionadas.all():
+                # Primero duplicar la escala asociada
+                escala_orig = pregunta_matriz_orig.escala
+                valores_escala = {k: v for k, v in escala_orig.__dict__.items() 
+                                if k not in ['_state', 'id', 'encuesta_id']}
+                valores_escala['encuesta'] = nueva_encuesta
+                nueva_escala = PreguntaEscala.objects.create(**valores_escala)
+                
+                # Ahora duplicar la pregunta de matriz
+                valores_matriz = {k: v for k, v in pregunta_matriz_orig.__dict__.items() 
+                               if k not in ['_state', 'id', 'encuesta_id', 'escala_id']}
+                valores_matriz['encuesta'] = nueva_encuesta
+                valores_matriz['escala'] = nueva_escala
+                nueva_matriz = PreguntaMatriz.objects.create(**valores_matriz)
+                
+                # Duplicar los items (filas) de la matriz
+                for item_orig in pregunta_matriz_orig.items.all():
+                    valores_item = {k: v for k, v in item_orig.__dict__.items() 
+                                 if k not in ['_state', 'id', 'pregunta_id']}
+                    valores_item['pregunta'] = nueva_matriz
+                    ItemMatrizPregunta.objects.create(**valores_item)
+            
+            messages.success(request, '¡Encuesta duplicada exitosamente!')
+            return redirect('editar_encuesta', encuesta_id=nueva_encuesta.id)
+            
+        except Exception as e:
+            # Activar esto para depuración en producción si es necesario
+            import traceback
+            print(f"Error al duplicar encuesta: {type(e).__name__} - {str(e)}")
+            traceback.print_exc()
+            
+            messages.error(request, f'Error al duplicar la encuesta: {str(e)}')
+            return redirect('lista_encuestas')
+    
+    # Si es GET, mostrar el formulario de duplicación
+    regiones = Region.objects.all()
+    categorias = Categoria.objects.all()
+    
+    return render(request, 'Encuesta/duplicar_encuesta.html', {
+        'encuesta_original': encuesta_original,
+        'regiones': regiones,
+        'categorias': categorias,
+        'now': timezone.now()
+    })
+
+@login_required
+def grupos_interes(request):
+    """Vista para listar todos los grupos de interés"""
+    grupos = GrupoInteres.objects.all()
+    return render(request, 'grupos_interes/grupos_interes.html', {
+        'grupos': grupos
+    })
+
+@login_required
+def crear_grupo_interes(request):
+    """Vista para crear un nuevo grupo de interés"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion', '')
+        
+        if GrupoInteres.objects.filter(nombre=nombre).exists():
+            messages.error(request, 'Ya existe un grupo de interés con ese nombre.')
+            return redirect('crear_grupo_interes')
+        
+        GrupoInteres.objects.create(
+            nombre=nombre,
+            descripcion=descripcion
+        )
+        messages.success(request, f'Grupo de interés "{nombre}" creado exitosamente.')
+        return redirect('grupos_interes')
+    
+    return render(request, 'grupos_interes/crear_grupo_interes.html')
+
+@login_required
+def eliminar_grupo_interes(request, grupo_id):
+    """Vista para eliminar un grupo de interés"""
+    grupo = get_object_or_404(GrupoInteres, id=grupo_id)
+    
+    # Verificar si hay encuestas asociadas
+    encuestas_asociadas = Encuesta.objects.filter(grupo_interes=grupo).count()
+    
+    if request.method == 'POST':
+        # Si hay encuestas relacionadas, cambiar su grupo a None
+        if encuestas_asociadas:
+            Encuesta.objects.filter(grupo_interes=grupo).update(grupo_interes=None)
+        
+        nombre = grupo.nombre
+        grupo.delete()
+        messages.success(request, f'Grupo de interés "{nombre}" eliminado exitosamente.')
+        return redirect('grupos_interes')
+    
+    # Si la solicitud es GET y proviene de JavaScript AJAX, devolvemos datos JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'encuestas_asociadas': encuestas_asociadas,
+            'nombre': grupo.nombre
+        })
+    
+    # Si es GET normal, mostramos la página de confirmación
+    return render(request, 'grupos_interes/confirmar_eliminar_grupo.html', {
+        'grupo': grupo,
+        'encuestas_asociadas': encuestas_asociadas
+    })
+
+@login_required
+def editar_grupo_interes(request, grupo_id):
+    """Vista para editar un grupo de interés"""
+    grupo = get_object_or_404(GrupoInteres, id=grupo_id)
+    
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion', '')
+        
+        grupo.nombre = nombre
+        grupo.descripcion = descripcion
+        grupo.save()
+        messages.success(request, f'Grupo de interés "{nombre}" actualizado exitosamente.')
+        return redirect('grupos_interes')
+    
+    return render(request, 'grupos_interes/editar_grupo_interes.html', {
+        'grupo': grupo
+    })
+
+def generar_certificado(request):
+    """Vista para generar certificados a partir de formularios completados"""
+    if request.method == 'POST':
+        form_id = request.POST.get('formulario_id')
+        nombre = request.POST.get('nombre_completo')
+        documento = request.POST.get('numero_identificacion')
+        correo = request.POST.get('correo')
+        telefono = request.POST.get('telefono')
+        
+        if form_id and nombre and documento:
+            encuesta = get_object_or_404(Encuesta, id=form_id)
+            fecha_actual = timezone.now().strftime('%d/%m/%Y')
+            
+            context = {
+                'encuesta': encuesta,
+                'nombre_completo': nombre,
+                'numero_identificacion': documento,
+                'correo': correo,
+                'telefono': telefono,
+                'fecha_actual': fecha_actual
+            }
+            
+            return render(request, 'certificado_template.html', context)
+    
+    # Si llegamos aquí, no se enviaron los datos correctamente
+    # Obtener la lista de encuestas disponibles para seleccionar
+    encuestas = Encuesta.objects.all().order_by('-fecha_creacion')
+    
+    return render(request, 'generar_certificado.html', {
+        'encuestas': encuestas
+    })
+
+

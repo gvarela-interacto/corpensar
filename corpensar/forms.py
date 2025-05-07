@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 class EncuestaForm(forms.ModelForm):
     class Meta:
         model = Encuesta
-        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema', 'region', 'categoria', 'subcategoria']
+        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin', 'activa', 'es_publica', 'tema', 'region', 'categoria', 'subcategoria', 'grupo_interes']
         widgets = {
             'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}), 
             'fecha_fin': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
@@ -16,6 +16,7 @@ class EncuestaForm(forms.ModelForm):
             'region': forms.Select(attrs={'class': 'form-control'}),
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'subcategoria': forms.Select(attrs={'class': 'form-control'}),
+            'grupo_interes': forms.Select(attrs={'class': 'form-control'}),
         }
         labels = {
             'titulo': 'Título de la encuesta',
@@ -28,11 +29,13 @@ class EncuestaForm(forms.ModelForm):
             'region': 'Región',
             'categoria': 'Categoría',
             'subcategoria': 'Subcategoría',
+            'grupo_interes': 'Grupo de Interés',
         }
         help_texts = {
             'es_publica': 'Si está marcada, cualquier usuario podrá responder sin necesidad de autenticarse',
             'region': 'Selecciona la región asociada a esta encuesta',
             'subcategoria': 'Selecciona la subcategoría de la encuesta',
+            'grupo_interes': 'Selecciona el grupo de interés relacionado con esta encuesta',
         }
 
     def clean(self):

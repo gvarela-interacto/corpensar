@@ -1,0 +1,1519 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Estadísticas Históricas | Corpensar{% endblock %}
+
+{% block styles %}
+<style>
+    /* Mejoras generales */
+    .container-fluid {
+        padding: 2rem;
+        max-width: 100%;
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Contenedor principal de estadísticas */
+    .stats-dashboard {
+        background-color: #f8f9fc;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    /* Tarjetas de estadísticas mejoradas */
+    .card {
+        transition: all 0.3s ease;
+        animation: fadeIn 0.5s ease-out;
+        margin-bottom: 1.5rem;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+
+    .border-left-primary { border-left: 0.5rem solid #4e73df !important; }
+    .border-left-success { border-left: 0.5rem solid #1cc88a !important; }
+    .border-left-info { border-left: 0.5rem solid #36b9cc !important; }
+    .border-left-warning { border-left: 0.5rem solid #f6c23e !important; }
+
+    /* Tabs mejoradas */
+    .nav-tabs-container {
+        background-color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1rem 1rem 0 1rem;
+        box-shadow: 0 -2px 15px rgba(0,0,0,0.03);
+    }
+
+    .nav-tabs {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .nav-tabs .nav-item {
+        margin-bottom: 0;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        color: #858796;
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #4e73df;
+        background-color: #f8f9fc;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #4e73df;
+        background-color: #f8f9fc;
+        border-bottom: 3px solid #4e73df;
+    }
+
+    /* Contenedor de gráficos significativamente mejorado */
+    .tab-content {
+        background-color: #f8f9fc;
+        border-radius: 0 0 15px 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .chart-container {
+        height: 600px; /* Mucho más alto para mejor visualización */
+        width: 100%;
+        margin: 0;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .distribution-charts {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Formulario de filtros mejorado */
+    .filters-card { /* Se puede eliminar o reutilizar si es necesario */
+        /* background-color: white; */
+        /* border-radius: 15px; */
+        /* box-shadow: 0 5px 15px rgba(0,0,0,0.05); */
+        margin-bottom: 2rem;
+        /* border: 1px solid #e3e6f0; */
+        /* padding: 1.5rem; */
+    }
+
+    .filters-card .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .form-select {
+        border-radius: 10px;
+        border: 1px solid #d1d3e2;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+        background-color: #f8f9fc;
+    }
+
+    .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78,115,223,0.25);
+    }
+
+    .btn-primary {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        background-color: #4e73df;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78,115,223,0.2);
+        background-color: #3a5ecc;
+    }
+
+    /* Lista de encuestas mejorada */
+    .encuesta-item {
+        padding: 1.5rem;
+        background-color: white;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        border-left: 4px solid #4e73df;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        animation: fadeIn 0.5s ease-out;
+        cursor: pointer;
+    }
+
+    .encuesta-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .encuesta-item h5 {
+        color: #2e384d;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .encuesta-item p {
+        color: #858796;
+        margin-bottom: 1rem;
+    }
+
+    /* Badges mejorados */
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .bg-success {
+        background-color: #1cc88a !important;
+    }
+
+    /* Responsividad mejorada */
+    @media (min-width: 992px) {
+        .distribution-charts {
+            flex-direction: row;
+        }
+
+        .chart-box {
+            flex: 1;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .chart-container {
+            height: 450px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 1rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            padding: 1rem;
+        }
+
+        .nav-tabs .nav-link {
+            padding: 0.75rem 1rem;
+        }
+
+        .tab-content {
+            padding: 1rem;
+        }
+
+        .encuesta-item {
+            padding: 1rem;
+        }
+    }
+
+    /* Estilos para las tarjetas de encuestas */
+    .hover-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .hover-card .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .hover-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .hover-card .card-footer {
+        background-color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .hover-card .card-title {
+        font-weight: 600;
+        color: #2e384d;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        height: 2.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .hover-card .card-text {
+        color: #5a5c69;
+        height: 4.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    /* Estilos para los botones de acción */
+    .hover-card .btn-sm {
+        border-radius: 20px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .hover-card .btn-sm:hover {
+        transform: translateY(-2px);
+    }
+
+    .hover-card .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+
+    .hover-card .btn-secondary {
+        background-color: #858796;
+        border-color: #858796;
+    }
+
+    /* Estilos para la tabla con altura fija */
+    .table-responsive-fixed {
+        height: 400px; /* Ajustar según necesidad */
+        overflow-y: auto;
+        margin-top: 1.5rem; /* Espacio entre filtros y tabla */
+    }
+
+    .table-responsive-fixed thead th {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
+        border-top: none;
+    }
+
+    /* Estilos para secciones desplegables */
+    .collapsible-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .collapsible-section .card-header {
+        cursor: pointer;
+    }
+
+    /* Estilo para el contenedor de filtros dentro de la tabla */
+    .filtros-tabla-container {
+        border-bottom: 1px solid #e3e6f0;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Estadísticas Históricas</h1>
+
+    <!-- SECCIÓN 3: TARJETAS DE RESUMEN (Movida al principio) -->
+    <div class="row mb-4" id="estadisticasResumen">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total de Encuestas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_encuestas }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total de Respuestas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_respuestas }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Encuestas Completadas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_encuestas_completadas }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Tasa de Finalización</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tasa_finalizacion }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 4: TABLA DE ESTADÍSTICAS (Movida) + SECCIÓN 2: FILTROS (Integrada) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas Detalladas</h6>
+                    <div>
+                        <!-- Botón para elegir vista (Pendiente JS) -->
+                        <div class="btn-group me-2" role="group" aria-label="Tipo de vista">
+                            <input type="radio" class="btn-check" name="vistaTabla" id="vistaMunicipios" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary btn-sm" for="vistaMunicipios">Municipios</label>
+
+                            <input type="radio" class="btn-check" name="vistaTabla" id="vistaRegiones" autocomplete="off">
+                            <label class="btn btn-outline-primary btn-sm" for="vistaRegiones">Regiones</label>
+                        </div>
+                        <button class="btn btn-sm btn-success" onclick="exportarExcel()">
+                            <i class="fas fa-file-excel"></i> Exportar
+                        </button>
+                        <!-- Se quita el botón de colapso de tabla por ahora -->
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- SECCIÓN 2: FILTROS (Integrada aquí) -->
+                    <div class="filtros-tabla-container">
+                        <form method="get" action="{% url 'estadisticas_municipios' %}" class="row align-items-end">
+                            <div class="col-md-5 mb-3 mb-md-0">
+                                <label for="region" class="form-label fw-bold small">Región:</label>
+                                <select id="region" name="region" class="form-select form-select-sm" onchange="cargarMunicipios()">
+                                    <option value="todas" >Todas las regiones</option>
+                                    {% for region in regiones %}
+                                        <option value="{{ region.id }}" {% if region_seleccionada == region.id|stringformat:"s" %}selected{% endif %}>{{ region.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5 mb-3 mb-md-0">
+                                <label for="municipio" class="form-label fw-bold small">Municipio:</label>
+                                <select id="municipio" name="municipio" class="form-select form-select-sm">
+                                    <option value="todos" >Todos los municipios</option>
+                                    <!-- Opciones se cargan con JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">
+                                    <i class="fas fa-filter me-1"></i> Filtrar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Fin Filtros Integrados -->
+
+                    <div class="table-responsive-fixed">
+                        <table class="table table-bordered table-hover" id="tablaEstadisticas">
+                            <thead class="table-light">
+                                <!-- El contenido del thead cambiará con JS según vistaMunicipios/vistaRegiones -->
+                                <tr>
+                                    <th>Municipio</th>
+                                    <th>Región</th>
+                                    <th>Total Encuestas</th>
+                                    <th>Total Respuestas</th>
+                                    <th>Encuestas Completadas</th>
+                                    <th>Tasa Finalización (%)</th>
+                                    <th>Clasificación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- El contenido del tbody cambiará con JS -->
+                                {% for municipio in datos_municipios.values %}
+                                <tr data-tipo="municipio"> {# Añadido para JS #}
+                                    <td>{{ municipio.nombre }}</td>
+                                    <td>{{ municipio.region }}</td>
+                                    <td class="text-center">{{ municipio.totalEncuestas }}</td>
+                                    <td class="text-center">{{ municipio.totalRespuestas }}</td>
+                                    <td class="text-center">{{ municipio.encuestasRespondidas }}</td>
+                                    <td class="text-center">{{ municipio.tasaFinalizacion }}</td>
+                                    <td class="text-center">
+                                        {% if municipio.tasaFinalizacion >= 80 %}
+                                            <span class="badge bg-success">Alto</span>
+                                        {% elif municipio.tasaFinalizacion >= 50 %}
+                                            <span class="badge bg-warning text-dark">Medio</span> {# text-dark para mejor contraste en amarillo #}
+                                        {% else %}
+                                            <span class="badge bg-danger">Bajo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr data-tipo="municipio">
+                                    <td colspan="7" class="text-center">No hay datos de municipios para mostrar con los filtros actuales.</td>
+                                </tr>
+                                {% endfor %}
+                                <!-- Filas para Regiones (se añadirán con JS) -->
+                                {# Ejemplo de cómo podría ser una fila de región (se necesitarán datos del backend) #}
+                                <!--
+                                {% for region_stat in datos_regiones_tabla %}
+                                <tr data-tipo="region" style="display: none;"> {# Oculto inicialmente #}
+                                    <td>{{ region_stat.nombre }}</td>
+                                    <td>{{ region_stat.totalEncuestas }}</td>
+                                    <td>{{ region_stat.totalRespuestas }}</td>
+                                    <td>{{ region_stat.encuestasRespondidas }}</td>
+                                    <td>{{ region_stat.tasaFinalizacion }}%</td>
+                                    <td>
+                                        {% if region_stat.tasaFinalizacion >= 80 %}
+                                            <span class="badge bg-success">Alto</span>
+                                        {% elif region_stat.tasaFinalizacion >= 50 %}
+                                            <span class="badge bg-warning text-dark">Medio</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Bajo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Contenedor para controles de paginación -->
+                    <div class="d-flex justify-content-end mt-3" id="paginacionControles"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 1: ENCUESTAS DISPONIBLES (Movida) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow collapsible-section">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapseEncuestas">
+                    <h6 class="m-0 font-weight-bold text-primary">Encuestas Disponibles</h6>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="collapse" id="collapseEncuestas"> {# Cambiado a collapse por defecto #}
+                    <div class="card-body">
+                        <!-- Filtros para encuestas -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Filtrar encuestas</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <select id="filtroEstado" class="form-select form-select-sm">
+                                            <option value="todas">Todas las encuestas</option>
+                                            <option value="activas">Encuestas activas</option>
+                                            <option value="finalizadas">Encuestas finalizadas</option>
+                                            <option value="proximas">Encuestas próximas</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select id="filtroVisibilidad" class="form-select form-select-sm">
+                                            <option value="todas">Todas</option>
+                                            <option value="publicas">Públicas</option>
+                                            <option value="privadas">Privadas</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="buscarEncuesta" class="form-control" placeholder="Buscar por título...">
+                                            <button class="btn btn-primary" type="button" id="btnBuscarEncuesta">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de encuestas -->
+                        <div class="row" id="encuestasGrid">
+                            {% if encuestas %}
+                                {% for encuesta in encuestas %}
+                                    <div class="col-lg-4 col-md-6 mb-4 encuesta-card"
+                                        data-estado="{% if encuesta.activa %}activa{% elif encuesta.is_proxima %}proxima{% else %}finalizada{% endif %}" {# Ajustado estado #}
+                                        data-visibilidad="{% if encuesta.es_publica %}publica{% else %}privada{% endif %}">
+                                        <div class="card h-100 shadow-sm hover-card">
+                                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                                <span class="badge {% if encuesta.activa %}bg-success{% elif encuesta.is_proxima %}bg-warning text-dark{% else %}bg-danger{% endif %} me-2">
+                                                    {% if encuesta.activa %}Activa{% elif encuesta.is_proxima %}Próxima{% else %}Finalizada{% endif %}
+                                                </span>
+                                                <span class="badge {% if encuesta.es_publica %}bg-primary{% else %}bg-info text-dark{% endif %}"> {# Ajustado color badge privado #}
+                                                    {% if encuesta.es_publica %}Pública{% else %}Privada{% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ encuesta.titulo }}</h5>
+                                                <p class="card-text small">{{ encuesta.descripcion|truncatechars:100 }}</p> {# Truncar descripción #}
+
+                                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                                    <small class="text-muted"><i class="fas fa-poll me-1"></i> Respuestas: {{ encuesta.total_respuestas }}</small>
+                                                    {# Podría añadirse fecha inicio/fin si existen en el modelo 'encuesta' #}
+                                                    <!-- <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> {{ encuesta.fecha_inicio|date:"d/m/Y" }} - {{ encuesta.fecha_fin|date:"d/m/Y" }}</small> -->
+                                                </div>
+                                            </div>
+                                            <div class="card-footer bg-light border-top-0"> {# Cambiado fondo footer #}
+                                                <div class="d-grid gap-2 d-md-flex justify-content-md-end"> {# Alineado a la derecha #}
+                                                    <a href="{% url 'resultados_encuesta' encuesta.id %}" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-chart-bar me-1"></i> Resultados
+                                                    </a>
+                                                    <a href="{% url 'editar_encuesta' encuesta.id %}" class="btn btn-secondary btn-sm">
+                                                        <i class="fas fa-cog me-1"></i> Ajustes
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="col-12 text-center py-5">
+                                    <i class="far fa-frown fa-3x text-gray-400 mb-3"></i>
+                                    <p>No hay encuestas disponibles para mostrar.</p>
+                                    {# Considerar añadir un botón para crear una nueva encuesta si el usuario tiene permisos #}
+                                    <!-- <a href="{% url 'crear_encuesta' %}" class="btn btn-primary mt-3"><i class="fas fa-plus me-1"></i> Crear Encuesta</a> -->
+                                </div>
+                            {% endif %}
+                             <!-- Placeholder para mensaje de no resultados de filtro -->
+                            <div id="mensajeNoResultadosEncuestas" class="col-12 text-center py-5" style="display: none;">
+                                <i class="fas fa-search fa-3x text-gray-400 mb-3"></i>
+                                <p>No se encontraron encuestas con los filtros seleccionados.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN 5: GRÁFICOS (Movida) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow collapsible-section">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapseGraficos">
+                    <h6 class="m-0 font-weight-bold text-primary">Gráficos y Visualizaciones</h6>
+                     <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="collapse" id="collapseGraficos"> {# Cambiado a collapse por defecto #}
+                    <div class="card-body">
+                        <div class="stats-dashboard">
+                            <div class="nav-tabs-container">
+                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" aria-controls="historial" aria-selected="true">
+                                            <i class="fas fa-chart-line me-2"></i>Historial de Respuestas
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="distribucion-tab" data-bs-toggle="tab" data-bs-target="#distribucion" type="button" role="tab" aria-controls="distribucion" aria-selected="false">
+                                            <i class="fas fa-chart-pie me-2"></i>Distribución Geográfica
+                                        </button>
+                                    </li>
+                                    {# Añadir más pestañas si es necesario, ej: Distribución por Tipo de Pregunta #}
+                                </ul>
+                            </div>
+
+                            <div class="tab-content p-0" id="myTabContent"> {# Quitado padding extra del tab-content #}
+                                <!-- Historial de Respuestas -->
+                                <div class="tab-pane fade show active p-3" id="historial" role="tabpanel" aria-labelledby="historial-tab"> {# Añadido padding a cada pane #}
+                                    <div class="chart-container">
+                                        <div id="historialChart" style="width: 100%; height: 100%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Distribución Geográfica -->
+                                <div class="tab-pane fade p-3" id="distribucion" role="tabpanel" aria-labelledby="distribucion-tab"> {# Añadido padding a cada pane #}
+                                    <div class="distribution-charts">
+                                        <div class="chart-box">
+                                             <h6 class="text-center mb-3 font-weight-bold text-primary">Respuestas por Región</h6>
+                                            <div class="chart-container" style="height: 500px;"> {# Altura ajustada para pie #}
+                                                <div id="pieChart" style="width: 100%; height: 100%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="chart-box">
+                                             <h6 class="text-center mb-3 font-weight-bold text-primary">Top 10 Municipios por Respuestas</h6>
+                                            <div class="chart-container" style="height: 500px;"> {# Altura ajustada para bar #}
+                                                <div id="barChart" style="width: 100%; height: 100%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {# Añadir más tab-panes aquí #}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script id="datos-municipios" type="application/json">
+{% if municipios %}
+[
+    {% for municipio in municipios %}
+    {
+        "id": "{{ municipio.id }}",
+        "nombre": "{{ municipio.nombre|escapejs }}",
+        "region": "{{ municipio.region.id }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+{% else %}
+[]
+{% endif %}
+</script>
+
+<script id="datos-graficos" type="application/json">
+{{ datos_graficos_json|safe }}
+</script>
+{# Añadir datos para tabla de regiones si es necesario #}
+<script id="datos-tabla-regiones" type="application/json">
+{{ datos_regiones_tabla_json|safe }}
+</script>
+{# Añadir datos para tabla de municipios (ya filtrados por backend) #}
+<script id="datos-tabla-municipios" type="application/json">
+{{ datos_municipios_json|safe }}
+</script>
+
+
+<script>
+    // Asegurarse de que el JSON se carga correctamente
+    let todosMunicipios = [];
+    let datosGraficos = {};
+    let datosTablaRegiones = []; // Datos para la tabla de regiones
+    let datosTablaMunicipios = []; // Datos para la tabla de municipios
+
+    // --- Variables Globales para Paginación ---
+    let paginaActual = 1;
+    const filasPorPagina = 15; // Puedes ajustar este número
+    let datosTablaActual = []; // Almacenará los datos de municipios o regiones
+    let vistaTablaActual = 'vistaMunicipios'; // Para saber qué datos paginar
+
+    try {
+        const jsonMunicipios = document.getElementById('datos-municipios').textContent.trim();
+        if (jsonMunicipios) {
+            todosMunicipios = JSON.parse(jsonMunicipios);
+        } else {
+             console.warn("No se encontró JSON para 'datos-municipios' (select)");
+        }
+
+        const jsonGraficos = document.getElementById('datos-graficos').textContent.trim();
+        if (jsonGraficos) {
+            datosGraficos = JSON.parse(jsonGraficos);
+        } else {
+            console.warn("No se encontró JSON para 'datos-graficos'");
+            datosGraficos = {
+                historial: { meses: [], conteos: [] },
+                regiones: { nombres: [], datos: [] },
+                municipios: { nombres: [], valores: [] }
+            };
+        }
+        // Cargar datos para la tabla de regiones
+        const jsonTablaRegiones = document.getElementById('datos-tabla-regiones').textContent.trim();
+        if (jsonTablaRegiones) {
+            datosTablaRegiones = JSON.parse(jsonTablaRegiones);
+        } else {
+            console.warn("No se encontró JSON para 'datos-tabla-regiones'");
+        }
+        
+        // Cargar datos para la tabla de municipios
+        const jsonTablaMunicipios = document.getElementById('datos-tabla-municipios').textContent.trim();
+        if (jsonTablaMunicipios) {
+            datosTablaMunicipios = JSON.parse(jsonTablaMunicipios);
+        } else {
+            console.warn("No se encontró JSON para 'datos-tabla-municipios'");
+        }
+
+    } catch (error) {
+        console.error("Error al cargar datos JSON iniciales:", error);
+        todosMunicipios = [];
+        datosGraficos = {
+            historial: { meses: [], conteos: [] },
+            regiones: { nombres: [], datos: [] },
+            municipios: { nombres: [], valores: [] }
+        };
+        datosTablaRegiones = [];
+        datosTablaMunicipios = [];
+    }
+
+    function cargarMunicipios() {
+        try {
+            const regionId = document.getElementById('region').value;
+            const municipioSelect = document.getElementById('municipio');
+            const municipioSeleccionado = '{{ municipio_seleccionado|default:"todos" }}'; // Valor por defecto 'todos'
+
+            if (!municipioSelect) {
+                console.error("No se encontró el elemento select de municipio");
+                return;
+            }
+
+            // Guardar la opción seleccionada actualmente antes de limpiar
+            const opcionSeleccionadaActual = municipioSelect.value;
+
+            // Limpiar opciones actuales
+            municipioSelect.innerHTML = '';
+
+            // Opción por defecto
+            const optionTodos = document.createElement('option');
+            optionTodos.value = 'todos';
+            optionTodos.text = 'Todos los municipios';
+            // Seleccionar 'todos' si es el valor por defecto o si no hay selección previa
+            if (municipioSeleccionado === 'todos' || !municipioSeleccionado) {
+                optionTodos.selected = true;
+            }
+            municipioSelect.appendChild(optionTodos);
+
+            // Si no hay municipios, terminamos aquí
+            if (!todosMunicipios || !todosMunicipios.length) {
+                console.warn("No hay datos de municipios disponibles para cargar en el select");
+                return;
+            }
+
+            // Filtrar y agregar municipios por región
+            let municipioEncontradoEnNuevaLista = false;
+            let municipiosAgregados = 0;
+
+            todosMunicipios.forEach(function(municipio) {
+                if (regionId === 'todas' || String(municipio.region) === regionId) {
+                    const option = document.createElement('option');
+                    option.value = municipio.id;
+                    option.text = municipio.nombre;
+
+                    // Marcar como seleccionado si coincide con el municipio que venía del backend
+                    if (String(municipio.id) === municipioSeleccionado) {
+                        option.selected = true;
+                        municipioEncontradoEnNuevaLista = true;
+                    }
+
+                    // Si no se encontró el del backend, intentar mantener la selección actual si existe en la nueva lista
+                    if (!municipioEncontradoEnNuevaLista && opcionSeleccionadaActual && String(municipio.id) === opcionSeleccionadaActual) {
+                       option.selected = true;
+                    }
+
+
+                    municipioSelect.appendChild(option);
+                    municipiosAgregados++;
+                }
+            });
+
+             // Si el municipio seleccionado originalmente ya no está en la lista (porque se cambió de región),
+             // y no se seleccionó 'todos' por defecto, asegurarse de que 'todos' quede seleccionado.
+             if (!municipioEncontradoEnNuevaLista && municipioSeleccionado !== 'todos' && municipioSelect.value !== 'todos') {
+                 municipioSelect.value = 'todos';
+             }
+
+            // Registrar para debugging
+            // console.log(`Municipios cargados para región ${regionId}: ${municipiosAgregados}. Seleccionado: ${municipioSelect.value}`);
+
+        } catch (error) {
+            console.error("Error al cargar municipios:", error);
+        }
+    }
+
+    // Función para actualizar la tabla (cambiar entre municipios y regiones)
+    function actualizarVistaTabla() {
+        vistaTablaActual = document.querySelector('input[name="vistaTabla"]:checked').id;
+        const tabla = document.getElementById('tablaEstadisticas');
+        const thead = tabla.querySelector('thead tr');
+        
+        // Limpiar cabecera actual
+        thead.innerHTML = '';
+        
+        // Reiniciar paginación
+        paginaActual = 1;
+
+        if (vistaTablaActual === 'vistaMunicipios') {
+            // Configurar cabecera para municipios
+            thead.innerHTML = `
+                <th>Municipio</th>
+                <th>Región</th>
+                <th>Total Encuestas</th>
+                <th>Total Respuestas</th>
+                <th>Encuestas Completadas</th>
+                <th>Tasa Finalización (%)</th>
+                <th>Clasificación</th>
+            `;
+            // Poblar tabla con datos de municipios (si existen)
+            datosTablaActual = datosTablaMunicipios; // Usar datos de municipios para paginación
+ 
+        } else if (vistaTablaActual === 'vistaRegiones') {
+            // Configurar cabecera para regiones
+             thead.innerHTML = `
+                <th>Región</th>
+                <th class="text-center">Total Encuestas</th>
+                <th class="text-center">Total Respuestas</th>
+                <th class="text-center">Encuestas Completadas</th>
+                <th class="text-center">Tasa Finalización (%)</th>
+                <th class="text-center">Clasificación</th>
+            `;
+             // Poblar tabla con datos de regiones
+            datosTablaActual = datosTablaRegiones; // Usar datos de regiones para paginación
+        }
+
+        // Renderizar la primera página de la tabla y los controles
+        renderizarPaginaTabla();
+        renderizarControlesPaginacion();
+    }
+
+    // --- Funciones para Paginación ---
+    function renderizarPaginaTabla() {
+        const tabla = document.getElementById('tablaEstadisticas');
+        const tbody = tabla.querySelector('tbody');
+        tbody.innerHTML = ''; // Limpiar cuerpo de la tabla
+
+        const inicio = (paginaActual - 1) * filasPorPagina;
+        const fin = inicio + filasPorPagina;
+        const datosPagina = datosTablaActual.slice(inicio, fin);
+
+        if (datosPagina.length === 0) {
+            const numCols = vistaTablaActual === 'vistaMunicipios' ? 7 : 6;
+            tbody.innerHTML = `<tr><td colspan="${numCols}" class="text-center text-muted py-3">No hay datos para mostrar en esta página.</td></tr>`;
+            return;
+        }
+
+        datosPagina.forEach(item => {
+            const tasa = parseFloat(item.tasaFinalizacion) || 0;
+            let badgeClass = 'bg-danger';
+            let badgeText = 'Bajo';
+            if (tasa >= 80) {
+                badgeClass = 'bg-success';
+                badgeText = 'Alto';
+            } else if (tasa >= 50) {
+                badgeClass = 'bg-warning text-dark';
+                badgeText = 'Medio';
+            }
+            
+            let filaHTML = '<tr>';
+            if (vistaTablaActual === 'vistaMunicipios') {
+                filaHTML += `
+                    <td>${item.nombre}</td>
+                    <td>${item.region}</td>
+                    <td class="text-center">${item.totalEncuestas}</td>
+                    <td class="text-center">${item.totalRespuestas}</td>
+                    <td class="text-center">${item.encuestasRespondidas}</td>
+                    <td class="text-center">${tasa.toFixed(1)}</td>
+                    <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
+                `;
+            } else { // vistaRegiones
+                filaHTML += `
+                    <td>${item.nombre}</td>
+                    <td class="text-center">${item.totalEncuestas}</td>
+                    <td class="text-center">${item.totalRespuestas}</td>
+                    <td class="text-center">${item.encuestasRespondidas}</td>
+                    <td class="text-center">${tasa.toFixed(1)}</td>
+                    <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
+                `;
+            }
+            filaHTML += '</tr>';
+            tbody.innerHTML += filaHTML;
+        });
+    }
+
+    function renderizarControlesPaginacion() {
+        const contenedor = document.getElementById('paginacionControles');
+        contenedor.innerHTML = ''; // Limpiar controles existentes
+        const totalPaginas = Math.ceil(datosTablaActual.length / filasPorPagina);
+
+        if (totalPaginas <= 1) return; // No mostrar paginación si solo hay una página
+
+        const ul = document.createElement('ul');
+        ul.className = 'pagination pagination-sm mb-0';
+
+        // Botón Anterior
+        const liPrev = document.createElement('li');
+        liPrev.className = `page-item ${paginaActual === 1 ? 'disabled' : ''}`;
+        liPrev.innerHTML = `<a class="page-link" href="#" data-page="${paginaActual - 1}">&laquo;</a>`;
+        ul.appendChild(liPrev);
+
+        // Botones de Página (simplificado, muestra algunas páginas alrededor de la actual)
+        const maxBotonesVisibles = 5; 
+        let inicioPag = Math.max(1, paginaActual - Math.floor(maxBotonesVisibles / 2));
+        let finPag = Math.min(totalPaginas, inicioPag + maxBotonesVisibles - 1);
+        // Ajustar inicio si fin llega al límite
+        if (finPag === totalPaginas) {
+            inicioPag = Math.max(1, finPag - maxBotonesVisibles + 1);
+        }
+
+        if (inicioPag > 1) {
+            const liFirst = document.createElement('li');
+            liFirst.className = 'page-item';
+            liFirst.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+            ul.appendChild(liFirst);
+            if (inicioPag > 2) {
+                const liEllipsisStart = document.createElement('li');
+                liEllipsisStart.className = 'page-item disabled';
+                liEllipsisStart.innerHTML = `<span class="page-link">...</span>`;
+                ul.appendChild(liEllipsisStart);
+            }
+        }
+
+        for (let i = inicioPag; i <= finPag; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === paginaActual ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+            ul.appendChild(li);
+        }
+
+        if (finPag < totalPaginas) {
+            if (finPag < totalPaginas - 1) {
+                const liEllipsisEnd = document.createElement('li');
+                liEllipsisEnd.className = 'page-item disabled';
+                liEllipsisEnd.innerHTML = `<span class="page-link">...</span>`;
+                ul.appendChild(liEllipsisEnd);
+            }
+            const liLast = document.createElement('li');
+            liLast.className = 'page-item';
+            liLast.innerHTML = `<a class="page-link" href="#" data-page="${totalPaginas}">${totalPaginas}</a>`;
+            ul.appendChild(liLast);
+        }
+ 
+        // Botón Siguiente
+        const liNext = document.createElement('li');
+        liNext.className = `page-item ${paginaActual === totalPaginas ? 'disabled' : ''}`;
+        liNext.innerHTML = `<a class="page-link" href="#" data-page="${paginaActual + 1}">&raquo;</a>`;
+        ul.appendChild(liNext);
+
+        contenedor.appendChild(ul);
+
+        // Añadir listeners a los botones de página
+        contenedor.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetPage = parseInt(e.target.getAttribute('data-page'));
+                if (targetPage && targetPage !== paginaActual && targetPage >= 1 && targetPage <= totalPaginas) {
+                    paginaActual = targetPage;
+                    renderizarPaginaTabla();
+                    renderizarControlesPaginacion();
+                    // Opcional: Hacer scroll suave a la tabla
+                    // document.getElementById('tablaEstadisticas').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Configurar correctamente la región seleccionada al cargar
+            const regionSeleccionada = '{{ region_seleccionada|default:"todas" }}';
+            const regionSelect = document.getElementById('region');
+
+            if (regionSelect) {
+                 if (regionSeleccionada && regionSeleccionada !== 'todas') {
+                     regionSelect.value = regionSeleccionada;
+                 }
+                // Configurar el evento de cambio
+                regionSelect.addEventListener('change', cargarMunicipios);
+            } else {
+                console.error("No se encontró el select de región");
+            }
+
+            // Cargar municipios inicialmente basado en la región seleccionada (o todas)
+            cargarMunicipios();
+
+            // Establecer el municipio seleccionado si existe uno
+             const municipioSeleccionado = '{{ municipio_seleccionado|default:"todos" }}';
+             const municipioSelect = document.getElementById('municipio');
+             if (municipioSelect && municipioSeleccionado !== 'todos') {
+                 // Esperar un breve momento para que las opciones se carguen si es asíncrono
+                 setTimeout(() => {
+                     if (Array.from(municipioSelect.options).some(opt => opt.value === municipioSeleccionado)) {
+                         municipioSelect.value = municipioSeleccionado;
+                     } else {
+                         console.warn(`El municipio seleccionado ${municipioSeleccionado} no se encontró en la lista cargada.`);
+                         municipioSelect.value = 'todos'; // Volver a 'todos' si no se encuentra
+                     }
+                 }, 100); // Pequeña demora
+             }
+
+
+            // Inicializar gráficos
+            inicializarGraficos();
+
+            // Ajustar tamaño de gráficos al cambiar de pestaña de gráficos
+            var tabLinksGraficos = document.querySelectorAll('#myTab .nav-link');
+            tabLinksGraficos.forEach(function(tabLink) {
+                tabLink.addEventListener('shown.bs.tab', function (e) {
+                     // Plotly necesita redibujar cuando el contenedor se hace visible
+                     window.dispatchEvent(new Event('resize'));
+                });
+            });
+
+            // Inicializar filtros de encuestas
+            const filtroEstado = document.getElementById('filtroEstado');
+            const filtroVisibilidad = document.getElementById('filtroVisibilidad');
+            const buscarEncuesta = document.getElementById('buscarEncuesta');
+            const btnBuscarEncuesta = document.getElementById('btnBuscarEncuesta');
+
+            if (filtroEstado) filtroEstado.addEventListener('change', filtrarEncuestas);
+            if (filtroVisibilidad) filtroVisibilidad.addEventListener('change', filtrarEncuestas);
+            if (btnBuscarEncuesta) btnBuscarEncuesta.addEventListener('click', filtrarEncuestas);
+            if (buscarEncuesta) {
+                buscarEncuesta.addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        filtrarEncuestas();
+                    }
+                });
+            }
+             // Aplicar filtro inicial de encuestas si es necesario
+             filtrarEncuestas();
+
+
+            // Controlar el comportamiento de los botones de colapso
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
+                const icon = button.querySelector('i.fa-chevron-down, i.fa-chevron-up');
+                if (!icon) return; // Si no hay icono, no hacer nada
+
+                 // Estado inicial del icono basado en si el collapse está 'show'
+                 const targetSelector = button.getAttribute('data-bs-target');
+                 const targetElement = document.querySelector(targetSelector);
+                 if (targetElement && targetElement.classList.contains('show')) {
+                     icon.classList.remove('fa-chevron-down');
+                     icon.classList.add('fa-chevron-up');
+                 } else {
+                      icon.classList.remove('fa-chevron-up');
+                      icon.classList.add('fa-chevron-down');
+                 }
+
+
+                button.addEventListener('click', function() {
+                    // El icono cambia inmediatamente al hacer clic
+                    if (icon.classList.contains('fa-chevron-down')) {
+                         icon.classList.remove('fa-chevron-down');
+                         icon.classList.add('fa-chevron-up');
+                    } else {
+                         icon.classList.remove('fa-chevron-up');
+                         icon.classList.add('fa-chevron-down');
+                    }
+
+                    // Ajustar gráficos después de que la animación de colapso termine
+                    const target = this.getAttribute('data-bs-target');
+                    const collapsibleElement = document.querySelector(target);
+                    if (collapsibleElement) {
+                        collapsibleElement.addEventListener('shown.bs.collapse', function () {
+                            window.dispatchEvent(new Event('resize'));
+                        }, { once: true }); // Solo una vez por evento show
+                    }
+                });
+            });
+
+            // Añadir listeners para cambiar la vista de la tabla
+            document.querySelectorAll('input[name="vistaTabla"]').forEach(radio => {
+                radio.addEventListener('change', actualizarVistaTabla);
+            });
+            // Llamar a la función una vez al inicio para establecer la vista por defecto (Municipios)
+            actualizarVistaTabla();
+
+
+        } catch (error) {
+            console.error("Error durante la inicialización general:", error);
+            // Mostrar un mensaje al usuario podría ser útil aquí
+             // alert("Ocurrió un error al cargar la página. Algunos elementos pueden no funcionar correctamente.");
+        }
+    });
+
+    function exportarExcel() {
+        try {
+            const vistaActual = document.querySelector('input[name="vistaTabla"]:checked').id;
+            const tabla = document.getElementById('tablaEstadisticas');
+            const regionSeleccionada = document.getElementById('region').selectedOptions[0].text;
+            const municipioSeleccionado = document.getElementById('municipio').selectedOptions[0].text;
+
+            // Clonar la tabla para no modificar la original visible
+            const tablaClonada = tabla.cloneNode(true);
+
+            // Eliminar elementos no deseados si los hubiera (ej: botones dentro de celdas)
+            // tablaClonada.querySelectorAll('.acciones-tabla').forEach(el => el.remove());
+
+            // Crear un libro de Excel
+            const wb = XLSX.utils.book_new();
+
+            // Convertir la tabla HTML clonada a una hoja de Excel
+            const ws = XLSX.utils.table_to_sheet(tablaClonada);
+
+            // --- Mejoras en la exportación ---
+
+            // 1. Añadir fila de título con información del filtro
+            const filtroInfo = `Estadísticas filtradas por Región: ${regionSeleccionada}, Municipio: ${municipioSeleccionado}`;
+            // Insertar una fila al principio (esto requiere manipular el array de arrays generado por table_to_sheet)
+            const sheetData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+            sheetData.unshift([filtroInfo]); // Añade la fila de filtro al principio
+            // Combinar celdas para el título (A1 hasta la última columna usada)
+             const header = sheetData[1]; // La cabecera original ahora está en la segunda fila
+             const ultimaColumna = XLSX.utils.encode_col(header.length - 1);
+             if (!ws['!merges']) ws['!merges'] = [];
+             ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }); // Combinar A1:G1 (o la que sea)
+
+            // 2. Ajustar ancho de columnas (basado en la vista actual)
+            let wscols = [];
+            if (vistaActual === 'vistaMunicipios') {
+                 wscols = [
+                    {wch: 25}, // Municipio
+                    {wch: 20}, // Región
+                    {wch: 15}, // Total Encuestas
+                    {wch: 15}, // Total Respuestas
+                    {wch: 20}, // Encuestas Completadas
+                    {wch: 20}, // Tasa de Finalización
+                    {wch: 15}  // Clasificación
+                ];
+            } else { // vistaRegiones
+                 wscols = [
+                    {wch: 25}, // Región
+                    {wch: 15}, // Total Encuestas
+                    {wch: 15}, // Total Respuestas
+                    {wch: 20}, // Encuestas Completadas
+                    {wch: 20}, // Tasa de Finalización
+                    {wch: 15}  // Clasificación
+                ];
+            }
+            ws['!cols'] = wscols;
+
+            // 3. Convertir datos de nuevo a hoja (después de añadir fila y antes de aplicar formato)
+             XLSX.utils.sheet_add_json(ws, sheetData, { skipHeader: true, origin: 'A1' });
+
+            // 4. (Opcional) Aplicar formato básico (ej: Negrita a cabecera)
+            // Esto es más complejo con xlsx.js, requeriría iterar sobre las celdas de la cabecera
+            // y añadirles un estilo { font: { bold: true } }. Por simplicidad, lo omitimos aquí.
+
+            // Agregar la hoja al libro
+            const nombreHoja = vistaActual === 'vistaMunicipios' ? "Municipios" : "Regiones";
+            XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
+
+            // Generar el archivo Excel con nombre descriptivo
+            const fecha = new Date().toISOString().split('T')[0];
+            const nombreArchivo = `estadisticas_${nombreHoja.toLowerCase()}_${fecha}.xlsx`;
+            XLSX.writeFile(wb, nombreArchivo);
+
+        } catch (error) {
+            console.error("Error al exportar a Excel:", error);
+            alert("Error al exportar a Excel. Verifique la consola para más detalles.");
+        }
+    }
+
+
+    function inicializarGraficos() {
+        const historialElement = document.getElementById('historialChart');
+        const pieElement = document.getElementById('pieChart');
+        const barElement = document.getElementById('barChart');
+
+        // Si no hay datos o elementos, no hacer nada
+        if (!datosGraficos || (!historialElement && !pieElement && !barElement)) {
+            console.warn("No hay datos o elementos DOM para inicializar los gráficos.");
+             // Opcionalmente, mostrar mensajes en lugar de los gráficos
+             if (historialElement) historialElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de historial para mostrar.</p>';
+             if (pieElement) pieElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de regiones para mostrar.</p>';
+             if (barElement) barElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de municipios para mostrar.</p>';
+            return;
+        }
+
+        // Colores consistentes
+        const colores = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#5a5c69', '#858796', '#6f42c1', '#e83e8c', '#fd7e14'];
+
+        const configBase = {
+             responsive: true,
+             displayModeBar: false // Ocultar barra de herramientas de Plotly
+        };
+
+        const layoutBase = {
+            plot_bgcolor: 'rgba(0,0,0,0)', // Fondo transparente
+            paper_bgcolor: 'rgba(0,0,0,0)', // Fondo transparente
+            font: {
+                family: 'Nunito, sans-serif', // Usar fuente similar a SB Admin 2
+                size: 12,
+                color: '#5a5c69' // Color de fuente base
+            },
+            title: {
+                font: {
+                     size: 16, // Tamaño título más pequeño
+                     color: '#2e384d',
+                     weight: 'bold'
+                },
+                x: 0.05, // Alinear título a la izquierda
+                xanchor: 'left'
+            },
+             margin: { l: 50, r: 30, b: 80, t: 60, pad: 4 }, // Márgenes ajustados
+             xaxis: {
+                 gridcolor: '#e3e6f0', // Color suave para la rejilla
+                 linecolor: '#d1d3e2', // Color línea del eje
+                 zerolinecolor: '#d1d3e2'
+             },
+             yaxis: {
+                 gridcolor: '#e3e6f0',
+                 linecolor: '#d1d3e2',
+                 zerolinecolor: '#d1d3e2'
+             },
+             hovermode: 'closest', // Mostrar tooltip del punto más cercano
+             hoverlabel: { // Estilo general para los tooltips
+                bgcolor: "#5a5c69",
+                bordercolor: "#5a5c69",
+                font: { 
+                    size: 13, 
+                    color: "white" 
+                }
+            },
+            transition: { // Asegurar transiciones suaves por defecto
+                duration: 500,
+                easing: 'cubic-in-out'
+            }
+        };
+
+
+        // Gráfico de Historial (Barras)
+        if (historialElement && datosGraficos.historial && datosGraficos.historial.meses && datosGraficos.historial.meses.length > 0) {
+            try {
+                const traceHistorial = {
+                    x: datosGraficos.historial.meses,
+                    y: datosGraficos.historial.conteos,
+                    type: 'bar',
+                    name: 'Respuestas',
+                    marker: {
+                        color: colores[0],
+                        line: { color: '#224abe', width: 1 }
+                    },
+                    hoverinfo: 'y+name', // Mostrar valor Y y nombre de la traza en tooltip
+                    hoverlabel: { // Estilo específico si es necesario
+                         // namelength: -1 // Mostrar nombre completo de traza
+                    }
+                };
+                const layoutHistorial = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
+                layoutHistorial.title.text = 'Respuestas por Mes';
+                layoutHistorial.xaxis.title = 'Mes';
+                layoutHistorial.xaxis.tickangle = -45; // Ángulo para mejor legibilidad
+                layoutHistorial.yaxis.title = 'Nº Respuestas';
+                layoutHistorial.margin.b = 100; // Más margen inferior por etiquetas rotadas
+
+                Plotly.newPlot(historialElement, [traceHistorial], layoutHistorial, configBase);
+            } catch (error) {
+                console.error("Error al inicializar gráfico de historial:", error);
+                 historialElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de historial.</p>';
+            }
+        } else if (historialElement) {
+             historialElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de historial para mostrar.</p>';
+        }
+
+        // Gráfico de Regiones (Pie)
+        if (pieElement && datosGraficos.regiones && datosGraficos.regiones.datos && datosGraficos.regiones.datos.length > 0) {
+            try {
+                const tracePie = {
+                    // labels: datosGraficos.regiones.nombres, // Nombres pueden ser largos
+                    values: datosGraficos.regiones.datos.map(d => d.value),
+                    labels: datosGraficos.regiones.datos.map(d => d.name), // Usar 'name' del objeto
+                    type: 'pie',
+                    hole: 0.4, // Estilo dona
+                    marker: { colors: colores },
+                    textinfo: 'percent', // Mostrar solo porcentaje en el gráfico
+                    hoverinfo: 'label+percent+value', // Mostrar etiqueta, porcentaje y valor
+                    // textposition: 'outside', // Puede solaparse, mejor leyenda
+                    automargin: true
+                };
+                const layoutPie = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
+                layoutPie.title.text = 'Distribución por Región';
+                layoutPie.margin = { l: 20, r: 20, b: 20, t: 50, pad: 4 }; // Márgenes ajustados para pie
+                layoutPie.showlegend = true;
+                layoutPie.legend = {
+                    orientation: 'v', // Leyenda vertical
+                    // x: 1.05, // Posición leyenda (ajustar si es necesario)
+                    // y: 0.5,
+                    bgcolor: 'rgba(255,255,255,0.7)', // Fondo semitransparente para leyenda
+                    bordercolor: '#e3e6f0',
+                    borderwidth: 1
+                };
+
+                Plotly.newPlot(pieElement, [tracePie], layoutPie, configBase);
+            } catch (error) {
+                console.error("Error al inicializar gráfico de distribución por región:", error);
+                 pieElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de regiones.</p>';
+            }
+        } else if (pieElement) {
+            pieElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de regiones para mostrar.</p>';
+        }
+
+        // Gráfico de Municipios (Barras Horizontales)
+        if (barElement && datosGraficos.municipios && datosGraficos.municipios.nombres && datosGraficos.municipios.nombres.length > 0) {
+            try {
+                const traceBar = {
+                    x: datosGraficos.municipios.valores,
+                    y: datosGraficos.municipios.nombres,
+                    type: 'bar',
+                    orientation: 'h', // Barras horizontales
+                    name: 'Respuestas',
+                    marker: {
+                        color: colores[1],
+                        line: { color: '#159a68', width: 1 }
+                    },
+                    hoverinfo: 'x+y', // Mostrar valor X (respuestas) y Y (municipio)
+                };
+                 const layoutBar = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
+                 layoutBar.title.text = 'Top Municipios'; // Título más corto
+                 layoutBar.xaxis.title = 'Nº Respuestas';
+                 layoutBar.yaxis.title = ''; // Sin título en eje Y
+                 layoutBar.yaxis.automargin = true; // Ajuste automático para etiquetas largas
+                 layoutBar.margin.l = 150; // Más margen izquierdo para nombres de municipios
+
+                Plotly.newPlot(barElement, [traceBar], layoutBar, configBase);
+            } catch (error) {
+                console.error("Error al inicializar gráfico de barras de municipios:", error);
+                 barElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de municipios.</p>';
+            }
+        } else if (barElement) {
+             barElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de municipios para mostrar.</p>';
+        }
+
+        // Manejar la responsividad general
+        window.addEventListener('resize', function() {
+            if (historialElement && historialElement.data) {
+                Plotly.Plots.resize(historialElement).catch(e => console.warn("Resize error historial:", e));
+            }
+            if (pieElement && pieElement.data) {
+                Plotly.Plots.resize(pieElement).catch(e => console.warn("Resize error pie:", e));
+            }
+            if (barElement && barElement.data) {
+                 Plotly.Plots.resize(barElement).catch(e => console.warn("Resize error bar:", e));
+            }
+        });
+    }
+
+    // Funcionalidad para filtrar encuestas
+    function filtrarEncuestas() {
+        const estadoSelect = document.getElementById('filtroEstado');
+        const visibilidadSelect = document.getElementById('filtroVisibilidad');
+        const busquedaInput = document.getElementById('buscarEncuesta');
+
+        // Verificar que los elementos existan
+        if (!estadoSelect || !visibilidadSelect || !busquedaInput) {
+            console.warn("Elementos de filtro de encuestas no encontrados.");
+            return;
+        }
+
+        const estado = estadoSelect.value; // ej: 'activas', 'finalizadas', 'proximas', 'todas'
+        const visibilidad = visibilidadSelect.value; // ej: 'publicas', 'privadas', 'todas'
+        const busqueda = busquedaInput.value.toLowerCase().trim();
+
+        const tarjetas = document.querySelectorAll('.encuesta-card');
+        const gridEncuestas = document.getElementById('encuestasGrid');
+        const mensajeNoResultados = document.getElementById('mensajeNoResultadosEncuestas'); 
+
+        let hayResultados = false;
+
+        tarjetas.forEach(tarjeta => {
+            let mostrar = true;
+            const estadoEncuesta = tarjeta.getAttribute('data-estado'); // ej: 'activa', 'finalizada', 'proxima'
+            const visibilidadEncuesta = tarjeta.getAttribute('data-visibilidad'); // ej: 'publica', 'privada'
+            const titulo = tarjeta.querySelector('.card-title')?.textContent.toLowerCase() || '';
+            const descripcion = tarjeta.querySelector('.card-text')?.textContent.toLowerCase() || '';
+
+            // Filtrar por estado
+            if (estado !== 'todas') {
+                 // Mapear valor del select ('activas') al valor del atributo ('activa')
+                 const estadoEsperado = estado.replace('as', 'a').replace('os', 'o'); // 'activas' -> 'activa', 'finalizadas' -> 'finalizada', etc.
+                 if (estadoEsperado !== estadoEncuesta) {
+                     mostrar = false;
+                 }
+            }
+
+            // Filtrar por visibilidad
+            if (mostrar && visibilidad !== 'todas') {
+                const visibilidadEsperada = visibilidad.replace('as', 'a'); // 'publicas' -> 'publica', 'privadas' -> 'privada'
+                if (visibilidadEsperada !== visibilidadEncuesta) {
+                    mostrar = false;
+                }
+            }
+
+            // Filtrar por búsqueda
+            if (mostrar && busqueda && !titulo.includes(busqueda) && !descripcion.includes(busqueda)) {
+                 mostrar = false;
+            }
+
+            // Mostrar u ocultar tarjeta
+            tarjeta.style.display = mostrar ? '' : 'none'; // Usar '' para volver al display por defecto (block, flex, etc.)
+            if (mostrar) {
+                hayResultados = true;
+            }
+        });
+
+        // Mostrar/ocultar mensaje si no hay resultados
+         if (mensajeNoResultados) {
+            mensajeNoResultados.style.display = hayResultados ? 'none' : 'block';
+         } else if (!hayResultados && gridEncuestas && tarjetas.length > 0) { // Solo crear si había tarjetas originalmente
+            // Crear el mensaje si no existe y no hay resultados
+            const mensaje = document.createElement('div');
+            mensaje.id = 'mensajeNoResultadosEncuestas'; // ID actualizado
+            mensaje.className = 'col-12 text-center py-5';
+            mensaje.innerHTML = `
+                <i class="fas fa-search fa-3x text-gray-400 mb-3"></i>
+                <p>No se encontraron encuestas con los filtros seleccionados.</p>
+            `;
+            // Insertar antes del primer elemento o al final si está vacío
+            const primerElementoVisible = gridEncuestas.querySelector('.encuesta-card:not([style*="display: none"])');
+            if(primerElementoVisible){
+                gridEncuestas.insertBefore(mensaje, primerElementoVisible);
+            } else {
+                 gridEncuestas.appendChild(mensaje);
+            }
+        }
+
+    }
+</script>
+{% endblock %}
+

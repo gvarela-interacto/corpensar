@@ -1,0 +1,65 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Redirigiendo..." %}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{% trans "Preparando su certificado..." %}</h2>
+        <div class="spinner"></div>
+        <p>{% trans "Por favor espere mientras le redirigimos a la página de certificados." %}</p>
+    </div>
+
+    <script>
+        // Guardar los datos en localStorage
+        const certificadoDatos = {{ datos_certificado_json|safe }};
+        
+        // Guardar cada campo en localStorage
+        localStorage.setItem('certificado_encuesta_id', String(certificadoDatos.encuesta_id));
+        localStorage.setItem('certificado_nombre', certificadoDatos.nombre_completo);
+        localStorage.setItem('certificado_documento', certificadoDatos.numero_identificacion);
+        localStorage.setItem('certificado_correo', certificadoDatos.correo);
+        localStorage.setItem('certificado_telefono', certificadoDatos.telefono);
+        
+        // Añadir timestamp para controlar la validez
+        localStorage.setItem('certificado_timestamp', String(Date.now()));
+        
+        // Redirigir a la página de generación de certificados
+        setTimeout(function() {
+            window.location.href = '/certificados/generar/?encuesta_id=' + certificadoDatos.encuesta_id;
+        }, 1500); // Redirigir después de 1.5 segundos para permitir ver el mensaje
+    </script>
+</body>
+</html> 

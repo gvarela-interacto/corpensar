@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirmar Eliminación</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">¿Estás seguro de que deseas eliminar el grupo de interés <strong>{{ grupo.nombre }}</strong>?</p>
+                    
+                    {% if encuestas_asociadas %}
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <p class="mb-0">Este grupo está asociado a <strong>{{ encuestas_asociadas }}</strong> encuesta(s). Al eliminarlo, estas encuestas quedarán sin grupo de interés asignado.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'grupos_interes' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

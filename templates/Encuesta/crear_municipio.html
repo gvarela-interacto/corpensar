@@ -18,14 +18,29 @@
                             <label for="nombre" class="form-label-modern" style="margin-bottom: 10px; color: #444; font-weight: 500;">Nombre del Municipio</label>
                             <input type="text" class="form-control-modern" id="nombre" name="nombre" required 
                                 placeholder="Ingrese el nombre del municipio" autocomplete="off"
-                                style="border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                style="border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); width: 90%;">
                             <div class="form-text mt-2" style="color: #6c757d; font-size: 0.85rem; padding-left: 5px;">Ingrese el nombre oficial del municipio.</div>
+                        </div>
+
+                        <div class="form-group-modern mb-4">
+                            <label for="busqueda_mapa" class="form-label-modern" style="margin-bottom: 10px; color: #444; font-weight: 500;">Buscar en mapa</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control-modern" id="busqueda_mapa" 
+                                    placeholder="Buscar ubicación..." autocomplete="off"
+                                    style="border-radius: 12px 0 0 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); width: 80%;">
+                                <button type="button" class="btn btn-primary" id="buscar_ubicacion" style="border-radius: 0 12px 12px 0;">
+                                    <i class="mdi mdi-magnify"></i>
+                                </button>
+                            </div>
+                            <div id="resultados_busqueda" class="mt-2" style="display: none;">
+                                <div class="list-group" id="lista_resultados"></div>
+                            </div>
                         </div>
                         
                         <div class="form-group-modern mb-4">
                             <label for="region" class="form-label-modern" style="margin-bottom: 10px; color: #444; font-weight: 500;">Región</label>
                             <select class="form-control-modern select-region" id="region" name="region" required
-                                   style="border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); appearance: none;">
+                                   style="border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02); appearance: none; width: 90%;">
                                 <option value="">Seleccione una región</option>
                                 {% for region in regiones %}
                                 <option value="{{ region.id }}">{{ region.nombre }}</option>
@@ -42,6 +57,9 @@
                             </div>
                             {% endif %}
                         </div>
+
+                        <input type="hidden" id="latitud" name="latitud">
+                        <input type="hidden" id="longitud" name="longitud">
                         
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{% url 'regiones_y_municipios' %}" class="btn-soft btn-secondary-soft" style="padding: 10px 20px; border-radius: 12px; font-weight: 500; text-decoration: none; color: #6c757d; background-color: #f8f9fa; border: 1px solid #e0e0e0; transition: all 0.3s ease;">
@@ -84,6 +102,20 @@
         background-position: right 15px center;
         background-size: 15px;
     }
+
+    #resultados_busqueda {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .list-group-item {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
     
     @media (max-width: 576px) {
         .card-body {
@@ -95,9 +127,75 @@
 {% block javascript %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Enfocar automáticamente en el campo de nombre
-        document.getElementById('nombre').focus();
-        
+        const busquedaInput = document.getElementById('busqueda_mapa');
+        const buscarBtn = document.getElementById('buscar_ubicacion');
+        const resultadosDiv = document.getElementById('resultados_busqueda');
+        const listaResultados = document.getElementById('lista_resultados');
+        const nombreInput = document.getElementById('nombre');
+        const latitudInput = document.getElementById('latitud');
+        const longitudInput = document.getElementById('longitud');
+
+        // Función para buscar ubicaciones usando Nominatim
+        async function buscarUbicacion(query) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=co&limit=5`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error al buscar ubicación:', error);
+                return [];
+            }
+        }
+
+        // Función para mostrar resultados
+        function mostrarResultados(resultados) {
+            listaResultados.innerHTML = '';
+            if (resultados.length === 0) {
+                resultadosDiv.style.display = 'none';
+                return;
+            }
+
+            resultados.forEach(resultado => {
+                const item = document.createElement('a');
+                item.href = '#';
+                item.className = 'list-group-item list-group-item-action';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">${resultado.display_name}</h6>
+                            <small class="text-muted">Lat: ${resultado.lat}, Lon: ${resultado.lon}</small>
+                        </div>
+                    </div>
+                `;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    nombreInput.value = resultado.display_name.split(',')[0];
+                    latitudInput.value = resultado.lat;
+                    longitudInput.value = resultado.lon;
+                    resultadosDiv.style.display = 'none';
+                });
+                listaResultados.appendChild(item);
+            });
+            resultadosDiv.style.display = 'block';
+        }
+
+        // Evento de búsqueda
+        buscarBtn.addEventListener('click', async () => {
+            const query = busquedaInput.value.trim();
+            if (query) {
+                const resultados = await buscarUbicacion(query);
+                mostrarResultados(resultados);
+            }
+        });
+
+        // Evento de tecla Enter en el input de búsqueda
+        busquedaInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarBtn.click();
+            }
+        });
+
         // Validación del formulario
         const form = document.getElementById('municipioForm');
         form.addEventListener('submit', function(event) {
