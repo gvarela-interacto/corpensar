@@ -59,6 +59,15 @@
                             </div>
                         </div>
                         
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    <label for="ciudad" class="form-label fw-bold">{% trans "Ciudad" %}</label>
+                                    <input type="text" class="form-control form-control-lg" id="ciudad" name="ciudad" placeholder="{% trans 'Ej: Bogotá' %}" value="Bogotá">
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-primary btn-lg px-5">
                                 <i class="fas fa-certificate me-2"></i> {% trans "Generar certificado" %}
@@ -90,6 +99,7 @@ function cargarDatosCertificado() {
     const documento = localStorage.getItem('certificado_documento');
     const correo = localStorage.getItem('certificado_correo');
     const telefono = localStorage.getItem('certificado_telefono');
+    const ciudad = localStorage.getItem('certificado_ciudad');
     
     // Rellenar el formulario si hay datos
     if (encuestaId) {
@@ -111,6 +121,10 @@ function cargarDatosCertificado() {
     if (telefono) {
         document.getElementById('telefono').value = telefono;
     }
+    
+    if (ciudad) {
+        document.getElementById('ciudad').value = ciudad;
+    }
 }
 
 // Función para limpiar los datos del localStorage
@@ -120,6 +134,7 @@ function limpiarDatosCertificado() {
     localStorage.removeItem('certificado_documento');
     localStorage.removeItem('certificado_correo');
     localStorage.removeItem('certificado_telefono');
+    localStorage.removeItem('certificado_ciudad');
     localStorage.removeItem('certificado_timestamp');
 }
 

@@ -3913,6 +3913,7 @@ def generar_certificado(request):
         documento = request.POST.get('numero_identificacion')
         correo = request.POST.get('correo')
         telefono = request.POST.get('telefono')
+        ciudad = request.POST.get('ciudad', 'Bogotá')  # Valor por defecto si no se proporciona
         
         if form_id and nombre and documento:
             encuesta = get_object_or_404(Encuesta, id=form_id)
@@ -3924,7 +3925,9 @@ def generar_certificado(request):
                 'numero_identificacion': documento,
                 'correo': correo,
                 'telefono': telefono,
-                'fecha_actual': fecha_actual
+                'fecha_actual': fecha_actual,
+                'ciudad': ciudad,
+                'guardar_datos': True
             }
             
             return render(request, 'certificado_template.html', context)

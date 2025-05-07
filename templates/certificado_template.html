@@ -28,170 +28,129 @@
     .certificate-container {
         width: 800px;
         position: relative;
-        background-color: #ffffffbd;
-        border: 12px solid #ffd700;
-        padding: 50px 40px 40px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        background-color: #fff;
         border-radius: 5px;
         margin-bottom: 30px;
+        overflow: hidden;
     }
     .certificate-header {
+        position: relative;
         text-align: center;
-        margin-bottom: 40px;
-        margin-top: 15px;
+        background-color: #fff;
+    }
+    .certificate-logo {
+        display: block;
+        margin: 0 auto;
+        max-width: 250px;
+        padding: 15px 0;
+    }
+    .certificate-content {
+        padding: 20px 40px 40px;
+        position: relative;
+        text-align: center;
     }
     .certificate-title {
-        font-size: 48px;
-        color: #333;
-        margin-bottom: 5px;
+        font-size: 28px;
         font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        color: #000;
+        text-align: center;
     }
     .certificate-subtitle {
         font-size: 22px;
-        color: #555;
-        margin-bottom: 20px;
-        letter-spacing: 2px;
-        font-weight: 300;
-        text-transform: uppercase;
-    }
-    .certificate-content {
-        margin: 40px 0;
-        position: relative;
+        margin-bottom: 10px;
+        color: #444;
         text-align: center;
-        padding: 0 20px;
+        font-style: italic;
     }
     .certificate-text {
-        font-size: 24px;
+        font-size: 16px;
         line-height: 1.6;
-        margin-bottom: 25px;
+        margin-bottom: 10px;
         color: #444;
+        text-align: center;
     }
-    .certificate-name {
-        font-size: 40px;
-        font-weight: 700;
-        color: #222;
-        margin: 25px 0 10px;
-        border-bottom: 4px solid #ffd700;
-        display: inline-block;
-        padding: 0 30px 8px;
-        letter-spacing: 1px;
-        text-transform: capitalize;
-    }
-    .certificate-id {
-        font-size: 22px;
-        color: #555;
-        margin-bottom: 30px;
-        letter-spacing: 1px;
+    .participant-name {
         display: block;
+        font-size: 22px;
+        border-bottom: 1px solid #333;
+        margin: 20px auto;
+        padding-bottom: 5px;
+        max-width: 70%;
+        text-align: center;
     }
     .certificate-details {
-        margin-top: 50px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    .certificate-date {
+        font-size: 16px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+    .certificate-city {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    .certificate-mode {
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .certificate-bullets {
+        text-align: left;
+        margin: 20px auto;
+        max-width: 80%;
+    }
+    .certificate-bullets ul {
+        padding-left: 20px;
+    }
+    .certificate-bullets li {
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+    .signature-area {
         display: flex;
         justify-content: space-between;
+        margin-top: 40px;
+        padding: 0 60px;
     }
-    .detail-item {
-        text-align: left;
-        width: 45%;
-    }
-    .field-label {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 5px;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 1px;
-    }
-    .field-value {
-        font-size: 20px;
-        color: #333;
-        padding: 5px 0;
-        border-bottom: 2px solid #ffd700;
-        font-weight: 500;
-    }
-    .certificate-footer {
-        margin-top: 50px;
-        display: flex;
-        justify-content: center;
+    .signature {
+        text-align: center;
+        width: 200px;
     }
     .signature-line {
-        width: 250px;
-        border-top: 2px solid #000;
-        margin-top: 10px;
-        padding-top: 5px;
-        text-align: center;
+        border-top: 1px solid #000;
+        margin: 10px auto;
+        width: 100%;
+    }
+    .signature-name {
+        font-weight: bold;
         font-size: 14px;
-        color: #333;
-        font-weight: 500;
     }
-    .certificate-logo {
-        position: absolute;
-        top: 30px;
-        right: 30px;
-        width: 120px;
-        height: 120px;
-        border-radius: 10px;
-        padding: 15px;
-        filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2)); 
+    .signature-title {
+        font-size: 12px;
+        color: #444;
     }
-    .certificate-border {
+    .yellow-corner {
         position: absolute;
         top: 0;
-        left: 0;
         right: 0;
-        bottom: 0;
-        border: 3px solid #333;
-        pointer-events: none;
-        margin: 15px;
-        border-radius: 3px;
+        width: 200px;
+        height: 200px;
+        background-color: #FFD700;
+        clip-path: polygon(100% 0, 0 0, 100% 100%);
     }
-    .certificate-corner {
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        background-color: #ffd700;
-    }
-    .certificate-seal {
-        position: absolute;
-        bottom: 100px;
-        right: 40px;
-        width: 120px;
-        height: 120px;
-        background-color: transparent;
-        border: 2px solid #ffd700;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 12px;
-        color: #000;
+    .certificate-footer {
         text-align: center;
-        transform: rotate(-15deg);
-        font-weight: bold;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        font-size: 12px;
+        color: #555;
+        margin-top: 10px;
     }
-    .seal-inner {
-        width: 110px;
-        height: 110px;
-        border: 1px dashed #333;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-    }
-    .course-title {
-        font-size: 28px;
-        font-weight: bold;
-        margin-top: 15px;
-        font-style: italic;
-        color: #222;
-        padding: 10px 20px;
-        background-color: rgba(255, 215, 0, 0.1);
-        display: inline-block;
-        border-radius: 3px;
+    .observatory-logo {
+        position: absolute;
+        bottom: 20px;
+        right: 30px;
+        width: 180px;
     }
     .actions-container {
         display: flex;
@@ -257,45 +216,65 @@
 </style>
 
 <div id="certificado" class="certificate-container">
-    <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo">
-    <div class="certificate-border"></div>
+    <div class="yellow-corner"></div>
     
     <div class="certificate-header">
-        <div class="certificate-title">Certificado</div>
-        <div class="certificate-subtitle">de Participación</div>
+        <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo Corpensar">
+        <div class="certificate-text">
+            La Corporación para el Pensamiento y la Transformación de Colombia (<strong>Corpensar</strong>), como equipo multidisciplinario comprometido con la <strong>promoción de los derechos humanos, la justicia social y la educación transformadora</strong>, certifica que:
+        </div>
     </div>
     
     <div class="certificate-content">
+        <div class="participant-name">{{ nombre_completo }}</div>
+        
         <div class="certificate-text">
-            Corpensar certifica a:
-        </div>
-        <div class="certificate-name">
-            {{ nombre_completo }}
-        </div>
-        <div class="certificate-id">
-            Identificación: {{ numero_identificacion }}
-        </div>
-        <div class="certificate-text">
-            {% if encuesta.categoria.nombre == 'Grupo focal' %}
-                Por su valiosa participación en el {{ encuesta.categoria.nombre }}:
-            {% else %}
-                Por su valiosa participación en la {{ encuesta.categoria.nombre }}:
-            {% endif %}
-        </div>
-        <div class="course-title">
-            "{{ encuesta.titulo }}"
+            Con CC {{ numero_identificacion }} ha participado de manera satisfactoria en la capacitación:
         </div>
         
-        <div class="certificate-details">
-            <div class="detail-item">
-                <div class="field-label">Fecha de expedición</div>
-                <div class="field-value">{{ fecha_actual }}</div>
+        <div class="certificate-title">
+            "Certificado de Asistencia a Debida Diligencia y Derechos Humanos: Herramientas para la Gestión Responsable"
+        </div>
+        
+        <div class="certificate-city">
+            Realizado en la fecha {{ fecha_actual }} en la ciudad de {{ ciudad }} bajo la modalidad presencial.
+        </div>
+        
+        <div class="certificate-text">
+            Durante este proceso formativo, se fortalecieron capacidades en:
+        </div>
+        
+        <div class="certificate-bullets">
+            <ul>
+                <li>Principios y fundamentos de la debida diligencia en derechos humanos.</li>
+                <li>Normatividad nacional e internacional sobre empresas, derechos humanos y medio ambiente.</li>
+                <li>Análisis de casos prácticos y estrategias de prevención de vulneraciones.</li>
+                <li>Aplicación de herramientas de monitoreo, análisis y acción para la gestión responsable de riesgos en contextos comunitarios y empresariales.</li>
+                <li>Aplicación de herramientas de debida diligencia a través del Observatorio en Derechos Humanos y Derecho Internacional Humanitario (DDHH y DIH) de Corpensar, orientado al análisis de riesgos y la promoción de los derechos humanos en zonas de influencia energética.</li>
+            </ul>
+        </div>
+        
+        <div class="certificate-text">
+            Este certificado se expide como reconocimiento a su compromiso con la formación integral y la construcción de una cultura de respeto y garantía de los derechos humanos.
+        </div>
+        
+        <div class="signature-area">
+            <div class="signature">
+                <img src="{% static 'images/firma1.png' %}" alt="Firma" style="width: 100px;">
+                <div class="signature-line"></div>
+                <div class="signature-name">José Guillermo Velásquez</div>
+                <div class="signature-title">Gerente Corpensar</div>
+            </div>
+            
+            <div class="signature">
+                <img src="{% static 'images/firma2.png' %}" alt="Firma" style="width: 100px;">
+                <div class="signature-line"></div>
+                <div class="signature-name">Jennifer Medina Hernández</div>
+                <div class="signature-title">Coordinadora Académica</div>
             </div>
         </div>
-    </div>
-    
-    <div class="certificate-seal">
-        <div class="seal-inner">CERTIFICADO OFICIAL</div>
+        
+        <img class="observatory-logo" src="{% static 'images/logo-observatorio.png' %}" alt="Observatorio Derechos Humanos Corpensar">
     </div>
 </div>
 
@@ -345,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('certificado_documento', '{{ numero_identificacion }}');
     {% if correo %}localStorage.setItem('certificado_correo', '{{ correo }}');{% endif %}
     {% if telefono %}localStorage.setItem('certificado_telefono', '{{ telefono }}');{% endif %}
+    {% if ciudad %}localStorage.setItem('certificado_ciudad', '{{ ciudad }}');{% endif %}
     localStorage.setItem('certificado_timestamp', String(Date.now()));
     {% endif %}
     
