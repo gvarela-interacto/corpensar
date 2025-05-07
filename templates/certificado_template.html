@@ -24,182 +24,103 @@
         justify-content: center;
         align-items: center;
         min-height: 100vh;
+        box-sizing: border-box;
     }
     .certificate-container {
-        width: 962px;
+        width: 890px; /* Ancho fijo exacto de la imagen de fondo */
+        height: 680px; /* Altura fija basada en la imagen que mostró el usuario */
         position: relative;
-        background-image: url('{% static "images/Fondo certificado.webp" %}');
-        background-size: contain;
-        padding: 50px 40px 40px;
+        background-image: url('{% static "images/fondo_certificado.webp" %}');
+        background-size: contain; /* Mantiene la proporción de la imagen */
+        background-repeat: no-repeat;
+        background-position: center;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         border-radius: 5px;
         margin-bottom: 30px;
+        box-sizing: border-box;
+        overflow: hidden; /* Evita que el contenido sobresalga */
     }
-    .certificate-header {
-        text-align: center;
-        margin-bottom: 40px;
-        margin-top: 15px;
-    }
-    .certificate-title {
-        font-size: 48px;
-        color: #333;
-        margin-bottom: 5px;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    }
-    .certificate-subtitle {
-        font-size: 22px;
-        color: #555;
-        margin-bottom: 20px;
-        letter-spacing: 2px;
-        font-weight: 300;
-        text-transform: uppercase;
-    }
-    .certificate-content {
-        margin: 40px 0;
+    .certificate-inner-content {
         position: relative;
-        text-align: center;
-        padding: 0 20px;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
     }
-    .certificate-text {
-        font-size: 24px;
-        line-height: 1.6;
-        margin-bottom: 25px;
-        color: #444;
-    }
-    .certificate-name {
-        font-size: 40px;
-        font-weight: 700;
-        color: #222;
-        margin: 25px 0 10px;
-        border-bottom: 4px solid #ffd700;
-        display: inline-block;
-        padding: 0 30px 8px;
-        letter-spacing: 1px;
-        text-transform: capitalize;
-    }
-    .certificate-id {
-        font-size: 22px;
-        color: #555;
-        margin-bottom: 30px;
-        letter-spacing: 1px;
-        display: block;
-    }
-    .certificate-details {
-        margin-top: 50px;
-        display: flex;
-        justify-content: space-between;
-    }
-    .detail-item {
-        text-align: left;
-        width: 45%;
-    }
-    .field-label {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 5px;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 1px;
-    }
-    .field-value {
-        font-size: 20px;
-        color: #333;
-        padding: 5px 0;
-        border-bottom: 2px solid #ffd700;
-        font-weight: 500;
-    }
-    .certificate-footer {
-        margin-top: 50px;
-        display: flex;
-        justify-content: center;
-    }
-    .signature-line {
-        width: 250px;
-        border-top: 2px solid #000;
-        margin-top: 10px;
-        padding-top: 5px;
-        text-align: center;
-        font-size: 14px;
-        color: #333;
-        font-weight: 500;
-    }
-    .certificate-logo {
+    
+    /* Estilos específicos para cada elemento del certificado */
+    .participant-name {
         position: absolute;
-        top: 30px;
-        right: 30px;
-        width: 120px;
-        height: 120px;
-        border-radius: 10px;
-        padding: 15px;
-        filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2)); 
-    }
-    .certificate-border {
-        position: absolute;
-        top: 0;
+        top: 160px; /* Ajustar según la imagen */
         left: 0;
         right: 0;
-        bottom: 0;
-        border: 3px solid #333;
-        pointer-events: none;
-        margin: 15px;
-        border-radius: 3px;
-    }
-    .certificate-corner {
-        position: absolute;
-        width: 30px;
-        height: 30px;
-        background-color: #ffd700;
-    }
-    .certificate-seal {
-        position: absolute;
-        bottom: 100px;
-        right: 40px;
-        width: 120px;
-        height: 120px;
-        background-color: transparent;
-        border: 2px solid #ffd700;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 12px;
-        color: #000;
         text-align: center;
-        transform: rotate(-15deg);
-        font-weight: bold;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-    }
-    .seal-inner {
-        width: 110px;
-        height: 110px;
-        border: 1px dashed #333;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-    }
-    .course-title {
         font-size: 28px;
         font-weight: bold;
-        margin-top: 15px;
-        font-style: italic;
-        color: #222;
-        padding: 10px 20px;
-        background-color: rgba(255, 215, 0, 0.1);
-        display: inline-block;
-        border-radius: 3px;
+        color: #000;
+        margin: 0 auto;
     }
+    .participant-label {
+        position: absolute;
+        top: 195px; /* Posición aproximada basada en la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        color: #555;
+        margin: 0 auto;
+        width: 500px;
+        border-top: 1px solid #000;
+
+    }
+    .participation-details {
+        position: absolute;
+        top: 240px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 16px;
+        color: #333;
+    }
+    .event-title {
+        position: absolute;
+        top: 310px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #000;
+        padding: 0 50px;
+    }
+    .event-meta {
+        position: absolute;
+        top: 405px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+    }
+    .final-statement {
+        position: absolute;
+        top: 445px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        color: #444;
+        line-height: 1.6;
+        padding: 0 100px;
+    }
+
     .actions-container {
         display: flex;
         justify-content: center;
         gap: 15px;
         margin-bottom: 30px;
         width: 100%;
-        max-width: 800px;
+        max-width: 915px; /* Consistente con el certificado */
+        flex-wrap: wrap;
     }
     .action-button {
         padding: 12px 25px;
@@ -211,6 +132,8 @@
         gap: 10px;
         text-decoration: none;
         transition: all 0.3s ease;
+        flex-grow: 1;
+        min-width: 200px;
     }
     .download-btn {
         background-color: #4361ee;
@@ -238,7 +161,7 @@
     }
     .phone-input-container {
         margin: 20px 0;
-        max-width: 400px;
+        max-width: 450px;
         width: 100%;
     }
     @media print {
@@ -249,42 +172,70 @@
         }
         .certificate-container {
             box-shadow: none;
+            max-width: 100%;
+            padding: 0;
+            width: 100%;
+            height: auto;
         }
         .actions-container, .phone-input-container {
             display: none;
         }
     }
+
+    @media (max-width: 915px) {
+        .certificate-container {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 915/680; /* Mantiene la proporción del certificado */
+        }
+        .participant-name, .participant-label, .participation-details,
+        .event-title, .event-meta, .final-statement {
+            position: relative;
+            top: auto;
+            margin: 10px auto;
+        }
+        .participant-name {
+            margin-top: 25%;
+        }
+        .actions-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .action-button {
+            width: 100%;
+            min-width: unset;
+            flex-grow: 0;
+        }
+        .phone-input-container {
+            max-width: 100%;
+        }
+    }
 </style>
 
 <div id="certificado" class="certificate-container">
-
-    <div style="padding: 60px 80px 60px 80px;"> <!-- Espacio para los bordes dorados y el logo superior -->
-
-        <div style="text-align: center; margin-top: 80px; margin-bottom: 30px; font-size: 13px; line-height: 1.6; color: #333;">
-            La Corporación para el Pensamiento y la Transformación de Colombia (Corpensar), como equipo multidisciplinario comprometido con la promoción de los derechos humanos, la justicia social y la educación transformadora, certifica que:
+    <div class="certificate-inner-content">
+        <div class="participant-name">
+            {{ nombre_completo | default:"Andres Felipe Giraldo" }}
         </div>
-
-        <div style="text-align: center; margin-bottom: 5px; font-size: 28px; font-weight: bold; color: #000;">
-            {{ nombre_completo | default:"Nombre del Participante AquÃ­" }}
-        </div>
-        <div style="text-align: center; margin-bottom: 25px; font-size: 12px; color: #555; border-top: 1px solid #ccc; width: 300px; margin-left: auto; margin-right: auto; padding-top: 5px;">
+        <div class="participant-label">
             Nombre del participante
         </div>
+        {% if numero_identificacion %}
+        <div class="participation-details">
+            Con identificación <span style="font-weight: bold;">{{ numero_identificacion }}</span> ha participado de manera satisfactoria en la capacitación:
+        </div>
+        {% endif %}
 
-        <div style="text-align: center; margin-bottom: 25px; font-size: 16px; color: #333;">
-            Con CC {{ numero_identificacion | default:"___________" }} ha participado de manera satisfactoria en la capacitación:
+        <div class="event-title">
+            "{{ encuesta.titulo | default:"Grupo Focal con Líderes Sociales y Ambientales - Miraflores" }}"
         </div>
 
-        <div style="text-align: center; font-size: 22px; font-weight: bold; color: #000; margin-bottom: 25px; padding: 0 20px;">
-            {{ encuesta.titulo }}
-        </div>
-
-        <div style="text-align: center; margin-bottom: 20px; font-size: 14px; color: #333;">
-            Realizado en la fecha <span style="font-weight: bold;">{{ fecha_actual | default:"DD/MM/AAAA" }}</span> en la ciudad de
+        <div class="event-meta">
+            Realizado el <span style="font-weight: bold;">{{ fecha_actual | date:"d/m/Y" | default:"DD/MM/AAAA" }}</span> en la ciudad de
             <span style="font-weight: bold;">{{ encuesta.municipio.nombre | default:"________" }}</span> bajo la modalidad <strong style="font-weight: bold;">presencial</strong>.
         </div>
 
-        <div style="text-align: center; font-size: 11px; margin-bottom: 40px; padding: 0 60px; color: #444; line-height: 1.6;">
+        <div class="final-statement">
             Este certificado se expide como reconocimiento a su compromiso con la formación integral y la construcción de una cultura de respeto y garantía de los derechos humanos.
         </div>
     </div>
@@ -328,67 +279,106 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Si llegamos desde una redirección con datos para guardar, guardarlos en localStorage
+    // Datos para localStorage
+    var certificadoData = {
+        encuesta_id: '{{ encuesta.id|escapejs|default:"" }}',
+        nombre: '{{ nombre_completo|escapejs|default:"" }}',
+        documento: '{{ numero_identificacion|escapejs|default:"" }}',
+        correo: '{{ correo|escapejs|default:"" }}',
+        telefono: '{{ telefono|escapejs|default:"" }}',
+        municipio: '{{ encuesta.municipio.nombre|escapejs|default:"" }}',
+        timestamp: Date.now()
+    };
+
+    // Guardar datos si es necesario
     {% if guardar_datos %}
-    // Guardar datos en localStorage para su posible uso futuro
-    localStorage.setItem('certificado_encuesta_id', '{{ encuesta.id }}');
-    localStorage.setItem('certificado_nombre', '{{ nombre_completo }}');
-    localStorage.setItem('certificado_documento', '{{ numero_identificacion }}');
-    {% if correo %}localStorage.setItem('certificado_correo', '{{ correo }}');{% endif %}
-    {% if telefono %}localStorage.setItem('certificado_telefono', '{{ telefono }}');{% endif %}
-    localStorage.setItem('certificado_timestamp', String(Date.now()));
+    try {
+        // Guardar solo los valores que existen
+        Object.keys(certificadoData).forEach(function(key) {
+            if (certificadoData[key]) {
+                localStorage.setItem('certificado_' + key, certificadoData[key]);
+            }
+        });
+    } catch (e) {
+        console.error("Error al guardar en localStorage:", e);
+    }
     {% endif %}
     
     // Función para descargar el certificado
-    document.getElementById('download-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        const certificadoDiv = document.getElementById('certificado');
-        
-        html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
-            const enlace = document.createElement('a');
-            enlace.download = `certificado_{{ nombre_completo|slugify }}_{{ encuesta.titulo|slugify }}.png`;
-            enlace.href = canvas.toDataURL('image/png');
-            enlace.click();
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            descargarCertificado(false);
         });
-    });
+    }
     
     // Función para compartir por WhatsApp
-    document.getElementById('whatsapp-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        const phoneNumber = document.getElementById('phone').value.trim();
-        const countryCode = document.getElementById('country-code').value;
-        
-        if (!phoneNumber) {
-            alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
-            return;
-        }
-        
+    const whatsappBtn = document.getElementById('whatsapp-btn');
+    if (whatsappBtn) {
+        whatsappBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const phoneInput = document.getElementById('phone');
+            const countryCodeSelect = document.getElementById('country-code');
+            if (!phoneInput || !countryCodeSelect) return;
+
+            const phoneNumber = phoneInput.value.trim();
+            const countryCode = countryCodeSelect.value;
+            
+            if (!phoneNumber) {
+                alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
+                return;
+            }
+            
+            descargarCertificado(true, countryCode + phoneNumber);
+        });
+    }
+    
+    // Función compartida para generar y descargar el certificado
+    function descargarCertificado(paraWhatsApp, numeroWhatsApp) {
         const certificadoDiv = document.getElementById('certificado');
+        if (!certificadoDiv) return;
         
-        html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
-            // Generar imagen y guardarla como data URL
+        html2canvas(certificadoDiv, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null,
+            allowTaint: true
+        }).then(function(canvas) {
             const imageData = canvas.toDataURL('image/png');
             
-            // Crear mensaje para WhatsApp con el nombre del certificado
-            const message = encodeURIComponent(`{% trans 'Hola, te comparto tu certificado de participación de Corpensar. Certificado para: ' %}{{ nombre_completo }}`);
+            // Generar nombre de archivo
+            const nombreArchivo = 'certificado_' + 
+                (certificadoData.nombre ? certificadoData.nombre.replace(/\s+/g, '_').toLowerCase() : 'participante') + 
+                '.png';
             
-            // Construir la URL completa con el prefijo de país
-            const fullPhoneNumber = countryCode + phoneNumber;
-            const whatsappURL = `https://wa.me/${fullPhoneNumber}?text=${message}`;
-            
-            // Abrir ventana de WhatsApp con el mensaje
-            window.open(whatsappURL, '_blank');
-            
-            // Descargar la imagen automáticamente para que el usuario pueda compartirla
+            // Descargar imagen
             const enlace = document.createElement('a');
-            enlace.download = `certificado_{{ nombre_completo|slugify }}.png`;
+            enlace.download = nombreArchivo;
             enlace.href = imageData;
             enlace.click();
             
-            // Mostrar instrucciones
-            alert("{% trans 'Se ha descargado automáticamente el certificado y se abrirá WhatsApp. Adjunte la imagen descargada a la conversación.' %}");
+            // Si es para WhatsApp, abrir WhatsApp
+            if (paraWhatsApp && numeroWhatsApp) {
+                var mensajeTxt = "Hola, te comparto tu certificado de participación de Corpensar.";
+                if (certificadoData.nombre) {
+                    mensajeTxt += " Certificado para: " + certificadoData.nombre;
+                }
+                
+                // URL para WhatsApp
+                var whatsappURL = 'https://wa.me/' + numeroWhatsApp + '?text=' + encodeURIComponent(mensajeTxt);
+                window.open(whatsappURL, '_blank');
+                
+                // Mostrar instrucciones
+                var mensaje_whatsapp = "Se ha descargado automáticamente el certificado y se abrirá WhatsApp. Adjunte la imagen descargada a la conversación.";
+                alert(mensaje_whatsapp);
+            }
+        }).catch(function(err) {
+            console.error("Error al generar el canvas:", err);
+            var mensaje_error = "Ocurrió un error al intentar generar el certificado.";
+            alert(mensaje_error);
         });
-    });
+    }
 });
 </script>
 </body>
