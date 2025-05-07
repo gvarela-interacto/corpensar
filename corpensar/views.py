@@ -2556,6 +2556,9 @@ def estadisticas_municipios(request):
     # Obtener todas las regiones y municipios para los selects
     regiones = Region.objects.all()
     todos_municipios_lista = list(Municipio.objects.values('id', 'nombre', 'region_id')) # Corregido: seleccionar el campo existente
+    # Ajustar clave 'region' para JSON de municipios
+    for municipio in todos_municipios_lista:
+        municipio['region'] = municipio.pop('region_id')
     todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder)
 
     # --- Filtros --- 
@@ -2617,9 +2620,9 @@ def estadisticas_municipios(request):
         # Necesitamos el total *único* de encuestas respondidas *dentro del filtro*
         respuestas_filtradas_general = RespuestaEncuesta.objects.all()
         if region_id:
-             respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio__region_id=region_id)
+            respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio__region_id=region_id)
         if municipio_id:
-             respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio_id=municipio_id)
+            respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio_id=municipio_id)
         total_encuestas_completadas_general = respuestas_filtradas_general.values('encuesta_id').distinct().count()
 
         tasa_finalizacion_general = (total_encuestas_completadas_general / total_encuestas_aplicables_general) * 100
@@ -2677,7 +2680,7 @@ def estadisticas_municipios(request):
     for respuesta in respuestas_historial:
         mes_key = respuesta.fecha_respuesta.strftime('%Y-%m')
         if mes_key in respuestas_por_mes:
-             respuestas_por_mes[mes_key]['count'] += 1
+            respuestas_por_mes[mes_key]['count'] += 1
         # else: Manejar respuestas fuera del rango si es necesario
     
     respuestas_ordenadas = sorted(respuestas_por_mes.items())
@@ -2688,8 +2691,8 @@ def estadisticas_municipios(request):
     distribucion_regiones = {} # { 'Region A': 100, 'Region B': 50 }
     # Usar los datos ya calculados para la tabla de regiones
     for region_data in datos_regiones_lista:
-         distribucion_regiones[region_data['nombre']] = region_data['totalRespuestas']
-         
+        distribucion_regiones[region_data['nombre']] = region_data['totalRespuestas']
+        
     # Formatear para Plotly Pie
     regiones_pie_datos = [{'name': nombre, 'value': valor} for nombre, valor in distribucion_regiones.items()]
 
@@ -2742,7 +2745,8 @@ def estadisticas_municipios(request):
             'is_proxima': getattr(encuesta, 'is_proxima', False), # Asumiendo campo
             'total_respuestas': total_respuestas_encuesta,
             'region': encuesta.region.nombre if encuesta.region else 'N/A',
-            'municipio': encuesta.municipio.nombre if encuesta.municipio else 'N/A'
+            'municipio': encuesta.municipio.nombre if encuesta.municipio else 'N/A',
+            'grupo_interes': encuesta.grupo_interes.id if encuesta.grupo_interes else None
         })
 
     # --- Contexto Final --- 
@@ -2750,6 +2754,7 @@ def estadisticas_municipios(request):
         # Datos para selects y UI
         'regiones': regiones,
         'municipios': todos_municipios_json, # Para el select JS
+        'grupos_interes': GrupoInteres.objects.all(), # Lista de grupos de interés para filtro de encuestas
         'encuestas': encuestas_disponibles, # Para la sección de encuestas
         'region_seleccionada': region_id_str,
         'municipio_seleccionado': municipio_id_str,

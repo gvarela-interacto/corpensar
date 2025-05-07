@@ -537,8 +537,8 @@
                                 <h6 class="m-0 font-weight-bold text-primary">Filtrar encuestas</h6>
                             </div>
                             <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
+                                <div class="row mb-3 g-2">
+                                    <div class="col-md-3">
                                         <select id="filtroEstado" class="form-select form-select-sm">
                                             <option value="todas">Todas las encuestas</option>
                                             <option value="activas">Encuestas activas</option>
@@ -546,14 +546,22 @@
                                             <option value="proximas">Encuestas próximas</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <select id="filtroVisibilidad" class="form-select form-select-sm">
                                             <option value="todas">Todas</option>
                                             <option value="publicas">Públicas</option>
                                             <option value="privadas">Privadas</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <select id="filtroGrupoInteres" class="form-select form-select-sm">
+                                            <option value="todas">Todos los grupos</option>
+                                            {% for grupo in grupos_interes %}
+                                            <option value="{{ grupo.id }}">{{ grupo.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
                                         <div class="input-group input-group-sm">
                                             <input type="text" id="buscarEncuesta" class="form-control" placeholder="Buscar por título...">
                                             <button class="btn btn-primary" type="button" id="btnBuscarEncuesta">
@@ -570,8 +578,9 @@
                             {% if encuestas %}
                                 {% for encuesta in encuestas %}
                                     <div class="col-lg-4 col-md-6 mb-4 encuesta-card"
-                                        data-estado="{% if encuesta.activa %}activa{% elif encuesta.is_proxima %}proxima{% else %}finalizada{% endif %}" {# Ajustado estado #}
-                                        data-visibilidad="{% if encuesta.es_publica %}publica{% else %}privada{% endif %}">
+                                        data-estado="{% if encuesta.activa %}activa{% elif encuesta.is_proxima %}proxima{% else %}finalizada{% endif %}"
+                                        data-visibilidad="{% if encuesta.es_publica %}publica{% else %}privada{% endif %}"
+                                        data-grupo="{{ encuesta.grupo_interes|default:'todos' }}">
                                         <div class="card h-100 shadow-sm hover-card">
                                             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                                 <span class="badge {% if encuesta.activa %}bg-success{% elif encuesta.is_proxima %}bg-warning text-dark{% else %}bg-danger{% endif %} me-2">
@@ -689,19 +698,7 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script id="datos-municipios" type="application/json">
-{% if municipios %}
-[
-    {% for municipio in municipios %}
-    {
-        "id": "{{ municipio.id }}",
-        "nombre": "{{ municipio.nombre|escapejs }}",
-        "region": "{{ municipio.region.id }}"
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-]
-{% else %}
-[]
-{% endif %}
+{{ municipios|safe }}
 </script>
 
 <script id="datos-graficos" type="application/json">
@@ -732,8 +729,11 @@
 
     try {
         const jsonMunicipios = document.getElementById('datos-municipios').textContent.trim();
-
-        console.log(jsonMunicipios);
+        if (jsonMunicipios) {
+            todosMunicipios = JSON.parse(jsonMunicipios);
+        } else {
+            console.warn("No se encontró JSON para 'datos-municipios'");
+        }
 
         const jsonGraficos = document.getElementById('datos-graficos').textContent.trim();
         if (jsonGraficos) {
@@ -1071,29 +1071,31 @@
             var tabLinksGraficos = document.querySelectorAll('#myTab .nav-link');
             tabLinksGraficos.forEach(function(tabLink) {
                 tabLink.addEventListener('shown.bs.tab', function (e) {
-                     // Plotly necesita redibujar cuando el contenedor se hace visible
-                     window.dispatchEvent(new Event('resize'));
+                    // Plotly necesita redibujar cuando el contenedor se hace visible
+                    window.dispatchEvent(new Event('resize'));
                 });
             });
 
             // Inicializar filtros de encuestas
             const filtroEstado = document.getElementById('filtroEstado');
             const filtroVisibilidad = document.getElementById('filtroVisibilidad');
-            const buscarEncuesta = document.getElementById('buscarEncuesta');
+            const grupoSelect = document.getElementById('filtroGrupoInteres');
+            const busquedaInput = document.getElementById('buscarEncuesta');
             const btnBuscarEncuesta = document.getElementById('btnBuscarEncuesta');
 
             if (filtroEstado) filtroEstado.addEventListener('change', filtrarEncuestas);
             if (filtroVisibilidad) filtroVisibilidad.addEventListener('change', filtrarEncuestas);
+            if (grupoSelect) grupoSelect.addEventListener('change', filtrarEncuestas);
             if (btnBuscarEncuesta) btnBuscarEncuesta.addEventListener('click', filtrarEncuestas);
-            if (buscarEncuesta) {
-                buscarEncuesta.addEventListener('keyup', function(event) {
+            if (busquedaInput) {
+                busquedaInput.addEventListener('keyup', function(event) {
                     if (event.key === 'Enter') {
                         filtrarEncuestas();
                     }
                 });
             }
              // Aplicar filtro inicial de encuestas si es necesario
-             filtrarEncuestas();
+            filtrarEncuestas();
 
 
             // Controlar el comportamiento de los botones de colapso
@@ -1102,25 +1104,25 @@
                 if (!icon) return; // Si no hay icono, no hacer nada
 
                  // Estado inicial del icono basado en si el collapse está 'show'
-                 const targetSelector = button.getAttribute('data-bs-target');
-                 const targetElement = document.querySelector(targetSelector);
-                 if (targetElement && targetElement.classList.contains('show')) {
-                     icon.classList.remove('fa-chevron-down');
-                     icon.classList.add('fa-chevron-up');
-                 } else {
-                      icon.classList.remove('fa-chevron-up');
-                      icon.classList.add('fa-chevron-down');
-                 }
+                const targetSelector = button.getAttribute('data-bs-target');
+                const targetElement = document.querySelector(targetSelector);
+                if (targetElement && targetElement.classList.contains('show')) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                } else {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
 
 
                 button.addEventListener('click', function() {
                     // El icono cambia inmediatamente al hacer clic
                     if (icon.classList.contains('fa-chevron-down')) {
-                         icon.classList.remove('fa-chevron-down');
-                         icon.classList.add('fa-chevron-up');
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
                     } else {
-                         icon.classList.remove('fa-chevron-up');
-                         icon.classList.add('fa-chevron-down');
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
                     }
 
                     // Ajustar gráficos después de que la animación de colapso termine
@@ -1176,15 +1178,15 @@
             const sheetData = XLSX.utils.sheet_to_json(ws, { header: 1 });
             sheetData.unshift([filtroInfo]); // Añade la fila de filtro al principio
             // Combinar celdas para el título (A1 hasta la última columna usada)
-             const header = sheetData[1]; // La cabecera original ahora está en la segunda fila
-             const ultimaColumna = XLSX.utils.encode_col(header.length - 1);
-             if (!ws['!merges']) ws['!merges'] = [];
-             ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }); // Combinar A1:G1 (o la que sea)
+            const header = sheetData[1]; // La cabecera original ahora está en la segunda fila
+            const ultimaColumna = XLSX.utils.encode_col(header.length - 1);
+            if (!ws['!merges']) ws['!merges'] = [];
+            ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: header.length - 1 } }); // Combinar A1:G1 (o la que sea)
 
             // 2. Ajustar ancho de columnas (basado en la vista actual)
             let wscols = [];
             if (vistaActual === 'vistaMunicipios') {
-                 wscols = [
+                wscols = [
                     {wch: 25}, // Municipio
                     {wch: 20}, // Región
                     {wch: 15}, // Total Encuestas
@@ -1194,7 +1196,7 @@
                     {wch: 15}  // Clasificación
                 ];
             } else { // vistaRegiones
-                 wscols = [
+                wscols = [
                     {wch: 25}, // Región
                     {wch: 15}, // Total Encuestas
                     {wch: 15}, // Total Respuestas
@@ -1206,7 +1208,7 @@
             ws['!cols'] = wscols;
 
             // 3. Convertir datos de nuevo a hoja (después de añadir fila y antes de aplicar formato)
-             XLSX.utils.sheet_add_json(ws, sheetData, { skipHeader: true, origin: 'A1' });
+            XLSX.utils.sheet_add_json(ws, sheetData, { skipHeader: true, origin: 'A1' });
 
             // 4. (Opcional) Aplicar formato básico (ej: Negrita a cabecera)
             // Esto es más complejo con xlsx.js, requeriría iterar sobre las celdas de la cabecera
@@ -1237,9 +1239,9 @@
         if (!datosGraficos || (!historialElement && !pieElement && !barElement)) {
             console.warn("No hay datos o elementos DOM para inicializar los gráficos.");
              // Opcionalmente, mostrar mensajes en lugar de los gráficos
-             if (historialElement) historialElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de historial para mostrar.</p>';
-             if (pieElement) pieElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de regiones para mostrar.</p>';
-             if (barElement) barElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de municipios para mostrar.</p>';
+            if (historialElement) historialElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de historial para mostrar.</p>';
+            if (pieElement) pieElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de regiones para mostrar.</p>';
+            if (barElement) barElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de municipios para mostrar.</p>';
             return;
         }
 
@@ -1247,8 +1249,8 @@
         const colores = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#5a5c69', '#858796', '#6f42c1', '#e83e8c', '#fd7e14'];
 
         const configBase = {
-             responsive: true,
-             displayModeBar: false // Ocultar barra de herramientas de Plotly
+            responsive: true,
+            displayModeBar: false // Ocultar barra de herramientas de Plotly
         };
 
         const layoutBase = {
@@ -1261,26 +1263,26 @@
             },
             title: {
                 font: {
-                     size: 16, // Tamaño título más pequeño
-                     color: '#2e384d',
-                     weight: 'bold'
+                    size: 16, // Tamaño título más pequeño
+                    color: '#2e384d',
+                    weight: 'bold'
                 },
                 x: 0.05, // Alinear título a la izquierda
                 xanchor: 'left'
             },
-             margin: { l: 50, r: 30, b: 80, t: 60, pad: 4 }, // Márgenes ajustados
-             xaxis: {
-                 gridcolor: '#e3e6f0', // Color suave para la rejilla
-                 linecolor: '#d1d3e2', // Color línea del eje
-                 zerolinecolor: '#d1d3e2'
-             },
-             yaxis: {
-                 gridcolor: '#e3e6f0',
-                 linecolor: '#d1d3e2',
-                 zerolinecolor: '#d1d3e2'
-             },
-             hovermode: 'closest', // Mostrar tooltip del punto más cercano
-             hoverlabel: { // Estilo general para los tooltips
+            margin: { l: 50, r: 30, b: 80, t: 60, pad: 4 }, // Márgenes ajustados
+            xaxis: {
+                gridcolor: '#e3e6f0', // Color suave para la rejilla
+                linecolor: '#d1d3e2', // Color línea del eje
+                zerolinecolor: '#d1d3e2'
+            },
+            yaxis: {
+                gridcolor: '#e3e6f0',
+                linecolor: '#d1d3e2',
+                zerolinecolor: '#d1d3e2'
+            },
+            hovermode: 'closest', // Mostrar tooltip del punto más cercano
+            hoverlabel: { // Estilo general para los tooltips
                 bgcolor: "#5a5c69",
                 bordercolor: "#5a5c69",
                 font: { 
@@ -1322,10 +1324,10 @@
                 Plotly.newPlot(historialElement, [traceHistorial], layoutHistorial, configBase);
             } catch (error) {
                 console.error("Error al inicializar gráfico de historial:", error);
-                 historialElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de historial.</p>';
+                historialElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de historial.</p>';
             }
         } else if (historialElement) {
-             historialElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de historial para mostrar.</p>';
+            historialElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de historial para mostrar.</p>';
         }
 
         // Gráfico de Regiones (Pie)
@@ -1359,7 +1361,7 @@
                 Plotly.newPlot(pieElement, [tracePie], layoutPie, configBase);
             } catch (error) {
                 console.error("Error al inicializar gráfico de distribución por región:", error);
-                 pieElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de regiones.</p>';
+                pieElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de regiones.</p>';
             }
         } else if (pieElement) {
             pieElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de regiones para mostrar.</p>';
@@ -1380,20 +1382,20 @@
                     },
                     hoverinfo: 'x+y', // Mostrar valor X (respuestas) y Y (municipio)
                 };
-                 const layoutBar = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
-                 layoutBar.title.text = 'Top Municipios'; // Título más corto
-                 layoutBar.xaxis.title = 'Nº Respuestas';
-                 layoutBar.yaxis.title = ''; // Sin título en eje Y
-                 layoutBar.yaxis.automargin = true; // Ajuste automático para etiquetas largas
-                 layoutBar.margin.l = 150; // Más margen izquierdo para nombres de municipios
+                const layoutBar = JSON.parse(JSON.stringify(layoutBase)); // Corregido: Usar JSON.parse/stringify para copia profunda
+                layoutBar.title.text = 'Top Municipios'; // Título más corto
+                layoutBar.xaxis.title = 'Nº Respuestas';
+                layoutBar.yaxis.title = ''; // Sin título en eje Y
+                layoutBar.yaxis.automargin = true; // Ajuste automático para etiquetas largas
+                layoutBar.margin.l = 150; // Más margen izquierdo para nombres de municipios
 
                 Plotly.newPlot(barElement, [traceBar], layoutBar, configBase);
             } catch (error) {
                 console.error("Error al inicializar gráfico de barras de municipios:", error);
-                 barElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de municipios.</p>';
+                barElement.innerHTML = '<p class="text-center text-danger mt-5">Error al cargar gráfico de municipios.</p>';
             }
         } else if (barElement) {
-             barElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de municipios para mostrar.</p>';
+            barElement.innerHTML = '<p class="text-center text-muted mt-5">No hay datos de municipios para mostrar.</p>';
         }
 
         // Manejar la responsividad general
@@ -1405,7 +1407,7 @@
                 Plotly.Plots.resize(pieElement).catch(e => console.warn("Resize error pie:", e));
             }
             if (barElement && barElement.data) {
-                 Plotly.Plots.resize(barElement).catch(e => console.warn("Resize error bar:", e));
+                Plotly.Plots.resize(barElement).catch(e => console.warn("Resize error bar:", e));
             }
         });
     }
@@ -1414,16 +1416,18 @@
     function filtrarEncuestas() {
         const estadoSelect = document.getElementById('filtroEstado');
         const visibilidadSelect = document.getElementById('filtroVisibilidad');
+        const grupoSelect = document.getElementById('filtroGrupoInteres');
         const busquedaInput = document.getElementById('buscarEncuesta');
 
         // Verificar que los elementos existan
-        if (!estadoSelect || !visibilidadSelect || !busquedaInput) {
+        if (!estadoSelect || !visibilidadSelect || !grupoSelect || !busquedaInput) {
             console.warn("Elementos de filtro de encuestas no encontrados.");
             return;
         }
 
         const estado = estadoSelect.value; // ej: 'activas', 'finalizadas', 'proximas', 'todas'
         const visibilidad = visibilidadSelect.value; // ej: 'publicas', 'privadas', 'todas'
+        const grupo = grupoSelect.value; // ej: 'todas' o id
         const busqueda = busquedaInput.value.toLowerCase().trim();
 
         const tarjetas = document.querySelectorAll('.encuesta-card');
@@ -1436,16 +1440,17 @@
             let mostrar = true;
             const estadoEncuesta = tarjeta.getAttribute('data-estado'); // ej: 'activa', 'finalizada', 'proxima'
             const visibilidadEncuesta = tarjeta.getAttribute('data-visibilidad'); // ej: 'publica', 'privada'
+            const grupoEncuesta = tarjeta.getAttribute('data-grupo'); // id o 'todos'
             const titulo = tarjeta.querySelector('.card-title')?.textContent.toLowerCase() || '';
             const descripcion = tarjeta.querySelector('.card-text')?.textContent.toLowerCase() || '';
 
             // Filtrar por estado
             if (estado !== 'todas') {
-                 // Mapear valor del select ('activas') al valor del atributo ('activa')
-                 const estadoEsperado = estado.replace('as', 'a').replace('os', 'o'); // 'activas' -> 'activa', 'finalizadas' -> 'finalizada', etc.
-                 if (estadoEsperado !== estadoEncuesta) {
-                     mostrar = false;
-                 }
+                // Mapear valor del select ('activas') al valor del atributo ('activa')
+                const estadoEsperado = estado.replace('as', 'a').replace('os', 'o'); // 'activas' -> 'activa', 'finalizadas' -> 'finalizada', etc.
+                if (estadoEsperado !== estadoEncuesta) {
+                    mostrar = false;
+                }
             }
 
             // Filtrar por visibilidad
@@ -1456,9 +1461,14 @@
                 }
             }
 
+            // Filtrar por grupo de interés
+            if (mostrar && grupo !== 'todas' && grupoEncuesta !== grupo) {
+                mostrar = false;
+            }
+
             // Filtrar por búsqueda
             if (mostrar && busqueda && !titulo.includes(busqueda) && !descripcion.includes(busqueda)) {
-                 mostrar = false;
+                mostrar = false;
             }
 
             // Mostrar u ocultar tarjeta
@@ -1469,9 +1479,9 @@
         });
 
         // Mostrar/ocultar mensaje si no hay resultados
-         if (mensajeNoResultados) {
+        if (mensajeNoResultados) {
             mensajeNoResultados.style.display = hayResultados ? 'none' : 'block';
-         } else if (!hayResultados && gridEncuestas && tarjetas.length > 0) { // Solo crear si había tarjetas originalmente
+        } else if (!hayResultados && gridEncuestas && tarjetas.length > 0) { // Solo crear si había tarjetas originalmente
             // Crear el mensaje si no existe y no hay resultados
             const mensaje = document.createElement('div');
             mensaje.id = 'mensajeNoResultadosEncuestas'; // ID actualizado
@@ -1485,7 +1495,7 @@
             if(primerElementoVisible){
                 gridEncuestas.insertBefore(mensaje, primerElementoVisible);
             } else {
-                 gridEncuestas.appendChild(mensaje);
+                    gridEncuestas.appendChild(mensaje);
             }
         }
 
