@@ -54,7 +54,21 @@
                             <div class="col-md-6 mb-3">
                                 <div class="form-group">
                                     <label for="telefono" class="form-label fw-bold">{% trans "Número de teléfono" %}</label>
-                                    <input type="tel" class="form-control form-control-lg" id="telefono" name="telefono" placeholder="{% trans 'Ej: 3001234567' %}">
+                                    <input type="tel" class="form-control form-control-lg" id="telefono" name="telefono" placeholder="{% trans 'Ej: 3001234567' %}" maxlength="10" pattern="[0-9]{10}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="fecha_certificado" class="form-label fw-bold">{% trans "Fecha de certificado" %}</label>
+                                    <input type="date" class="form-control form-control-lg" id="fecha_certificado" name="fecha_certificado" placeholder="{% trans 'dd/mm/yyyy' %}">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="municipio" class="form-label fw-bold">{% trans "Municipio" %}</label>
+                                    <input type="text" class="form-control form-control-lg" id="municipio" name="municipio" placeholder="{% trans 'Ej: Bogotá' %}">
                                 </div>
                             </div>
                         </div>
@@ -90,6 +104,8 @@ function cargarDatosCertificado() {
     const documento = localStorage.getItem('certificado_documento');
     const correo = localStorage.getItem('certificado_correo');
     const telefono = localStorage.getItem('certificado_telefono');
+    const fecha = localStorage.getItem('certificado_fecha');
+    const municipio = localStorage.getItem('certificado_municipio');
     
     // Rellenar el formulario si hay datos
     if (encuestaId) {
@@ -111,6 +127,15 @@ function cargarDatosCertificado() {
     if (telefono) {
         document.getElementById('telefono').value = telefono;
     }
+
+    if (fecha) {
+        document.getElementById('fecha_certificado').value = fecha;
+    }
+    
+    if (municipio) {
+        document.getElementById('municipio').value = municipio;
+    }
+    
 }
 
 // Función para limpiar los datos del localStorage
@@ -120,6 +145,8 @@ function limpiarDatosCertificado() {
     localStorage.removeItem('certificado_documento');
     localStorage.removeItem('certificado_correo');
     localStorage.removeItem('certificado_telefono');
+    localStorage.removeItem('certificado_fecha');
+    localStorage.removeItem('certificado_municipio');
     localStorage.removeItem('certificado_timestamp');
 }
 

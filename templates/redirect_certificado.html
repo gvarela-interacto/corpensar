@@ -52,7 +52,10 @@
         localStorage.setItem('certificado_documento', certificadoDatos.numero_identificacion);
         localStorage.setItem('certificado_correo', certificadoDatos.correo);
         localStorage.setItem('certificado_telefono', certificadoDatos.telefono);
+        localStorage.setItem('certificado_fecha', certificadoDatos.fecha_certificado);
+        localStorage.setItem('certificado_municipio', certificadoDatos.municipio);
         
+
         // Añadir timestamp para controlar la validez
         localStorage.setItem('certificado_timestamp', String(Date.now()));
         

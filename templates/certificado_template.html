@@ -292,52 +292,13 @@
         </div>
 
         <div class="event-meta">
-            Realizado el <span style="font-weight: bold;">{{ fecha_actual | date:"d/m/Y" | default:"DD/MM/AAAA" }}</span> en la ciudad de
+            Realizado el <span style="font-weight: bold;">{{ fecha_actual | date:"d/m/Y" | default:"DD/MM/AAAA" }}</span> en el municipio de
             <span style="font-weight: bold;">{{ encuesta.municipio.nombre | default:"________" }}</span> bajo la modalidad <strong style="font-weight: bold;">presencial</strong>.
         </div>
 
         <div class="final-statement">
             Este certificado se expide como reconocimiento a su compromiso con la formación integral y la construcción de una cultura de respeto y garantía de los derechos humanos.
         </div>
-    </div>
-</div>
-
-<!-- Formulario para editar datos del certificado cuando no están disponibles -->
-<div class="certificate-edit-form">
-    <h5 style="margin-top: 0; margin-bottom: 15px;">Editar información del certificado</h5>
-    <div class="form-row">
-        <div class="form-group">
-            <label for="fecha-manual">Fecha del evento:</label>
-            <input type="date" id="fecha-manual" class="form-control" value="{{ fecha_actual|date:'Y-m-d' }}">
-        </div>
-        <div class="form-group">
-            <label for="municipio-manual">Municipio:</label>
-            <input type="text" id="municipio-manual" class="form-control" value="{{ encuesta.municipio.nombre|default:'' }}" placeholder="Ej: Bogotá">
-        </div>
-    </div>
-    <div class="form-row">
-        <div class="form-group">
-            <button type="button" id="actualizar-certificado" class="edit-btn">Actualizar certificado</button>
-        </div>
-    </div>
-</div>
-
-<div class="phone-input-container">
-    <div class="input-group">
-        <select id="country-code" class="form-select" style="max-width: 120px;">
-            <option value="57" selected>+57 (Colombia)</option>
-            <option value="1">+1 (USA/Canadá)</option>
-            <option value="52">+52 (México)</option>
-            <option value="51">+51 (Perú)</option>
-            <option value="56">+56 (Chile)</option>
-            <option value="54">+54 (Argentina)</option>
-            <option value="593">+593 (Ecuador)</option>
-            <option value="58">+58 (Venezuela)</option>
-            <option value="591">+591 (Bolivia)</option>
-            <option value="595">+595 (Paraguay)</option>
-            <option value="598">+598 (Uruguay)</option>
-        </select>
-        <input type="tel" id="phone" class="form-control" placeholder="{% trans 'Número telefónico (sin prefijo)' %}" value="{{ telefono }}">
     </div>
 </div>
 
@@ -360,67 +321,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Obtener referencias a elementos del certificado
-    const fechaCertificado = document.querySelector('.event-meta span:first-of-type');
-    const municipioCertificado = document.querySelector('.event-meta span:last-of-type');
-    
-    // Obtener referencias a campos de edición
-    const fechaManualInput = document.getElementById('fecha-manual');
-    const municipioManualInput = document.getElementById('municipio-manual');
-    const actualizarBtn = document.getElementById('actualizar-certificado');
-    
-    // Función para formatear fecha
-    function formatearFecha(fechaStr) {
-        if (!fechaStr) return "DD/MM/AAAA";
-        try {
-            const fecha = new Date(fechaStr);
-            return fecha.getDate().toString().padStart(2, '0') + '/' + 
-                  (fecha.getMonth() + 1).toString().padStart(2, '0') + '/' + 
-                  fecha.getFullYear();
-        } catch (e) {
-            console.error("Error al formatear fecha:", e);
-            return fechaStr;
-        }
-    }
-    
-    // Inicializar fecha si está vacía
-    if (!fechaManualInput.value) {
-        fechaManualInput.value = new Date().toISOString().split('T')[0];
-    }
-    
-    // Actualizar certificado cuando se hace clic en el botón
-    if (actualizarBtn) {
-        actualizarBtn.addEventListener('click', function() {
-            // Actualizar fecha
-            if (fechaCertificado && fechaManualInput.value) {
-                fechaCertificado.textContent = formatearFecha(fechaManualInput.value);
-            }
-            
-            // Actualizar municipio
-            if (municipioCertificado && municipioManualInput.value) {
-                municipioCertificado.textContent = municipioManualInput.value;
-            }
-            
-            // Guardar en localStorage para futuras referencias
-            try {
-                if (municipioManualInput.value) {
-                    localStorage.setItem('certificado_municipio_manual', municipioManualInput.value);
-                }
-                if (fechaManualInput.value) {
-                    localStorage.setItem('certificado_fecha_manual', fechaManualInput.value);
-                }
-            } catch (e) {
-                console.error("Error al guardar datos manuales:", e);
-            }
-            
-            alert("Certificado actualizado correctamente");
-        });
-    }
     
     // Recuperar valores guardados previamente
     try {
-        const municipioGuardado = localStorage.getItem('certificado_municipio_manual');
-        const fechaGuardada = localStorage.getItem('certificado_fecha_manual');
+        const municipioGuardado = localStorage.getItem('certificado_municipio');
+        const fechaGuardada = localStorage.getItem('certificado_fecha');
         
         if (municipioGuardado && municipioManualInput && !municipioManualInput.value) {
             municipioManualInput.value = municipioGuardado;
@@ -440,8 +345,8 @@ document.addEventListener('DOMContentLoaded', function() {
         documento: '{{ numero_identificacion|escapejs|default:"" }}',
         correo: '{{ correo|escapejs|default:"" }}',
         telefono: '{{ telefono|escapejs|default:"" }}',
-        municipio: municipioManualInput ? municipioManualInput.value : '{{ encuesta.municipio.nombre|escapejs|default:"" }}',
-        timestamp: Date.now()
+        municipio: '{{ encuesta.municipio.nombre|escapejs|default:"" }}',
+        timestamp: '{{ fecha_actual|date:"Y-m-d" }}'
     };
 
     // Guardar datos si es necesario

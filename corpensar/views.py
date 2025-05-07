@@ -693,7 +693,7 @@ def crear_desde_cero(request):
         # Comprobar si se solicitó incluir caracterización
         incluir_caracterizacion = request.POST.get('incluir_caracterizacion') == 'true'
         if incluir_caracterizacion:
-            preguntas_obligatorias = request.POST.get('preguntas_obligatorias') == 'true'
+            requeridas = request.POST.get('preguntas_obligatorias', 'false') == 'true'
             
             # Este bloque de código es similar a la función agregar_caracterizacion
             # Definir orden inicial
@@ -704,83 +704,90 @@ def crear_desde_cero(request):
             
             # Crear las preguntas de caracterización
             preguntas = [
-                {
-                    'tipo': 'TEXT',
-                    'texto': 'Entrevistador',
-                    'orden': ultimo_orden + 1,
-                    'seccion': 'Caracterización',
-                    'requerida': preguntas_obligatorias
-                },
-                {
-                    'tipo': 'TEXT',
-                    'texto': '¿Cuál es su nombre completo?',
-                    'orden': ultimo_orden + 2,
-                    'seccion': 'Caracterización',
-                    'requerida': preguntas_obligatorias
-                },
-                {
-                    'tipo': 'TEXT',
-                    'texto': 'Correo electrónico',
-                    'orden': ultimo_orden + 3,
-                    'seccion': 'Caracterización',
-                    'requerida': False,
-                    'placeholder': 'ejemplo@correo.com'
-                },
-                {
-                    'tipo': 'TEXT',
-                    'texto': 'Número de teléfono o celular',
-                    'orden': ultimo_orden + 4,
-                    'seccion': 'Caracterización',
-                    'requerida': False,
-                    'placeholder': 'Ej: 3001234567'
-                },
-                {
-                    'tipo': 'RADIO',
-                    'texto': '¿Cuál es su sexo?',
-                    'orden': ultimo_orden + 5,
-                    'seccion': 'Caracterización',
-                    'requerida': preguntas_obligatorias,
-                    'opciones': [
-                        {'texto': 'Masculino', 'valor': 'a', 'orden': 1},
-                        {'texto': 'Femenino', 'valor': 'b', 'orden': 2},
-                        {'texto': 'Otro', 'valor': 'c', 'orden': 3},
-                        {'texto': 'Prefiero no responder', 'valor': 'd', 'orden': 4}
-                    ]
-                },
-                {
-                    'tipo': 'RADIO',
-                    'texto': '¿Cuál es su rango de edad?',
-                    'orden': ultimo_orden + 6,
-                    'seccion': 'Caracterización',
-                    'requerida': preguntas_obligatorias,
-                    'opciones': [
-                        {'texto': 'Menos de 18 años', 'valor': 'a', 'orden': 1},
-                        {'texto': '18 a 25 años', 'valor': 'b', 'orden': 2},
-                        {'texto': '26 a 35 años', 'valor': 'c', 'orden': 3},
-                        {'texto': '36 a 45 años', 'valor': 'd', 'orden': 4},
-                        {'texto': '46 a 60 años', 'valor': 'e', 'orden': 5},
-                        {'texto': 'Más de 60 años', 'valor': 'f', 'orden': 6}
-                    ]
-                },
-                {
-                    'tipo': 'CHECK',
-                    'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
-                    'orden': ultimo_orden + 7,
-                    'seccion': 'Caracterización',
-                    'requerida': preguntas_obligatorias,
-                    'opciones': [
-                        {'texto': 'Comunidad Indígena', 'valor': 'a', 'orden': 1},
-                        {'texto': 'Comunidad Afrodescendiente', 'valor': 'b', 'orden': 2},
-                        {'texto': 'Comunidad Campesina', 'valor': 'c', 'orden': 3},
-                        {'texto': 'Persona con Discapacidad', 'valor': 'd', 'orden': 4},
-                        {'texto': 'LGBTIQ+', 'valor': 'e', 'orden': 5},
-                        {'texto': 'Victima del conflicto armado', 'valor': 'f', 'orden': 6},
-                        {'texto': 'Otro', 'valor': 'g', 'orden': 7},
-                        {'texto': 'Ninguno', 'valor': 'h', 'orden': 8}
-                    ]
-                }
-            ]
-            
+            {
+                'tipo': 'TEXT',
+                'texto': 'Nombre del Entrevistador',
+                'orden': ultimo_orden + 1,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': '¿Cuál es su nombre completo?',
+                'orden': ultimo_orden + 2,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Identificación',
+                'orden': ultimo_orden + 3,
+                'seccion': 'Caracterización',
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Correo electrónico',
+                'orden': ultimo_orden + 4,
+                'seccion': 'Caracterización',
+                'requerida': False,
+                'placeholder': 'ejemplo@correo.com'
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Número de teléfono o celular',
+                'orden': ultimo_orden + 5,
+                'seccion': 'Caracterización',
+                'requerida': False,
+                'placeholder': 'Ej: 3001234567'
+            },
+            {
+                'tipo': 'RADIO',
+                'texto': '¿Cuál es su sexo?',
+                'orden': ultimo_orden + 6,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+                'opciones': [
+                    {'texto': 'Masculino', 'valor': 'a', 'orden': 1},
+                    {'texto': 'Femenino', 'valor': 'b', 'orden': 2},
+                    {'texto': 'Otro', 'valor': 'c', 'orden': 3},
+                    {'texto': 'Prefiero no responder', 'valor': 'd', 'orden': 4}
+                ]
+            },
+            {
+                'tipo': 'RADIO',
+                'texto': '¿Cuál es su rango de edad?',
+                'orden': ultimo_orden + 7,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+                'opciones': [
+                    {'texto': 'Menos de 18 años', 'valor': 'a', 'orden': 1},
+                    {'texto': '18 a 25 años', 'valor': 'b', 'orden': 2},
+                    {'texto': '26 a 35 años', 'valor': 'c', 'orden': 3},
+                    {'texto': '36 a 45 años', 'valor': 'd', 'orden': 4},
+                    {'texto': '46 a 60 años', 'valor': 'e', 'orden': 5},
+                    {'texto': 'Más de 60 años', 'valor': 'f', 'orden': 6}
+                ]
+            },
+            {
+                'tipo': 'CHECK',
+                'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
+                'orden': ultimo_orden + 8,
+                'seccion': 'Caracterización',
+                'requerida': requeridas,
+                'opciones': [
+                    {'texto': 'Comunidad Indígena', 'valor': 'a', 'orden': 1},
+                    {'texto': 'Comunidad Afrodescendiente', 'valor': 'b', 'orden': 2},
+                    {'texto': 'Comunidad Campesina', 'valor': 'c', 'orden': 3},
+                    {'texto': 'Persona con Discapacidad', 'valor': 'd', 'orden': 4},
+                    {'texto': 'LGBTIQ+', 'valor': 'e', 'orden': 5},
+                    {'texto': 'Victima del conflicto armado', 'valor': 'f', 'orden': 6},
+                    {'texto': 'Otro', 'valor': 'g', 'orden': 7},
+                    {'texto': 'Ninguno', 'valor': 'h', 'orden': 8}
+                ]
+            }
+        ]
+        
             # Crear cada pregunta
             for pregunta_data in preguntas:
                 if pregunta_data['tipo'] == 'TEXT':
@@ -1668,6 +1675,7 @@ def guardar_respuesta(request, encuesta_id):
             documento = None
             correo = None
             telefono = None
+            municipio = None
             
             # Buscar en las respuestas de texto el nombre de la persona
             nombre_preguntas = ['nombre completo', '¿cuál es su nombre completo?', 'nombre']
@@ -1717,6 +1725,21 @@ def guardar_respuesta(request, encuesta_id):
                         telefono = respuesta_telefono.valor
                         break
             
+            # Buscar el municipio
+            municipio_preguntas = ['municipio', 'ciudad', 'municipio de residencia', 'municipio de residencia']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in municipio_preguntas):
+                    respuesta_municipio = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_municipio:
+                        municipio = respuesta_municipio.valor
+                        break
+            
+            
+                    
+
             # Si tenemos los datos, enviamos directamente al certificado
             if nombre_completo and documento:
                 # Preparar datos para enviar a la plantilla
@@ -1728,6 +1751,7 @@ def guardar_respuesta(request, encuesta_id):
                     'correo': correo,
                     'telefono': telefono,
                     'fecha_actual': fecha_actual,
+                    'municipio': municipio,
                     'guardar_datos': True  # Indicar que se deben guardar los datos
                 }
                 return render(request, 'certificado_template.html', context)
@@ -1736,13 +1760,17 @@ def guardar_respuesta(request, encuesta_id):
                 # Crear el contexto para JavaScript con datos escapados correctamente
                 import json
                 from django.utils.safestring import mark_safe
-                
+                fecha_actual = timezone.now().strftime('%d/%m/%Y')
                 datos_js = {
                     'encuesta_id': encuesta.id,
                     'nombre_completo': nombre_completo or '',
                     'numero_identificacion': documento or '',
                     'correo': correo or '',
-                    'telefono': telefono or ''
+                    'telefono': telefono or '',
+                    'municipio': municipio or '',
+                    'fecha_actual': fecha_actual or ''
+                    
+
                 }
                 
                 context = {
@@ -3924,6 +3952,16 @@ def generar_certificado(request):
         documento = request.POST.get('numero_identificacion')
         correo = request.POST.get('correo')
         telefono = request.POST.get('telefono')
+        municipio = request.POST.get('municipio')
+        fecha = request.POST.get('fecha_certificado')
+
+        print(f"municipio: {municipio}")
+        print(f"telefono: {telefono}")
+        print(f"correo: {correo}")
+        print(f"documento: {documento}")
+        print(f"nombre: {nombre}")
+        print(f"form_id: {form_id}")
+        print(f"fecha: {fecha}")
         
         if form_id and nombre and documento:
             encuesta = get_object_or_404(Encuesta, id=form_id)
@@ -3935,7 +3973,8 @@ def generar_certificado(request):
                 'numero_identificacion': documento,
                 'correo': correo,
                 'telefono': telefono,
-                'fecha_actual': fecha_actual
+                'fecha_actual': fecha_actual,
+                'municipio': municipio,
             }
             
             return render(request, 'certificado_template.html', context)
