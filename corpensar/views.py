@@ -1783,7 +1783,12 @@ def guardar_respuesta(request, encuesta_id):
                 return render(request, 'redirect_certificado.html', context)
         
         # Redirigir a la página de encuesta completada
-        return redirect('encuesta_completada', slug=encuesta.slug)
+        # return redirect('encuesta_completada', slug=encuesta.slug)
+        
+        # En lugar de redirigir directamente a encuesta_completada, redirigimos a la página de la encuesta
+        # con el parámetro submitted=true para mostrar el modal de certificado
+        responder_url = reverse('responder_encuesta', kwargs={'slug': encuesta.slug})
+        return redirect(f"{responder_url}?submitted=true")
 
     return redirect('todas_encuestas')
 

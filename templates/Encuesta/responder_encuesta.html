@@ -1057,6 +1057,90 @@
             });
         });
 
+        // Guardar datos para certificado cuando se envía el formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('survey-form');
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Datos para el certificado
+                    let nombre = '';
+                    let documento = '';
+                    let correo = '';
+                    let telefono = '';
+                    let municipio = '';
+                    
+                    // Buscar campos de nombre
+                    const nombreInputs = document.querySelectorAll('input[name^="pregunta_texto_"]');
+                    nombreInputs.forEach(function(input) {
+                        const label = input.closest('.question').querySelector('.question-title span:first-child');
+                        if (label && (label.textContent.toLowerCase().includes('nombre') || 
+                                     label.textContent.toLowerCase().includes('participante'))) {
+                            nombre = input.value.trim() || '';
+                        }
+                    });
+                    
+                    // Buscar campos de documento
+                    const documentoInputs = document.querySelectorAll('input[name^="pregunta_texto_"]');
+                    documentoInputs.forEach(function(input) {
+                        const label = input.closest('.question').querySelector('.question-title span:first-child');
+                        if (label && (label.textContent.toLowerCase().includes('documento') || 
+                                     label.textContent.toLowerCase().includes('identificación') ||
+                                     label.textContent.toLowerCase().includes('cedula') ||
+                                     label.textContent.toLowerCase().includes('cédula'))) {
+                            documento = input.value.trim() || '';
+                        }
+                    });
+                    
+                    // Buscar campos de correo
+                    const correoInputs = document.querySelectorAll('input[type="email"]');
+                    correoInputs.forEach(function(input) {
+                        correo = input.value.trim() || '';
+                    });
+                    
+                    // Buscar campos de teléfono
+                    const telefonoInputs = document.querySelectorAll('input[name^="pregunta_texto_"]');
+                    telefonoInputs.forEach(function(input) {
+                        const label = input.closest('.question').querySelector('.question-title span:first-child');
+                        if (label && (label.textContent.toLowerCase().includes('teléfono') || 
+                                     label.textContent.toLowerCase().includes('telefono') ||
+                                     label.textContent.toLowerCase().includes('celular') ||
+                                     label.textContent.toLowerCase().includes('móvil') ||
+                                     label.textContent.toLowerCase().includes('movil'))) {
+                            telefono = input.value.trim() || '';
+                        }
+                    });
+                    
+                    // Obtener el municipio
+                    const municipioSelect = document.getElementById('municipio');
+                    if (municipioSelect && municipioSelect.value) {
+                        const municipioOption = municipioSelect.options[municipioSelect.selectedIndex];
+                        municipio = municipioOption.textContent.trim() || '';
+                    }
+                    
+                    // Obtener la fecha actual
+                    const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                    
+                    // Obtener el ID de la encuesta
+                    const encuestaId = '{{ encuesta.id }}';
+                    
+                    // Guardar datos en localStorage si existen
+                    try {
+                        if (nombre) localStorage.setItem('certificado_nombre', nombre);
+                        if (documento) localStorage.setItem('certificado_documento', documento);
+                        if (correo) localStorage.setItem('certificado_correo', correo);
+                        if (telefono) localStorage.setItem('certificado_telefono', telefono);
+                        if (municipio) localStorage.setItem('certificado_municipio', municipio);
+                        if (fechaActual) localStorage.setItem('certificado_fecha', fechaActual);
+                        if (encuestaId) localStorage.setItem('certificado_encuesta_id', encuestaId);
+                        localStorage.setItem('certificado_timestamp', Date.now().toString());
+                    } catch (error) {
+                        console.error("Error al guardar datos en localStorage:", error);
+                    }
+                });
+            }
+        });
+
         // Función para validar selecciones en casillas de verificación
         function validarSelecciones(preguntaId) {
             const checkboxes = document.querySelectorAll(`input[data-pregunta-id="${preguntaId}"]`);
@@ -1149,6 +1233,111 @@
             
             // Mejorar experiencia en la carga
             setTimeout(updateProgress, 500);
+        });
+    </script>
+
+    <!-- Modal para certificado -->
+    <div class="modal fade" id="certificadoModal" tabindex="-1" aria-labelledby="certificadoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="certificadoModalLabel">{% trans "Certificado de Participación" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{% trans "¡Gracias por completar la encuesta!" %}</p>
+                    <p>{% trans "Puede generar un certificado de participación o compartirlo directamente por WhatsApp." %}</p>
+                    
+                    <div class="mb-3" id="whatsapp-form-modal">
+                        <label for="phone-modal" class="form-label fw-bold">{% trans "Número de WhatsApp" %}</label>
+                        <div class="input-group">
+                            <span class="input-group-text">+57</span>
+                            <input type="tel" class="form-control" id="phone-modal" placeholder="3001234567" pattern="[0-9]{10}" maxlength="10">
+                            <small class="form-text text-muted w-100 mt-1">{% trans "Ingrese el número sin el prefijo de país" %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cerrar" %}</button>
+                    <a href="#" class="btn btn-primary" id="certificado-btn">
+                        <i class="fas fa-certificate me-2"></i> {% trans "Generar Certificado" %}
+                    </a>
+                    <a href="#" class="btn btn-success" id="whatsapp-btn-modal">
+                        <i class="fab fa-whatsapp me-2"></i> {% trans "Enviar por WhatsApp" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script para el modal de certificado
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('survey-form');
+            
+            if (form) {
+                // Verificar si viene de formulario enviado
+                const urlParams = new URLSearchParams(window.location.search);
+                const formSubmitted = urlParams.get('submitted');
+                
+                if (formSubmitted === 'true') {
+                    // Mostrar modal de certificado
+                    const certificadoModal = new bootstrap.Modal(document.getElementById('certificadoModal'));
+                    certificadoModal.show();
+                    
+                    // Recuperar número de teléfono del localStorage si existe
+                    const telefono = localStorage.getItem('certificado_telefono');
+                    if (telefono) {
+                        // Quitar el prefijo +57 si lo tiene
+                        document.getElementById('phone-modal').value = telefono.replace('+57', '').replace(/\D/g, '');
+                    }
+                }
+                
+                // Configurar el botón de certificado
+                const certificadoBtn = document.getElementById('certificado-btn');
+                if (certificadoBtn) {
+                    certificadoBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        window.location.href = '{% url "generar_certificado" %}';
+                    });
+                }
+                
+                // Configurar el botón de WhatsApp
+                const whatsappBtn = document.getElementById('whatsapp-btn-modal');
+                if (whatsappBtn) {
+                    whatsappBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const phoneNumber = document.getElementById('phone-modal').value.trim();
+                        
+                        if (!phoneNumber) {
+                            alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
+                            return;
+                        }
+                        
+                        // Validar que sea un número de 10 dígitos
+                        if (!/^\d{10}$/.test(phoneNumber)) {
+                            alert("{% trans 'Por favor ingrese un número válido de 10 dígitos' %}");
+                            return;
+                        }
+                        
+                        // Guardar el número en localStorage
+                        localStorage.setItem('certificado_telefono', phoneNumber);
+                        
+                        // Construir el mensaje
+                        const nombre = localStorage.getItem('certificado_nombre') || '';
+                        const encuestaTitulo = '{{ encuesta.titulo }}';
+                        
+                        let mensaje = "Hola! ";
+                        if (nombre) mensaje += nombre + ", ";
+                        mensaje += "gracias por participar en " + encuestaTitulo + ". Para generar su certificado, use el siguiente enlace: ";
+                        mensaje += window.location.origin + "{% url 'generar_certificado' %}";
+                        
+                        // Abrir WhatsApp con el mensaje
+                        const whatsappURL = 'https://wa.me/57' + phoneNumber + '?text=' + encodeURIComponent(mensaje);
+                        window.open(whatsappURL, '_blank');
+                    });
+                }
+            }
         });
     </script>
 </body>

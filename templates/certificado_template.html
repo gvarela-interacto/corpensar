@@ -275,7 +275,7 @@
 
 <div id="certificado" class="certificate-container">
     <div class="certificate-inner-content">
-        <div class="participant-name">
+        <div class="participant-name" id="nombre_participante">
             {{ nombre_completo | default:"Andres Felipe Giraldo" }}
         </div>
         <div class="participant-label">
@@ -283,7 +283,7 @@
         </div>
         {% if numero_identificacion %}
         <div class="participation-details">
-            Con identificación <span style="font-weight: bold;">{{ numero_identificacion }}</span> ha participado de manera satisfactoria en la capacitación:
+            Con identificación <span style="font-weight: bold;" id="documento_participante">{{ numero_identificacion }}</span> ha participado de manera satisfactoria en la capacitación:
         </div>
         {% endif %}
 
@@ -292,8 +292,8 @@
         </div>
 
         <div class="event-meta">
-            Realizado el <span style="font-weight: bold;">{{ fecha_actual | date:"d/m/Y" | default:"DD/MM/AAAA" }}</span> en el municipio de
-            <span style="font-weight: bold;">{{ encuesta.municipio.nombre | default:"________" }}</span> bajo la modalidad <strong style="font-weight: bold;">presencial</strong>.
+            Realizado el <span style="font-weight: bold;" id="fecha_certificado">{{ fecha_actual | date:"d/m/Y" | default:"DD/MM/AAAA" }}</span> en el municipio de
+            <span style="font-weight: bold;" id="municipio_certificado">{{ encuesta.municipio.nombre | default:"________" }}</span> bajo la modalidad <strong style="font-weight: bold;">presencial</strong>.
         </div>
 
         <div class="final-statement">
@@ -309,9 +309,23 @@
     <a href="#" id="whatsapp-btn" class="action-button whatsapp-btn">
         <i class="fab fa-whatsapp"></i> {% trans "Enviar por WhatsApp" %}
     </a>
-    <a href="{% url 'generar_certificado' %}" class="action-button return-btn">
+    <a href="{% url 'generar_certificado' %}" class="action-button return-btn" id="btn-volver">
         <i class="fas fa-arrow-left"></i> {% trans "Volver" %}
     </a>
+</div>
+
+<!-- Formulario para ingresar número de WhatsApp -->
+<div class="phone-input-container" id="whatsapp-form" style="display: none;">
+    <div class="form-group mb-3">
+        <label for="phone" class="form-label">{% trans "Ingrese el número de WhatsApp" %}</label>
+        <div class="input-group">
+            <span class="input-group-text">+57</span>
+            <input type="tel" class="form-control" id="phone" placeholder="3001234567" pattern="[0-9]{10}" maxlength="10">
+            <button class="btn btn-primary" id="send-whatsapp">{% trans "Enviar" %}</button>
+            <button class="btn btn-secondary" id="cancel-whatsapp">{% trans "Cancelar" %}</button>
+        </div>
+        <small class="form-text text-muted">{% trans "Ingrese el número sin el prefijo de país" %}</small>
+    </div>
 </div>
 
 <!-- Bootstrap JS -->
@@ -322,20 +336,56 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Recuperar valores guardados previamente
+    // Recuperar valores desde localStorage
     try {
-        const municipioGuardado = localStorage.getItem('certificado_municipio');
-        const fechaGuardada = localStorage.getItem('certificado_fecha');
+        const nombre = localStorage.getItem('certificado_nombre');
+        const documento = localStorage.getItem('certificado_documento');
+        const municipio = localStorage.getItem('certificado_municipio');
+        const fecha = localStorage.getItem('certificado_fecha');
         
-        if (municipioGuardado && municipioManualInput && !municipioManualInput.value) {
-            municipioManualInput.value = municipioGuardado;
+        // Mostrar en el certificado si existen
+        if (nombre && document.getElementById('nombre_participante')) {
+            document.getElementById('nombre_participante').textContent = nombre;
         }
         
-        if (fechaGuardada && fechaManualInput && !fechaManualInput.value) {
-            fechaManualInput.value = fechaGuardada;
+        if (documento && document.getElementById('documento_participante')) {
+            document.getElementById('documento_participante').textContent = documento;
+        }
+        
+        if (municipio && document.getElementById('municipio_certificado')) {
+            document.getElementById('municipio_certificado').textContent = municipio;
+        }
+        
+        if (fecha && document.getElementById('fecha_certificado')) {
+            // Formatear la fecha si es necesario
+            const fechaObj = new Date(fecha);
+            const dia = fechaObj.getDate().toString().padStart(2, '0');
+            const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
+            const anio = fechaObj.getFullYear();
+            const fechaFormateada = `${dia}/${mes}/${anio}`;
+            document.getElementById('fecha_certificado').textContent = fechaFormateada;
         }
     } catch (e) {
-        console.error("Error al recuperar datos guardados:", e);
+        console.error("Error al recuperar datos desde localStorage:", e);
+    }
+    
+    // Evento para limpiar localStorage al volver
+    const botonVolver = document.getElementById('btn-volver');
+    if (botonVolver) {
+        botonVolver.addEventListener('click', function() {
+            try {
+                localStorage.removeItem('certificado_nombre');
+                localStorage.removeItem('certificado_documento');
+                localStorage.removeItem('certificado_correo');
+                localStorage.removeItem('certificado_telefono');
+                localStorage.removeItem('certificado_fecha');
+                localStorage.removeItem('certificado_municipio');
+                localStorage.removeItem('certificado_encuesta_id');
+                localStorage.removeItem('certificado_timestamp');
+            } catch (e) {
+                console.error("Error al limpiar localStorage:", e);
+            }
+        });
     }
     
     // Datos para localStorage
@@ -349,7 +399,6 @@ document.addEventListener('DOMContentLoaded', function() {
         timestamp: '{{ fecha_actual|date:"Y-m-d" }}'
     };
 
-    // Guardar datos si es necesario
     {% if guardar_datos %}
     try {
         // Guardar solo los valores que existen
@@ -374,22 +423,54 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Función para compartir por WhatsApp
     const whatsappBtn = document.getElementById('whatsapp-btn');
+    const whatsappForm = document.getElementById('whatsapp-form');
+    const sendWhatsappBtn = document.getElementById('send-whatsapp');
+    const cancelWhatsappBtn = document.getElementById('cancel-whatsapp');
+    const phoneInput = document.getElementById('phone');
+
     if (whatsappBtn) {
         whatsappBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            const phoneInput = document.getElementById('phone');
-            const countryCodeSelect = document.getElementById('country-code');
-            if (!phoneInput || !countryCodeSelect) return;
+            // Mostrar el formulario para ingresar el número
+            whatsappForm.style.display = 'block';
+            // Usar el número guardado en localStorage si existe
+            const telefonoGuardado = localStorage.getItem('certificado_telefono');
+            if (telefonoGuardado && phoneInput) {
+                // Quitar el prefijo +57 si lo tiene
+                phoneInput.value = telefonoGuardado.replace('+57', '').replace(/\D/g, '');
+            }
+        });
+    }
 
+    if (cancelWhatsappBtn) {
+        cancelWhatsappBtn.addEventListener('click', function() {
+            whatsappForm.style.display = 'none';
+        });
+    }
+
+    if (sendWhatsappBtn) {
+        sendWhatsappBtn.addEventListener('click', function() {
             const phoneNumber = phoneInput.value.trim();
-            const countryCode = countryCodeSelect.value;
             
             if (!phoneNumber) {
                 alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
                 return;
             }
             
-            descargarCertificado(true, countryCode + phoneNumber);
+            // Validar que sea un número de 10 dígitos
+            if (!/^\d{10}$/.test(phoneNumber)) {
+                alert("{% trans 'Por favor ingrese un número válido de 10 dígitos' %}");
+                return;
+            }
+            
+            // Agregar el prefijo de Colombia +57
+            const numeroCompleto = '+57' + phoneNumber;
+            
+            // Ocultar el formulario
+            whatsappForm.style.display = 'none';
+            
+            // Enviar el certificado
+            descargarCertificado(true, numeroCompleto);
         });
     }
     
@@ -397,11 +478,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function descargarCertificado(paraWhatsApp, numeroWhatsApp) {
         const certificadoDiv = document.getElementById('certificado');
         if (!certificadoDiv) return;
-        
-        // Actualizar certificadoData con los valores actuales de municipio y fecha
-        if (municipioManualInput && municipioManualInput.value) {
-            certificadoData.municipio = municipioManualInput.value;
-        }
         
         html2canvas(certificadoDiv, {
             scale: 2,
@@ -412,8 +488,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const imageData = canvas.toDataURL('image/png');
             
             // Generar nombre de archivo
+            const nombreParticipante = document.getElementById('nombre_participante').textContent;
             const nombreArchivo = 'certificado_' + 
-                (certificadoData.nombre ? certificadoData.nombre.replace(/\s+/g, '_').toLowerCase() : 'participante') + 
+                (nombreParticipante ? nombreParticipante.replace(/\s+/g, '_').toLowerCase() : 'participante') + 
                 '.png';
             
             // Descargar imagen
@@ -425,8 +502,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Si es para WhatsApp, abrir WhatsApp
             if (paraWhatsApp && numeroWhatsApp) {
                 var mensajeTxt = "Hola, te comparto tu certificado de participación de Corpensar.";
-                if (certificadoData.nombre) {
-                    mensajeTxt += " Certificado para: " + certificadoData.nombre;
+                if (nombreParticipante) {
+                    mensajeTxt += " Certificado para: " + nombreParticipante;
                 }
                 
                 // URL para WhatsApp

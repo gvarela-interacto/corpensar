@@ -172,7 +172,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Limpiar datos después de enviar el formulario
     document.getElementById('form-certificado').addEventListener('submit', function() {
-        limpiarDatosCertificado();
+        // Guardar datos en localStorage antes de limpiar
+        localStorage.setItem('certificado_nombre', document.getElementById('nombre_completo').value);
+        localStorage.setItem('certificado_documento', document.getElementById('numero_identificacion').value);
+        localStorage.setItem('certificado_correo', document.getElementById('correo').value);
+        localStorage.setItem('certificado_telefono', document.getElementById('telefono').value);
+        localStorage.setItem('certificado_fecha', document.getElementById('fecha_certificado').value);
+        localStorage.setItem('certificado_municipio', document.getElementById('municipio').value);
+        localStorage.setItem('certificado_encuesta_id', document.getElementById('formulario_id').value);
+        localStorage.setItem('certificado_timestamp', Date.now().toString());
+        
+        // No eliminamos los datos aquí para que puedan ser usados en certificado_template.html
+        // La limpieza se hará cuando el usuario vuelva desde certificado_template
     });
 });
 </script>
