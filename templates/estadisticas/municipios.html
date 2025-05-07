@@ -460,6 +460,7 @@
                                 <select id="municipio" name="municipio" class="form-select form-select-sm">
                                     <option value="todos" >Todos los municipios</option>
                                     <!-- Opciones se cargan con JS -->
+                                    
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -510,28 +511,6 @@
                                     <td colspan="7" class="text-center">No hay datos de municipios para mostrar con los filtros actuales.</td>
                                 </tr>
                                 {% endfor %}
-                                <!-- Filas para Regiones (se añadirán con JS) -->
-                                {# Ejemplo de cómo podría ser una fila de región (se necesitarán datos del backend) #}
-                                <!--
-                                {% for region_stat in datos_regiones_tabla %}
-                                <tr data-tipo="region" style="display: none;"> {# Oculto inicialmente #}
-                                    <td>{{ region_stat.nombre }}</td>
-                                    <td>{{ region_stat.totalEncuestas }}</td>
-                                    <td>{{ region_stat.totalRespuestas }}</td>
-                                    <td>{{ region_stat.encuestasRespondidas }}</td>
-                                    <td>{{ region_stat.tasaFinalizacion }}%</td>
-                                    <td>
-                                        {% if region_stat.tasaFinalizacion >= 80 %}
-                                            <span class="badge bg-success">Alto</span>
-                                        {% elif region_stat.tasaFinalizacion >= 50 %}
-                                            <span class="badge bg-warning text-dark">Medio</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Bajo</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                                -->
                             </tbody>
                         </table>
                     </div>
@@ -633,7 +612,7 @@
                                     <!-- <a href="{% url 'crear_encuesta' %}" class="btn btn-primary mt-3"><i class="fas fa-plus me-1"></i> Crear Encuesta</a> -->
                                 </div>
                             {% endif %}
-                             <!-- Placeholder para mensaje de no resultados de filtro -->
+                            <!-- Placeholder para mensaje de no resultados de filtro -->
                             <div id="mensajeNoResultadosEncuestas" class="col-12 text-center py-5" style="display: none;">
                                 <i class="fas fa-search fa-3x text-gray-400 mb-3"></i>
                                 <p>No se encontraron encuestas con los filtros seleccionados.</p>
@@ -651,7 +630,7 @@
             <div class="card shadow collapsible-section">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" data-bs-toggle="collapse" data-bs-target="#collapseGraficos">
                     <h6 class="m-0 font-weight-bold text-primary">Gráficos y Visualizaciones</h6>
-                     <i class="fas fa-chevron-down"></i>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="collapse" id="collapseGraficos"> {# Cambiado a collapse por defecto #}
                     <div class="card-body">
@@ -684,13 +663,13 @@
                                 <div class="tab-pane fade p-3" id="distribucion" role="tabpanel" aria-labelledby="distribucion-tab"> {# Añadido padding a cada pane #}
                                     <div class="distribution-charts">
                                         <div class="chart-box">
-                                             <h6 class="text-center mb-3 font-weight-bold text-primary">Respuestas por Región</h6>
+                                            <h6 class="text-center mb-3 font-weight-bold text-primary">Respuestas por Región</h6>
                                             <div class="chart-container" style="height: 500px;"> {# Altura ajustada para pie #}
                                                 <div id="pieChart" style="width: 100%; height: 100%;"></div>
                                             </div>
                                         </div>
                                         <div class="chart-box">
-                                             <h6 class="text-center mb-3 font-weight-bold text-primary">Top 10 Municipios por Respuestas</h6>
+                                            <h6 class="text-center mb-3 font-weight-bold text-primary">Top 10 Municipios por Respuestas</h6>
                                             <div class="chart-container" style="height: 500px;"> {# Altura ajustada para bar #}
                                                 <div id="barChart" style="width: 100%; height: 100%;"></div>
                                             </div>
@@ -753,11 +732,8 @@
 
     try {
         const jsonMunicipios = document.getElementById('datos-municipios').textContent.trim();
-        if (jsonMunicipios) {
-            todosMunicipios = JSON.parse(jsonMunicipios);
-        } else {
-             console.warn("No se encontró JSON para 'datos-municipios' (select)");
-        }
+
+        console.log(jsonMunicipios);
 
         const jsonGraficos = document.getElementById('datos-graficos').textContent.trim();
         if (jsonGraficos) {
@@ -849,7 +825,7 @@
 
                     // Si no se encontró el del backend, intentar mantener la selección actual si existe en la nueva lista
                     if (!municipioEncontradoEnNuevaLista && opcionSeleccionadaActual && String(municipio.id) === opcionSeleccionadaActual) {
-                       option.selected = true;
+                    option.selected = true;
                     }
 
 
@@ -860,9 +836,9 @@
 
              // Si el municipio seleccionado originalmente ya no está en la lista (porque se cambió de región),
              // y no se seleccionó 'todos' por defecto, asegurarse de que 'todos' quede seleccionado.
-             if (!municipioEncontradoEnNuevaLista && municipioSeleccionado !== 'todos' && municipioSelect.value !== 'todos') {
-                 municipioSelect.value = 'todos';
-             }
+            if (!municipioEncontradoEnNuevaLista && municipioSeleccionado !== 'todos' && municipioSelect.value !== 'todos') {
+                municipioSelect.value = 'todos';
+            }
 
             // Registrar para debugging
             // console.log(`Municipios cargados para región ${regionId}: ${municipiosAgregados}. Seleccionado: ${municipioSelect.value}`);
