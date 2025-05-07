@@ -26,10 +26,10 @@
         min-height: 100vh;
     }
     .certificate-container {
-        width: 800px;
+        width: 962px;
         position: relative;
-        background-color: #ffffffbd;
-        border: 12px solid #ffd700;
+        background-image: url('{% static "images/Fondo certificado.webp" %}');
+        background-size: contain;
         padding: 50px 40px 40px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         border-radius: 5px;
@@ -257,45 +257,36 @@
 </style>
 
 <div id="certificado" class="certificate-container">
-    <img class="certificate-logo" src="{% static 'images/logo corpensar-12.webp' %}" alt="Logo">
-    <div class="certificate-border"></div>
-    
-    <div class="certificate-header">
-        <div class="certificate-title">Certificado</div>
-        <div class="certificate-subtitle">de Participación</div>
-    </div>
-    
-    <div class="certificate-content">
-        <div class="certificate-text">
-            Corpensar certifica a:
+
+    <div style="padding: 60px 80px 60px 80px;"> <!-- Espacio para los bordes dorados y el logo superior -->
+
+        <div style="text-align: center; margin-top: 80px; margin-bottom: 30px; font-size: 13px; line-height: 1.6; color: #333;">
+            La Corporación para el Pensamiento y la Transformación de Colombia (Corpensar), como equipo multidisciplinario comprometido con la promoción de los derechos humanos, la justicia social y la educación transformadora, certifica que:
         </div>
-        <div class="certificate-name">
-            {{ nombre_completo }}
+
+        <div style="text-align: center; margin-bottom: 5px; font-size: 28px; font-weight: bold; color: #000;">
+            {{ nombre_completo | default:"Nombre del Participante AquÃ­" }}
         </div>
-        <div class="certificate-id">
-            Identificación: {{ numero_identificacion }}
+        <div style="text-align: center; margin-bottom: 25px; font-size: 12px; color: #555; border-top: 1px solid #ccc; width: 300px; margin-left: auto; margin-right: auto; padding-top: 5px;">
+            Nombre del participante
         </div>
-        <div class="certificate-text">
-            {% if encuesta.categoria.nombre == 'Grupo focal' %}
-                Por su valiosa participación en el {{ encuesta.categoria.nombre }}:
-            {% else %}
-                Por su valiosa participación en la {{ encuesta.categoria.nombre }}:
-            {% endif %}
+
+        <div style="text-align: center; margin-bottom: 25px; font-size: 16px; color: #333;">
+            Con CC {{ numero_identificacion | default:"___________" }} ha participado de manera satisfactoria en la capacitación:
         </div>
-        <div class="course-title">
-            "{{ encuesta.titulo }}"
+
+        <div style="text-align: center; font-size: 22px; font-weight: bold; color: #000; margin-bottom: 25px; padding: 0 20px;">
+            {{ encuesta.titulo }}
         </div>
-        
-        <div class="certificate-details">
-            <div class="detail-item">
-                <div class="field-label">Fecha de expedición</div>
-                <div class="field-value">{{ fecha_actual }}</div>
-            </div>
+
+        <div style="text-align: center; margin-bottom: 20px; font-size: 14px; color: #333;">
+            Realizado en la fecha <span style="font-weight: bold;">{{ fecha_actual | default:"DD/MM/AAAA" }}</span> en la ciudad de
+            <span style="font-weight: bold;">{{ encuesta.municipio.nombre | default:"________" }}</span> bajo la modalidad <strong style="font-weight: bold;">presencial</strong>.
         </div>
-    </div>
-    
-    <div class="certificate-seal">
-        <div class="seal-inner">CERTIFICADO OFICIAL</div>
+
+        <div style="text-align: center; font-size: 11px; margin-bottom: 40px; padding: 0 60px; color: #444; line-height: 1.6;">
+            Este certificado se expide como reconocimiento a su compromiso con la formación integral y la construcción de una cultura de respeto y garantía de los derechos humanos.
+        </div>
     </div>
 </div>
 
