@@ -210,6 +210,67 @@
             max-width: 100%;
         }
     }
+
+    /* Estilos para formulario de edición */
+    .certificate-edit-form {
+        max-width: 890px;
+        width: 100%;
+        margin: 10px auto 20px;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        gap: 15px;
+    }
+    
+    .form-group {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    
+    .edit-btn {
+        background-color: #4361ee;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    .edit-btn:hover {
+        background-color: #3a0ca3;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .form-group {
+            min-width: 100%;
+        }
+    }
 </style>
 
 <div id="certificado" class="certificate-container">
@@ -237,6 +298,26 @@
 
         <div class="final-statement">
             Este certificado se expide como reconocimiento a su compromiso con la formación integral y la construcción de una cultura de respeto y garantía de los derechos humanos.
+        </div>
+    </div>
+</div>
+
+<!-- Formulario para editar datos del certificado cuando no están disponibles -->
+<div class="certificate-edit-form">
+    <h5 style="margin-top: 0; margin-bottom: 15px;">Editar información del certificado</h5>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="fecha-manual">Fecha del evento:</label>
+            <input type="date" id="fecha-manual" class="form-control" value="{{ fecha_actual|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group">
+            <label for="municipio-manual">Municipio:</label>
+            <input type="text" id="municipio-manual" class="form-control" value="{{ encuesta.municipio.nombre|default:'' }}" placeholder="Ej: Bogotá">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <button type="button" id="actualizar-certificado" class="edit-btn">Actualizar certificado</button>
         </div>
     </div>
 </div>
@@ -279,6 +360,79 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Obtener referencias a elementos del certificado
+    const fechaCertificado = document.querySelector('.event-meta span:first-of-type');
+    const municipioCertificado = document.querySelector('.event-meta span:last-of-type');
+    
+    // Obtener referencias a campos de edición
+    const fechaManualInput = document.getElementById('fecha-manual');
+    const municipioManualInput = document.getElementById('municipio-manual');
+    const actualizarBtn = document.getElementById('actualizar-certificado');
+    
+    // Función para formatear fecha
+    function formatearFecha(fechaStr) {
+        if (!fechaStr) return "DD/MM/AAAA";
+        try {
+            const fecha = new Date(fechaStr);
+            return fecha.getDate().toString().padStart(2, '0') + '/' + 
+                  (fecha.getMonth() + 1).toString().padStart(2, '0') + '/' + 
+                  fecha.getFullYear();
+        } catch (e) {
+            console.error("Error al formatear fecha:", e);
+            return fechaStr;
+        }
+    }
+    
+    // Inicializar fecha si está vacía
+    if (!fechaManualInput.value) {
+        fechaManualInput.value = new Date().toISOString().split('T')[0];
+    }
+    
+    // Actualizar certificado cuando se hace clic en el botón
+    if (actualizarBtn) {
+        actualizarBtn.addEventListener('click', function() {
+            // Actualizar fecha
+            if (fechaCertificado && fechaManualInput.value) {
+                fechaCertificado.textContent = formatearFecha(fechaManualInput.value);
+            }
+            
+            // Actualizar municipio
+            if (municipioCertificado && municipioManualInput.value) {
+                municipioCertificado.textContent = municipioManualInput.value;
+            }
+            
+            // Guardar en localStorage para futuras referencias
+            try {
+                if (municipioManualInput.value) {
+                    localStorage.setItem('certificado_municipio_manual', municipioManualInput.value);
+                }
+                if (fechaManualInput.value) {
+                    localStorage.setItem('certificado_fecha_manual', fechaManualInput.value);
+                }
+            } catch (e) {
+                console.error("Error al guardar datos manuales:", e);
+            }
+            
+            alert("Certificado actualizado correctamente");
+        });
+    }
+    
+    // Recuperar valores guardados previamente
+    try {
+        const municipioGuardado = localStorage.getItem('certificado_municipio_manual');
+        const fechaGuardada = localStorage.getItem('certificado_fecha_manual');
+        
+        if (municipioGuardado && municipioManualInput && !municipioManualInput.value) {
+            municipioManualInput.value = municipioGuardado;
+        }
+        
+        if (fechaGuardada && fechaManualInput && !fechaManualInput.value) {
+            fechaManualInput.value = fechaGuardada;
+        }
+    } catch (e) {
+        console.error("Error al recuperar datos guardados:", e);
+    }
+    
     // Datos para localStorage
     var certificadoData = {
         encuesta_id: '{{ encuesta.id|escapejs|default:"" }}',
@@ -286,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
         documento: '{{ numero_identificacion|escapejs|default:"" }}',
         correo: '{{ correo|escapejs|default:"" }}',
         telefono: '{{ telefono|escapejs|default:"" }}',
-        municipio: '{{ encuesta.municipio.nombre|escapejs|default:"" }}',
+        municipio: municipioManualInput ? municipioManualInput.value : '{{ encuesta.municipio.nombre|escapejs|default:"" }}',
         timestamp: Date.now()
     };
 
@@ -338,6 +492,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function descargarCertificado(paraWhatsApp, numeroWhatsApp) {
         const certificadoDiv = document.getElementById('certificado');
         if (!certificadoDiv) return;
+        
+        // Actualizar certificadoData con los valores actuales de municipio y fecha
+        if (municipioManualInput && municipioManualInput.value) {
+            certificadoData.municipio = municipioManualInput.value;
+        }
         
         html2canvas(certificadoDiv, {
             scale: 2,

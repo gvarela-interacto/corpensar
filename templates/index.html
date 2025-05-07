@@ -937,6 +937,62 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
+<script id="api-recommendation" type="text/javascript">
+// Vista recomendada para mejorar la API de estadísticas municipales
+/*
+def api_estadisticas_municipios(request):
+    """
+    API que devuelve estadísticas de municipios en formato JSON para el mapa
+    """
+    try:
+        # Obtener todos los municipios con coordenadas
+        municipios = Municipio.objects.select_related('region').all()
+        
+        # Filtrar por región si se proporciona
+        region_id = request.GET.get('region')
+        if region_id and region_id != 'todas':
+            municipios = municipios.filter(region_id=region_id)
+        
+        # Preparar datos para el mapa
+        datos_mapa = {}
+        for municipio in municipios:
+            # Contar respuestas para este municipio
+            respuestas = RespuestaEncuesta.objects.filter(municipio=municipio)
+            total_respuestas = respuestas.count()
+            
+            # Contar encuestas asignadas al municipio (puede variar según la lógica del negocio)
+            # Asumimos que las encuestas asignadas son las que corresponden a la región del municipio
+            encuestas_asignadas = Encuesta.objects.filter(region=municipio.region)
+            total_encuestas = encuestas_asignadas.count()
+            
+            # Contar encuestas respondidas (únicas)
+            encuestas_respondidas = respuestas.values('encuesta').distinct().count()
+            
+            # Calcular tasa de finalización
+            tasa_finalizacion = 0
+            if total_encuestas > 0:
+                tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
+            
+            # La clave debe ser el nombre del municipio en mayúsculas para consistencia con el frontend
+            datos_mapa[municipio.nombre.upper()] = {
+                'id': municipio.id,
+                'nombre': municipio.nombre,
+                'region': municipio.region.nombre,
+                'region_id': municipio.region.id,
+                'latitud': municipio.latitud or 4.5709,  # Valor por defecto si falta latitud
+                'longitud': municipio.longitud or -74.2973,  # Valor por defecto si falta longitud
+                'totalRespuestas': total_respuestas,
+                'totalEncuestas': total_encuestas, 
+                'encuestasRespondidas': encuestas_respondidas,
+                'tasaFinalizacion': round(tasa_finalizacion, 1)
+            }
+        
+        return JsonResponse(datos_mapa)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+*/
+</script>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
       // --- Definir objetos de Chart globales para poder destruirlos/actualizarlos ---
@@ -1278,7 +1334,7 @@
             }).addTo(map);
 
             let datosEstadisticas = {};
-            let oleoductoLayer = L.layerGroup(); // Para líneas y marcadores de oleoducto
+            let oleoductoLayer = L.layerGroup().addTo(map); // Añadir directamente al mapa
             let municipiosLayer = L.layerGroup(); // Para marcadores de municipios
             let loadingElement = document.getElementById('loadingMap');
             let progressElement = document.getElementById('loadingProgress');
@@ -1343,7 +1399,7 @@
               if (window.chartInstances[canvasId]) { window.chartInstances[canvasId].destroy(); }
 
               valor = Number(valor) || 0;
-              total = Number(total) || 0;
+              total = Number(total) || 1; // Mínimo 1 para evitar divisiones por cero
               const restante = Math.max(0, total - valor);
 
               const data = {
@@ -1393,26 +1449,40 @@
             function mostrarInfoMunicipio(key) {
               // Convertir key a mayúsculas si no lo está ya
               const upperKey = key.toUpperCase();
-              const info = datosEstadisticas[upperKey]; // Buscar siempre con mayúsculas
+              let info = datosEstadisticas[upperKey]; // Buscar siempre con mayúsculas
 
-              if (!info || !infoMunicipioPanel) {
-                console.warn("Información no encontrada para clave:", upperKey, "Datos disponibles:", Object.keys(datosEstadisticas));
-                if(infoMunicipioPanel) infoMunicipioPanel.style.display = 'none'; // Ocultar si no hay datos
-                return;
+              if (!info) {
+                // Si no hay datos, crear un objeto con datos por defecto
+                info = {
+                  nombre: upperKey,
+                  region: 'No especificada',
+                  totalEncuestas: 0,
+                  totalRespuestas: 0,
+                  tasaFinalizacion: 0,
+                  encuestasRespondidas: 0
+                };
               }
 
-              document.getElementById('nombreMunicipio').textContent = info.nombre || 'N/A';
-              document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas?.toLocaleString() || '0';
-              document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas?.toLocaleString() || '0';
-              document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion + '%';
+              // Asegurar valores por defecto en caso de datos nulos
+              info.nombre = info.nombre || upperKey;
+              info.region = info.region || 'No especificada';
+              info.totalEncuestas = Number(info.totalEncuestas) || 0;
+              info.totalRespuestas = Number(info.totalRespuestas) || 0;
+              info.tasaFinalizacion = Number(info.tasaFinalizacion) || 0;
+              info.encuestasRespondidas = Number(info.encuestasRespondidas) || 0;
+
+              document.getElementById('nombreMunicipio').textContent = info.nombre;
+              document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas.toLocaleString();
+              document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas.toLocaleString();
+              document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion.toFixed(1) + '%';
               document.getElementById('infoMunicipio').style.display = 'block';
               
               // Crear/Actualizar los gráficos del panel usando IDs definidos
               crearGraficoDoughnutSimple(
-                canvasRespondidasId, 'Respondidas', info.encuestasRespondidas || 0, info.totalEncuestas || 0, '#1cc88a'
+                canvasRespondidasId, 'Respondidas', info.encuestasRespondidas, info.totalEncuestas, '#1cc88a'
               );
               crearGraficoDoughnutSimple(
-                canvasAsignadasId, 'Asignadas', info.totalEncuestas || 0, info.totalEncuestas || 0, '#4e73df'
+                canvasAsignadasId, 'Asignadas', info.totalEncuestas, Math.max(10, info.totalEncuestas*1.5), '#4e73df'
               );
             }
 
@@ -1434,25 +1504,37 @@
                 let total = Object.keys(estadisticas).length;
                 let count = 0;
                 
+                // Si no hay datos, mostrar mensaje informativo
+                if (total === 0) {
+                  if (loadingElement) loadingElement.style.display = 'none';
+                  return;
+                }
+                
                 for (const key in estadisticas) {
-                    const municipio = estadisticas[key];
+                    const municipio = estadisticas[key] || {};
                     
                     count++;
                     let porcentaje = Math.round((count / total) * 100);
                     progressElement.textContent = porcentaje + '%';
                     
+                    // Valores por defecto para evitar undefined
                     const lat = municipio.latitud || 4.5709;
                     const lng = municipio.longitud || -74.2973;
+                    const nombre = municipio.nombre || key;
+                    const region = municipio.region || 'No especificada';
+                    const totalRespuestas = Number(municipio.totalRespuestas) || 0;
+                    const totalEncuestas = Number(municipio.totalEncuestas) || 0;
+                    const tasaFinalizacion = Number(municipio.tasaFinalizacion) || 0;
                     
                     const marker = L.marker([lat, lng], {
-                        icon: createCustomIcon('red')
+                        icon: createCustomIcon(getColorForValue(totalEncuestas, 'totalEncuestas'), 12)
                     }).bindPopup(`
                         <div class="popup-content">
-                            <h6>${municipio.nombre}</h6>
-                            <p><strong>Región:</strong> ${municipio.region}</p><hr>
-                            <p><span>${municipio.totalRespuestas?.toLocaleString() || 0}</span> <strong>Respuestas</strong></p>
-                            <p><span>${municipio.totalEncuestas?.toLocaleString() || 0}</span> <strong>Enc. Asignadas</strong></p>
-                            <p><span>${(municipio.tasaFinalizacion || 0).toFixed(1)}%</span> <strong>Tasa Finaliz.</strong></p>
+                            <h6>${nombre}</h6>
+                            <p><strong>Región:</strong> ${region}</p><hr>
+                            <p><span>${totalRespuestas.toLocaleString()}</span> <strong>Respuestas</strong></p>
+                            <p><span>${totalEncuestas.toLocaleString()}</span> <strong>Enc. Asignadas</strong></p>
+                            <p><span>${tasaFinalizacion.toFixed(1)}%</span> <strong>Tasa Finaliz.</strong></p>
                         </div>`);
                     
                     marker.on('click', () => mostrarInfoMunicipio(key));
@@ -1494,7 +1576,8 @@
                       // Usar nombre en MAYUSCULAS como clave
                       const key = (feature.properties.nombre || feature.properties.name || '').toUpperCase();
                       const d = datosEstadisticas[key] || {};
-                      const color = getColorForValue(d.totalEncuestas || 0, 'totalEncuestas');
+                      const totalEncuestas = Number(d.totalEncuestas) || 0;
+                      const color = getColorForValue(totalEncuestas, 'totalEncuestas');
 
                       if (feature.geometry.type.includes('LineString')) {
                             return { color: color, weight: 4, opacity: 0.7, dashArray: '8,4' };
@@ -1506,12 +1589,15 @@
                       const p = feature.properties;
                       const key = (p.nombre || p.name || '').toUpperCase();
                       const d = datosEstadisticas[key] || {};
+                      const nombre = p.nombre || p.name || 'Sin nombre';
+                      const region = d.region || 'No especificada';
+                      const totalRespuestas = Number(d.totalRespuestas) || 0;
 
                       const popupHtml = `
                           <div class="popup-content">
-                              <h6>${p.nombre || p.name}</h6>
-                              <p><strong>Región:</strong> ${d.region}</p><hr>
-                              <p><strong>Respuestas:</strong> ${d.totalRespuestas?.toLocaleString() || 0}</p>
+                              <h6>${nombre}</h6>
+                              <p><strong>Región:</strong> ${region}</p><hr>
+                              <p><strong>Respuestas:</strong> ${totalRespuestas.toLocaleString()}</p>
                           </div>`;
                       layer.bindPopup(popupHtml);
 
@@ -1569,8 +1655,13 @@
               });
             }
 
-            // Cargar oleoductos por defecto al iniciar
-            if (btnOleoductos) btnOleoductos.click(); // Simular clic para cargar y marcar activo
+            // CORRECCIÓN: Cargar oleoductos inmediatamente sin esperar a click
+            // Marcar el botón como activo visualmente y ejecutar la carga directamente
+            if (btnOleoductos) {
+              btnOleoductos.classList.add('active');
+              // Ejecutar con pequeño retraso para asegurar que el DOM esté listo
+              setTimeout(cargarOleoductos, 100);
+            }
 
         } // Fin if (mapaContainer)
 
