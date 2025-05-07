@@ -1120,6 +1120,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
         categoria = self.request.GET.get('categoria')
         region = self.request.GET.get('region')
         estado = self.request.GET.get('estado')
+        grupo_interes = self.request.GET.get('grupo_interes')
         
         # Aplicar filtros si están presentes
         if categoria:
@@ -1131,6 +1132,8 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
                 queryset = queryset.filter(activa=True)
             elif estado == 'inactiva':
                 queryset = queryset.filter(activa=False)
+        if grupo_interes:
+            queryset = queryset.filter(grupo_interes_id=grupo_interes)
         
         # Ordenar resultados
         orden = self.request.GET.get('orden', 'fecha_desc')
@@ -1150,7 +1153,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
         # Agregar categorías y regiones al contexto
         context['categorias'] = Categoria.objects.all()
         context['regiones'] = Region.objects.all()
-        
+        context['grupos_interes'] = GrupoInteres.objects.all()
         return context
     
 class TodasEncuestasView(ListView):
@@ -1176,6 +1179,7 @@ class TodasEncuestasView(ListView):
         fecha_desde = self.request.GET.get('fecha_desde')
         fecha_hasta = self.request.GET.get('fecha_hasta')
         temas = self.request.GET.get('temas')
+        grupos_interes = self.request.GET.get('grupos_interes')
         
         # Aplicar filtros si están presentes
         if categoria:
@@ -1195,7 +1199,8 @@ class TodasEncuestasView(ListView):
             queryset = queryset.filter(fecha_creacion__lte=fecha_hasta)
         if temas:
             queryset = queryset.filter(tema_id__in=temas)
-        
+        if grupos_interes:
+            queryset = queryset.filter(grupo_interes_id=grupos_interes)
         # Ordenar resultados
         orden = self.request.GET.get('orden', 'fecha_desc')
         if orden == 'fecha_asc':
@@ -1215,7 +1220,8 @@ class TodasEncuestasView(ListView):
         context['categorias'] = Categoria.objects.all()
         context['regiones'] = Region.objects.all()
         context['usuarios'] = User.objects.all()
-        
+        context['grupos_interes'] = GrupoInteres.objects.all()
+
         return context
 
 class ResultadosEncuestaView(DetailView):
