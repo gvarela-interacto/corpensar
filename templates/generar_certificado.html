@@ -44,6 +44,21 @@
                             </div>
                         </div>
                         
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="correo" class="form-label fw-bold">{% trans "Correo electrónico" %}</label>
+                                    <input type="email" class="form-control form-control-lg" id="correo" name="correo" placeholder="{% trans 'ejemplo@correo.com' %}">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="telefono" class="form-label fw-bold">{% trans "Número de teléfono" %}</label>
+                                    <input type="tel" class="form-control form-control-lg" id="telefono" name="telefono" placeholder="{% trans 'Ej: 3001234567' %}">
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="text-center mt-4">
                             <button type="submit" class="btn btn-primary btn-lg px-5">
                                 <i class="fas fa-certificate me-2"></i> {% trans "Generar certificado" %}
@@ -57,6 +72,57 @@
 </div>
 
 <script>
+// Función para cargar datos desde localStorage
+function cargarDatosCertificado() {
+    // Verificar si existe un timestamp para los datos
+    const timestamp = localStorage.getItem('certificado_timestamp');
+    
+    // Si no hay datos o han pasado más de 30 minutos (1800000 ms), no cargar datos
+    if (!timestamp || (Date.now() - parseInt(timestamp)) > 1800000) {
+        // Limpiar datos antiguos
+        limpiarDatosCertificado();
+        return;
+    }
+    
+    // Obtener datos del localStorage
+    const encuestaId = localStorage.getItem('certificado_encuesta_id');
+    const nombre = localStorage.getItem('certificado_nombre');
+    const documento = localStorage.getItem('certificado_documento');
+    const correo = localStorage.getItem('certificado_correo');
+    const telefono = localStorage.getItem('certificado_telefono');
+    
+    // Rellenar el formulario si hay datos
+    if (encuestaId) {
+        document.getElementById('formulario_id').value = encuestaId;
+    }
+    
+    if (nombre) {
+        document.getElementById('nombre_completo').value = nombre;
+    }
+    
+    if (documento) {
+        document.getElementById('numero_identificacion').value = documento;
+    }
+    
+    if (correo) {
+        document.getElementById('correo').value = correo;
+    }
+    
+    if (telefono) {
+        document.getElementById('telefono').value = telefono;
+    }
+}
+
+// Función para limpiar los datos del localStorage
+function limpiarDatosCertificado() {
+    localStorage.removeItem('certificado_encuesta_id');
+    localStorage.removeItem('certificado_nombre');
+    localStorage.removeItem('certificado_documento');
+    localStorage.removeItem('certificado_correo');
+    localStorage.removeItem('certificado_telefono');
+    localStorage.removeItem('certificado_timestamp');
+}
+
 // Obtener parámetros de la URL
 function obtenerParametroURL(nombre) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -65,6 +131,10 @@ function obtenerParametroURL(nombre) {
 
 // Al cargar la página, verificar si hay un ID de encuesta en la URL
 document.addEventListener('DOMContentLoaded', function() {
+    // Intentar cargar datos desde localStorage
+    cargarDatosCertificado();
+    
+    // Si hay parámetro en la URL, establecerlo
     const encuestaId = obtenerParametroURL('encuesta_id');
     if (encuestaId) {
         const selectFormulario = document.getElementById('formulario_id');
@@ -72,6 +142,11 @@ document.addEventListener('DOMContentLoaded', function() {
             selectFormulario.value = encuestaId;
         }
     }
+    
+    // Limpiar datos después de enviar el formulario
+    document.getElementById('form-certificado').addEventListener('submit', function() {
+        limpiarDatosCertificado();
+    });
 });
 </script>
 

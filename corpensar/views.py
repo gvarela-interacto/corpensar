@@ -690,6 +690,145 @@ def crear_desde_cero(request):
                 )
 
         # Redirigir a alguna vista después de crear la encuesta
+        # Comprobar si se solicitó incluir caracterización
+        incluir_caracterizacion = request.POST.get('incluir_caracterizacion') == 'true'
+        if incluir_caracterizacion:
+            preguntas_obligatorias = request.POST.get('preguntas_obligatorias') == 'true'
+            
+            # Este bloque de código es similar a la función agregar_caracterizacion
+            # Definir orden inicial
+            ultimo_orden = 0
+            for pregunta in encuesta.obtener_preguntas():
+                if pregunta.orden > ultimo_orden:
+                    ultimo_orden = pregunta.orden
+            
+            # Crear las preguntas de caracterización
+            preguntas = [
+                {
+                    'tipo': 'TEXT',
+                    'texto': 'Entrevistador',
+                    'orden': ultimo_orden + 1,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias
+                },
+                {
+                    'tipo': 'TEXT',
+                    'texto': '¿Cuál es su nombre completo?',
+                    'orden': ultimo_orden + 2,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias
+                },
+                {
+                    'tipo': 'TEXT',
+                    'texto': 'Correo electrónico',
+                    'orden': ultimo_orden + 3,
+                    'seccion': 'Caracterización',
+                    'requerida': False,
+                    'placeholder': 'ejemplo@correo.com'
+                },
+                {
+                    'tipo': 'TEXT',
+                    'texto': 'Número de teléfono o celular',
+                    'orden': ultimo_orden + 4,
+                    'seccion': 'Caracterización',
+                    'requerida': False,
+                    'placeholder': 'Ej: 3001234567'
+                },
+                {
+                    'tipo': 'RADIO',
+                    'texto': '¿Cuál es su sexo?',
+                    'orden': ultimo_orden + 5,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias,
+                    'opciones': [
+                        {'texto': 'Masculino', 'valor': 'a', 'orden': 1},
+                        {'texto': 'Femenino', 'valor': 'b', 'orden': 2},
+                        {'texto': 'Otro', 'valor': 'c', 'orden': 3},
+                        {'texto': 'Prefiero no responder', 'valor': 'd', 'orden': 4}
+                    ]
+                },
+                {
+                    'tipo': 'RADIO',
+                    'texto': '¿Cuál es su rango de edad?',
+                    'orden': ultimo_orden + 6,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias,
+                    'opciones': [
+                        {'texto': 'Menos de 18 años', 'valor': 'a', 'orden': 1},
+                        {'texto': '18 a 25 años', 'valor': 'b', 'orden': 2},
+                        {'texto': '26 a 35 años', 'valor': 'c', 'orden': 3},
+                        {'texto': '36 a 45 años', 'valor': 'd', 'orden': 4},
+                        {'texto': '46 a 60 años', 'valor': 'e', 'orden': 5},
+                        {'texto': 'Más de 60 años', 'valor': 'f', 'orden': 6}
+                    ]
+                },
+                {
+                    'tipo': 'CHECK',
+                    'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
+                    'orden': ultimo_orden + 7,
+                    'seccion': 'Caracterización',
+                    'requerida': preguntas_obligatorias,
+                    'opciones': [
+                        {'texto': 'Comunidad Indígena', 'valor': 'a', 'orden': 1},
+                        {'texto': 'Comunidad Afrodescendiente', 'valor': 'b', 'orden': 2},
+                        {'texto': 'Comunidad Campesina', 'valor': 'c', 'orden': 3},
+                        {'texto': 'Persona con Discapacidad', 'valor': 'd', 'orden': 4},
+                        {'texto': 'LGBTIQ+', 'valor': 'e', 'orden': 5},
+                        {'texto': 'Victima del conflicto armado', 'valor': 'f', 'orden': 6},
+                        {'texto': 'Otro', 'valor': 'g', 'orden': 7},
+                        {'texto': 'Ninguno', 'valor': 'h', 'orden': 8}
+                    ]
+                }
+            ]
+            
+            # Crear cada pregunta
+            for pregunta_data in preguntas:
+                if pregunta_data['tipo'] == 'TEXT':
+                    pregunta = PreguntaTexto.objects.create(
+                        encuesta=encuesta,
+                        texto=pregunta_data['texto'],
+                        tipo=pregunta_data['tipo'],
+                        requerida=pregunta_data['requerida'],
+                        orden=pregunta_data['orden'],
+                        seccion=pregunta_data['seccion'],
+                        ayuda=pregunta_data.get('ayuda', ''),
+                        placeholder=pregunta_data.get('placeholder', '')
+                    )
+                elif pregunta_data['tipo'] == 'RADIO':
+                    pregunta = PreguntaOpcionMultiple.objects.create(
+                        encuesta=encuesta,
+                        texto=pregunta_data['texto'],
+                        tipo=pregunta_data['tipo'],
+                        requerida=pregunta_data['requerida'],
+                        orden=pregunta_data['orden'],
+                        seccion=pregunta_data['seccion']
+                    )
+                    # Agregar opciones
+                    for opcion_data in pregunta_data['opciones']:
+                        OpcionMultiple.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_data['texto'],
+                            valor=opcion_data['valor'],
+                            orden=opcion_data['orden']
+                        )
+                elif pregunta_data['tipo'] == 'CHECK':
+                    pregunta = PreguntaCasillasVerificacion.objects.create(
+                        encuesta=encuesta,
+                        texto=pregunta_data['texto'],
+                        tipo=pregunta_data['tipo'],
+                        requerida=pregunta_data['requerida'],
+                        orden=pregunta_data['orden'],
+                        seccion=pregunta_data['seccion']
+                    )
+                    # Agregar opciones
+                    for opcion_data in pregunta_data['opciones']:
+                        OpcionCasillaVerificacion.objects.create(
+                            pregunta=pregunta,
+                            texto=opcion_data['texto'],
+                            valor=opcion_data['valor'],
+                            orden=opcion_data['orden']
+                        )
+        
         return redirect('lista_encuestas')
     
     return render(request, 'Encuesta/crear_desde_cero.html', {
@@ -1520,6 +1659,9 @@ def guardar_respuesta(request, encuesta_id):
         if generar_certificado_opcion:
             # Intentamos obtener el nombre de la caracterización
             nombre_completo = None
+            documento = None
+            correo = None
+            telefono = None
             
             # Buscar en las respuestas de texto el nombre de la persona
             nombre_preguntas = ['nombre completo', '¿cuál es su nombre completo?', 'nombre']
@@ -1534,7 +1676,6 @@ def guardar_respuesta(request, encuesta_id):
                         break
             
             # Buscar el número de identificación
-            documento = None
             doc_preguntas = ['identificación', 'documento', 'cédula', 'número de documento']
             for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
                 if any(texto.lower() in pregunta.texto.lower() for texto in doc_preguntas):
@@ -1546,19 +1687,66 @@ def guardar_respuesta(request, encuesta_id):
                         documento = respuesta_doc.valor
                         break
             
+            # Buscar el correo electrónico
+            correo_preguntas = ['correo electrónico', 'email', 'e-mail', 'correo']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in correo_preguntas):
+                    respuesta_correo = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_correo:
+                        correo = respuesta_correo.valor
+                        break
+            
+            # Buscar el teléfono celular
+            telefono_preguntas = ['teléfono', 'celular', 'móvil', 'número de teléfono', 'número telefónico']
+            for pregunta in PreguntaTexto.objects.filter(encuesta=encuesta):
+                if any(texto.lower() in pregunta.texto.lower() for texto in telefono_preguntas):
+                    respuesta_telefono = RespuestaTexto.objects.filter(
+                        respuesta_encuesta=respuesta, 
+                        pregunta=pregunta
+                    ).first()
+                    if respuesta_telefono:
+                        telefono = respuesta_telefono.valor
+                        break
+            
             # Si tenemos los datos, enviamos directamente al certificado
             if nombre_completo and documento:
+                # Preparar datos para enviar a la plantilla
                 fecha_actual = timezone.now().strftime('%d/%m/%Y')
                 context = {
                     'encuesta': encuesta,
                     'nombre_completo': nombre_completo,
                     'numero_identificacion': documento,
-                    'fecha_actual': fecha_actual
+                    'correo': correo,
+                    'telefono': telefono,
+                    'fecha_actual': fecha_actual,
+                    'guardar_datos': True  # Indicar que se deben guardar los datos
                 }
                 return render(request, 'certificado_template.html', context)
             else:
-                # Si no los encontramos, redirigimos a la página de certificado para que los ingrese
-                return redirect(f'/certificados/generar/?encuesta_id={encuesta.id}')
+                # Si no los encontramos, redirigimos a la página de certificado con los datos que tengamos
+                # Crear el contexto para JavaScript con datos escapados correctamente
+                import json
+                from django.utils.safestring import mark_safe
+                
+                datos_js = {
+                    'encuesta_id': encuesta.id,
+                    'nombre_completo': nombre_completo or '',
+                    'numero_identificacion': documento or '',
+                    'correo': correo or '',
+                    'telefono': telefono or ''
+                }
+                
+                context = {
+                    'encuesta': encuesta,
+                    'datos_certificado_json': mark_safe(json.dumps(datos_js)),
+                    'redirigir_certificado': True
+                }
+                
+                # Renderizar una página intermedia que guardará los datos y redirigirá
+                return render(request, 'redirect_certificado.html', context)
         
         # Redirigir a la página de encuesta completada
         return redirect('encuesta_completada', slug=encuesta.slug)
@@ -2676,6 +2864,7 @@ def listar_pqrsfd(request):
         'ESTADO_CHOICES': dict(PQRSFD.ESTADO_CHOICES)
     }
     
+    
     return render(request, 'admin/listar_pqrsfd.html', context)
 
 @login_required
@@ -2973,7 +3162,7 @@ def agregar_caracterizacion(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id, creador=request.user)
     
     if request.method == 'POST':
-        requeridas = request.POST.get('requeridas', 'true').lower() == 'true'
+        requeridas = request.POST.get('preguntas_obligatorias', 'false') == 'true'
         
         # Obtener el último orden de las preguntas existentes
         ultimo_orden = 0
@@ -2985,7 +3174,7 @@ def agregar_caracterizacion(request, encuesta_id):
         preguntas = [
             {
                 'tipo': 'TEXT',
-                'texto': 'Entrevistador',
+                'texto': 'Nombre del Entrevistador',
                 'orden': ultimo_orden + 1,
                 'seccion': 'Caracterización',
                 'requerida': requeridas
@@ -2999,15 +3188,31 @@ def agregar_caracterizacion(request, encuesta_id):
             },
             {
                 'tipo': 'TEXT',
-                'texto': 'Correo electrónico',
+                'texto': 'Identificación',
                 'orden': ultimo_orden + 3,
                 'seccion': 'Caracterización',
-                'requerida': requeridas,
+                'requerida': requeridas
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Correo electrónico',
+                'orden': ultimo_orden + 4,
+                'seccion': 'Caracterización',
+                'requerida': False,
+                'placeholder': 'ejemplo@correo.com'
+            },
+            {
+                'tipo': 'TEXT',
+                'texto': 'Número de teléfono o celular',
+                'orden': ultimo_orden + 5,
+                'seccion': 'Caracterización',
+                'requerida': False,
+                'placeholder': 'Ej: 3001234567'
             },
             {
                 'tipo': 'RADIO',
                 'texto': '¿Cuál es su sexo?',
-                'orden': ultimo_orden + 4,
+                'orden': ultimo_orden + 6,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
@@ -3020,7 +3225,7 @@ def agregar_caracterizacion(request, encuesta_id):
             {
                 'tipo': 'RADIO',
                 'texto': '¿Cuál es su rango de edad?',
-                'orden': ultimo_orden + 5,
+                'orden': ultimo_orden + 7,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
@@ -3035,7 +3240,7 @@ def agregar_caracterizacion(request, encuesta_id):
             {
                 'tipo': 'CHECK',
                 'texto': '¿A cuál(es) de los siguientes grupos diferenciales pertenece?',
-                'orden': ultimo_orden + 6,
+                'orden': ultimo_orden + 8,
                 'seccion': 'Caracterización',
                 'requerida': requeridas,
                 'opciones': [
@@ -3706,6 +3911,8 @@ def generar_certificado(request):
         form_id = request.POST.get('formulario_id')
         nombre = request.POST.get('nombre_completo')
         documento = request.POST.get('numero_identificacion')
+        correo = request.POST.get('correo')
+        telefono = request.POST.get('telefono')
         
         if form_id and nombre and documento:
             encuesta = get_object_or_404(Encuesta, id=form_id)
@@ -3715,6 +3922,8 @@ def generar_certificado(request):
                 'encuesta': encuesta,
                 'nombre_completo': nombre,
                 'numero_identificacion': documento,
+                'correo': correo,
+                'telefono': telefono,
                 'fecha_actual': fecha_actual
             }
             

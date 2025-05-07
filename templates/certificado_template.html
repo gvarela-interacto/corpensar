@@ -301,8 +301,20 @@
 
 <div class="phone-input-container">
     <div class="input-group">
-        <span class="input-group-text">+</span>
-        <input type="text" id="phone" class="form-control" placeholder="{% trans 'Número de teléfono para WhatsApp (ej: 573001234567)' %}">
+        <select id="country-code" class="form-select" style="max-width: 120px;">
+            <option value="57" selected>+57 (Colombia)</option>
+            <option value="1">+1 (USA/Canadá)</option>
+            <option value="52">+52 (México)</option>
+            <option value="51">+51 (Perú)</option>
+            <option value="56">+56 (Chile)</option>
+            <option value="54">+54 (Argentina)</option>
+            <option value="593">+593 (Ecuador)</option>
+            <option value="58">+58 (Venezuela)</option>
+            <option value="591">+591 (Bolivia)</option>
+            <option value="595">+595 (Paraguay)</option>
+            <option value="598">+598 (Uruguay)</option>
+        </select>
+        <input type="tel" id="phone" class="form-control" placeholder="{% trans 'Número telefónico (sin prefijo)' %}" value="{{ telefono }}">
     </div>
 </div>
 
@@ -325,6 +337,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Si llegamos desde una redirección con datos para guardar, guardarlos en localStorage
+    {% if guardar_datos %}
+    // Guardar datos en localStorage para su posible uso futuro
+    localStorage.setItem('certificado_encuesta_id', '{{ encuesta.id }}');
+    localStorage.setItem('certificado_nombre', '{{ nombre_completo }}');
+    localStorage.setItem('certificado_documento', '{{ numero_identificacion }}');
+    {% if correo %}localStorage.setItem('certificado_correo', '{{ correo }}');{% endif %}
+    {% if telefono %}localStorage.setItem('certificado_telefono', '{{ telefono }}');{% endif %}
+    localStorage.setItem('certificado_timestamp', String(Date.now()));
+    {% endif %}
+    
     // Función para descargar el certificado
     document.getElementById('download-btn').addEventListener('click', function(e) {
         e.preventDefault();
@@ -332,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
             const enlace = document.createElement('a');
-            enlace.download = `certificado_{{ nombre_completo|slugify }}.png`;
+            enlace.download = `certificado_{{ nombre_completo|slugify }}_{{ encuesta.titulo|slugify }}.png`;
             enlace.href = canvas.toDataURL('image/png');
             enlace.click();
         });
@@ -341,9 +364,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función para compartir por WhatsApp
     document.getElementById('whatsapp-btn').addEventListener('click', function(e) {
         e.preventDefault();
-        const phone = document.getElementById('phone').value.trim();
+        const phoneNumber = document.getElementById('phone').value.trim();
+        const countryCode = document.getElementById('country-code').value;
         
-        if (!phone) {
+        if (!phoneNumber) {
             alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
             return;
         }
@@ -351,18 +375,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const certificadoDiv = document.getElementById('certificado');
         
         html2canvas(certificadoDiv, { scale: 2 }).then(canvas => {
-            // Guardar temporalmente la imagen como Data URL
+            // Generar imagen y guardarla como data URL
             const imageData = canvas.toDataURL('image/png');
             
-            // Crear un mensaje para WhatsApp
-            const message = encodeURIComponent("{% trans 'Hola, te comparto tu certificado de participación de Corpensar!' %}");
+            // Crear mensaje para WhatsApp con el nombre del certificado
+            const message = encodeURIComponent(`{% trans 'Hola, te comparto tu certificado de participación de Corpensar. Certificado para: ' %}{{ nombre_completo }}`);
             
-            // Abrir ventana de WhatsApp web
-            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+            // Construir la URL completa con el prefijo de país
+            const fullPhoneNumber = countryCode + phoneNumber;
+            const whatsappURL = `https://wa.me/${fullPhoneNumber}?text=${message}`;
             
-            // Nota: No es posible adjuntar archivos directamente a través de la API de WhatsApp Web,
-            // por lo que el usuario tendría que descargar primero la imagen y luego adjuntarla manualmente.
-            alert("{% trans 'Se abrirá WhatsApp. Para enviar el certificado, descárguelo primero y luego adjúntelo a la conversación.' %}");
+            // Abrir ventana de WhatsApp con el mensaje
+            window.open(whatsappURL, '_blank');
+            
+            // Descargar la imagen automáticamente para que el usuario pueda compartirla
+            const enlace = document.createElement('a');
+            enlace.download = `certificado_{{ nombre_completo|slugify }}.png`;
+            enlace.href = imageData;
+            enlace.click();
+            
+            // Mostrar instrucciones
+            alert("{% trans 'Se ha descargado automáticamente el certificado y se abrirá WhatsApp. Adjunte la imagen descargada a la conversación.' %}");
         });
     });
 });

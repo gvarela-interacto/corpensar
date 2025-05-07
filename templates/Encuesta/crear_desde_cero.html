@@ -128,9 +128,29 @@
                                             Encuesta pública
                                         </label>
                                     </div>
+                                    
+                                    <div class="form-check blue-sidebar-checkbox">
+                                        <input class="form-check-input" type="checkbox" id="incluir_caracterizacion" name="incluir_caracterizacion">
+                                        <label class="form-check-label" for="incluir_caracterizacion">
+                                            <i class="fas fa-user-tag me-1"></i>
+                                            Incluir caracterización
+                                        </label>
+                                        <div class="form-text text-muted small">
+                                            Agrega automáticamente preguntas de nombre, correo, teléfono, sexo, edad y grupos diferenciales
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-text text-muted small mt-1">
                                     La encuesta pública permite que cualquiera pueda responder sin iniciar sesión
+                                </div>
+                                
+                                <div class="caracterizacion-options mt-3" style="display: none;">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input" type="checkbox" id="preguntas_obligatorias" name="preguntas_obligatorias">
+                                        <label class="form-check-label" for="preguntas_obligatorias">
+                                            Hacer preguntas de caracterización obligatorias
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1455,6 +1475,44 @@
                         });
                 } else {
                     subcategoriaSelect.innerHTML = '<option value="">Primero seleccione una categoría</option>';
+                }
+            });
+        });
+
+        // Script para manejar la caracterización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestionar la visibilidad de las opciones de caracterización
+            const caracterizacionCheckbox = document.getElementById('incluir_caracterizacion');
+            const caracterizacionOptions = document.querySelector('.caracterizacion-options');
+            
+            if (caracterizacionCheckbox && caracterizacionOptions) {
+                caracterizacionCheckbox.addEventListener('change', function() {
+                    caracterizacionOptions.style.display = this.checked ? 'block' : 'none';
+                });
+            }
+            
+            // Capturar el evento de envío del formulario para procesar la caracterización
+            const formulario = document.querySelector('form');
+            formulario.addEventListener('submit', function(e) {
+                // Ya no evitamos el envío del formulario, solo agregamos la información de caracterización
+                const incluirCaracterizacion = document.getElementById('incluir_caracterizacion').checked;
+                
+                // Si se seleccionó incluir caracterización, pasamos la información como campos ocultos
+                if (incluirCaracterizacion) {
+                    const preguntasObligatorias = document.getElementById('preguntas_obligatorias').checked;
+                    
+                    // Crear campos ocultos para pasar al servidor
+                    const inputCaracterizacion = document.createElement('input');
+                    inputCaracterizacion.type = 'hidden';
+                    inputCaracterizacion.name = 'incluir_caracterizacion';
+                    inputCaracterizacion.value = 'true';
+                    formulario.appendChild(inputCaracterizacion);
+                    
+                    const inputObligatorias = document.createElement('input');
+                    inputObligatorias.type = 'hidden';
+                    inputObligatorias.name = 'preguntas_obligatorias';
+                    inputObligatorias.value = preguntasObligatorias ? 'true' : 'false';
+                    formulario.appendChild(inputObligatorias);
                 }
             });
         });
