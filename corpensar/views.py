@@ -711,9 +711,11 @@ def crear_desde_cero(request):
             # Este bloque de código es similar a la función agregar_caracterizacion
             # Definir orden inicial
             ultimo_orden = 0
-            for pregunta in encuesta.obtener_preguntas():
-                if pregunta.orden > ultimo_orden:
-                    ultimo_orden = pregunta.orden
+            
+            # Obtener todas las preguntas ya es una lista ordenada
+            preguntas = encuesta.obtener_preguntas()
+            if preguntas:
+                ultimo_orden = max(p.orden for p in preguntas)
             
             # Crear las preguntas de caracterización
             preguntas = [
@@ -2537,11 +2539,10 @@ def agregar_pregunta(request, encuesta_id):
             )
             
         # Reordenar las preguntas si es necesario
-        preguntas = encuesta.obtener_preguntas().filter(orden__gte=orden)
+        preguntas = [p for p in encuesta.obtener_preguntas() if p.orden >= orden and p != pregunta]
         for p in preguntas:
-            if p != pregunta:
-                p.orden += 1
-                p.save()
+            p.orden += 1
+            p.save()
         
         return JsonResponse({
             'success': True,
@@ -3223,9 +3224,11 @@ def agregar_caracterizacion(request, encuesta_id):
         
         # Obtener el último orden de las preguntas existentes
         ultimo_orden = 0
-        for pregunta in encuesta.obtener_preguntas():
-            if pregunta.orden > ultimo_orden:
-                ultimo_orden = pregunta.orden
+        
+        # Obtener todas las preguntas ya es una lista ordenada
+        preguntas = encuesta.obtener_preguntas()
+        if preguntas:
+            ultimo_orden = max(p.orden for p in preguntas)
         
         # Crear las preguntas de caracterización
         preguntas = [

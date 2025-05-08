@@ -163,12 +163,11 @@ class Encuesta(models.Model):
     def obtener_preguntas(self):
         """
         Obtiene todas las preguntas de la encuesta y las devuelve 
-        como un QuerySet combinado
+        como una lista ordenada por orden
         """
         from itertools import chain
-        from django.db.models import Q, QuerySet
         
-        # Obtener todas las preguntas relacionadas con esta encuesta
+        # Obtener todas las preguntas relacionadas con esta encuesta como listas
         preguntas = list(chain(
             self.preguntatexto_relacionadas.all(),
             self.preguntatextomultiple_relacionadas.all(),
@@ -181,31 +180,8 @@ class Encuesta(models.Model):
             self.preguntafecha_relacionadas.all()
         ))
         
-        # Crear un QuerySet vacío del modelo PreguntaBase (aunque es abstracto)
-        # Solo para poder filtrar después
-        empty_qs = QuerySet(model=PreguntaBase).none()
-        
-        # Si tenemos preguntas, devolvemos un QuerySet combinado
-        if preguntas:
-            # Convertir la lista a un QuerySet utilizando Q objects para filtrar por id
-            ids_por_tipo = {}
-            for p in preguntas:
-                model_class = p.__class__ # Obtenemos la clase del modelo de la pregunta
-
-                # Si el modelo no está en el diccionario, lo agregamos
-                if model_class not in ids_por_tipo:
-                    ids_por_tipo[model_class] = []
-                ids_por_tipo[model_class].append(p.id) # Agregamos el id de la pregunta al diccionario
-            
-            # Combinar todos los QuerySets
-            combined_qs = empty_qs
-            for model_class, ids in ids_por_tipo.items(): # Recorremos el diccionario de ids por tipo
-                modelo_qs = model_class.objects.filter(id__in=ids) # Obtenemos el QuerySet del modelo
-                combined_qs = combined_qs | modelo_qs # Combinamos los QuerySets
-            
-            return combined_qs
-        
-        return empty_qs
+        # Ordenar las preguntas por el atributo orden y devolverlas como lista
+        return sorted(preguntas, key=lambda p: p.orden)
 
 
 
