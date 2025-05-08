@@ -93,6 +93,13 @@ def index_view(request):
     encuestas_publicas_activas = list(encuestas_publicas_activas_qs) # Mantener lista para otras partes
     encuestas_publicas_count = len(encuestas_publicas_activas) # Conteo específico de públicas y activas
 
+    # Grupos de interes
+    grupos_interes = GrupoInteres.objects.all()
+    # Regiones para el filtro
+    regiones = Region.objects.all()
+    # Categorías para el filtro
+    categorias = Categoria.objects.all()
+
     # Conteo Total Públicas vs Privadas
     conteo_publicas_privadas = Encuesta.objects.aggregate(
         publicas=Count('id', filter=Q(es_publica=True)),
@@ -119,10 +126,11 @@ def index_view(request):
 
     # Encuestas activas SIN respuestas
     encuestas_activas_ids = encuestas_activas_qs.values_list('id', flat=True) # Usar queryset ya filtrado
-    encuestas_activas_con_respuestas_ids = RespuestaEncuesta.objects.filter(
+    encuestas_activas_con_respuestas_ids = set(RespuestaEncuesta.objects.filter(
         encuesta_id__in=encuestas_activas_ids
-    ).values_list('encuesta_id', flat=True).distinct()
+    ).values_list('encuesta_id', flat=True).distinct())
     encuestas_sin_respuestas_count = len(encuestas_activas_ids) - len(encuestas_activas_con_respuestas_ids)
+    
 
     tasa_finalizacion = (total_encuesta_respondidas / total_encuestas) * 100 if total_encuestas > 0 else 0
 
@@ -293,6 +301,8 @@ def index_view(request):
     pqrsfd_resueltos_cerrados_30d = PQRSFD.objects.filter(estado__in=['R', 'C'], fecha_actualizacion__gte=thirty_days_ago).count()
 
 
+
+
     # ===== DATOS ADICIONALES =====
     ultimas_respuestas = RespuestaEncuesta.objects.select_related(
         'encuesta', 'usuario'
@@ -312,6 +322,9 @@ def index_view(request):
         'encuestas_creadas_7d': encuestas_creadas_7d,
         'encuestas_creadas_30d': encuestas_creadas_30d,
         'tasa_finalizacion': round(tasa_finalizacion, 1), # Basada en total histórico
+        'grupos_interes': grupos_interes,
+        'regiones': regiones, # Añadir regiones al contexto
+        'categorias': categorias, # Añadir categorías al contexto
 
         # --- Alertas y notificaciones ---
         'encuestas_proximo_fin': encuestas_proximo_fin,

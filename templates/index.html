@@ -94,15 +94,54 @@
 
   /* Estilos para las tarjetas de encuestas */
   .hover-card {
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
     border-radius: 10px;
     overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+    background-color: #fff;
   }
   
   .hover-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    transform: translateY(-8px);
+    box-shadow: 0 15px 25px rgba(0,0,0,0.12) !important;
     cursor: pointer;
+    border-color: rgba(0,0,0,0.04);
+  }
+  
+  .hover-card:active {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
+  }
+  
+  /* Efecto de animación para los filtros */
+  #filtroEncuestasPublicas .dropdown-item {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    margin: 0 4px;
+  }
+  
+  #filtroEncuestasPublicas .dropdown-item:hover {
+    background-color: rgba(13, 110, 253, 0.08);
+    transform: translateX(3px);
+  }
+  
+  #filtroEncuestasPublicas .dropdown-item.active {
+    background-color: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
+    font-weight: 500;
+  }
+  
+  /* Transición suave para botones de ordenamiento */
+  #btnOrdenarRespuestas {
+    transition: all 0.2s ease;
+  }
+  
+  #btnOrdenarRespuestas:hover {
+    transform: translateY(-2px);
+  }
+  
+  #btnOrdenarRespuestas:active {
+    transform: translateY(0);
   }
 
   /* Estilos para el grid personalizable */
@@ -364,6 +403,41 @@
         vertical-align: middle;
    }
 
+  /* Estilos para el contador de respuestas */
+  .response-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 0 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-size: 0.9rem;
+    transition: all 0.25s ease;
+  }
+  
+  /* Para contadores grandes (más de 99) */
+  .response-counter.large {
+    border-radius: 18px;
+    min-width: 42px;
+  }
+  
+  /* Para contadores muy grandes (más de 999) */
+  .response-counter.x-large {
+    font-size: 0.8rem;
+    min-width: 48px;
+  }
+  
+  /* Estilo adicional para hover */
+  .hover-card:hover .response-counter {
+    transform: scale(1.1) translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #3c5dd9 0%, #1a3da1 100%);
+  }
 </style>
 
 <div class="container-fluid py-4">
@@ -382,40 +456,6 @@
           <p class="text-info mb-0 small">
             <i class="mdi mdi-calendar-plus"></i>
              {{ encuestas_creadas_30d|intcomma }} creadas últ. 30 días
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-3 col-md-6 mb-3">
-      <div class="card kpi-card h-100 border-0 shadow-sm">
-        <div class="position-absolute w-100" style="height: 6px; background-color: #1cc88a; top: 0; left: 0"></div>
-        <div class="card-body">
-          <h5 class="card-title text-muted">Respuestas Recibidas</h5>
-          <h2 class="display-4">{{ total_respuestas|intcomma }}</h2>
-           <p class="text-muted mb-0 small">
-            <i class="mdi mdi-poll"></i>
-            Promedio: {{ avg_respuestas|floatformat:1 }} por encuesta
-          </p>
-          <p class="text-primary mb-0 small">
-             <i class="mdi mdi-bullseye-arrow"></i>
-             {{ total_encuesta_respondidas_activas|intcomma }} en enc. públicas activas
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 mb-3">
-      <div class="card kpi-card h-100 border-0 shadow-sm">
-        <div class="position-absolute w-100" style="height: 6px; background-color: #ffc107; top: 0; left: 0"></div>
-        <div class="card-body">
-          <h5 class="card-title text-muted">Tasa de Finalización</h5>
-          <h2 class="display-4">{{ tasa_finalizacion|floatformat:1 }}%</h2>
-          <p class="text-warning mb-0 small">
-            <i class="mdi mdi-flag-checkered"></i>
-            Promedio histórico general
-          </p>
-           <p class="text-muted mb-0 small">
-             ({{ total_encuesta_respondidas|intcomma }} encuestas con ≥ 1 resp.)
           </p>
         </div>
       </div>
@@ -458,8 +498,8 @@
                     </li>
                     {% endfor %}
                 </ul>
-                 {% else %}
-                 <p class="text-muted text-center p-3 small">No hay encuestas próximas a finalizar.</p>
+                {% else %}
+                <p class="text-muted text-center p-3 small">No hay encuestas próximas a finalizar.</p>
                 {% endif %}
             </div>
         </div>
@@ -494,38 +534,102 @@
       <div class="card shadow-sm mb-3">
         <div class="card-header d-flex justify-content-between align-items-center bg-light border-bottom">
           <h5 class="mb-0 text-primary"><i class="mdi mdi-poll-box me-2"></i>Encuestas Públicas Activas</h5>
+          <div class="d-flex align-items-center">
+            
+            <!-- Filtro por Grupo de Interés -->
+            <div class="btn-group btn-group-sm me-2" id="filtroGrupoContainer">
+              <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="btnFiltroGrupo">
+                <i class="fas fa-users me-1"></i>Grupo de Interés
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm py-1" id="filtroEncuestasGrupo">
+                <li><a class="dropdown-item active py-2" href="#" data-filter="grupo" data-id="todas">
+                  <i class="fas fa-users me-2 text-info"></i>Todos los Grupos
+                </a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                {% for grupo in grupos_interes %}
+                <li><a class="dropdown-item py-2" href="#" data-filter="grupo" data-id="{{ grupo.id }}" style="color: #333;">
+                  <i class="fas fa-users me-2 text-info"></i>{{ grupo.nombre }}
+                </a></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <!-- Filtro por Categoría -->
+            <div class="btn-group btn-group-sm me-2" id="filtroCategoriaContainer">
+              <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="btnFiltroCategoria">
+                <i class="fas fa-tag me-1"></i>Categoría
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm py-1" id="filtroEncuestasCategoria">
+                <li><a class="dropdown-item active py-2" href="#" data-filter="categoria" data-id="todas">
+                  <i class="fas fa-tag me-2 text-success"></i>Todas las Categorías
+                </a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                {% for cat in categorias %}
+                <li><a class="dropdown-item py-2" href="#" data-filter="categoria" data-id="{{ cat.id }}" style="color: #333;">
+                  <i class="fas fa-tag me-2 text-success"></i>{{ cat.nombre }}
+                </a></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <!-- Filtro por Región -->
+            <div class="btn-group btn-group-sm me-2" id="filtroRegionContainer">
+              <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="btnFiltroRegion">
+                <i class="fas fa-map-marked-alt me-1"></i>Región
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm py-1" id="filtroEncuestasRegion">
+                <li><a class="dropdown-item active py-2" href="#" data-filter="region" data-id="todas">
+                  <i class="fas fa-map-marked-alt me-2 text-danger"></i>Todas las Regiones
+                </a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                {% for region_item in regiones %}
+                <li><a class="dropdown-item py-2" href="#" data-filter="region" data-id="{{ region_item.id }}" style="color: #333;">
+                  <i class="fas fa-map-marked-alt me-2 text-danger"></i>{{ region_item.nombre }}
+                </a></li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <button type="button" class="btn btn-sm btn-outline-primary" id="btnOrdenarRespuestas">
+              <i class="fas fa-sort-amount-down me-1"></i>Por respuestas
+            </button>
+          </div>
         </div>
         <div class="card-body p-3">
-          <div class="row">
+          <div class="row" id="contenedorEncuestasActivas">
             {% for encuesta in encuestas_publicas_activas %}
-            <div class="col-md-3 col-sm-6 mb-3">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3 encuesta-card" 
+                 data-respuestas="{{ encuesta.respuestas.count }}"
+                 data-categoria="{{ encuesta.categoria.id|default:'0' }}"
+                 data-grupo="{{ encuesta.grupo_interes.id|default:'0' }}"
+                 data-region="{{ encuesta.region.id|default:'0' }}">
               <div class="card h-100 shadow-sm hover-card">
                 <div class="position-absolute w-100" style="height: 4px; background-color: #1cc88a; top: 0; left: 0"></div>
-                <div class="card-body py-2 px-3">
-                  <h6 class="card-title mb-2 text-truncate" title="{{ encuesta.titulo }}">{{ encuesta.titulo|truncatechars:30 }}</h6>
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="badge bg-success rounded-pill px-2 py-1">Activa</span>
+                <div class="card-body py-3 px-3">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title mb-0 text-truncate" style="max-width: 70%;" title="{{ encuesta.titulo }}">{{ encuesta.titulo|truncatechars:30 }}</h6>
                     {% with num_respuestas=encuesta.respuestas.count %}
-                    <span class="text-muted small">{{ num_respuestas }} resp.</span>
+                    <div class="response-counter">{{ num_respuestas }}</div>
                     {% endwith %}
                   </div>
-                  <div class="d-flex flex-wrap text-muted small mb-1" style="font-size: 0.75rem;">
-                    <div class="me-2"><i class="fas fa-tag me-1"></i>{{ encuesta.categoria.nombre|default:"Sin cat."|truncatechars:15 }}</div>
-                    <div class="me-2"><i class="fas fa-users me-1"></i>{{ encuesta.grupo_interes.nombre|default:"Sin grupo"|truncatechars:15 }}</div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-success rounded-pill px-2 py-1">Activa</span>
+                    <span class="text-muted small">Hasta: {{ encuesta.fecha_fin|date:"d/m/Y" }}</span>
                   </div>
-                  <div class="text-muted small mb-1" style="font-size: 0.75rem;">
-                    <i class="fas fa-map-marker-alt me-1"></i>{{ encuesta.region.nombre|default:"Sin región"|truncatechars:15 }}
+                  <div class="d-flex flex-wrap text-muted small mb-1" style="font-size: 0.78rem;">
+                    <div class="me-2 mb-1"><i class="fas fa-tag me-1 text-success"></i>{{ encuesta.categoria.nombre|default:"Sin cat."|truncatechars:15 }}</div>
+                    <div class="me-2 mb-1"><i class="fas fa-users me-1 text-info"></i>{{ encuesta.grupo_interes.nombre|default:"Sin grupo"|truncatechars:15 }}</div>
                   </div>
-                  <div class="text-muted small mb-2" style="font-size: 0.75rem;">
-                    <i class="fas fa-calendar-alt me-1"></i>Hasta: {{ encuesta.fecha_fin|date:"d/m/Y" }}
+                  <div class="text-muted small mb-1" style="font-size: 0.78rem;">
+                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>{{ encuesta.region.nombre|default:"Sin región"|truncatechars:15 }}
                   </div>
                   <a href="{% url 'resultados_encuesta' encuesta.id %}" class="stretched-link"></a>
                 </div>
               </div>
             </div>
             {% empty %}
-            <div class="col-12 text-center py-3">
-              <i class="fas fa-poll fa-2x text-muted mb-2"></i>
+            <div class="col-12 text-center py-4" id="sinEncuestasMsg">
+              <i class="fas fa-poll fa-3x text-muted mb-3"></i>
               <h6>No hay encuestas públicas activas</h6>
               <p class="text-muted small">Las encuestas públicas activas se mostrarán aquí cuando estén disponibles</p>
             </div>
@@ -652,26 +756,68 @@
           <div id="mapaColombia" style="height: 450px; width: 100%; border-radius: 6px;"></div>
           <div id="infoMunicipio" class="mt-3 p-3 border rounded bg-light" style="display: none">
             <h5 id="nombreMunicipio" class="mb-2"></h5>
-            <div class="row">
-              <div class="col-md-4 col-6 mb-2">
-                <p class="mb-1"><strong class="d-block text-muted small">Total Encuestas:</strong> <span id="totalEncuestasMunicipio" class="fs-5 fw-bold">0</span></p>
-              </div>
-              <div class="col-md-4 col-6 mb-2">
-                <p class="mb-1"><strong class="d-block text-muted small">Total Respuestas:</strong> <span id="totalRespuestasMunicipio" class="fs-5 fw-bold">0</span></p>
-              </div>
-              <div class="col-md-4 col-12 mb-2">
-                <p class="mb-1"><strong class="d-block text-muted small">Tasa Finalización:</strong> <span id="tasaFinalizacionMunicipio" class="fs-5 fw-bold">0%</span></p>
-              </div>
+            <div class="d-flex justify-content-between mb-3">
+              <div><strong class="text-muted">Región:</strong> <span id="regionMunicipio" class="ms-1"></span></div>
+              <div><strong class="text-muted">Total encuestas:</strong> <span id="totalEncuestasMunicipio" class="badge bg-primary ms-1">0</span></div>
+              <div><strong class="text-muted">Total respuestas:</strong> <span id="totalRespuestasMunicipio" class="badge bg-success ms-1">0</span></div>
             </div>
-            <div class="row mt-2">
-              <div class="col-md-6 mb-2 mb-md-0" id="graficoEncuestasRespondidas">
-                <div class="chart-container" style="height: 120px;">
-                  <canvas id="graficoEncuestasRespondidasCanvas"></canvas>
+            
+            <!-- Tabs para cambiar entre encuestas y respuestas -->
+            <ul class="nav nav-tabs" id="infoMunicipioTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="encuestas-tab" data-bs-toggle="tab" data-bs-target="#encuestas-tab-pane" type="button" role="tab" aria-selected="true">
+                  <i class="fas fa-poll me-1"></i>Encuestas
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="respuestas-tab" data-bs-toggle="tab" data-bs-target="#respuestas-tab-pane" type="button" role="tab" aria-selected="false">
+                  <i class="fas fa-clipboard-check me-1"></i>Respuestas
+                </button>
+              </li>
+            </ul>
+            
+            <div class="tab-content mt-3" id="infoMunicipioTabsContent">
+              <!-- Tab de encuestas -->
+              <div class="tab-pane fade show active" id="encuestas-tab-pane" role="tabpanel" tabindex="0">
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover">
+                    <thead>
+                      <tr>
+                        <th>Encuesta</th>
+                        <th>Categoría</th>
+                        <th>Grupo de interés</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Respuestas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tablaEncuestas">
+                      <!-- Se llena dinámicamente con JavaScript -->
+                      <tr>
+                        <td colspan="5" class="text-center text-muted py-3">No hay encuestas para esta ubicación</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <div class="col-md-6" id="graficoEncuestasAsignadas">
-                <div class="chart-container" style="height: 120px;">
-                  <canvas id="graficoEncuestasAsignadasCanvas"></canvas>
+              
+              <!-- Tab de respuestas -->
+              <div class="tab-pane fade" id="respuestas-tab-pane" role="tabpanel" tabindex="0">
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover">
+                    <thead>
+                      <tr>
+                        <th>Encuesta</th>
+                        <th>Usuario</th>
+                        <th>Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tablaRespuestas">
+                      <!-- Se llena dinámicamente con JavaScript -->
+                      <tr>
+                        <td colspan="3" class="text-center text-muted py-3">No hay respuestas para esta ubicación</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -797,6 +943,30 @@ def api_estadisticas_municipios(request):
             tasa_finalizacion = 0
             if total_encuestas > 0:
                 tasa_finalizacion = (encuestas_respondidas / total_encuestas) * 100
+                
+            # Obtener lista de encuestas para este municipio/región
+            encuestas_lista = []
+            for encuesta in encuestas_asignadas:
+                respuestas_encuesta = respuestas.filter(encuesta=encuesta).count()
+                encuestas_lista.append({
+                    'id': encuesta.id,
+                    'titulo': encuesta.titulo,
+                    'categoria': encuesta.categoria.nombre if encuesta.categoria else None,
+                    'grupo_interes': encuesta.grupo_interes.nombre if encuesta.grupo_interes else None,
+                    'activa': encuesta.activa,
+                    'respuestas': respuestas_encuesta
+                })
+            
+            # Obtener lista de últimas respuestas para este municipio (limitado a 20)
+            respuestas_lista = []
+            ultimas_respuestas = respuestas.select_related('encuesta', 'usuario').order_by('-fecha_respuesta')[:20]
+            for resp in ultimas_respuestas:
+                respuestas_lista.append({
+                    'encuesta_id': resp.encuesta.id,
+                    'encuesta_titulo': resp.encuesta.titulo,
+                    'usuario': resp.usuario.username if resp.usuario else None,
+                    'fecha': resp.fecha_respuesta.isoformat()
+                })
             
             # La clave debe ser el nombre del municipio en mayúsculas para consistencia con el frontend
             datos_mapa[municipio.nombre.upper()] = {
@@ -809,7 +979,8 @@ def api_estadisticas_municipios(request):
                 'totalRespuestas': total_respuestas,
                 'totalEncuestas': total_encuestas, 
                 'encuestasRespondidas': encuestas_respondidas,
-                'tasaFinalizacion': round(tasa_finalizacion, 1)
+                'encuestas': encuestas_lista,
+                'respuestas': respuestas_lista
             }
         
         return JsonResponse(datos_mapa)
@@ -1283,8 +1454,9 @@ def api_estadisticas_municipios(request):
                   region: 'No especificada',
                   totalEncuestas: 0,
                   totalRespuestas: 0,
-                  tasaFinalizacion: 0,
-                  encuestasRespondidas: 0
+                  encuestasRespondidas: 0,
+                  encuestas: [],
+                  respuestas: []
                 };
               }
 
@@ -1293,24 +1465,91 @@ def api_estadisticas_municipios(request):
               info.region = info.region || 'No especificada';
               info.totalEncuestas = Number(info.totalEncuestas) || 0;
               info.totalRespuestas = Number(info.totalRespuestas) || 0;
-              info.tasaFinalizacion = Number(info.tasaFinalizacion) || 0;
               info.encuestasRespondidas = Number(info.encuestasRespondidas) || 0;
+              info.encuestas = Array.isArray(info.encuestas) ? info.encuestas : [];
+              info.respuestas = Array.isArray(info.respuestas) ? info.respuestas : [];
 
+              // Actualizar la información en el panel
               document.getElementById('nombreMunicipio').textContent = info.nombre;
-              document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas.toLocaleString();
-              document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas.toLocaleString();
-              document.getElementById('tasaFinalizacionMunicipio').textContent = info.tasaFinalizacion.toFixed(1) + '%';
+              document.getElementById('regionMunicipio').textContent = info.region;
+              document.getElementById('totalEncuestasMunicipio').textContent = info.totalEncuestas;
+              document.getElementById('totalRespuestasMunicipio').textContent = info.totalRespuestas;
+              
+              // Mostrar el panel
               document.getElementById('infoMunicipio').style.display = 'block';
               
-              // Crear/Actualizar los gráficos del panel usando IDs definidos
-              crearGraficoDoughnutSimple(
-                canvasRespondidasId, 'Respondidas', info.encuestasRespondidas, info.totalEncuestas, '#1cc88a'
-              );
-              crearGraficoDoughnutSimple(
-                canvasAsignadasId, 'Asignadas', info.totalEncuestas, Math.max(10, info.totalEncuestas*1.5), '#4e73df'
-              );
+              // Llenar tabla de encuestas
+              const tablaEncuestas = document.getElementById('tablaEncuestas');
+              if (info.encuestas && info.encuestas.length > 0) {
+                let html = '';
+                info.encuestas.forEach(enc => {
+                  // Convertir valores a string antes de usarlos, con valores predeterminados
+                  const encId = enc.id ? enc.id.toString() : '0';
+                  const titulo = enc.titulo || 'Sin título';
+                  const categoria = enc.categoria || 'Sin categoría';
+                  const grupoInteres = enc.grupo_interes || 'Sin grupo';
+                  const activa = !!enc.activa; // Convertir a booleano
+                  const respuestas = Number(enc.respuestas) || 0;
+                  
+                  html += `<tr>
+                    <td><a href="/encuestas/resultados/${encId}/" class="text-dark" title="${titulo}">${truncateText(titulo, 30)}</a></td>
+                    <td>${categoria}</td>
+                    <td>${grupoInteres}</td>
+                    <td class="text-center"><span class="badge ${activa ? 'bg-success' : 'bg-warning'}">${activa ? 'Activa' : 'Inactiva'}</span></td>
+                    <td class="text-end">${respuestas}</td>
+                  </tr>`;
+                });
+                tablaEncuestas.innerHTML = html;
+              } else {
+                tablaEncuestas.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No hay encuestas para esta ubicación</td></tr>';
+              }
+              
+              // Llenar tabla de respuestas
+              const tablaRespuestas = document.getElementById('tablaRespuestas');
+              if (info.respuestas && info.respuestas.length > 0) {
+                let html = '';
+                info.respuestas.forEach(resp => {
+                  // Convertir valores a string antes de usarlos, con valores predeterminados
+                  const encuestaId = resp.encuesta_id ? resp.encuesta_id.toString() : '0';
+                  const encuestaTitulo = resp.encuesta_titulo || 'Sin título';
+                  const usuario = resp.usuario || '';
+                  const fecha = resp.fecha || '';
+                  
+                  html += `<tr>
+                    <td><a href="/encuestas/resultados/${encuestaId}/" class="text-dark" title="${encuestaTitulo}">${truncateText(encuestaTitulo, 30)}</a></td>
+                    <td>${usuario || '<span class="text-muted fst-italic">Anónimo</span>'}</td>
+                    <td>${formatearFecha(fecha)}</td>
+                  </tr>`;
+                });
+                tablaRespuestas.innerHTML = html;
+              } else {
+                tablaRespuestas.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">No hay respuestas para esta ubicación</td></tr>';
+              }
+              
+              // Registrar para depuración
+              console.log('Datos de municipio:', info);
             }
 
+            // Función auxiliar para truncar texto
+            function truncateText(text, maxLength) {
+              if (!text) return '';
+              return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            }
+
+            // Función auxiliar para formatear fechas
+            function formatearFecha(fechaStr) {
+              if (!fechaStr) return '';
+              try {
+                const fecha = new Date(fechaStr);
+                return fecha.toLocaleDateString('es-ES', { 
+                  day: '2-digit', 
+                  month: '2-digit',
+                  year: 'numeric'
+                });
+              } catch (e) {
+                return fechaStr;
+              }
+            }
 
             function cargarMunicipios() {
               if (loadingElement) loadingElement.style.display = 'block';
@@ -1360,6 +1599,11 @@ def api_estadisticas_municipios(request):
                             <p><span>${totalRespuestas.toLocaleString()}</span> <strong>Respuestas</strong></p>
                             <p><span>${totalEncuestas.toLocaleString()}</span> <strong>Enc. Asignadas</strong></p>
                             <p><span>${tasaFinalizacion.toFixed(1)}%</span> <strong>Tasa Finaliz.</strong></p>
+                            <div class="mt-2 text-center">
+                                <button class="btn btn-sm btn-outline-primary" onclick="mostrarInfoMunicipio('${key}')">
+                                    <i class="fas fa-list-ul me-1"></i> Ver encuestas
+                                </button>
+                            </div>
                         </div>`);
                     
                     marker.on('click', () => mostrarInfoMunicipio(key));
@@ -1417,18 +1661,25 @@ def api_estadisticas_municipios(request):
                       const nombre = p.nombre || p.name || 'Sin nombre';
                       const region = d.region || 'No especificada';
                       const totalRespuestas = Number(d.totalRespuestas) || 0;
+                      const totalEncuestasOleoducto = Number(d.totalEncuestas) || 0; // Definir correctamente la variable
 
                       const popupHtml = `
                           <div class="popup-content">
                               <h6>${nombre}</h6>
                               <p><strong>Región:</strong> ${region}</p><hr>
                               <p><strong>Respuestas:</strong> ${totalRespuestas.toLocaleString()}</p>
+                              <p><span>${totalEncuestasOleoducto.toLocaleString()}</span> <strong>Enc. Asignadas</strong></p>
+                              <div class="mt-2 text-center">
+                                  <button class="btn btn-sm btn-outline-primary" onclick="mostrarInfoMunicipio('${key}')">
+                                      <i class="fas fa-list-ul me-1"></i> Ver encuestas
+                                  </button>
+                              </div>
                           </div>`;
                       layer.bindPopup(popupHtml);
 
                       layer.on({
                           mouseover: (e) => e.target.setStyle({ weight:5 }), // Resaltar
-                          mouseout: (e) => geoJsonLayer.resetStyle(e.target), // CORRECCIÓN: usar geoJsonLayer.resetStyle
+                          mouseout: (e) => geoJsonLayer.resetStyle(e.target), 
                           click: () => mostrarInfoMunicipio(key) // Mostrar info al hacer clic
                       });
                     }
@@ -1496,6 +1747,32 @@ def api_estadisticas_municipios(request):
 <script>
   // Redirigir al usuario a los resultados de la encuesta al hacer clic en la tarjeta
   document.addEventListener('DOMContentLoaded', function() {
+    // Función para formatear los contadores de respuestas
+    function formatearContador() {
+      document.querySelectorAll('.response-counter').forEach(counter => {
+        const value = parseInt(counter.textContent.trim());
+        
+        // Aplicar clases según el tamaño del número
+        if (value > 999) {
+          counter.classList.add('x-large');
+          counter.classList.add('large');
+          
+          // Para números mayores a 999, mostrar en formato K (ej: 1.2K)
+          if (value >= 10000) {
+            counter.textContent = Math.floor(value / 1000) + 'K';
+          } else {
+            counter.textContent = (value / 1000).toFixed(1) + 'K';
+          }
+        } else if (value > 99) {
+          counter.classList.add('large');
+        }
+      });
+    }
+
+    // Formatear contadores en carga inicial
+    formatearContador();
+    
+    // Redirigir al hacer clic en tarjeta
     const cards = document.querySelectorAll('.hover-card');
     cards.forEach(card => {
       card.addEventListener('click', function(e) {
@@ -1508,6 +1785,137 @@ def api_estadisticas_municipios(request):
         }
       });
     });
+
+    // Variables para el estado de ordenamiento
+    let ordenDescendente = true; // Por defecto, mayor a menor
+    let activeFilters = { grupo: 'todas', categoria: 'todas', region: 'todas' }; // Objeto para filtros activos
+
+    // Ordenar tarjetas por número de respuestas
+    function ordenarTarjetasPorRespuestas(descendente = true) {
+      const contenedor = document.getElementById('contenedorEncuestasActivas');
+      if (!contenedor) return;
+      
+      const tarjetas = Array.from(contenedor.querySelectorAll('.encuesta-card:not(.d-none)'));
+      
+      // Ordenar por respuestas 
+      tarjetas.sort((a, b) => {
+        const respuestasA = parseInt(a.dataset.respuestas || 0);
+        const respuestasB = parseInt(b.dataset.respuestas || 0);
+        return descendente ? (respuestasB - respuestasA) : (respuestasA - respuestasB);
+      });
+      
+      // Reordenar en el DOM
+      tarjetas.forEach(tarjeta => contenedor.appendChild(tarjeta));
+    }
+    
+    // Función para mostrar/ocultar las tarjetas según el filtro aplicado
+    function aplicarFiltro() {
+      const tarjetas = document.querySelectorAll('.encuesta-card');
+      let hayVisibles = false;
+      
+      tarjetas.forEach(tarjeta => {
+        const coincideGrupo = activeFilters.grupo === 'todas' || tarjeta.dataset.grupo === activeFilters.grupo;
+        const coincideCategoria = activeFilters.categoria === 'todas' || tarjeta.dataset.categoria === activeFilters.categoria;
+        const coincideRegion = activeFilters.region === 'todas' || tarjeta.dataset.region === activeFilters.region;
+
+        if (coincideGrupo && coincideCategoria && coincideRegion) {
+          tarjeta.classList.remove('d-none');
+          hayVisibles = true;
+        } else {
+          tarjeta.classList.add('d-none');
+        }
+      });
+      
+      // Mostrar mensaje si no hay encuestas
+      const sinEncuestasMsg = document.getElementById('sinEncuestasMsg');
+      if (sinEncuestasMsg) {
+        sinEncuestasMsg.style.display = hayVisibles ? 'none' : 'block';
+      }
+      
+      return hayVisibles;
+    }
+    
+    // Activar filtros de encuestas
+    const filtroContainers = [
+      { id: 'filtroEncuestasGrupo', btnId: 'btnFiltroGrupo', defaultText: '<i class="fas fa-users me-1"></i>Grupo de Interés' },
+      { id: 'filtroEncuestasCategoria', btnId: 'btnFiltroCategoria', defaultText: '<i class="fas fa-tag me-1"></i>Categoría' },
+      { id: 'filtroEncuestasRegion', btnId: 'btnFiltroRegion', defaultText: '<i class="fas fa-map-marked-alt me-1"></i>Región' }
+    ];
+
+    filtroContainers.forEach(containerConfig => {
+      const filtroItems = document.querySelectorAll(`#${containerConfig.id} .dropdown-item`);
+      const dropdownButton = document.getElementById(containerConfig.btnId);
+
+      filtroItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Marcar como activo este elemento y desmarcar otros en el mismo menú
+          const parentMenu = this.closest('.dropdown-menu');
+          parentMenu.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+          this.classList.add('active');
+          
+          const filtroTipo = this.dataset.filter;
+          const filtroId = this.dataset.id;
+          activeFilters[filtroTipo] = filtroId; // Actualizar el filtro activo para este tipo
+          
+          // Aplicar todos los filtros activos
+          aplicarFiltro();
+          
+          // Reordenar después de filtrar
+          ordenarTarjetasPorRespuestas(ordenDescendente);
+          
+          // Actualizar texto del botón de filtro
+          if (dropdownButton) {
+            if (filtroId === 'todas') {
+              dropdownButton.innerHTML = containerConfig.defaultText;
+            } else {
+              const textoFiltro = this.textContent.trim();
+              // Usar un ícono genérico de filtro si no es el default, o el específico del botón
+              const iconHtml = containerConfig.defaultText.match(/<i class=".*?"><\/i>/)[0]; 
+              dropdownButton.innerHTML = `${iconHtml}${textoFiltro}`;
+            }
+          }
+        });
+      });
+    });
+    
+    // Configurar botón de ordenar
+    const btnOrdenar = document.getElementById('btnOrdenarRespuestas');
+    if (btnOrdenar) {
+      btnOrdenar.addEventListener('click', function() {
+        // Cambiar el estado de ordenamiento
+        ordenDescendente = !ordenDescendente;
+        
+        // Actualizar el ícono según el ordenamiento
+        const icon = ordenDescendente ? 'fa-sort-amount-down' : 'fa-sort-amount-up';
+        this.innerHTML = `<i class="fas ${icon} me-1"></i>Por respuestas`;
+        
+        // Aplicar el ordenamiento
+        ordenarTarjetasPorRespuestas(ordenDescendente);
+      });
+    }
+    
+    // Iniciar con ordenamiento por respuestas (de mayor a menor)
+    ordenarTarjetasPorRespuestas(true);
+    
+    // Añadir observador para detectar cambios en el mapa
+    const observerConfig = { childList: true, subtree: true };
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          if (mutation.target.id === 'infoMunicipio' && mutation.target.style.display !== 'none') {
+            console.log('Panel de información de municipio mostrado');
+          }
+        }
+      }
+    });
+    
+    // Observar cambios en el panel de información
+    const targetNode = document.body;
+    if (targetNode) {
+      observer.observe(targetNode, { childList: true, subtree: true });
+    }
   });
 </script>
 
