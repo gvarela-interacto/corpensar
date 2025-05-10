@@ -5,7 +5,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% trans "Certificado de Participación" %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -58,6 +58,12 @@
         font-weight: bold;
         color: #000;
         margin: 0 auto;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
     }
     .participant-label {
         position: absolute;
@@ -70,7 +76,6 @@
         margin: 0 auto;
         width: 500px;
         border-top: 1px solid #000;
-
     }
     .participation-details {
         position: absolute;
@@ -80,6 +85,9 @@
         text-align: center;
         font-size: 16px;
         color: #333;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
     .event-title {
         position: absolute;
@@ -87,10 +95,20 @@
         left: 0;
         right: 0;
         text-align: center;
-        font-size: 24px;
+        font-size: 18px;
         font-weight: bold;
         color: #000;
         padding: 0 50px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
+        max-height: 80px; /* Limita la altura máxima */
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Muestra hasta 3 líneas */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .event-meta {
         position: absolute;
@@ -100,6 +118,9 @@
         text-align: center;
         font-size: 14px;
         color: #333;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
     .final-statement {
         position: absolute;
@@ -111,6 +132,8 @@
         color: #444;
         line-height: 1.6;
         padding: 0 100px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .actions-container {
@@ -164,42 +187,36 @@
         max-width: 450px;
         width: 100%;
     }
-    @media print {
-        body {
-            background-color: white;
-            margin: 0;
-            padding: 0;
-        }
-        .certificate-container {
-            box-shadow: none;
-            max-width: 100%;
-            padding: 0;
-            width: 100%;
-            height: auto;
-        }
-        .actions-container, .phone-input-container {
-            display: none;
-        }
-    }
+    
 
+    /* Media query para dispositivos móviles y tabletas */
     @media (max-width: 915px) {
         .certificate-container {
             width: 100%;
-            height: auto;
-            aspect-ratio: 915/680; /* Mantiene la proporción del certificado */
+            height: 0;
+            padding-bottom: 76.4%; /* 680/890 = 0.764 o 76.4% - mantiene la proporción */
+            transform-origin: top center;
+            transform: scale(1);
         }
+        
+        /* Mantener posicionamiento absoluto original para preservar el diseño */
         .participant-name, .participant-label, .participation-details,
         .event-title, .event-meta, .final-statement {
-            position: relative;
-            top: auto;
-            margin: 10px auto;
+            position: absolute;
+            transform-origin: top center;
+            transform: scale(1);
         }
-        .participant-name {
-            margin-top: 25%;
+        
+        /* Ajustes específicos para el título del evento cuando es largo */
+        .event-title {
+            font-size: clamp(18px, 5vw, 24px); /* Ajusta el tamaño según el ancho de pantalla */
         }
+        
+        /* Ajustes para los botones en móviles */
         .actions-container {
             flex-direction: column;
             gap: 10px;
+            max-width: 100%;
         }
         .action-button {
             width: 100%;
@@ -208,6 +225,22 @@
         }
         .phone-input-container {
             max-width: 100%;
+        }
+    }
+
+    /* Para pantallas muy pequeñas */
+    @media (max-width: 500px) {
+        body {
+            padding: 10px;
+        }
+        .certificate-container {
+            margin-bottom: 15px;
+        }
+        .participant-label {
+            width: 80%;
+        }
+        .final-statement {
+            padding: 0 40px;
         }
     }
 
@@ -274,7 +307,7 @@
 </style>
 
 <div id="certificado" class="certificate-container">
-    <div class="certificate-inner-content">
+    <div class="certificate-inner-content" >
         <div class="participant-name" id="nombre_participante">
             {{ nombre_completo | default:"Andres Felipe Giraldo" }}
         </div>
@@ -288,7 +321,7 @@
         {% endif %}
 
         <div class="event-title">
-            "{{ encuesta.titulo | default:"Grupo Focal con Líderes Sociales y Ambientales - Miraflores" }}"
+            "{{ encuesta.titulo | default:"Capacitacion en Formacion Integral" }}"
         </div>
 
         <div class="event-meta">
@@ -412,16 +445,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     {% endif %}
     
-    // Función para descargar el certificado
+    // Función para descargar certificado
     const downloadBtn = document.getElementById('download-btn');
     if (downloadBtn) {
         downloadBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            descargarCertificado(false);
+            generarImagenCertificado(false);
         });
     }
     
-    // Función para compartir por WhatsApp
+    // Función para WhatsApp
     const whatsappBtn = document.getElementById('whatsapp-btn');
     const whatsappForm = document.getElementById('whatsapp-form');
     const sendWhatsappBtn = document.getElementById('send-whatsapp');
@@ -431,12 +464,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (whatsappBtn) {
         whatsappBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            // Mostrar el formulario para ingresar el número
             whatsappForm.style.display = 'block';
-            // Usar el número guardado en localStorage si existe
             const telefonoGuardado = localStorage.getItem('certificado_telefono');
             if (telefonoGuardado && phoneInput) {
-                // Quitar el prefijo +57 si lo tiene
                 phoneInput.value = telefonoGuardado.replace('+57', '').replace(/\D/g, '');
             }
         });
@@ -457,67 +487,109 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Validar que sea un número de 10 dígitos
             if (!/^\d{10}$/.test(phoneNumber)) {
                 alert("{% trans 'Por favor ingrese un número válido de 10 dígitos' %}");
                 return;
             }
             
-            // Agregar el prefijo de Colombia +57
             const numeroCompleto = '+57' + phoneNumber;
-            
-            // Ocultar el formulario
             whatsappForm.style.display = 'none';
             
-            // Enviar el certificado
-            descargarCertificado(true, numeroCompleto);
+            // Primero generar la imagen y luego abrir WhatsApp
+            generarImagenCertificado(true, numeroCompleto);
         });
     }
     
-    // Función compartida para generar y descargar el certificado
-    function descargarCertificado(paraWhatsApp, numeroWhatsApp) {
+    // Función unificada para generar imagen del certificado
+    function generarImagenCertificado(paraWhatsApp, numeroWhatsApp) {
         const certificadoDiv = document.getElementById('certificado');
         if (!certificadoDiv) return;
         
-        html2canvas(certificadoDiv, {
+        // Crear un clon oculto con dimensiones fijas para asegurar que se capture correctamente
+        const certificadoClon = certificadoDiv.cloneNode(true);
+        certificadoClon.style.position = 'absolute';
+        certificadoClon.style.left = '-9999px';
+        certificadoClon.style.top = '-9999px';
+        certificadoClon.style.width = '890px';
+        certificadoClon.style.height = '680px';
+        certificadoClon.style.transform = 'none';
+        certificadoClon.style.padding = '0';
+        certificadoClon.style.margin = '0';
+        
+        // Asegurarse que todos los elementos estén visibles y correctamente posicionados
+        const elements = certificadoClon.querySelectorAll('.certificate-inner-content > *');
+        elements.forEach(function(el) {
+            el.style.position = 'absolute';
+            el.style.visibility = 'visible';
+            el.style.display = 'block';
+            el.style.overflow = 'visible';
+            el.style.transform = 'none';
+        });
+        
+        document.body.appendChild(certificadoClon);
+        
+        // Opciones optimizadas para html2canvas
+        html2canvas(certificadoClon, {
             scale: 2,
             useCORS: true,
+            allowTaint: true,
             backgroundColor: null,
-            allowTaint: true
-        }).then(function(canvas) {
-            const imageData = canvas.toDataURL('image/png');
-            
-            // Generar nombre de archivo
-            const nombreParticipante = document.getElementById('nombre_participante').textContent;
-            const nombreArchivo = 'certificado_' + 
-                (nombreParticipante ? nombreParticipante.replace(/\s+/g, '_').toLowerCase() : 'participante') + 
-                '.png';
-            
-            // Descargar imagen
-            const enlace = document.createElement('a');
-            enlace.download = nombreArchivo;
-            enlace.href = imageData;
-            enlace.click();
-            
-            // Si es para WhatsApp, abrir WhatsApp
-            if (paraWhatsApp && numeroWhatsApp) {
-                var mensajeTxt = "Hola, te comparto tu certificado de participación de Corpensar.";
-                if (nombreParticipante) {
-                    mensajeTxt += " Certificado para: " + nombreParticipante;
+            logging: false,
+            onclone: function(clonedDoc) {
+                const clonedCertificate = clonedDoc.getElementById('certificado');
+                if (clonedCertificate) {
+                    // Asegurar que todos los elementos estén visibles
+                    const innerElements = clonedCertificate.querySelectorAll('*');
+                    innerElements.forEach(function(el) {
+                        el.style.visibility = 'visible';
+                    });
                 }
+            }
+        }).then(function(canvas) {
+            // Eliminar el clon
+            document.body.removeChild(certificadoClon);
+            
+            try {
+                // Convertir a imagen
+                const imageData = canvas.toDataURL('image/png');
                 
-                // URL para WhatsApp
-                var whatsappURL = 'https://wa.me/' + numeroWhatsApp + '?text=' + encodeURIComponent(mensajeTxt);
-                window.open(whatsappURL, '_blank');
+                // Nombre del archivo
+                const nombreParticipante = document.getElementById('nombre_participante').textContent;
+                const nombreArchivo = 'certificado_' + 
+                    (nombreParticipante ? nombreParticipante.replace(/\s+/g, '_').toLowerCase() : 'participante') + 
+                    '.png';
                 
-                // Mostrar instrucciones
-                var mensaje_whatsapp = "Se ha descargado automáticamente el certificado y se abrirá WhatsApp. Adjunte la imagen descargada a la conversación.";
-                alert(mensaje_whatsapp);
+                // Descargar imagen
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageData;
+                downloadLink.download = nombreArchivo;
+                downloadLink.click();
+                
+                // Si es para WhatsApp
+                if (paraWhatsApp && numeroWhatsApp) {
+                    setTimeout(function() {
+                        var mensajeTxt = "{% trans 'Hola, te comparto tu certificado de participación de Corpensar.' %}";
+                        if (nombreParticipante) {
+                            mensajeTxt += " {% trans 'Certificado para:' %} " + nombreParticipante;
+                        }
+                        
+                        var whatsappURL = 'https://wa.me/' + numeroWhatsApp + '?text=' + encodeURIComponent(mensajeTxt);
+                        window.open(whatsappURL, '_blank');
+                        
+                        alert("{% trans 'Se ha descargado el certificado. Ahora se abrirá WhatsApp. Por favor adjunte la imagen manualmente a la conversación.' %}");
+                    }, 500);
+                }
+            } catch (err) {
+                console.error("Error al procesar la imagen:", err);
+                alert("{% trans 'Ocurrió un error al generar la imagen del certificado.' %}");
             }
         }).catch(function(err) {
+            // Eliminar el clon en caso de error
+            if (document.body.contains(certificadoClon)) {
+                document.body.removeChild(certificadoClon);
+            }
             console.error("Error al generar el canvas:", err);
-            var mensaje_error = "Ocurrió un error al intentar generar el certificado.";
-            alert(mensaje_error);
+            alert("{% trans 'Ocurrió un error al intentar generar el certificado.' %}");
         });
     }
 });
