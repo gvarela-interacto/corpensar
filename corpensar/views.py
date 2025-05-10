@@ -3965,6 +3965,7 @@ def editar_grupo_interes(request, grupo_id):
         'grupo': grupo
     })
 
+@login_required
 def generar_certificado(request):
     """Vista para generar certificados a partir de formularios completados"""
     if request.method == 'POST':
