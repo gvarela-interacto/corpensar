@@ -4,8 +4,15 @@
 <div class="container mt-5">
     <div class="card shadow-sm mb-5">
         <div class="card-header bg-primary text-white py-3">
-            <h2 class="mb-0 fs-3">{{ encuesta.titulo }}</h2>
-            <p class="mb-0 mt-2 text-white-50">Resultados de la encuesta</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0 fs-3">{{ encuesta.titulo }}</h2>
+                    <p class="mb-0 mt-2 text-white-50">Resultados de la encuesta</p>
+                </div>
+                <button id="exportarRespuestasExcel" class="btn btn-light">
+                    <i class="fas fa-file-excel me-2"></i> Exportar Respuestas
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div class="row">
@@ -658,4 +665,158 @@
 .opacity-75 { opacity: 0.75; }
 .opacity-100 { opacity: 1; }
 </style>
+
+<!-- Agregar librería de Excel.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configurar el botón de exportación
+        const btnExportar = document.getElementById('exportarRespuestasExcel');
+        if (btnExportar) {
+            btnExportar.addEventListener('click', exportarRespuestasExcel);
+        }
+        
+        // Función para exportar respuestas a Excel
+        function exportarRespuestasExcel() {
+            try {
+                // Crear un libro de Excel
+                const wb = XLSX.utils.book_new();
+                
+                // -- HOJA 1: INFORMACIÓN GENERAL DE LA ENCUESTA --
+                const infoGeneral = [
+                    ['INFORMACIÓN GENERAL DE LA ENCUESTA'],
+                    [''],
+                    ['Título', '{{ encuesta.titulo|escapejs }}'],
+                    ['Descripción', '{{ encuesta.descripcion|escapejs }}'],
+                    ['Total de respuestas', '{{ preguntas_con_datos.0.total_respuestas|default:"0" }}'],
+                    ['Fecha de exportación', new Date().toLocaleString()]
+                ];
+                
+                // Convertir a hoja
+                const wsInfo = XLSX.utils.aoa_to_sheet(infoGeneral);
+                
+                // Combinar celdas para el título
+                if (!wsInfo['!merges']) wsInfo['!merges'] = [];
+                wsInfo['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } });
+                
+                // Añadir hoja al libro
+                XLSX.utils.book_append_sheet(wb, wsInfo, "Información General");
+                
+                // -- HOJA 2: RESPUESTAS INDIVIDUALES --
+                const datosRespuestas = [];
+                
+                // Encabezados
+                const headers = ['ID', 'Fecha', 'Usuario', 'Municipio', 'Completada'];
+                datosRespuestas.push(headers);
+                
+                // Añadir filas de respuestas
+                {% for respuesta in respuestas_completas %}
+                datosRespuestas.push([
+                    '{{ forloop.counter }}',
+                    '{{ respuesta.fecha_respuesta|date:"d/m/Y H:i"|escapejs }}',
+                    '{{ respuesta.usuario|default:"Anónimo"|escapejs }}',
+                    '{{ respuesta.municipio|default:"No especificado"|escapejs }}',
+                    '{{ respuesta.completada|yesno:"Sí,No" }}'
+                ]);
+                {% endfor %}
+                
+                // Crear hoja de respuestas
+                const wsRespuestas = XLSX.utils.aoa_to_sheet(datosRespuestas);
+                
+                // Ajustar ancho de columnas
+                wsRespuestas['!cols'] = [
+                    { wch: 5 },  // ID
+                    { wch: 16 }, // Fecha
+                    { wch: 20 }, // Usuario
+                    { wch: 25 }, // Municipio
+                    { wch: 12 }  // Completada
+                ];
+                
+                // Añadir hoja al libro
+                XLSX.utils.book_append_sheet(wb, wsRespuestas, "Respuestas");
+                
+                // -- HOJA 3: RESUMEN POR PREGUNTA --
+                // Crear una hoja por cada pregunta
+                {% for pregunta_data in preguntas_con_datos %}
+                {
+                    const datosPregunta = [];
+                    
+                    // Encabezado con número y texto de pregunta
+                    datosPregunta.push(['Pregunta {{ pregunta_data.pregunta.orden }}: {{ pregunta_data.pregunta.texto|escapejs }}']);
+                    datosPregunta.push(['Tipo: {{ pregunta_data.pregunta.get_tipo_display }}']);
+                    datosPregunta.push(['']);
+                    
+                    // Diferentes formatos según el tipo de pregunta
+                    {% if pregunta_data.tipo == 'preguntaopcionmultiple' or pregunta_data.tipo == 'preguntacasillasverificacion' or pregunta_data.tipo == 'preguntamenudesplegable' %}
+                        datosPregunta.push(['Opción', 'Cantidad', 'Porcentaje']);
+                        {% for opcion, info in pregunta_data.datos.items %}
+                        datosPregunta.push([
+                            '{{ opcion|escapejs }}',
+                            {{ info.cantidad }},
+                            '{{ info.porcentaje|floatformat:1 }}%'
+                        ]);
+                        {% endfor %}
+                    {% elif pregunta_data.tipo == 'preguntatexto' or pregunta_data.tipo == 'preguntatextomultiple' %}
+                        datosPregunta.push(['ID', 'Respuesta']);
+                        {% for respuesta in pregunta_data.datos %}
+                        datosPregunta.push([{{ forloop.counter }}, '{{ respuesta|escapejs }}']);
+                        {% endfor %}
+                    {% elif pregunta_data.tipo == 'preguntaestrellas' %}
+                        datosPregunta.push(['Valoración promedio: {{ pregunta_data.datos.promedio|floatformat:1 }} / 5']);
+                        datosPregunta.push(['']);
+                        datosPregunta.push(['Estrellas', 'Cantidad', 'Porcentaje']);
+                        {% for valor in "54321" %}
+                        {% with valor=valor|add:0 %}
+                        datosPregunta.push([
+                            '{{ valor }} ★',
+                            {{ pregunta_data.datos.valores|get_item:valor|default:0 }},
+                            '{{ pregunta_data.datos.valores|get_item:valor|default:0|calculate_percentage:pregunta_data.total_respuestas|floatformat:1 }}%'
+                        ]);
+                        {% endwith %}
+                        {% endfor %}
+                    {% elif pregunta_data.tipo == 'preguntaescala' %}
+                        datosPregunta.push(['Respuestas de escala']);
+                        datosPregunta.push(['Valor', 'Cantidad']);
+                        {% for respuesta in pregunta_data.respuestas_individuales %}
+                        datosPregunta.push([
+                            {{ respuesta.valor }},
+                            1
+                        ]);
+                        {% endfor %}
+                    {% elif pregunta_data.tipo == 'preguntafecha' %}
+                        datosPregunta.push(['Fecha', 'Cantidad']);
+                        {% for fecha, cantidad in pregunta_data.datos.items %}
+                        datosPregunta.push([
+                            '{{ fecha|date:"d/m/Y H:i"|escapejs }}',
+                            {{ cantidad }}
+                        ]);
+                        {% endfor %}
+                    {% endif %}
+                    
+                    // Crear hoja de pregunta
+                    const wsPregunta = XLSX.utils.aoa_to_sheet(datosPregunta);
+                    
+                    // Combinación de celdas para el título
+                    if (!wsPregunta['!merges']) wsPregunta['!merges'] = [];
+                    wsPregunta['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } });
+                    wsPregunta['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 2 } });
+                    
+                    // Añadir hoja al libro
+                    XLSX.utils.book_append_sheet(wb, wsPregunta, "P{{ pregunta_data.pregunta.orden }}");
+                }
+                {% endfor %}
+                
+                // Generar nombre de archivo
+                const nombreArchivo = `Respuestas_{{ encuesta.titulo|slugify }}_${new Date().toISOString().slice(0,10)}.xlsx`;
+                
+                // Escribir el archivo y descargarlo
+                XLSX.writeFile(wb, nombreArchivo);
+                
+            } catch (error) {
+                console.error("Error al exportar a Excel:", error);
+                alert("Ocurrió un error al exportar las respuestas. Por favor, inténtelo de nuevo.");
+            }
+        }
+    });
+</script>
 {% endblock %}
