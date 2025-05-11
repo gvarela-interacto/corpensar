@@ -1499,7 +1499,6 @@ class TextoMultipleForm(BaseEncuestaForm):
         self.fields['respuesta'].widget.attrs['maxlength'] = pregunta.max_longitud
         self.fields['respuesta'].widget.attrs['rows'] = pregunta.filas
 
-
 class OpcionMultipleForm(BaseEncuestaForm):
     opcion = forms.ModelChoiceField(
         queryset=None,
@@ -1517,7 +1516,6 @@ class OpcionMultipleForm(BaseEncuestaForm):
         self.fields['opcion'].required = requerida
         self.fields['opcion'].label = ""
         self.opcion_otro = pregunta.opcion_otro
-
 
 class CasillasVerificacionForm(BaseEncuestaForm):
     opciones = forms.ModelMultipleChoiceField(
@@ -1552,7 +1550,6 @@ class CasillasVerificacionForm(BaseEncuestaForm):
         
         return opciones
 
-
 class MenuDesplegableForm(BaseEncuestaForm):
     opcion = forms.ModelChoiceField(
         queryset=None,
@@ -1568,7 +1565,6 @@ class MenuDesplegableForm(BaseEncuestaForm):
         # Añadir opción vacía si está configurada en la pregunta
         if pregunta.opcion_vacia:
             self.fields['opcion'].empty_label = pregunta.texto_vacio
-
 
 class EstrellasForm(BaseEncuestaForm):
     valor = forms.IntegerField(
@@ -1588,7 +1584,6 @@ class EstrellasForm(BaseEncuestaForm):
         self.etiqueta_inicio = pregunta.etiqueta_inicio
         self.etiqueta_fin = pregunta.etiqueta_fin
 
-
 class EscalaForm(BaseEncuestaForm):
     valor = forms.IntegerField(
         widget=forms.NumberInput(attrs={'class': 'form-control', 'type': 'range'}),
@@ -1607,7 +1602,6 @@ class EscalaForm(BaseEncuestaForm):
         self.max_valor = pregunta.max_valor
         self.etiqueta_min = pregunta.etiqueta_min
         self.etiqueta_max = pregunta.etiqueta_max
-
 
 class MatrizForm(BaseEncuestaForm):
     def __init__(self, *args, pregunta=None, requerida=False, **kwargs):
@@ -1632,7 +1626,6 @@ class MatrizForm(BaseEncuestaForm):
                 label=item.texto
             )
 
-
 class FechaForm(BaseEncuestaForm):
     valor = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
@@ -1649,7 +1642,6 @@ class FechaForm(BaseEncuestaForm):
                 widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
                 required=requerida
             )
-
 
 def guardar_respuesta(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id)
@@ -2061,8 +2053,6 @@ def crear_municipio(request):
             messages.error(request, "Todos los campos son obligatorios.")
 
     return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})
-
-
 
 @login_required
 def crear_categoria(request):
@@ -2606,10 +2596,12 @@ def estadisticas_municipios(request):
     # Ajustar clave 'region' para JSON de municipios
     for municipio in todos_municipios_lista:
         municipio['region'] = municipio.pop('region_id')
-    todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder)
+    todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder, ensure_ascii=False)
+
+    print("todos_municipios_json: ", todos_municipios_json)
 
     # --- Filtros --- 
-    region_id_str = request.GET.get('region', 'todas')
+    region_id_str = request.GET.get('region', 'todas') # Asigna por defecto el valor de la consulta en 'todas'
     municipio_id_str = request.GET.get('municipio', 'todos')
     
     # Convertir IDs a int si no son 'todas' o 'todos'
@@ -2634,26 +2626,16 @@ def estadisticas_municipios(request):
         respuestas_municipio = RespuestaEncuesta.objects.filter(municipio=municipio)
         num_respuestas = respuestas_municipio.count()
         # Contar encuestas únicas respondidas en este municipio
-        encuestas_respondidas_ids = respuestas_municipio.values_list('encuesta_id', flat=True).distinct()
+        encuestas_respondidas_ids = set(respuestas_municipio.values_list('encuesta_id', flat=True).distinct())
         num_encuestas_respondidas = len(encuestas_respondidas_ids)
-        
-        # Calcular tasa - Necesita el número total de encuestas *aplicables* a este municipio
-        # Esta parte es compleja y depende de tu lógica de negocio.
-        # Asumiremos un total general por ahora, pero idealmente filtrarías Encuesta por región/municipio si aplica.
-        total_encuestas_aplicables_municipio = total_encuestas_aplicables_general # Simplificación
-        tasa_finalizacion = 0
-        if total_encuestas_aplicables_municipio > 0:
-            tasa_finalizacion = (num_encuestas_respondidas / total_encuestas_aplicables_municipio) * 100
         
         datos_municipios_lista.append({
             'id': municipio.id,
             'nombre': municipio.nombre,
             'region': municipio.region.nombre,
             'region_id': municipio.region.id,
-            'totalEncuestas': total_encuestas_aplicables_municipio, # Revisar esta lógica
             'totalRespuestas': num_respuestas,
             'encuestasRespondidas': num_encuestas_respondidas,
-            'tasaFinalizacion': round(tasa_finalizacion, 1),
             # 'latitud': municipio.latitud, # Descomentar si se necesita para mapas
             # 'longitud': municipio.longitud
         })
@@ -2999,6 +2981,7 @@ def responder_pqrsfd(request, pqrsfd_id):
     
     return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})
 
+@login_required
 def enviar_respuesta_email(pqrsfd, request):
     """Envía un correo electrónico con la respuesta al PQRSFD"""
     from django.core.mail import EmailMultiAlternatives
@@ -3031,6 +3014,7 @@ def enviar_respuesta_email(pqrsfd, request):
     
     email.send()
 
+@login_required
 def enviar_respuesta_sms(pqrsfd):
     """
     Envía un SMS con la notificación de respuesta
@@ -3056,6 +3040,7 @@ def enviar_respuesta_sms(pqrsfd):
     print(f"SMS enviado a {telefono}: {mensaje}")
     return True
 
+@login_required
 def get_siguientes_estados_validos(estado_actual):
     """Obtiene los siguientes estados válidos según el flujo de trabajo"""
     if estado_actual == 'P':  # Pendiente
@@ -3174,6 +3159,7 @@ def get_subcategorias(request):
         return JsonResponse(list(subcategorias), safe=False)
     return JsonResponse([], safe=False)
 
+@login_required
 def qr_generator(request):
     """
     Vista para generar códigos QR de formularios
@@ -3542,12 +3528,11 @@ def encuesta_completada(request, slug):
         'encuesta': encuesta
     })
 
+@login_required
 def mi_perfil(request):
     return render(request, 'perfil/mi_perfil.html')
 
-def configuracion(request):
-    return render(request, 'perfil/configuracion.html')
-
+@login_required
 def eliminar_respuesta_encuesta(request, respuesta_id):
     """
     Elimina una respuesta de encuesta completa, incluyendo todas sus subrespuestas.
@@ -3606,6 +3591,7 @@ def crear_usuario(request):
         'form': form
     })
 
+@login_required
 # API Views para el mapa y estadísticas
 def api_estadisticas_municipios(request):
     """
@@ -3672,6 +3658,7 @@ def api_estadisticas_municipios(request):
             'error': str(e)
         }, status=500)
 
+@login_required
 def api_mapa_municipios(request):
     """
     API que devuelve datos de municipios para el mapa
@@ -3712,7 +3699,7 @@ def api_mapa_municipios(request):
             'error': str(e)
         }, status=500)
 
-# --- NUEVA VISTA API ---
+@login_required
 def api_encuestas_por_municipio(request, municipio_id):
     """
     API que devuelve una lista de encuestas activas y públicas

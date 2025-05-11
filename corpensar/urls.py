@@ -4,7 +4,6 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-from .views import estadisticas_municipios, categorias_principales, crear_categoria_principal, crear_subcategoria, eliminar_categoria_principal, eliminar_subcategoria, get_subcategorias, grupos_interes, crear_grupo_interes, eliminar_grupo_interes
 from .redirect_views import login_redirect_view
 
 urlpatterns = [

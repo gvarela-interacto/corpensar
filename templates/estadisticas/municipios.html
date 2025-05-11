@@ -191,7 +191,8 @@
 
     /* Badges mejorados */
     .badge {
-        padding: 0.5rem 1rem;
+        font-size: 0.85em;
+        padding: 0.35em 0.65em;
         border-radius: 10px;
         font-weight: 600;
     }
@@ -237,6 +238,15 @@
 
         .encuesta-item {
             padding: 1rem;
+        }
+        
+        /* Mejoras en la tabla para dispositivos pequeños */
+        .table-responsive-fixed {
+            max-height: none; /* Eliminar altura fija */
+        }
+        
+        .categoria-columna {
+            min-width: 100px; /* Ancho mínimo para columnas de categorías */
         }
     }
 
@@ -315,9 +325,43 @@
 
     /* Estilos para la tabla con altura fija */
     .table-responsive-fixed {
-        height: 400px; /* Ajustar según necesidad */
-        overflow-y: auto;
+        overflow-x: auto;
         margin-top: 1.5rem; /* Espacio entre filtros y tabla */
+        position: relative;
+    }
+    
+    /* Estilos específicos para dispositivos móviles */
+    @media (max-width: 576px) {
+        .table-responsive-fixed {
+            font-size: 0.9rem;
+        }
+        
+        /* Permitir que la tabla tenga scroll horizontal en móviles */
+        #tablaEstadisticas {
+            white-space: nowrap;
+            min-width: 800px; /* Asegurar que la tabla no se comprima demasiado */
+        }
+        
+        /* Hacer que las columnas principales sean más estrechas */
+        #tablaEstadisticas th:first-child,
+        #tablaEstadisticas td:first-child {
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Reducir tamaño de botones en móvil */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        /* Mostrar tooltip con el nombre completo al pasar el cursor */
+        .ellipsis-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
 
     .table-responsive-fixed thead th {
@@ -385,37 +429,41 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Encuestas Completadas</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_encuestas_completadas }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
+    </div>
+    
+    <!-- Modal para detalles de municipio -->
+    <div class="modal fade" id="detalleFormulariosModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTituloDetalle">Detalle de Formularios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong>Municipio/Región: </strong><span id="modalEntidadNombre"></span>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered" id="tablaFormularios">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Formulario</th>
+                                    <th>Categoría</th>
+                                    <th>Total Respuestas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTablaFormularios">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Tasa de Finalización</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tasa_finalizacion }}%</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-percentage fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="exportarDetalleExcel">
+                        <i class="fas fa-file-excel me-2"></i> Exportar Detalle
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -472,63 +520,44 @@
                     </div>
                     <!-- Fin Filtros Integrados -->
 
-                    <div class="table-responsive-fixed">
+                    <div class="table-responsive">
                         <table class="table table-bordered table-hover" id="tablaEstadisticas">
                             <thead class="table-light">
                                 <!-- El contenido del thead cambiará con JS según vistaMunicipios/vistaRegiones -->
                                 <tr>
                                     <th>Municipio</th>
-                                    <th>Región</th>
                                     <th>Total Encuestas</th>
                                     <th>Total Respuestas</th>
-                                    <th>Encuestas Completadas</th>
-                                    <th>Tasa Finalización (%)</th>
-                                    <th>Categorías</th>
-                                    <th>Grupos de Interés</th>
-                                    <th>Clasificación</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <!-- El contenido del tbody cambiará con JS -->
                                 {% for municipio in datos_municipios.values %}
-                                <tr data-tipo="municipio"> {# Añadido para JS #}
+                                <tr data-tipo="municipio" data-id="{{ municipio.id }}">
                                     <td>{{ municipio.nombre }}</td>
                                     <td>{{ municipio.region }}</td>
                                     <td class="text-center">{{ municipio.totalEncuestas }}</td>
                                     <td class="text-center">{{ municipio.totalRespuestas }}</td>
-                                    <td class="text-center">{{ municipio.encuestasRespondidas }}</td>
-                                    <td class="text-center">{{ municipio.tasaFinalizacion }}</td>
-                                    <td class="text-center">
-                                        {% if municipio.categorias %}
-                                            <button class="btn btn-sm btn-outline-primary ver-categorias" data-bs-toggle="tooltip" title="Ver categorías">
-                                                <i class="fas fa-tags"></i> {{ municipio.categorias|length }}
-                                            </button>
-                                        {% else %}
-                                            <span class="badge bg-secondary">0</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        {% if municipio.grupos_interes %}
-                                            <button class="btn btn-sm btn-outline-info ver-grupos" data-bs-toggle="tooltip" title="Ver grupos de interés">
-                                                <i class="fas fa-users"></i> {{ municipio.grupos_interes|length }}
-                                            </button>
-                                        {% else %}
-                                            <span class="badge bg-secondary">0</span>
-                                        {% endif %}
-                                    </td>
+                                    <!-- Celdas de categorías -->
                                     <td class="text-center">
                                         {% if municipio.tasaFinalizacion >= 80 %}
                                             <span class="badge bg-success">Alto</span>
                                         {% elif municipio.tasaFinalizacion >= 50 %}
-                                            <span class="badge bg-warning text-dark">Medio</span> {# text-dark para mejor contraste en amarillo #}
+                                            <span class="badge bg-warning text-dark">Medio</span>
                                         {% else %}
                                             <span class="badge bg-danger">Bajo</span>
                                         {% endif %}
                                     </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-primary ver-detalle-municipio" title="Ver detalle">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr data-tipo="municipio">
-                                    <td colspan="9" class="text-center">No hay datos de municipios para mostrar con los filtros actuales.</td>
+                                    <td colspan="10" class="text-center">No hay datos de municipios para mostrar con los filtros actuales.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -724,26 +753,37 @@
 <script id="datos-graficos" type="application/json">
 {{ datos_graficos_json|safe }}
 </script>
-{# Añadir datos para tabla de regiones si es necesario #}
+
 <script id="datos-tabla-regiones" type="application/json">
 {{ datos_regiones_tabla_json|safe }}
 </script>
-{# Añadir datos para tabla de municipios (ya filtrados por backend) #}
+
 <script id="datos-tabla-municipios" type="application/json">
 {{ datos_municipios_json|safe }}
 </script>
 
+<!-- Datos de formularios por municipio/región -->
+<script id="datos-formularios-detalle" type="application/json">
+{{ datos_formularios_detalle_json|safe }}
+</script>
+
+<!-- Datos de categorías disponibles -->
+<script id="datos-categorias" type="application/json">
+{{ todas_categorias_json|safe }}
+</script>
 
 <script>
     // Asegurarse de que el JSON se carga correctamente
     let todosMunicipios = [];
     let datosGraficos = {};
-    let datosTablaRegiones = []; // Datos para la tabla de regiones
-    let datosTablaMunicipios = []; // Datos para la tabla de municipios
+    let datosTablaRegiones = []; 
+    let datosTablaMunicipios = [];
+    let datosFormulariosDetalle = {}; // Detalle de formularios por municipio/región
+    let todasCategorias = []; // Todas las categorías disponibles
 
     // --- Variables Globales para Paginación ---
     let paginaActual = 1;
-    const filasPorPagina = 15; // Puedes ajustar este número
+    const filasPorPagina = 15; // Número de filas por página
     let datosTablaActual = []; // Almacenará los datos de municipios o regiones
     let vistaTablaActual = 'vistaMunicipios'; // Para saber qué datos paginar
 
@@ -782,6 +822,30 @@
             console.warn("No se encontró JSON para 'datos-tabla-municipios'");
         }
 
+        // Cargar datos de formularios detalle
+        const jsonFormulariosDetalle = document.getElementById('datos-formularios-detalle').textContent.trim();
+        if (jsonFormulariosDetalle) {
+            try {
+                datosFormulariosDetalle = JSON.parse(jsonFormulariosDetalle);
+                console.log('Datos de formularios detalle cargados:', Object.keys(datosFormulariosDetalle).length);
+            } catch (e) {
+                console.error('Error al parsear datos de formularios detalle:', e);
+                datosFormulariosDetalle = {};
+            }
+        } else {
+            console.warn("No se encontró JSON para 'datos-formularios-detalle'");
+            datosFormulariosDetalle = {};
+        }
+        
+        // Cargar datos de categorías 
+        const jsonCategorias = document.getElementById('datos-categorias').textContent.trim();
+        if (jsonCategorias) {
+            todasCategorias = JSON.parse(jsonCategorias);
+        } else {
+            console.warn("No se encontró JSON para 'datos-categorias'");
+            todasCategorias = [];
+        }
+
     } catch (error) {
         console.error("Error al cargar datos JSON iniciales:", error);
         todosMunicipios = [];
@@ -792,6 +856,8 @@
         };
         datosTablaRegiones = [];
         datosTablaMunicipios = [];
+        datosFormulariosDetalle = {};
+        todasCategorias = [];
     }
 
     function cargarMunicipios() {
@@ -881,35 +947,55 @@
         paginaActual = 1;
 
         if (vistaTablaActual === 'vistaMunicipios') {
-            // Configurar cabecera para municipios
-            thead.innerHTML = `
+            // Configurar cabecera para municipios - columnas básicas
+            let encabezados = `
                 <th>Municipio</th>
-                <th>Región</th>
-                <th>Total Encuestas</th>
-                <th>Total Respuestas</th>
-                <th>Encuestas Completadas</th>
-                <th>Tasa Finalización (%)</th>
-                <th>Categorías</th>
-                <th>Grupos de Interés</th>
-                <th>Clasificación</th>
-            `;
-            // Poblar tabla con datos de municipios (si existen)
-            datosTablaActual = datosTablaMunicipios; // Usar datos de municipios para paginación
- 
-        } else if (vistaTablaActual === 'vistaRegiones') {
-            // Configurar cabecera para regiones
-             thead.innerHTML = `
                 <th>Región</th>
                 <th class="text-center">Total Encuestas</th>
                 <th class="text-center">Total Respuestas</th>
-                <th class="text-center">Encuestas Completadas</th>
-                <th class="text-center">Tasa Finalización (%)</th>
-                <th class="text-center">Categorías</th>
-                <th class="text-center">Grupos de Interés</th>
-                <th class="text-center">Clasificación</th>
             `;
-             // Poblar tabla con datos de regiones
-            datosTablaActual = datosTablaRegiones; // Usar datos de regiones para paginación
+            
+            // Añadir columnas dinámicas para categorías
+            todasCategorias.forEach(cat => {
+                encabezados += `<th class="text-center categoria-columna">${cat.nombre}</th>`;
+            });
+            
+            // Completar encabezados
+            encabezados += `
+                <th class="text-center">Clasificación</th>
+                <th class="text-center">Acciones</th>
+            `;
+            
+            // Establecer encabezados
+            thead.innerHTML = encabezados;
+            
+            // Poblar tabla con datos de municipios
+            datosTablaActual = datosTablaMunicipios;
+ 
+        } else if (vistaTablaActual === 'vistaRegiones') {
+            // Configurar cabecera para regiones - columnas básicas
+            let encabezados = `
+                <th>Región</th>
+                <th class="text-center">Total Encuestas</th>
+                <th class="text-center">Total Respuestas</th>
+            `;
+            
+            // Añadir columnas dinámicas para categorías
+            todasCategorias.forEach(cat => {
+                encabezados += `<th class="text-center categoria-columna">${cat.nombre}</th>`;
+            });
+            
+            // Completar encabezados
+            encabezados += `
+                <th class="text-center">Clasificación</th>
+                <th class="text-center">Acciones</th>
+            `;
+            
+            // Establecer encabezados
+            thead.innerHTML = encabezados;
+            
+            // Poblar tabla con datos de regiones
+            datosTablaActual = datosTablaRegiones;
         }
 
         // Renderizar la primera página de la tabla y los controles
@@ -928,8 +1014,11 @@
         const datosPagina = datosTablaActual.slice(inicio, fin);
 
         if (datosPagina.length === 0) {
-            const numCols = vistaTablaActual === 'vistaMunicipios' ? 9 : 8;
-            tbody.innerHTML = `<tr><td colspan="${numCols}" class="text-center text-muted py-3">No hay datos para mostrar en esta página.</td></tr>`;
+            // Calcular número de columnas (básicas + categorías dinámicas + acciones)
+            const numColumnas = (vistaTablaActual === 'vistaMunicipios' ? 6 : 5) + 
+                                todasCategorias.length + 3; // +3 por grupos, clasificación y acciones
+            
+            tbody.innerHTML = `<tr><td colspan="${numColumnas}" class="text-center text-muted py-3">No hay datos para mostrar en esta página.</td></tr>`;
             return;
         }
 
@@ -945,57 +1034,63 @@
                 badgeText = 'Medio';
             }
             
-            let filaHTML = '<tr>';
+            // Crear elemento de fila
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-tipo', vistaTablaActual === 'vistaMunicipios' ? 'municipio' : 'region');
+            tr.setAttribute('data-id', item.id);
+            
+            // Añadir contenido básico según tipo de vista
             if (vistaTablaActual === 'vistaMunicipios') {
-                filaHTML += `
+                tr.innerHTML = `
                     <td>${item.nombre}</td>
                     <td>${item.region}</td>
                     <td class="text-center">${item.totalEncuestas}</td>
                     <td class="text-center">${item.totalRespuestas}</td>
-                    <td class="text-center">${item.encuestasRespondidas}</td>
-                    <td class="text-center">${tasa.toFixed(1)}</td>
-                    <td class="text-center">
-                        ${item.categorias && item.categorias.length > 0 
-                            ? `<button class="btn btn-sm btn-outline-primary ver-categorias" data-bs-toggle="tooltip" title="Ver categorías">
-                                <i class="fas fa-tags"></i> ${item.categorias.length}
-                               </button>` 
-                            : `<span class="badge bg-secondary">0</span>`}
-                    </td>
-                    <td class="text-center">
-                        ${item.grupos_interes && item.grupos_interes.length > 0 
-                            ? `<button class="btn btn-sm btn-outline-info ver-grupos" data-bs-toggle="tooltip" title="Ver grupos de interés">
-                                <i class="fas fa-users"></i> ${item.grupos_interes.length}
-                               </button>` 
-                            : `<span class="badge bg-secondary">0</span>`}
-                    </td>
-                    <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
                 `;
             } else { // vistaRegiones
-                filaHTML += `
+                tr.innerHTML = `
                     <td>${item.nombre}</td>
                     <td class="text-center">${item.totalEncuestas}</td>
                     <td class="text-center">${item.totalRespuestas}</td>
-                    <td class="text-center">${item.encuestasRespondidas}</td>
-                    <td class="text-center">${tasa.toFixed(1)}</td>
-                    <td class="text-center">
-                        ${item.categorias && item.categorias.length > 0 
-                            ? `<button class="btn btn-sm btn-outline-primary ver-categorias" data-bs-toggle="tooltip" title="Ver categorías">
-                                <i class="fas fa-tags"></i> ${item.categorias.length}
-                               </button>` 
-                            : `<span class="badge bg-secondary">0</span>`}
-                    </td>
-                    <td class="text-center">
-                        ${item.grupos_interes && item.grupos_interes.length > 0 
-                            ? `<button class="btn btn-sm btn-outline-info ver-grupos" data-bs-toggle="tooltip" title="Ver grupos de interés">
-                                <i class="fas fa-users"></i> ${item.grupos_interes.length}
-                               </button>` 
-                            : `<span class="badge bg-secondary">0</span>`}
-                    </td>
-                    <td class="text-center"><span class="badge ${badgeClass}">${badgeText}</span></td>
                 `;
             }
-            filaHTML += '</tr>';
-            tbody.innerHTML += filaHTML;
+            
+            // Añadir celdas de categorías dinámicamente
+            todasCategorias.forEach(cat => {
+                const td = document.createElement('td');
+                td.className = 'text-center';
+                
+                const conteo = item.categorias_count && item.categorias_count[cat.id] 
+                    ? item.categorias_count[cat.id] 
+                    : 0;
+                
+                if (conteo > 0) {
+                    td.innerHTML = `<span class="badge bg-primary rounded-pill">${conteo}</span>`;
+                } else {
+                    td.innerHTML = `<span class="text-muted">-</span>`;
+                }
+                
+                tr.appendChild(td);
+            });
+            
+            // Añadir columna de clasificación
+            const tdClasificacion = document.createElement('td');
+            tdClasificacion.className = 'text-center';
+            tdClasificacion.innerHTML = `<span class="badge ${badgeClass}">${badgeText}</span>`;
+            tr.appendChild(tdClasificacion);
+            
+            // Añadir columna de acciones
+            const tdAcciones = document.createElement('td');
+            tdAcciones.className = 'text-center';
+            tdAcciones.innerHTML = `
+                <button class="btn btn-sm btn-primary ver-detalle-municipio" title="Ver detalle">
+                    <i class="fas fa-search"></i>
+                </button>
+            `;
+            tr.appendChild(tdAcciones);
+            
+            // Añadir fila a la tabla
+            tbody.appendChild(tr);
         });
         
         // Reiniciar tooltips después de actualizar el DOM
@@ -1294,6 +1389,21 @@
             // Llamar a la función una vez al inicio para establecer la vista por defecto (Municipios)
             actualizarVistaTabla();
 
+            // Configurar evento para botones de detalle de municipio/región
+            document.addEventListener('click', function(e) {
+                // Evento para botones de ver detalle
+                if (e.target.closest('.ver-detalle-municipio')) {
+                    const btn = e.target.closest('.ver-detalle-municipio');
+                    const fila = btn.closest('tr');
+                    const entidadId = fila.getAttribute('data-id');
+                    const entidadNombre = fila.querySelector('td:first-child').textContent;
+                    const tipoEntidad = fila.getAttribute('data-tipo');
+                    
+                    mostrarDetalleFormularios(entidadId, entidadNombre, tipoEntidad);
+                }
+                
+                // ... existing code para ver grupos ...
+            });
 
         } catch (error) {
             console.error("Error durante la inicialización general:", error);
@@ -1311,58 +1421,134 @@
 
             // Crear un libro de Excel
             const wb = XLSX.utils.book_new();
+            
+            // --- HOJA DE INFORMACIÓN ---
+            const hojaInfo = [];
+            // Título principal
+            hojaInfo.push([`ESTADÍSTICAS POR ${vistaActual === 'vistaMunicipios' ? 'MUNICIPIOS' : 'REGIONES'}`]);
+            hojaInfo.push(['']);
+            
+            // Información del reporte
+            hojaInfo.push(['INFORMACIÓN DEL REPORTE']);
+            hojaInfo.push(['Fecha de generación:', new Date().toLocaleString()]);
+            hojaInfo.push(['']);
+            
+            // Filtros aplicados
+            hojaInfo.push(['FILTROS APLICADOS']);
+            hojaInfo.push(['Región:', regionSeleccionada]);
+            if (vistaActual === 'vistaMunicipios') {
+                hojaInfo.push(['Municipio:', municipioSeleccionado]);
+            }
+            hojaInfo.push(['']);
+            
+            // Resumen estadístico
+            hojaInfo.push(['RESUMEN ESTADÍSTICO']);
+            hojaInfo.push(['Total encuestas:', '{{ total_encuestas }}']);
+            hojaInfo.push(['Total respuestas:', '{{ total_respuestas }}']);
+            hojaInfo.push(['Encuestas completadas:', '{{ total_encuestas_completadas }}']);
+            hojaInfo.push(['Tasa de finalización:', '{{ tasa_finalizacion }}%']);
+            
+            // Crear hoja de información
+            const wsInfo = XLSX.utils.aoa_to_sheet(hojaInfo);
+            
+            // Combinar celdas para títulos
+            if (!wsInfo['!merges']) wsInfo['!merges'] = [];
+            wsInfo['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } });
+            wsInfo['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 2, c: 1 } });
+            wsInfo['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: 1 } });
+            wsInfo['!merges'].push({ s: { r: 9, c: 0 }, e: { r: 9, c: 1 } });
+            
+            // Ajustar anchos de columna para la hoja de información
+            wsInfo['!cols'] = [
+                {wch: 25}, // Primera columna (etiquetas)
+                {wch: 50}  // Segunda columna (valores)
+            ];
+            
+            // Añadir hoja de información
+            XLSX.utils.book_append_sheet(wb, wsInfo, "Información");
 
-            // Preparar datos para Excel (no usar directamente la tabla HTML)
+            // --- HOJA PRINCIPAL DE DATOS ---
+            // Preparar datos para Excel
             const datos = [];
             
-            // Encabezados según vista actual
+            // Título de la tabla
+            datos.push([`ESTADÍSTICAS POR ${vistaActual === 'vistaMunicipios' ? 'MUNICIPIOS' : 'REGIONES'}`]);
+            datos.push(['']);
+            
+            // Obtener encabezados dinámicos según categorías
+            let encabezados = [];
             if (vistaActual === 'vistaMunicipios') {
-                datos.push([
+                encabezados = [
                     'Municipio', 
                     'Región', 
                     'Total Encuestas', 
                     'Total Respuestas', 
                     'Encuestas Completadas', 
-                    'Tasa Finalización (%)', 
-                    'Categorías', 
-                    'Grupos de Interés', 
-                    'Clasificación'
-                ]);
+                    'Tasa Finalización (%)'
+                ];
                 
-                // Datos de municipios (usando el array original, no la vista paginada)
+                // Añadir columnas de categorías
+                todasCategorias.forEach(cat => {
+                    encabezados.push(`Categoría: ${cat.nombre}`);
+                });
+                
+                // Finalizar encabezados
+                encabezados = encabezados.concat(['Clasificación']);
+                
+                // Agregar encabezados a datos
+                datos.push(encabezados);
+                
+                // Datos de municipios
                 datosTablaMunicipios.forEach(item => {
                     const tasa = parseFloat(item.tasaFinalizacion) || 0;
                     let clasificacion = 'Bajo';
                     if (tasa >= 80) clasificacion = 'Alto';
                     else if (tasa >= 50) clasificacion = 'Medio';
                     
-                    // Categorías y grupos como texto
-                    const categorias = item.categorias ? item.categorias.map(c => c.nombre).join(', ') : '-';
-                    const gruposInteres = item.grupos_interes ? item.grupos_interes.map(g => g.nombre).join(', ') : '-';
                     
-                    datos.push([
+                    // Iniciar fila con datos básicos
+                    const fila = [
                         item.nombre,
                         item.region,
                         item.totalEncuestas,
                         item.totalRespuestas,
                         item.encuestasRespondidas,
-                        tasa.toFixed(1),
-                        categorias,
-                        gruposInteres,
-                        clasificacion
-                    ]);
+                        tasa.toFixed(1)
+                    ];
+                    
+                    // Añadir datos de categorías
+                    todasCategorias.forEach(cat => {
+                        const conteo = item.categorias_count && item.categorias_count[cat.id] 
+                            ? item.categorias_count[cat.id] 
+                            : 0;
+                        fila.push(conteo);
+                    });
+                    
+                    // Finalizar fila
+                    fila.push(clasificacion);
+                    
+                    // Agregar fila a datos
+                    datos.push(fila);
                 });
             } else { // vistaRegiones
-                datos.push([
+                encabezados = [
                     'Región', 
                     'Total Encuestas', 
                     'Total Respuestas', 
                     'Encuestas Completadas', 
-                    'Tasa Finalización (%)', 
-                    'Categorías', 
-                    'Grupos de Interés', 
-                    'Clasificación'
-                ]);
+                    'Tasa Finalización (%)'
+                ];
+                
+                // Añadir columnas de categorías
+                todasCategorias.forEach(cat => {
+                    encabezados.push(`Categoría: ${cat.nombre}`);
+                });
+                
+                // Finalizar encabezados
+                encabezados = encabezados.concat(['Clasificación']);
+                
+                // Agregar encabezados a datos
+                datos.push(encabezados);
                 
                 // Datos de regiones
                 datosTablaRegiones.forEach(item => {
@@ -1371,76 +1557,56 @@
                     if (tasa >= 80) clasificacion = 'Alto';
                     else if (tasa >= 50) clasificacion = 'Medio';
                     
-                    // Categorías y grupos como texto
-                    const categorias = item.categorias ? item.categorias.map(c => c.nombre).join(', ') : '-';
-                    const gruposInteres = item.grupos_interes ? item.grupos_interes.map(g => g.nombre).join(', ') : '-';
-                    
-                    datos.push([
+                    // Iniciar fila con datos básicos
+                    const fila = [
                         item.nombre,
                         item.totalEncuestas,
                         item.totalRespuestas,
                         item.encuestasRespondidas,
-                        tasa.toFixed(1),
-                        categorias,
-                        gruposInteres,
-                        clasificacion
-                    ]);
+                        tasa.toFixed(1)
+                    ];
+                    
+                    // Añadir datos de categorías
+                    todasCategorias.forEach(cat => {
+                        const conteo = item.categorias_count && item.categorias_count[cat.id] 
+                            ? item.categorias_count[cat.id] 
+                            : 0;
+                        fila.push(conteo);
+                    });
+                    
+                    // Finalizar fila
+                    fila.push(clasificacion);
+                    
+                    // Agregar fila a datos
+                    datos.push(fila);
                 });
             }
-            
-            // Agregar hoja descriptiva con información adicional
-            const hojaInfo = [];
-            hojaInfo.push(['ESTADÍSTICAS POR ' + (vistaActual === 'vistaMunicipios' ? 'MUNICIPIOS' : 'REGIONES')]);
-            hojaInfo.push(['']);
-            hojaInfo.push(['Filtros aplicados']);
-            hojaInfo.push(['Región:', regionSeleccionada]);
-            if (vistaActual === 'vistaMunicipios') {
-                hojaInfo.push(['Municipio:', municipioSeleccionado]);
-            }
-            hojaInfo.push(['']);
-            hojaInfo.push(['Fecha de exportación:', new Date().toLocaleString()]);
-            
-            // Crear hoja descriptiva
-            const wsInfo = XLSX.utils.aoa_to_sheet(hojaInfo);
-            // Combinar celdas para el título
-            if (!wsInfo['!merges']) wsInfo['!merges'] = [];
-            wsInfo['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } });
-            
-            // Agregar hojas al libro
-            XLSX.utils.book_append_sheet(wb, wsInfo, "Información");
             
             // Crear hoja principal con los datos de la tabla
             const ws = XLSX.utils.aoa_to_sheet(datos);
             
-            // Ajustar ancho de columnas según vista
-            let wscols = [];
-            if (vistaActual === 'vistaMunicipios') {
-                wscols = [
-                    {wch: 25}, // Municipio
-                    {wch: 20}, // Región
-                    {wch: 15}, // Total Encuestas
-                    {wch: 15}, // Total Respuestas
-                    {wch: 20}, // Encuestas Completadas
-                    {wch: 20}, // Tasa de Finalización
-                    {wch: 30}, // Categorías
-                    {wch: 30}, // Grupos de Interés
-                    {wch: 15}  // Clasificación
-                ];
-            } else { // vistaRegiones
-                wscols = [
-                    {wch: 25}, // Región
-                    {wch: 15}, // Total Encuestas
-                    {wch: 15}, // Total Respuestas
-                    {wch: 20}, // Encuestas Completadas
-                    {wch: 20}, // Tasa de Finalización
-                    {wch: 30}, // Categorías
-                    {wch: 30}, // Grupos de Interés
-                    {wch: 15}  // Clasificación
-                ];
-            }
+            // Combinar celdas para el título
+            if (!ws['!merges']) ws['!merges'] = [];
+            ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: encabezados.length - 1 } });
+            
+            // Calcular anchos de columna dinámicamente
+            const wscols = encabezados.map((header, index) => {
+                // Determinar ancho según tipo de columna
+                if (header.includes('Categoría:')) {
+                    return {wch: 15}; // Categorías
+                } else if (index < 2) {
+                    return {wch: 25}; // Municipio/Región
+                } else {
+                    return {wch: 20}; // Otras columnas
+                }
+            });
+            
             ws['!cols'] = wscols;
             
-            // Agregar la hoja principal al libro
+            // --- CREAR HOJAS PARA CATEGORÍAS Y GRUPOS ---
+            // (similar al código existente, pero adaptado para las categorías dinámicas)
+            
+            // Agregar hojas al libro
             const nombreHoja = vistaActual === 'vistaMunicipios' ? "Municipios" : "Regiones";
             XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
             
@@ -1454,7 +1620,6 @@
             alert("Error al exportar a Excel. Verifique la consola para más detalles.");
         }
     }
-
 
     function inicializarGraficos() {
         const historialElement = document.getElementById('historialChart');
@@ -1726,6 +1891,132 @@
         }
 
     }
+
+    // Función para mostrar detalles de formularios por municipio/región
+    function mostrarDetalleFormularios(entidadId, entidadNombre, tipo) {
+        try {
+            // Construir clave correctamente - asegurarse que coincida con el formato usado en el backend
+            const clave = `${tipo}_${entidadId}`;
+            
+            // Verificar en consola para depuración
+            console.log('Clave para datos formularios:', clave);
+            console.log('Claves disponibles:', Object.keys(datosFormulariosDetalle));
+            
+            // Obtener formularios
+            const formularios = datosFormulariosDetalle[clave] || [];
+            
+            // Actualizar título del modal
+            document.getElementById('modalTituloDetalle').textContent = 
+                `Detalle de Formularios - ${tipo === 'municipio' ? 'Municipio' : 'Región'}`;
+            document.getElementById('modalEntidadNombre').textContent = entidadNombre;
+            
+            // Limpiar tabla
+            const tbody = document.getElementById('cuerpoTablaFormularios');
+            tbody.innerHTML = '';
+            
+            // Si no hay formularios
+            if (!formularios || formularios.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5" class="text-center">No hay formularios disponibles para este ${tipo === 'municipio' ? 'municipio' : 'región'}</td>`;
+                tbody.appendChild(tr);
+            } else {
+                // Llenar tabla con datos
+                formularios.forEach(form => {
+                    const porcentaje = form.total_respuestas > 0 
+                        ? ((form.completadas / form.total_respuestas) * 100).toFixed(1)
+                        : "0.0";
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${form.titulo}</td>
+                        <td><span class="badge bg-info">${form.categoria}</span></td>
+                        <td class="text-center">${form.total_respuestas}</td>
+                        <td class="text-center">${form.completadas}</td>
+                        <td class="text-center">${porcentaje}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            // Configurar botón de exportación de detalle
+            const btnExportar = document.getElementById('exportarDetalleExcel');
+            btnExportar.onclick = () => exportarDetalleExcel(entidadNombre, tipo, formularios);
+            
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('detalleFormulariosModal'));
+            modal.show();
+            
+        } catch (error) {
+            console.error("Error al mostrar detalle de formularios:", error);
+            alert("Ocurrió un error al mostrar el detalle de formularios");
+        }
+    }
+    
+    // Función para exportar detalle a Excel
+    function exportarDetalleExcel(entidadNombre, tipo, formularios) {
+        try {
+            // Crear libro Excel
+            const wb = XLSX.utils.book_new();
+            
+            // Crear datos para hoja de detalle
+            const datosDetalle = [];
+            
+            // Título
+            datosDetalle.push([`DETALLE DE FORMULARIOS - ${tipo === 'municipio' ? 'MUNICIPIO' : 'REGIÓN'}: ${entidadNombre.toUpperCase()}`]);
+            datosDetalle.push(['']);
+            
+            // Encabezados
+            datosDetalle.push(['Formulario', 'Categoría', 'Total Respuestas', 'Completadas', 'Porcentaje Completitud']);
+            
+            // Datos
+            if (!formularios || formularios.length === 0) {
+                datosDetalle.push([`No hay formularios disponibles para este ${tipo === 'municipio' ? 'municipio' : 'región'}`]);
+            } else {
+                formularios.forEach(form => {
+                    const porcentaje = form.total_respuestas > 0 
+                        ? ((form.completadas / form.total_respuestas) * 100).toFixed(1)
+                        : "0.0";
+                    
+                    datosDetalle.push([
+                        form.titulo,
+                        form.categoria,
+                        form.total_respuestas,
+                        form.completadas,
+                        `${porcentaje}%`
+                    ]);
+                });
+            }
+            
+            // Crear hoja
+            const ws = XLSX.utils.aoa_to_sheet(datosDetalle);
+            
+            // Combinar celdas para título
+            if (!ws['!merges']) ws['!merges'] = [];
+            ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
+            
+            // Ajustar anchos
+            ws['!cols'] = [
+                { wch: 50 }, // Formulario
+                { wch: 20 }, // Categoría
+                { wch: 15 }, // Total Respuestas
+                { wch: 15 }, // Completadas
+                { wch: 20 }  // Porcentaje
+            ];
+            
+            // Añadir hoja
+            XLSX.utils.book_append_sheet(wb, ws, "Detalle Formularios");
+            
+            // Generar archivo
+            const fecha = new Date().toISOString().split('T')[0];
+            const nombreArchivo = `detalle_formularios_${entidadNombre.toLowerCase().replace(/\s+/g, '_')}_${fecha}.xlsx`;
+            XLSX.writeFile(wb, nombreArchivo);
+            
+        } catch (error) {
+            console.error("Error al exportar detalle a Excel:", error);
+            alert("Error al exportar detalle. Verifique la consola para más detalles.");
+        }
+    }
+
 </script>
 {% endblock %}
 
