@@ -331,7 +331,8 @@ class GrupoInteresAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'descripcion', 'fecha_creacion']
     search_fields = ['nombre', 'descripcion']
     list_per_page = 20
-    date_hierarchy = 'fecha_creacion'
+    # Comentamos el date_hierarchy para evitar problemas con zonas horarias
+    # date_hierarchy = 'fecha_creacion'
 
 admin.site.register(GrupoInteres, GrupoInteresAdmin)
 
@@ -344,7 +345,8 @@ class EncuestaAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('titulo',)}
     filter_horizontal = []
     readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
-    date_hierarchy = 'fecha_creacion'
+    # Comentamos el date_hierarchy para evitar problemas con zonas horarias
+    # date_hierarchy = 'fecha_creacion'
     list_editable = ['activa', 'es_publica']
     
     fieldsets = (
@@ -519,33 +521,48 @@ class DocumentoCaracterizacionInline(admin.TabularInline):
 class CaracterizacionMunicipalAdmin(admin.ModelAdmin):
     list_display = ('municipio', 'fecha_actualizacion', 'estado', 'creador')
     list_filter = ('estado', 'municipio__region', 'fecha_creacion')
-    search_fields = ('municipio__nombre', 'nombre_alcalde')
-    date_hierarchy = 'fecha_creacion'
+    search_fields = ('municipio__nombre',)
+    # Comentamos el date_hierarchy que está causando el error de zona horaria
+    # date_hierarchy = 'fecha_creacion'
     inlines = [DocumentoCaracterizacionInline]
     fieldsets = (
         ('Información General', {
-            'fields': ('municipio', 'creador', 'nombre_alcalde', 'periodo_gobierno', 'estado')
+            'fields': ('municipio', 'creador', 'estado')
         }),
-        ('Datos Demográficos', {
-            'fields': ('poblacion_total', 'poblacion_urbana', 'poblacion_rural')
+        ('Territorio', {
+            'fields': ('area_km2', 'concejos_comunitarios_ha', 'resguardos_indigenas_ha', 
+                      'zonas_reserva_campesina_ha', 'zonas_reserva_sinap_ha', 'es_municipio_pdei')
         }),
-        ('Datos Geográficos', {
-            'fields': ('extension_territorial', 'altitud', 'temperatura_promedio')
+        ('Datos Demográficos - General', {
+            'fields': ('poblacion_total',)
         }),
-        ('Economía', {
-            'fields': ('principales_actividades_economicas',)
+        ('Datos Demográficos - Hombres', {
+            'fields': ('poblacion_hombres_total', 'poblacion_hombres_rural', 'poblacion_hombres_urbana')
         }),
-        ('Infraestructura', {
-            'fields': ('numero_escuelas', 'numero_centros_salud')
+        ('Datos Demográficos - Mujeres', {
+            'fields': ('poblacion_mujeres_total', 'poblacion_mujeres_rural', 'poblacion_mujeres_urbana')
         }),
-        ('Servicios Básicos', {
-            'fields': ('cobertura_agua_potable', 'cobertura_energia_electrica', 'cobertura_alcantarillado')
+        ('Datos Demográficos - Origen Étnico', {
+            'fields': ('poblacion_indigena', 'poblacion_raizal', 'poblacion_gitano_rrom', 'poblacion_palenquero', 
+                      'poblacion_negro_mulato_afrocolombiano')
         }),
-        ('Información Adicional', {
-            'fields': ('resena_historica', 'sitios_turisticos', 'fiestas_tradicionales')
+        ('Datos Demográficos - Desplazados y Migrantes', {
+            'fields': ('poblacion_desplazada', 'poblacion_migrantes')
         }),
-        ('Información de Contacto', {
-            'fields': ('direccion_alcaldia', 'telefono_alcaldia', 'sitio_web', 'email_contacto')
+        ('Indicadores Socioeconómicos - Pobreza', {
+            'fields': ('necesidades_basicas_insatisfechas', 'proporcion_personas_miseria', 
+                      'indice_pobreza_multidimensional')
+        }),
+        ('Indicadores Socioeconómicos - Educación', {
+            'fields': ('analfabetismo', 'bajo_logro_educativo', 'inasistencia_escolar')
+        }),
+        ('Indicadores Socioeconómicos - Trabajo', {
+            'fields': ('trabajo_informal', 'desempleo_larga_duracion', 'trabajo_infantil')
+        }),
+        ('Indicadores Socioeconómicos - Vivienda y Servicios', {
+            'fields': ('hacinamiento_critico', 'barreras_servicios_cuidado_primera_infancia', 
+                      'barreras_acceso_servicios_salud', 'inadecuada_eliminacion_excretas', 
+                      'sin_acceso_fuente_agua_mejorada', 'sin_aseguramiento_salud')
         }),
         ('Imágenes', {
             'fields': ('escudo', 'bandera')

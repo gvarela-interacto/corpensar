@@ -183,8 +183,6 @@ class Encuesta(models.Model):
         # Ordenar las preguntas por el atributo orden y devolverlas como lista
         return sorted(preguntas, key=lambda p: p.orden)
 
-
-
 class PreguntaBase(models.Model):
     """Modelo abstracto base para todas las preguntas"""
     TIPOS_PREGUNTA = (
@@ -221,7 +219,6 @@ class PreguntaBase(models.Model):
     def __str__(self):
         return f"{self.texto[:50]}... ({self.get_tipo_display()})"
     
-
 
 class PreguntaTexto(PreguntaBase):
     """Pregunta de texto simple"""
@@ -675,48 +672,59 @@ class CaracterizacionMunicipal(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name=_("Fecha de actualización"))
     creador = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creador"))
     
-    # Información general
-    nombre_alcalde = models.CharField(max_length=200, blank=True, verbose_name=_("Nombre del Alcalde"))
-    periodo_gobierno = models.CharField(max_length=100, blank=True, verbose_name=_("Período de Gobierno"))
+    
+    # Territorio
+    area_km2 = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Área (km²)"))
+    concejos_comunitarios_ha = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Consejos Comunitarios (OSPR) (ha)"))
+    resguardos_indigenas_ha = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Resguardos Indígenas (OSPR) (ha)"))
+    zonas_reserva_campesina_ha = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Zonas de Reserva Campesina (OSPR) (ha)"))
+    zonas_reserva_sinap_ha = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Zonas de Reserva (SINAP) (ha)"))
+    es_municipio_pdei = models.BooleanField(default=False, verbose_name=_("Municipio PDEI"))
     
     # Datos demográficos
-    poblacion_total = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Total"))
-    poblacion_urbana = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Urbana"))
-    poblacion_rural = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Rural"))
+    poblacion_total = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("No. Habitantes"))
     
-    # Datos geográficos
-    extension_territorial = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Extensión Territorial (km²)"))
-    altitud = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Altitud (msnm)"))
-    temperatura_promedio = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Temperatura Promedio (°C)"))
+    # Datos demográficos - Hombres
+    poblacion_hombres_total = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Hombres - Total"))
+    poblacion_hombres_rural = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Hombres - Rural"))
+    poblacion_hombres_urbana = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Hombres - Urbana"))
     
-    # Economía
-    principales_actividades_economicas = models.TextField(blank=True, verbose_name=_("Principales Actividades Económicas"))
+    # Datos demográficos - Mujeres
+    poblacion_mujeres_total = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Mujeres - Total"))
+    poblacion_mujeres_rural = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Mujeres - Rural"))
+    poblacion_mujeres_urbana = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Mujeres - Urbana"))
     
-    # Infraestructura
-    numero_escuelas = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Número de Escuelas"))
-    numero_centros_salud = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Número de Centros de Salud"))
+    # Datos demográficos - Origen étnico
+    poblacion_indigena = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Indígena"))
+    poblacion_raizal = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Raizal"))
+    poblacion_gitano_rrom = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Gitano(a)/Rrom"))
+    poblacion_palenquero = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Palenquero(a) de San Basilio"))
+    poblacion_negro_mulato_afrocolombiano = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Negro/Mulato/Afro"))
     
-    # Servicios básicos (porcentajes)
-    cobertura_agua_potable = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, 
-                                             validators=[MinValueValidator(0), MaxValueValidator(100)],
-                                             verbose_name=_("Cobertura de Agua Potable (%)"))
-    cobertura_energia_electrica = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, 
-                                                 validators=[MinValueValidator(0), MaxValueValidator(100)],
-                                                 verbose_name=_("Cobertura de Energía Eléctrica (%)"))
-    cobertura_alcantarillado = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, 
-                                              validators=[MinValueValidator(0), MaxValueValidator(100)],
-                                              verbose_name=_("Cobertura de Alcantarillado (%)"))
+    # Datos demográficos - Población desplazada
+    poblacion_desplazada = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Desplazada"))
     
-    # Información adicional
-    resena_historica = models.TextField(blank=True, verbose_name=_("Reseña Histórica"))
-    sitios_turisticos = models.TextField(blank=True, verbose_name=_("Sitios Turísticos"))
-    fiestas_tradicionales = models.TextField(blank=True, verbose_name=_("Fiestas Tradicionales"))
+    # Datos demográficos - Migrantes
+    poblacion_migrantes = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Migrante"))
     
-    # Información de contacto
-    direccion_alcaldia = models.CharField(max_length=200, blank=True, verbose_name=_("Dirección de la Alcaldía"))
-    telefono_alcaldia = models.CharField(max_length=50, blank=True, verbose_name=_("Teléfono de la Alcaldía"))
-    sitio_web = models.URLField(blank=True, verbose_name=_("Sitio Web"))
-    email_contacto = models.EmailField(blank=True, verbose_name=_("Email de Contacto"))
+    # Indicadores Socioeconómicos
+    necesidades_basicas_insatisfechas = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Necesidades Básicas Insatisfechas (%)"))
+    proporcion_personas_miseria = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Proporción de personas en miseria (%)"))
+    indice_pobreza_multidimensional = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Índice de pobreza multidimensional (%)"))
+    analfabetismo = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Analfabetismo (%)"))
+    bajo_logro_educativo = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Bajo logro educativo (%)"))
+    inasistencia_escolar = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Inasistencia escolar (%)"))
+    trabajo_informal = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Trabajo informal (%)"))
+    desempleo_larga_duracion = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Desempleo de larga duración (%)"))
+    trabajo_infantil = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Trabajo infantil (%)"))
+    hacinamiento_critico = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Hacinamiento crítico (%)"))
+    barreras_servicios_cuidado_primera_infancia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Barreras a servicios cuidado primera infancia (%)"))
+    barreras_acceso_servicios_salud = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Barreras acceso servicios salud (%)"))
+    inadecuada_eliminacion_excretas = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Inadecuada eliminación de excretas (%)"))
+    sin_acceso_fuente_agua_mejorada = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Sin acceso a fuente de agua mejorada (%)"))
+    sin_aseguramiento_salud = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Sin aseguramiento en salud (%)"))
+    
+ 
     
     # Campo para documentos o imágenes adicionales
     escudo = models.ImageField(upload_to='caracterizacion/escudos/', null=True, blank=True, verbose_name=_("Escudo"))

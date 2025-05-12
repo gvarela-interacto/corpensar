@@ -60,24 +60,75 @@
                                 </div>
                             </div>
                             
+                            <!-- Territorio -->
+                            <div class="section-header mb-4">
+                                <h5 class="text-primary">
+                                    <i class="fa fa-map me-2"></i>Territorio
+                                </h5>
+                                <hr class="text-primary">
+                            </div>
+                            
                             <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="{{ form.nombre_alcalde.id_for_label }}" class="form-label fw-bold">Nombre del Alcalde</label>
-                                    {{ form.nombre_alcalde }}
-                                    {% if form.nombre_alcalde.errors %}
+                                <div class="col-md-4">
+                                    <label for="{{ form.area_km2.id_for_label }}" class="form-label fw-bold">Área (km²)</label>
+                                    {{ form.area_km2 }}
+                                    {% if form.area_km2.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.nombre_alcalde.errors }}
+                                            {{ form.area_km2.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.periodo_gobierno.id_for_label }}" class="form-label fw-bold">Período de Gobierno</label>
-                                    {{ form.periodo_gobierno }}
-                                    {% if form.periodo_gobierno.errors %}
+                                <div class="col-md-4">
+                                    <label for="{{ form.concejos_comunitarios_ha.id_for_label }}" class="form-label fw-bold">Consejos Comunitarios (OSPR) (ha)</label>
+                                    {{ form.concejos_comunitarios_ha }}
+                                    {% if form.concejos_comunitarios_ha.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.periodo_gobierno.errors }}
+                                            {{ form.concejos_comunitarios_ha.errors }}
                                         </div>
                                     {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.resguardos_indigenas_ha.id_for_label }}" class="form-label fw-bold">Resguardos Indígenas (OSPR) (ha)</label>
+                                    {{ form.resguardos_indigenas_ha }}
+                                    {% if form.resguardos_indigenas_ha.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.resguardos_indigenas_ha.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label for="{{ form.zonas_reserva_campesina_ha.id_for_label }}" class="form-label fw-bold">Zonas de Reserva Campesina (OSPR) (ha)</label>
+                                    {{ form.zonas_reserva_campesina_ha }}
+                                    {% if form.zonas_reserva_campesina_ha.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.zonas_reserva_campesina_ha.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.zonas_reserva_sinap_ha.id_for_label }}" class="form-label fw-bold">Zonas de Reserva (SINAP) (ha)</label>
+                                    {{ form.zonas_reserva_sinap_ha }}
+                                    {% if form.zonas_reserva_sinap_ha.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.zonas_reserva_sinap_ha.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check mt-4">
+                                        {{ form.es_municipio_pdei }}
+                                        <label class="form-check-label fw-bold" for="{{ form.es_municipio_pdei.id_for_label }}">
+                                            Municipio PDEI
+                                        </label>
+                                        {% if form.es_municipio_pdei.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.es_municipio_pdei.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                             
@@ -89,9 +140,13 @@
                                 <hr class="text-primary">
                             </div>
                             
+                            <!-- Habitantes -->
                             <div class="row g-3 mb-4">
-                                <div class="col-md-4">
-                                    <label for="{{ form.poblacion_total.id_for_label }}" class="form-label fw-bold">Población Total</label>
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Habitantes</h6>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="{{ form.poblacion_total.id_for_label }}" class="form-label fw-bold">No. Habitantes</label>
                                     {{ form.poblacion_total }}
                                     {% if form.poblacion_total.errors %}
                                         <div class="invalid-feedback d-block">
@@ -99,234 +154,319 @@
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.poblacion_urbana.id_for_label }}" class="form-label fw-bold">Población Urbana</label>
-                                    {{ form.poblacion_urbana }}
-                                    {% if form.poblacion_urbana.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.poblacion_urbana.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.poblacion_rural.id_for_label }}" class="form-label fw-bold">Población Rural</label>
-                                    {{ form.poblacion_rural }}
-                                    {% if form.poblacion_rural.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.poblacion_rural.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
                             </div>
                             
-                            <!-- Datos Geográficos -->
-                            <div class="section-header mb-4">
-                                <h5 class="text-primary">
-                                    <i class="fa fa-map-marker-alt me-2"></i>Datos Geográficos
-                                </h5>
-                                <hr class="text-primary">
-                            </div>
-                            
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-4">
-                                    <label for="{{ form.extension_territorial.id_for_label }}" class="form-label fw-bold">Extensión Territorial (km²)</label>
-                                    {{ form.extension_territorial }}
-                                    {% if form.extension_territorial.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.extension_territorial.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.altitud.id_for_label }}" class="form-label fw-bold">Altitud (msnm)</label>
-                                    {{ form.altitud }}
-                                    {% if form.altitud.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.altitud.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.temperatura_promedio.id_for_label }}" class="form-label fw-bold">Temperatura Promedio (°C)</label>
-                                    {{ form.temperatura_promedio }}
-                                    {% if form.temperatura_promedio.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.temperatura_promedio.errors }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <!-- Economía -->
-                            <div class="section-header mb-4">
-                                <h5 class="text-primary">
-                                    <i class="fa fa-chart-line me-2"></i>Economía
-                                </h5>
-                                <hr class="text-primary">
-                            </div>
-                            
+                            <!-- Género -->
                             <div class="row g-3 mb-4">
                                 <div class="col-md-12">
-                                    <label for="{{ form.principales_actividades_economicas.id_for_label }}" class="form-label fw-bold">Principales Actividades Económicas</label>
-                                    {{ form.principales_actividades_economicas }}
-                                    {% if form.principales_actividades_economicas.errors %}
+                                    <h6 class="text-secondary">Distribución por Género</h6>
+                                </div>
+                                <!-- Hombres -->
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Hombres</h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Mujeres</h6>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="{{ form.poblacion_hombres_total.id_for_label }}" class="form-label fw-bold">Total</label>
+                                    {{ form.poblacion_hombres_total }}
+                                    {% if form.poblacion_hombres_total.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.principales_actividades_economicas.errors }}
+                                            {{ form.poblacion_hombres_total.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="{{ form.poblacion_hombres_rural.id_for_label }}" class="form-label fw-bold">Rural</label>
+                                    {{ form.poblacion_hombres_rural }}
+                                    {% if form.poblacion_hombres_rural.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_hombres_rural.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="{{ form.poblacion_hombres_urbana.id_for_label }}" class="form-label fw-bold">Urbana</label>
+                                    {{ form.poblacion_hombres_urbana }}
+                                    {% if form.poblacion_hombres_urbana.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_hombres_urbana.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="{{ form.poblacion_mujeres_total.id_for_label }}" class="form-label fw-bold">Total</label>
+                                    {{ form.poblacion_mujeres_total }}
+                                    {% if form.poblacion_mujeres_total.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_mujeres_total.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="{{ form.poblacion_mujeres_rural.id_for_label }}" class="form-label fw-bold">Rural</label>
+                                    {{ form.poblacion_mujeres_rural }}
+                                    {% if form.poblacion_mujeres_rural.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_mujeres_rural.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="{{ form.poblacion_mujeres_urbana.id_for_label }}" class="form-label fw-bold">Urbana</label>
+                                    {{ form.poblacion_mujeres_urbana }}
+                                    {% if form.poblacion_mujeres_urbana.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_mujeres_urbana.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                             
-                            <!-- Infraestructura -->
+                            <!-- Origen Étnico -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Población por Origen Étnico</h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.poblacion_indigena.id_for_label }}" class="form-label fw-bold">Indígena</label>
+                                    {{ form.poblacion_indigena }}
+                                    {% if form.poblacion_indigena.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_indigena.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.poblacion_raizal.id_for_label }}" class="form-label fw-bold">Raizal</label>
+                                    {{ form.poblacion_raizal }}
+                                    {% if form.poblacion_raizal.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_raizal.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.poblacion_gitano_rrom.id_for_label }}" class="form-label fw-bold">Gitano(a)/Rrom</label>
+                                    {{ form.poblacion_gitano_rrom }}
+                                    {% if form.poblacion_gitano_rrom.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_gitano_rrom.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.poblacion_palenquero.id_for_label }}" class="form-label fw-bold">Palenquero(a) de San Basilio</label>
+                                    {{ form.poblacion_palenquero }}
+                                    {% if form.poblacion_palenquero.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_palenquero.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.poblacion_negro_mulato_afrocolombiano.id_for_label }}" class="form-label fw-bold">Negro/Mulato/Afro</label>
+                                    {{ form.poblacion_negro_mulato_afrocolombiano }}
+                                    {% if form.poblacion_negro_mulato_afrocolombiano.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_negro_mulato_afrocolombiano.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Desplazados y Migrantes -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Desplazados y Migrantes</h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.poblacion_desplazada.id_for_label }}" class="form-label fw-bold">Población Desplazada</label>
+                                    {{ form.poblacion_desplazada }}
+                                    {% if form.poblacion_desplazada.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_desplazada.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.poblacion_migrantes.id_for_label }}" class="form-label fw-bold">Población Migrante</label>
+                                    {{ form.poblacion_migrantes }}
+                                    {% if form.poblacion_migrantes.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.poblacion_migrantes.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Indicadores Socioeconómicos -->
                             <div class="section-header mb-4">
                                 <h5 class="text-primary">
-                                    <i class="fa fa-building me-2"></i>Infraestructura
+                                    <i class="fa fa-chart-line me-2"></i>Indicadores Socioeconómicos
                                 </h5>
                                 <hr class="text-primary">
                             </div>
                             
+                            <!-- Pobreza -->
                             <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="{{ form.numero_escuelas.id_for_label }}" class="form-label fw-bold">Número de Escuelas</label>
-                                    {{ form.numero_escuelas }}
-                                    {% if form.numero_escuelas.errors %}
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Pobreza</h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.necesidades_basicas_insatisfechas.id_for_label }}" class="form-label fw-bold">Necesidades Básicas Insatisfechas (%)</label>
+                                    {{ form.necesidades_basicas_insatisfechas }}
+                                    {% if form.necesidades_basicas_insatisfechas.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.numero_escuelas.errors }}
+                                            {{ form.necesidades_basicas_insatisfechas.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.numero_centros_salud.id_for_label }}" class="form-label fw-bold">Número de Centros de Salud</label>
-                                    {{ form.numero_centros_salud }}
-                                    {% if form.numero_centros_salud.errors %}
+                                <div class="col-md-4">
+                                    <label for="{{ form.proporcion_personas_miseria.id_for_label }}" class="form-label fw-bold">Proporción de personas en miseria (%)</label>
+                                    {{ form.proporcion_personas_miseria }}
+                                    {% if form.proporcion_personas_miseria.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.numero_centros_salud.errors }}
+                                            {{ form.proporcion_personas_miseria.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.indice_pobreza_multidimensional.id_for_label }}" class="form-label fw-bold">Índice de pobreza multidimensional (%)</label>
+                                    {{ form.indice_pobreza_multidimensional }}
+                                    {% if form.indice_pobreza_multidimensional.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.indice_pobreza_multidimensional.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                             
-                            <!-- Servicios Básicos -->
-                            <div class="section-header mb-4">
-                                <h5 class="text-primary">
-                                    <i class="fa fa-water me-2"></i>Servicios Básicos
-                                </h5>
-                                <hr class="text-primary">
-                            </div>
-                            
+                            <!-- Educación -->
                             <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Educación</h6>
+                                </div>
                                 <div class="col-md-4">
-                                    <label for="{{ form.cobertura_agua_potable.id_for_label }}" class="form-label fw-bold">Cobertura de Agua Potable (%)</label>
-                                    {{ form.cobertura_agua_potable }}
-                                    {% if form.cobertura_agua_potable.errors %}
+                                    <label for="{{ form.analfabetismo.id_for_label }}" class="form-label fw-bold">Analfabetismo (%)</label>
+                                    {{ form.analfabetismo }}
+                                    {% if form.analfabetismo.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.cobertura_agua_potable.errors }}
+                                            {{ form.analfabetismo.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="{{ form.cobertura_energia_electrica.id_for_label }}" class="form-label fw-bold">Cobertura de Energía Eléctrica (%)</label>
-                                    {{ form.cobertura_energia_electrica }}
-                                    {% if form.cobertura_energia_electrica.errors %}
+                                    <label for="{{ form.bajo_logro_educativo.id_for_label }}" class="form-label fw-bold">Bajo logro educativo (%)</label>
+                                    {{ form.bajo_logro_educativo }}
+                                    {% if form.bajo_logro_educativo.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.cobertura_energia_electrica.errors }}
+                                            {{ form.bajo_logro_educativo.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="{{ form.cobertura_alcantarillado.id_for_label }}" class="form-label fw-bold">Cobertura de Alcantarillado (%)</label>
-                                    {{ form.cobertura_alcantarillado }}
-                                    {% if form.cobertura_alcantarillado.errors %}
+                                    <label for="{{ form.inasistencia_escolar.id_for_label }}" class="form-label fw-bold">Inasistencia escolar (%)</label>
+                                    {{ form.inasistencia_escolar }}
+                                    {% if form.inasistencia_escolar.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.cobertura_alcantarillado.errors }}
+                                            {{ form.inasistencia_escolar.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                             
-                            <!-- Información Adicional -->
-                            <div class="section-header mb-4">
-                                <h5 class="text-primary">
-                                    <i class="fa fa-info me-2"></i>Información Adicional
-                                </h5>
-                                <hr class="text-primary">
-                            </div>
-                            
+                            <!-- Trabajo -->
                             <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Trabajo</h6>
+                                </div>
                                 <div class="col-md-4">
-                                    <label for="{{ form.resena_historica.id_for_label }}" class="form-label fw-bold">Reseña Histórica</label>
-                                    {{ form.resena_historica }}
-                                    {% if form.resena_historica.errors %}
+                                    <label for="{{ form.trabajo_informal.id_for_label }}" class="form-label fw-bold">Trabajo informal (%)</label>
+                                    {{ form.trabajo_informal }}
+                                    {% if form.trabajo_informal.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.resena_historica.errors }}
+                                            {{ form.trabajo_informal.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="{{ form.sitios_turisticos.id_for_label }}" class="form-label fw-bold">Sitios Turísticos</label>
-                                    {{ form.sitios_turisticos }}
-                                    {% if form.sitios_turisticos.errors %}
+                                    <label for="{{ form.desempleo_larga_duracion.id_for_label }}" class="form-label fw-bold">Desempleo de larga duración (%)</label>
+                                    {{ form.desempleo_larga_duracion }}
+                                    {% if form.desempleo_larga_duracion.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.sitios_turisticos.errors }}
+                                            {{ form.desempleo_larga_duracion.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="{{ form.fiestas_tradicionales.id_for_label }}" class="form-label fw-bold">Fiestas Tradicionales</label>
-                                    {{ form.fiestas_tradicionales }}
-                                    {% if form.fiestas_tradicionales.errors %}
+                                    <label for="{{ form.trabajo_infantil.id_for_label }}" class="form-label fw-bold">Trabajo infantil (%)</label>
+                                    {{ form.trabajo_infantil }}
+                                    {% if form.trabajo_infantil.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.fiestas_tradicionales.errors }}
+                                            {{ form.trabajo_infantil.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                             
-                            <!-- Información de Contacto -->
-                            <div class="section-header mb-4">
-                                <h5 class="text-primary">
-                                    <i class="fa fa-address-book me-2"></i>Información de Contacto
-                                </h5>
-                                <hr class="text-primary">
-                            </div>
-                            
+                            <!-- Vivienda y Servicios -->
                             <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="{{ form.direccion_alcaldia.id_for_label }}" class="form-label fw-bold">Dirección de la Alcaldía</label>
-                                    {{ form.direccion_alcaldia }}
-                                    {% if form.direccion_alcaldia.errors %}
+                                <div class="col-md-12">
+                                    <h6 class="text-secondary">Vivienda y Servicios</h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.hacinamiento_critico.id_for_label }}" class="form-label fw-bold">Hacinamiento crítico (%)</label>
+                                    {{ form.hacinamiento_critico }}
+                                    {% if form.hacinamiento_critico.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.direccion_alcaldia.errors }}
+                                            {{ form.hacinamiento_critico.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.telefono_alcaldia.id_for_label }}" class="form-label fw-bold">Teléfono de la Alcaldía</label>
-                                    {{ form.telefono_alcaldia }}
-                                    {% if form.telefono_alcaldia.errors %}
+                                <div class="col-md-4">
+                                    <label for="{{ form.barreras_servicios_cuidado_primera_infancia.id_for_label }}" class="form-label fw-bold">Barreras a servicios cuidado primera infancia (%)</label>
+                                    {{ form.barreras_servicios_cuidado_primera_infancia }}
+                                    {% if form.barreras_servicios_cuidado_primera_infancia.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.telefono_alcaldia.errors }}
+                                            {{ form.barreras_servicios_cuidado_primera_infancia.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
-                            </div>
-                            
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="{{ form.sitio_web.id_for_label }}" class="form-label fw-bold">Sitio Web</label>
-                                    {{ form.sitio_web }}
-                                    {% if form.sitio_web.errors %}
+                                <div class="col-md-4">
+                                    <label for="{{ form.barreras_acceso_servicios_salud.id_for_label }}" class="form-label fw-bold">Barreras acceso servicios salud (%)</label>
+                                    {{ form.barreras_acceso_servicios_salud }}
+                                    {% if form.barreras_acceso_servicios_salud.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.sitio_web.errors }}
+                                            {{ form.barreras_acceso_servicios_salud.errors }}
                                         </div>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.email_contacto.id_for_label }}" class="form-label fw-bold">Email de Contacto</label>
-                                    {{ form.email_contacto }}
-                                    {% if form.email_contacto.errors %}
+                                <div class="col-md-4">
+                                    <label for="{{ form.inadecuada_eliminacion_excretas.id_for_label }}" class="form-label fw-bold">Inadecuada eliminación de excretas (%)</label>
+                                    {{ form.inadecuada_eliminacion_excretas }}
+                                    {% if form.inadecuada_eliminacion_excretas.errors %}
                                         <div class="invalid-feedback d-block">
-                                            {{ form.email_contacto.errors }}
+                                            {{ form.inadecuada_eliminacion_excretas.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.sin_acceso_fuente_agua_mejorada.id_for_label }}" class="form-label fw-bold">Sin acceso a fuente de agua mejorada (%)</label>
+                                    {{ form.sin_acceso_fuente_agua_mejorada }}
+                                    {% if form.sin_acceso_fuente_agua_mejorada.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.sin_acceso_fuente_agua_mejorada.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.sin_aseguramiento_salud.id_for_label }}" class="form-label fw-bold">Sin aseguramiento en salud (%)</label>
+                                    {{ form.sin_aseguramiento_salud }}
+                                    {% if form.sin_aseguramiento_salud.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.sin_aseguramiento_salud.errors }}
                                         </div>
                                     {% endif %}
                                 </div>

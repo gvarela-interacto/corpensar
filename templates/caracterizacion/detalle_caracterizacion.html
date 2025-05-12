@@ -6,10 +6,13 @@
 {% block content %}
 <div class="content-wrapper">
     <div class="container-fluid">
-        <!-- Breadcrumb-->
+        <!-- Encabezado y breadcrumb -->
         <div class="row pt-2 pb-2">
             <div class="col-sm-9">
-                <h4 class="page-title">Caracterización de {{ caracterizacion.municipio.nombre }}</h4>
+                <h4 class="page-title text-primary">
+                    <i class="fas fa-building me-2"></i>Municipio <span class="text-secondary">{{ caracterizacion.municipio.nombre }}</span>
+                    <small class="text-muted ms-2">Departamento <span class="text-info">{{ caracterizacion.municipio.region.nombre }}</span></small>
+                </h4>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}">Caracterización Municipal</a></li>
@@ -17,425 +20,700 @@
                 </ol>
             </div>
             <div class="col-sm-3">
-                <div class="btn-group float-sm-right">
+                <div class="btn-group float-sm-end">
                     <a href="{% url 'editar_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-warning">
-                        <i class="fa fa-edit"></i> Editar
+                        <i class="fas fa-edit"></i> Editar
                     </a>
                     <a href="{% url 'eliminar_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-danger">
-                        <i class="fa fa-trash"></i> Eliminar
+                        <i class="fas fa-trash"></i> Eliminar
                     </a>
                 </div>
             </div>
         </div>
-        <!-- End Breadcrumb-->
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fa fa-info-circle"></i> Información de Caracterización
-                        <div class="card-actions">
-                            {% if caracterizacion.estado == 'borrador' %}
-                                <span class="badge badge-warning">Borrador</span>
-                            {% elif caracterizacion.estado == 'publicado' %}
-                                <span class="badge badge-success">Publicado</span>
-                            {% elif caracterizacion.estado == 'archivado' %}
-                                <span class="badge badge-secondary">Archivado</span>
-                            {% endif %}
+        <!-- Información del Estado -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="text-end">
+                    <span class="badge rounded-pill bg-{{ caracterizacion.estado|default:'borrador'|yesno:'success,warning,secondary' }} fs-6 px-3 py-2">
+                        {{ caracterizacion.estado|default:'borrador'|title }}
+                    </span>
+                    <a href="{% url 'agregar_documento' pk=caracterizacion.pk %}" class="btn btn-info ms-2">
+                        <i class="fas fa-plus"></i> Agregar Documento
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Territorio -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-map-marker-alt me-2"></i> Territorio
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4 col-lg-2">
+                        <div class="text-center">
+                            <div class="circular-indicator bg-info">
+                                <i class="fas fa-globe-americas text-white"></i>
+                            </div>
+                            <h6 class="mt-3 mb-2">Área</h6>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.area_km2|default:"0" }} km²</p>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-primary text-white">
-                                        <i class="fa fa-info-circle"></i> Información General
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Municipio:</label>
-                                                    <p>{{ caracterizacion.municipio.nombre }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Región:</label>
-                                                    <p>{{ caracterizacion.municipio.region.nombre }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Nombre del Alcalde:</label>
-                                                    <p>{{ caracterizacion.nombre_alcalde|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Período de Gobierno:</label>
-                                                    <p>{{ caracterizacion.periodo_gobierno|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Fecha de Creación:</label>
-                                                    <p>{{ caracterizacion.fecha_creacion|date:"d/m/Y H:i" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Última Actualización:</label>
-                                                    <p>{{ caracterizacion.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="col-md-4 col-lg-2">
+                        <div class="text-center">
+                            <div class="circular-indicator bg-primary">
+                                <i class="fas fa-users text-white"></i>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-info text-white">
-                                        <i class="fa fa-image"></i> Símbolos Municipales
+                            <h6 class="mt-3 mb-2">Consejos Comunitarios</h6>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.concejos_comunitarios_ha|default:"0" }} ha</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2">
+                        <div class="text-center">
+                            <div class="circular-indicator bg-success">
+                                <i class="fas fa-landmark text-white"></i>
+                            </div>
+                            <h6 class="mt-3 mb-2">Resguardos Indígenas</h6>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.resguardos_indigenas_ha|default:"0" }} ha</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2">
+                        <div class="text-center">
+                            <div class="circular-indicator bg-warning">
+                                <i class="fas fa-tree text-white"></i>
+                            </div>
+                            <h6 class="mt-3 mb-2">Zonas Reserva Campesina</h6>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.zonas_reserva_campesina_ha|default:"0" }} ha</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2">
+                        <div class="text-center">
+                            <div class="circular-indicator bg-info">
+                                <i class="fas fa-leaf text-white"></i>
+                            </div>
+                            <h6 class="mt-3 mb-2">Zonas Reserva (SINAP)</h6>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.zonas_reserva_sinap_ha|default:"0" }} ha</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2">
+                        <div class="text-center">
+                            <div class="circular-indicator {% if caracterizacion.es_municipio_pdei %}bg-success{% else %}bg-secondary{% endif %}">
+                                <i class="fas {% if caracterizacion.es_municipio_pdei %}fa-check{% else %}fa-times{% endif %} text-white"></i>
+                            </div>
+                            <h6 class="mt-3 mb-2">Municipio PDEI</h6>
+                            <p class="fs-5 fw-bold mb-0">{% if caracterizacion.es_municipio_pdei %}Sí{% else %}No{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Demografía -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-users me-2"></i> Demografía
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Total habitantes -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="text-center py-3">
+                            <div class="circular-indicator bg-primary mx-auto mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-user-friends fa-2x text-white"></i>
+                            </div>
+                            <h6 class="mb-2">No. Habitantes</h6>
+                            <p class="fs-3 fw-bold mb-0">{{ caracterizacion.poblacion_total|default:"0" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Género -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-primary py-3">
+                                <h6 class="mb-0 text-white"><i class="fas fa-male me-2"></i> Hombres</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-primary-light">
+                                                <i class="fas fa-users text-primary"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Total</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_total|default:"0" }}</p>
+                                        </div>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6 text-center">
-                                                <h6>Escudo</h6>
-                                                {% if caracterizacion.escudo %}
-                                                    <img src="{{ caracterizacion.escudo.url }}" alt="Escudo de {{ caracterizacion.municipio.nombre }}" class="img-fluid mb-2" style="max-height: 150px;">
-                                                {% else %}
-                                                    <div class="alert alert-info">No hay escudo disponible</div>
-                                                {% endif %}
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-tractor text-success"></i>
                                             </div>
-                                            <div class="col-md-6 text-center">
-                                                <h6>Bandera</h6>
-                                                {% if caracterizacion.bandera %}
-                                                    <img src="{{ caracterizacion.bandera.url }}" alt="Bandera de {{ caracterizacion.municipio.nombre }}" class="img-fluid mb-2" style="max-height: 150px;">
-                                                {% else %}
-                                                    <div class="alert alert-info">No hay bandera disponible</div>
-                                                {% endif %}
+                                            <h6 class="mt-3 mb-1">Rural</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_rural|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-info-light">
+                                                <i class="fas fa-city text-info"></i>
                                             </div>
+                                            <h6 class="mt-3 mb-1">Urbana</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_urbana|default:"0" }}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-success text-white">
-                                        <i class="fa fa-users"></i> Datos Demográficos
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Población Total:</label>
-                                                    <p>{{ caracterizacion.poblacion_total|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Población Urbana:</label>
-                                                    <p>{{ caracterizacion.poblacion_urbana|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Población Rural:</label>
-                                                    <p>{{ caracterizacion.poblacion_rural|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">% Población Urbana:</label>
-                                                    <p>{{ caracterizacion.porcentaje_poblacion_urbana|floatformat:2|default:"No disponible" }}%</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">% Población Rural:</label>
-                                                    <p>{{ caracterizacion.porcentaje_poblacion_rural|floatformat:2|default:"No disponible" }}%</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-pink py-3">
+                                <h6 class="mb-0 text-white"><i class="fas fa-female me-2"></i> Mujeres</h6>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-warning text-white">
-                                        <i class="fa fa-map-marker"></i> Datos Geográficos
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Extensión Territorial:</label>
-                                                    <p>{{ caracterizacion.extension_territorial|default:"No especificado" }} km²</p>
-                                                </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-pink-light">
+                                                <i class="fas fa-users text-pink"></i>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Altitud:</label>
-                                                    <p>{{ caracterizacion.altitud|default:"No especificado" }} msnm</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Temperatura Promedio:</label>
-                                                    <p>{{ caracterizacion.temperatura_promedio|default:"No especificado" }} °C</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Coordenadas:</label>
-                                                    <p>Latitud: {{ caracterizacion.municipio.latitud|default:"No especificado" }}, Longitud: {{ caracterizacion.municipio.longitud|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
+                                            <h6 class="mt-3 mb-1">Total</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_total|default:"0" }}</p>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header bg-dark text-white">
-                                        <i class="fa fa-money"></i> Economía
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label class="form-label font-weight-bold">Principales Actividades Económicas:</label>
-                                            <div>{{ caracterizacion.principales_actividades_economicas|default:"No especificado"|linebreaks }}</div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-tractor text-success"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Rural</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_rural|default:"0" }}</p>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-secondary text-white">
-                                        <i class="fa fa-building"></i> Infraestructura
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Número de Escuelas:</label>
-                                                    <p>{{ caracterizacion.numero_escuelas|default:"No especificado" }}</p>
-                                                </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-info-light">
+                                                <i class="fas fa-city text-info"></i>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Número de Centros de Salud:</label>
-                                                    <p>{{ caracterizacion.numero_centros_salud|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
+                                            <h6 class="mt-3 mb-1">Urbana</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_urbana|default:"0" }}</p>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header bg-info text-white">
-                                        <i class="fa fa-tint"></i> Servicios Básicos
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Cobertura Agua Potable:</label>
-                                                    <p>{{ caracterizacion.cobertura_agua_potable|default:"No especificado" }}%</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Cobertura Energía Eléctrica:</label>
-                                                    <p>{{ caracterizacion.cobertura_energia_electrica|default:"No especificado" }}%</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Cobertura Alcantarillado:</label>
-                                                    <p>{{ caracterizacion.cobertura_alcantarillado|default:"No especificado" }}%</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header bg-primary text-white">
-                                        <i class="fa fa-info-circle"></i> Información Adicional
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Reseña Histórica:</label>
-                                                    <div>{{ caracterizacion.resena_historica|default:"No especificado"|safe }}</div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Sitios Turísticos:</label>
-                                                    <div>{{ caracterizacion.sitios_turisticos|default:"No especificado"|safe }}</div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Fiestas Tradicionales:</label>
-                                                    <div>{{ caracterizacion.fiestas_tradicionales|default:"No especificado"|safe }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header bg-success text-white">
-                                        <i class="fa fa-phone"></i> Información de Contacto
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Dirección de Alcaldía:</label>
-                                                    <p>{{ caracterizacion.direccion_alcaldia|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Teléfono:</label>
-                                                    <p>{{ caracterizacion.telefono_alcaldia|default:"No especificado" }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Sitio Web:</label>
-                                                    <p>
-                                                        {% if caracterizacion.sitio_web %}
-                                                            <a href="{{ caracterizacion.sitio_web }}" target="_blank">{{ caracterizacion.sitio_web }}</a>
-                                                        {% else %}
-                                                            No especificado
-                                                        {% endif %}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label class="form-label font-weight-bold">Email de Contacto:</label>
-                                                    <p>
-                                                        {% if caracterizacion.email_contacto %}
-                                                            <a href="mailto:{{ caracterizacion.email_contacto }}">{{ caracterizacion.email_contacto }}</a>
-                                                        {% else %}
-                                                            No especificado
-                                                        {% endif %}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {% if caracterizacion.observaciones %}
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header bg-secondary text-white">
-                                        <i class="fa fa-sticky-note"></i> Observaciones
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <div>{{ caracterizacion.observaciones|linebreaks }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header bg-warning text-white">
-                                        <i class="fa fa-file"></i> Documentos
-                                        <div class="card-actions">
-                                            <a href="{% url 'agregar_documento' pk=caracterizacion.pk %}" class="btn btn-light btn-sm">
-                                                <i class="fa fa-plus"></i> Agregar Documento
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        {% if documentos %}
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Título</th>
-                                                            <th>Descripción</th>
-                                                            <th>Fecha de Subida</th>
-                                                            <th>Acciones</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for documento in documentos %}
-                                                            <tr>
-                                                                <td>{{ documento.titulo }}</td>
-                                                                <td>{{ documento.descripcion|default:"-" }}</td>
-                                                                <td>{{ documento.fecha_subida|date:"d/m/Y H:i" }}</td>
-                                                                <td>
-                                                                    <div class="btn-group">
-                                                                        <a href="{{ documento.archivo.url }}" class="btn btn-info btn-sm" target="_blank">
-                                                                            <i class="fa fa-download"></i> Descargar
-                                                                        </a>
-                                                                        <a href="{% url 'eliminar_documento' pk=documento.pk %}" class="btn btn-danger btn-sm">
-                                                                            <i class="fa fa-trash"></i> Eliminar
-                                                                        </a>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        {% else %}
-                                            <div class="alert alert-info">
-                                                No hay documentos adjuntos para esta caracterización.
-                                            </div>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Población étnica y desplazada -->
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-success py-3">
+                                <h6 class="mb-0 text-white"><i class="fas fa-globe-americas me-2"></i> Población de origen étnico</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-6 col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-users text-success"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Indígena</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_indigena|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-user-alt text-success"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Raizal</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_raizal|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-campground text-success"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Gitano/Rrom</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_gitano_rrom|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-6">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-user-friends text-success"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Palenquero(a)</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_palenquero|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div class="text-center">
+                                            <div class="circular-indicator bg-success-light">
+                                                <i class="fas fa-users text-success"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Negro/Mulato/Afro</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_negro_mulato_afrocolombiano|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-warning py-3">
+                                <h6 class="mb-0 text-white"><i class="fas fa-walking me-2"></i> Población Desplazada y Migrante</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="text-center py-4">
+                                            <div class="circular-indicator bg-warning-light">
+                                                <i class="fas fa-home-slash text-warning"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Población Desplazada</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_desplazada|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-center py-4">
+                                            <div class="circular-indicator bg-secondary-light">
+                                                <i class="fas fa-plane text-secondary"></i>
+                                            </div>
+                                            <h6 class="mt-3 mb-1">Población Migrante</h6>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_migrantes|default:"0" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicadores Socioeconómicos -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-chart-line me-2"></i> Indicadores Socioeconómicos
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Pobreza -->
+                <div class="mb-4">
+                    <h6 class="mb-3 text-primary fw-bold border-bottom pb-2">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Pobreza
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-danger-light">
+                                    <i class="fas fa-home text-danger"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Necesidades Básicas Insatisfechas</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.necesidades_basicas_insatisfechas|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-danger-light">
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Proporción personas en miseria</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.proporcion_personas_miseria|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-danger-light">
+                                    <i class="fas fa-chart-pie text-danger"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Índice pobreza multidimensional</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.indice_pobreza_multidimensional|default:"0" }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Educación -->
+                <div class="mb-4">
+                    <h6 class="mb-3 text-primary fw-bold border-bottom pb-2">
+                        <i class="fas fa-graduation-cap me-2"></i>Educación
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-cream">
+                                    <i class="fas fa-book-reader text-brown"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Analfabetismo</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.analfabetismo|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-cream">
+                                    <i class="fas fa-user-graduate text-brown"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Bajo logro educativo</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.bajo_logro_educativo|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-pink">
+                                    <i class="fas fa-school text-red"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Inasistencia escolar</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.inasistencia_escolar|default:"0" }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trabajo -->
+                <div class="mb-4">
+                    <h6 class="mb-3 text-primary fw-bold border-bottom pb-2">
+                        <i class="fas fa-briefcase me-2"></i>Trabajo
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-cream">
+                                    <i class="fas fa-tools text-brown"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Trabajo informal</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.trabajo_informal|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-pink">
+                                    <i class="fas fa-hourglass-half text-red"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Desempleo larga duración</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.desempleo_larga_duracion|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-cream">
+                                    <i class="fas fa-child text-brown"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Trabajo infantil</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.trabajo_infantil|default:"0" }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vivienda y Servicios -->
+                <div>
+                    <h6 class="mb-3 text-primary fw-bold border-bottom pb-2">
+                        <i class="fas fa-home me-2"></i>Vivienda y Servicios
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-cream">
+                                    <i class="fas fa-compress-arrows-alt text-brown"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Hacinamiento crítico</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.hacinamiento_critico|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-blue">
+                                    <i class="fas fa-baby text-blue"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Barreras servicios primera infancia</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.barreras_servicios_cuidado_primera_infancia|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-pink">
+                                    <i class="fas fa-hospital-alt text-red"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Barreras acceso servicios salud</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.barreras_acceso_servicios_salud|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-blue">
+                                    <i class="fas fa-toilet text-blue"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Inadecuada eliminación de excretas</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.inadecuada_eliminacion_excretas|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-blue">
+                                    <i class="fas fa-tint text-blue"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Sin acceso a fuente de agua mejorada</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.sin_acceso_fuente_agua_mejorada|default:"0" }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="circular-indicator bg-light-teal">
+                                    <i class="fas fa-heartbeat text-teal"></i>
+                                </div>
+                                <h6 class="mt-3 mb-1">Sin aseguramiento en salud</h6>
+                                <p class="fs-5 fw-bold mb-0">{{ caracterizacion.sin_aseguramiento_salud|default:"0" }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Imágenes de Escudo y Bandera -->
+        {% if caracterizacion.escudo or caracterizacion.bandera %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-image me-2"></i> Imágenes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% if caracterizacion.escudo %}
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">Escudo</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="{{ caracterizacion.escudo.url }}" alt="Escudo de {{ caracterizacion.municipio.nombre }}" class="img-fluid" style="max-height: 200px;">
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if caracterizacion.bandera %}
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">Bandera</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="{{ caracterizacion.bandera.url }}" alt="Bandera de {{ caracterizacion.municipio.nombre }}" class="img-fluid" style="max-height: 200px;">
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Observaciones -->
+        {% if caracterizacion.observaciones %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-sticky-note me-2"></i> Observaciones
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-3 rounded">
+                    {{ caracterizacion.observaciones|linebreaks }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Documentos -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 text-primary">
+                    <i class="fas fa-file me-2"></i> Documentos
+                </h5>
+                <a href="{% url 'agregar_documento' pk=caracterizacion.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i> Agregar Documento
+                </a>
+            </div>
+            <div class="card-body">
+                {% if documentos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Título</th>
+                                <th>Descripción</th>
+                                <th>Fecha de Subida</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for documento in documentos %}
+                            <tr>
+                                <td>{{ documento.titulo }}</td>
+                                <td>{{ documento.descripcion|default:"-" }}</td>
+                                <td>{{ documento.fecha_subida|date:"d/m/Y H:i" }}</td>
+                                <td class="text-center">
+                                    <a href="{{ documento.archivo.url }}" class="btn btn-sm btn-info me-1" target="_blank">
+                                        <i class="fas fa-download"></i> Descargar
+                                    </a>
+                                    <a href="{% url 'eliminar_documento' pk=documento.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i> No hay documentos adjuntos para esta caracterización.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Estilos para mejorar la apariencia */
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        border-bottom: none;
+    }
+    
+    .circular-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        margin: 0 auto;
+    }
+    
+    .circular-indicator i {
+        font-size: 1.5rem;
+    }
+    
+    /* Colores personalizados */
+    .bg-primary-light {
+        background-color: rgba(13, 110, 253, 0.15);
+    }
+    
+    .bg-success-light {
+        background-color: rgba(25, 135, 84, 0.15);
+    }
+    
+    .bg-info-light {
+        background-color: rgba(13, 202, 240, 0.15);
+    }
+    
+    .bg-warning-light {
+        background-color: rgba(255, 193, 7, 0.15);
+    }
+    
+    .bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.15);
+    }
+    
+    .bg-secondary-light {
+        background-color: rgba(108, 117, 125, 0.15);
+    }
+    
+    .bg-pink {
+        background-color: #d63384;
+    }
+    
+    .bg-pink-light {
+        background-color: rgba(214, 51, 132, 0.15);
+    }
+    
+    .text-pink {
+        color: #d63384;
+    }
+    
+    .bg-cream {
+        background-color: #fff4d6;
+    }
+    
+    .text-brown {
+        color: #856404;
+    }
+    
+    .bg-light-pink {
+        background-color: #ffe6e6;
+    }
+    
+    .text-red {
+        color: #dc3545;
+    }
+    
+    .bg-light-blue {
+        background-color: #e6f2ff;
+    }
+    
+    .text-blue {
+        color: #0d6efd;
+    }
+    
+    .bg-light-teal {
+        background-color: #e6fff7;
+    }
+    
+    .text-teal {
+        color: #20c997;
+    }
+    
+    /* Responsive ajustes */
+    @media (max-width: 768px) {
+        .circular-indicator {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .circular-indicator i {
+            font-size: 1.2rem;
+        }
+        
+        p.fs-5 {
+            font-size: 1rem !important;
+        }
+        
+        h6 {
+            font-size: 0.8rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .circular-indicator {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .circular-indicator i {
+            font-size: 1rem;
+        }
+    }
+</style>
 {% endblock %} 

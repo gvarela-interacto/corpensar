@@ -312,27 +312,61 @@ class CaracterizacionMunicipalForm(forms.ModelForm):
         exclude = ['creador', 'fecha_creacion', 'fecha_actualizacion']
         widgets = {
             'municipio': forms.Select(attrs={'class': 'form-control select2'}),
-            'nombre_alcalde': forms.TextInput(attrs={'class': 'form-control'}),
-            'periodo_gobierno': forms.TextInput(attrs={'class': 'form-control'}),
+            
+            # Territorio
+            'area_km2': forms.NumberInput(attrs={'class': 'form-control'}),
+            'concejos_comunitarios_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'resguardos_indigenas_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'zonas_reserva_campesina_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'zonas_reserva_sinap_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'es_municipio_pdei': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            
+            # Demografía - General
             'poblacion_total': forms.NumberInput(attrs={'class': 'form-control'}),
-            'poblacion_urbana': forms.NumberInput(attrs={'class': 'form-control'}),
-            'poblacion_rural': forms.NumberInput(attrs={'class': 'form-control'}),
-            'extension_territorial': forms.NumberInput(attrs={'class': 'form-control'}),
-            'altitud': forms.NumberInput(attrs={'class': 'form-control'}),
-            'temperatura_promedio': forms.NumberInput(attrs={'class': 'form-control'}),
-            'principales_actividades_economicas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'numero_escuelas': forms.NumberInput(attrs={'class': 'form-control'}),
-            'numero_centros_salud': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cobertura_agua_potable': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cobertura_energia_electrica': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cobertura_alcantarillado': forms.NumberInput(attrs={'class': 'form-control'}),
-            'resena_historica': forms.Textarea(attrs={'class': 'form-control rich-editor', 'rows': 4}),
-            'sitios_turisticos': forms.Textarea(attrs={'class': 'form-control rich-editor', 'rows': 4}),
-            'fiestas_tradicionales': forms.Textarea(attrs={'class': 'form-control rich-editor', 'rows': 4}),
-            'direccion_alcaldia': forms.TextInput(attrs={'class': 'form-control'}),
-            'telefono_alcaldia': forms.TextInput(attrs={'class': 'form-control'}),
-            'sitio_web': forms.URLInput(attrs={'class': 'form-control'}),
-            'email_contacto': forms.EmailInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Hombres
+            'poblacion_hombres_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_hombres_rural': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_hombres_urbana': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Mujeres
+            'poblacion_mujeres_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_mujeres_rural': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_mujeres_urbana': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Origen étnico
+            'poblacion_indigena': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_raizal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_gitano_rrom': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_palenquero': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_negro_mulato_afrocolombiano': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Desplazados y migrantes
+            'poblacion_desplazada': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_migrantes': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Indicadores Socioeconómicos
+            'necesidades_basicas_insatisfechas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'proporcion_personas_miseria': forms.NumberInput(attrs={'class': 'form-control'}),
+            'indice_pobreza_multidimensional': forms.NumberInput(attrs={'class': 'form-control'}),
+            'analfabetismo': forms.NumberInput(attrs={'class': 'form-control'}),
+            'bajo_logro_educativo': forms.NumberInput(attrs={'class': 'form-control'}),
+            'inasistencia_escolar': forms.NumberInput(attrs={'class': 'form-control'}),
+            'trabajo_informal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'desempleo_larga_duracion': forms.NumberInput(attrs={'class': 'form-control'}),
+            'trabajo_infantil': forms.NumberInput(attrs={'class': 'form-control'}),
+            'hacinamiento_critico': forms.NumberInput(attrs={'class': 'form-control'}),
+            'barreras_servicios_cuidado_primera_infancia': forms.NumberInput(attrs={'class': 'form-control'}),
+            'barreras_acceso_servicios_salud': forms.NumberInput(attrs={'class': 'form-control'}),
+            'inadecuada_eliminacion_excretas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'sin_acceso_fuente_agua_mejorada': forms.NumberInput(attrs={'class': 'form-control'}),
+            'sin_aseguramiento_salud': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Imágenes
+            'escudo': forms.FileInput(attrs={'class': 'form-control-file'}),
+            'bandera': forms.FileInput(attrs={'class': 'form-control-file'}),
+            
+            # Observaciones
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'estado': forms.Select(attrs={'class': 'form-control'}),
         }
