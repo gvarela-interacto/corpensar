@@ -387,6 +387,75 @@
         padding-bottom: 1.5rem;
         margin-bottom: 1.5rem;
     }
+    
+    /* Nuevos estilos para modales y tablas */
+    #detalleFormulariosModal .modal-dialog {
+        max-width: 95%;
+        width: auto;
+    }
+    
+    @media (min-width: 992px) {
+        #detalleFormulariosModal .modal-dialog {
+            max-width: 900px;
+        }
+    }
+    
+    #detalleFormulariosModal .table {
+        width: 100%;
+    }
+    
+    #detalleFormulariosModal .table th {
+        white-space: nowrap;
+    }
+    
+    #detalleFormulariosModal .table td {
+        vertical-align: middle;
+    }
+    
+    /* Mejorar visualización de categorías agrupadas */
+    #cuerpoTablaFormularios .table-secondary {
+        background-color: #f1f3f9;
+    }
+    
+    /* Permitir que los formularios largos se muestren correctamente */
+    #tablaFormularios td:first-child {
+        max-width: 350px;
+        white-space: normal;
+        word-break: break-word;
+    }
+    
+    /* Ajustes para la visualización de tablas en diferentes dispositivos */
+    @media (max-width: 768px) {
+        #tablaFormularios th,
+        #tablaRespuestasMunicipios th {
+            font-size: 0.9rem;
+        }
+        
+        #tablaFormularios td,
+        #tablaRespuestasMunicipios td {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
+        
+        #tablaFormularios td:first-child {
+            max-width: 200px;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        #detalleFormulariosModal .modal-dialog {
+            margin: 0.5rem;
+            max-width: calc(100% - 1rem);
+        }
+        
+        #tablaFormularios td:first-child {
+            max-width: 150px;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -432,9 +501,7 @@
                                         <tr>
                                             <th>Formulario</th>
                                             <th>Categoría</th>
-                                            <th>Total Respuestas</th>
-                                            <th>Completadas</th>
-                                            <th>% Completitud</th>
+                                            <th class="text-center">Total Respuestas</th>
                                         </tr>
                                     </thead>
                                     <tbody id="cuerpoTablaFormularios">
@@ -454,9 +521,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Municipio</th>
-                                            <th>Total Respuestas</th>
-                                            <th>Completadas</th>
-                                            <th>% Completitud</th>
+                                            <th class="text-center">Total Respuestas</th>
                                         </tr>
                                     </thead>
                                     <tbody id="cuerpoTablaRespuestasMunicipios">
@@ -936,9 +1001,9 @@
             `;
             
             // Añadir columnas dinámicas para categorías
-            todasCategorias.forEach(cat => {
-                encabezados += `<th class="text-center categoria-columna">${cat.nombre}</th>`;
-            });
+            // todasCategorias.forEach(cat => {
+            //     encabezados += `<th class="text-center categoria-columna">${cat.nombre}</th>`;
+            // });
             
             // Completar encabezados
             encabezados += `
@@ -960,9 +1025,9 @@
             `;
             
             // Añadir columnas dinámicas para categorías
-            todasCategorias.forEach(cat => {
-                encabezados += `<th class="text-center categoria-columna">${cat.nombre}</th>`;
-            });
+            // todasCategorias.forEach(cat => {
+            //     encabezados += `<th class="text-center categoria-columna">${cat.nombre}</th>`;
+            // });
             
             // Completar encabezados
             encabezados += `
@@ -1936,42 +2001,62 @@
                 noDataMessage.classList.add('d-none');
                 tablaFormularios.classList.remove('d-none');
                 
+                // Agrupar por categoría
+                const formulariosPorCategoria = {};
+                
+                // Procesar formularios para agruparlos por categoría
+                formularios.forEach(form => {
+                    const categoria = form.categoria || "Sin categoría";
+                    if (!formulariosPorCategoria[categoria]) {
+                        formulariosPorCategoria[categoria] = {
+                            total: 0,
+                            formularios: []
+                        };
+                    }
+                    
+                    formulariosPorCategoria[categoria].total += (form.total_respuestas || 0);
+                    formulariosPorCategoria[categoria].formularios.push(form);
+                });
+                
                 // Llenar tabla con datos de formularios
                 let totalRespuestas = 0;
                 
-                formularios.forEach(form => {
-                    totalRespuestas += (form.total_respuestas || 0);
+                // Mostrar los formularios agrupados por categoría
+                Object.keys(formulariosPorCategoria).forEach(categoria => {
+                    const grupoFormularios = formulariosPorCategoria[categoria];
                     
-                    const porcentaje = form.total_respuestas > 0 
-                        ? ((form.completadas / form.total_respuestas) * 100).toFixed(1)
-                        : "0.0";
+                    // Añadir fila de cabecera de categoría si hay más de una categoría
+                    if (Object.keys(formulariosPorCategoria).length > 1) {
+                        const trCategoria = document.createElement('tr');
+                        trCategoria.className = 'table-secondary';
+                        trCategoria.innerHTML = `
+                            <td colspan="2" class="fw-bold">${categoria}</td>
+                            <td class="text-center fw-bold">${grupoFormularios.total}</td>
+                        `;
+                        tbodyFormularios.appendChild(trCategoria);
+                    }
                     
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${form.titulo}</td>
-                        <td><span class="badge bg-info">${form.categoria}</span></td>
-                        <td class="text-center">${form.total_respuestas || 0}</td>
-                        <td class="text-center">${form.completadas || 0}</td>
-                        <td class="text-center">${porcentaje}%</td>
-                    `;
-                    tbodyFormularios.appendChild(tr);
+                    // Añadir formularios de esta categoría
+                    grupoFormularios.formularios.forEach(form => {
+                        totalRespuestas += (form.total_respuestas || 0);
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${form.titulo}</td>
+                            <td><span class="badge bg-info">${form.categoria}</span></td>
+                            <td class="text-center">${form.total_respuestas || 0}</td>
+                        `;
+                        tbodyFormularios.appendChild(tr);
+                    });
                 });
                 
                 // Si hay datos, agregar una fila de resumen al final
                 const trResumen = document.createElement('tr');
                 trResumen.className = 'table-active fw-bold';
                 
-                // Calcular tasa global de completitud
-                const totalCompletadas = formularios.reduce((sum, form) => sum + (form.completadas || 0), 0);
-                const porcentajeGlobal = totalRespuestas > 0 
-                    ? ((totalCompletadas / totalRespuestas) * 100).toFixed(1)
-                    : "0.0";
-                    
                 trResumen.innerHTML = `
                     <td colspan="2" class="text-end">TOTAL:</td>
                     <td class="text-center">${totalRespuestas}</td>
-                    <td class="text-center">${totalCompletadas}</td>
-                    <td class="text-center">${porcentajeGlobal}%</td>
                 `;
                 tbodyFormularios.appendChild(trResumen);
             }
@@ -2003,39 +2088,25 @@
                     
                     // Llenar tabla con datos de municipios
                     let totalRespuestasRegion = 0;
-                    let totalCompletadasRegion = 0;
                     
                     municipiosFiltrados.forEach(municipio => {
                         totalRespuestasRegion += (municipio.totalRespuestas || 0);
-                        totalCompletadasRegion += (municipio.encuestasRespondidas || 0);
-                        
-                        const porcentaje = municipio.totalRespuestas > 0 
-                            ? ((municipio.encuestasRespondidas / municipio.totalRespuestas) * 100).toFixed(1)
-                            : "0.0";
                         
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${municipio.nombre}</td>
                             <td class="text-center">${municipio.totalRespuestas || 0}</td>
-                            <td class="text-center">${municipio.encuestasRespondidas || 0}</td>
-                            <td class="text-center">${porcentaje}%</td>
                         `;
                         tbodyMunicipios.appendChild(tr);
                     });
                     
                     // Agregar fila de resumen
                     if (municipiosFiltrados.length > 1) {
-                        const porcentajeGlobal = totalRespuestasRegion > 0 
-                            ? ((totalCompletadasRegion / totalRespuestasRegion) * 100).toFixed(1)
-                            : "0.0";
-                            
                         const trResumen = document.createElement('tr');
                         trResumen.className = 'table-active fw-bold';
                         trResumen.innerHTML = `
                             <td class="text-end">TOTAL REGIÓN:</td>
                             <td class="text-center">${totalRespuestasRegion}</td>
-                            <td class="text-center">${totalCompletadasRegion}</td>
-                            <td class="text-center">${porcentajeGlobal}%</td>
                         `;
                         tbodyMunicipios.appendChild(trResumen);
                     }
@@ -2083,11 +2154,6 @@
                     datosInfo.push(['Región:', datosMunicipio.region]);
                     datosInfo.push(['Cantidad de encuestas:', formularios ? formularios.length : 0]);
                     datosInfo.push(['Total respuestas:', datosMunicipio.totalRespuestas || 0]);
-                    // Quitar el total de encuestas completadas como solicitó el usuario
-                    const porcentaje = datosMunicipio.totalRespuestas > 0 
-                        ? ((datosMunicipio.encuestasRespondidas / datosMunicipio.totalRespuestas) * 100).toFixed(1)
-                        : "0.0";
-                    datosInfo.push(['Tasa de finalización:', `${porcentaje}%`]);
                 }
             } else {
                 // Buscar la región en los datos
@@ -2095,11 +2161,6 @@
                 if (datosRegion) {
                     datosInfo.push(['Cantidad de encuestas:', formularios ? formularios.length : 0]);
                     datosInfo.push(['Total respuestas:', datosRegion.totalRespuestas || 0]);
-                    // Quitar el total de encuestas completadas como solicitó el usuario
-                    const porcentaje = datosRegion.totalRespuestas > 0 
-                        ? ((datosRegion.encuestasRespondidas / datosRegion.totalRespuestas) * 100).toFixed(1)
-                        : "0.0";
-                    datosInfo.push(['Tasa de finalización:', `${porcentaje}%`]);
                     datosInfo.push(['Número de municipios:', municipiosFiltrados ? municipiosFiltrados.length : 'N/A']);
                 }
             }
@@ -2129,47 +2190,63 @@
             datosFormularios.push(['']);
             
             // Encabezados
-            datosFormularios.push(['Formulario', 'Categoría', 'Total Respuestas', 'Completadas', 'Porcentaje Completitud']);
+            datosFormularios.push(['Formulario', 'Categoría', 'Total Respuestas']);
             
             // Datos
             if (!formularios || formularios.length === 0) {
                 datosFormularios.push([`No hay formularios disponibles para este ${tipo === 'municipio' ? 'municipio' : 'región'}`]);
             } else {
+                // Agrupar por categoría
+                const formulariosPorCategoria = {};
+                
+                // Procesar formularios para agruparlos por categoría
+                formularios.forEach(form => {
+                    const categoria = form.categoria || "Sin categoría";
+                    if (!formulariosPorCategoria[categoria]) {
+                        formulariosPorCategoria[categoria] = {
+                            total: 0,
+                            formularios: []
+                        };
+                    }
+                    
+                    formulariosPorCategoria[categoria].total += (form.total_respuestas || 0);
+                    formulariosPorCategoria[categoria].formularios.push(form);
+                });
+                
                 // Variable para calcular totales
                 let totalRespuestas = 0;
-                let totalCompletadas = 0;
                 
-                formularios.forEach(form => {
-                    const respuestas = form.total_respuestas || 0;
-                    const completadas = form.completadas || 0;
+                // Mostrar los formularios agrupados por categoría
+                Object.keys(formulariosPorCategoria).forEach(categoria => {
+                    const grupoFormularios = formulariosPorCategoria[categoria];
                     
-                    totalRespuestas += respuestas;
-                    totalCompletadas += completadas;
+                    // Añadir fila de cabecera de categoría si hay más de una categoría
+                    if (Object.keys(formulariosPorCategoria).length > 1) {
+                        datosFormularios.push([
+                            '', 
+                            `Total ${categoria}:`, 
+                            grupoFormularios.total
+                        ]);
+                    }
                     
-                    const porcentaje = respuestas > 0 
-                        ? ((completadas / respuestas) * 100).toFixed(1)
-                        : "0.0";
-                    
-                    datosFormularios.push([
-                        form.titulo,
-                        form.categoria,
-                        respuestas,
-                        completadas,
-                        `${porcentaje}%`
-                    ]);
+                    // Añadir formularios de esta categoría
+                    grupoFormularios.formularios.forEach(form => {
+                        const respuestas = form.total_respuestas || 0;
+                        totalRespuestas += respuestas;
+                        
+                        datosFormularios.push([
+                            form.titulo,
+                            form.categoria,
+                            respuestas
+                        ]);
+                    });
                 });
                 
                 // Añadir fila de totales
-                const porcentajeTotal = totalRespuestas > 0
-                    ? ((totalCompletadas / totalRespuestas) * 100).toFixed(1)
-                    : "0.0";
-                    
                 datosFormularios.push([
                     'TOTAL',
                     '',
-                    totalRespuestas,
-                    totalCompletadas,
-                    `${porcentajeTotal}%`
+                    totalRespuestas
                 ]);
             }
             
@@ -2178,15 +2255,13 @@
             
             // Combinar celdas para título
             if (!wsFormularios['!merges']) wsFormularios['!merges'] = [];
-            wsFormularios['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
+            wsFormularios['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } });
             
             // Ajustar anchos
             wsFormularios['!cols'] = [
                 { wch: 50 }, // Formulario
                 { wch: 20 }, // Categoría
                 { wch: 15 }, // Total Respuestas
-                { wch: 15 }, // Completadas
-                { wch: 20 }  // Porcentaje
             ];
             
             // Añadir hoja de formularios
@@ -2201,7 +2276,7 @@
                 datosMunicipios.push(['']);
                 
                 // Encabezados
-                datosMunicipios.push(['Municipio', 'Cantidad de Encuestas', 'Total Respuestas', 'Porcentaje Completitud']);
+                datosMunicipios.push(['Municipio', 'Cantidad de Encuestas', 'Total Respuestas']);
                 
                 // Ordenar por total de respuestas (descendente)
                 const municipiosOrdenados = [...municipiosFiltrados].sort((a, b) => b.totalRespuestas - a.totalRespuestas);
@@ -2209,41 +2284,28 @@
                 // Variables para totales
                 let totalEncuestas = 0;
                 let totalRespuestasRegion = 0;
-                let totalCompletadasRegion = 0;
                 
                 // Datos
                 municipiosOrdenados.forEach(municipio => {
                     // Para cada municipio, contar sus encuestas (podríamos obtenerlo de datosFormulariosDetalle si está disponible)
                     const cantidadEncuestas = 0; // Esto debería venir del backend idealmente
                     const respuestas = municipio.totalRespuestas || 0;
-                    const completadas = municipio.encuestasRespondidas || 0;
                     
                     totalEncuestas += cantidadEncuestas;
                     totalRespuestasRegion += respuestas;
-                    totalCompletadasRegion += completadas;
-                    
-                    const porcentaje = respuestas > 0 
-                        ? ((completadas / respuestas) * 100).toFixed(1)
-                        : "0.0";
                     
                     datosMunicipios.push([
                         municipio.nombre,
                         cantidadEncuestas,
-                        respuestas,
-                        `${porcentaje}%`
+                        respuestas
                     ]);
                 });
                 
                 // Añadir fila de totales
-                const porcentajeTotal = totalRespuestasRegion > 0
-                    ? ((totalCompletadasRegion / totalRespuestasRegion) * 100).toFixed(1)
-                    : "0.0";
-                    
                 datosMunicipios.push([
                     'TOTAL REGIÓN',
                     totalEncuestas,
-                    totalRespuestasRegion,
-                    `${porcentajeTotal}%`
+                    totalRespuestasRegion
                 ]);
                 
                 // Crear hoja de municipios
@@ -2251,14 +2313,13 @@
                 
                 // Combinar celdas para título
                 if (!wsMunicipios['!merges']) wsMunicipios['!merges'] = [];
-                wsMunicipios['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } });
+                wsMunicipios['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } });
                 
                 // Ajustar anchos
                 wsMunicipios['!cols'] = [
                     { wch: 40 }, // Municipio
                     { wch: 20 }, // Cantidad de Encuestas
                     { wch: 15 }, // Total Respuestas
-                    { wch: 20 }  // Porcentaje
                 ];
                 
                 // Añadir hoja de municipios
