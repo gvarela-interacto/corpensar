@@ -75,8 +75,6 @@
                                         <tr>
                                             <th>Municipio</th>
                                             <th>Región</th>
-                                            <th>Alcalde</th>
-                                            <th>Fecha de actualización</th>
                                             <th>Estado</th>
                                             <th>Acciones</th>
                                         </tr>
@@ -86,8 +84,6 @@
                                             <tr>
                                                 <td>{{ caracterizacion.municipio.nombre }}</td>
                                                 <td>{{ caracterizacion.municipio.region.nombre }}</td>
-                                                <td>{{ caracterizacion.nombre_alcalde|default:"No especificado" }}</td>
-                                                <td>{{ caracterizacion.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
                                                 <td>
                                                     {% if caracterizacion.estado == 'borrador' %}
                                                         <span class="badge badge-warning">Borrador</span>

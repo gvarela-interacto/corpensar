@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load humanize %}
 {% block title %}Caracterización de {{ caracterizacion.municipio.nombre }}{% endblock %}
 
 {% block content %}
@@ -10,8 +10,7 @@
         <div class="row pt-2 pb-2">
             <div class="col-sm-9">
                 <h4 class="page-title text-primary">
-                    <i class="fas fa-building me-2"></i>Municipio <span class="text-secondary">{{ caracterizacion.municipio.nombre }}</span>
-                    <small class="text-muted ms-2">Departamento <span class="text-info">{{ caracterizacion.municipio.region.nombre }}</span></small>
+                    <i class="fas fa-building me-2"></i> <span class="text-primary">{{ caracterizacion.municipio.nombre }}-{{ caracterizacion.municipio.region.nombre }}</span>
                 </h4>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
@@ -60,7 +59,7 @@
                                 <i class="fas fa-globe-americas text-white"></i>
                             </div>
                             <h6 class="mt-3 mb-2">Área</h6>
-                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.area_km2|default:"0" }} km²</p>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.area_km2|default:"0"|intcomma }} km²</p>
                         </div>
                     </div>
                     <div class="col-md-4 col-lg-2">
@@ -69,7 +68,7 @@
                                 <i class="fas fa-users text-white"></i>
                             </div>
                             <h6 class="mt-3 mb-2">Consejos Comunitarios</h6>
-                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.concejos_comunitarios_ha|default:"0" }} ha</p>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.concejos_comunitarios_ha|default:"0"|intcomma }} ha</p>
                         </div>
                     </div>
                     <div class="col-md-4 col-lg-2">
@@ -78,7 +77,7 @@
                                 <i class="fas fa-landmark text-white"></i>
                             </div>
                             <h6 class="mt-3 mb-2">Resguardos Indígenas</h6>
-                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.resguardos_indigenas_ha|default:"0" }} ha</p>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.resguardos_indigenas_ha|default:"0"|intcomma }} ha</p>
                         </div>
                     </div>
                     <div class="col-md-4 col-lg-2">
@@ -87,7 +86,7 @@
                                 <i class="fas fa-tree text-white"></i>
                             </div>
                             <h6 class="mt-3 mb-2">Zonas Reserva Campesina</h6>
-                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.zonas_reserva_campesina_ha|default:"0" }} ha</p>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.zonas_reserva_campesina_ha|default:"0"|intcomma }} ha</p>
                         </div>
                     </div>
                     <div class="col-md-4 col-lg-2">
@@ -96,7 +95,7 @@
                                 <i class="fas fa-leaf text-white"></i>
                             </div>
                             <h6 class="mt-3 mb-2">Zonas Reserva (SINAP)</h6>
-                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.zonas_reserva_sinap_ha|default:"0" }} ha</p>
+                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.zonas_reserva_sinap_ha|default:"0"|intcomma }} ha</p>
                         </div>
                     </div>
                     <div class="col-md-4 col-lg-2">
@@ -128,7 +127,7 @@
                                 <i class="fas fa-user-friends fa-2x text-white"></i>
                             </div>
                             <h6 class="mb-2">No. Habitantes</h6>
-                            <p class="fs-3 fw-bold mb-0">{{ caracterizacion.poblacion_total|default:"0" }}</p>
+                            <p class="fs-3 fw-bold mb-0">{{ caracterizacion.poblacion_total|default:"0"|intcomma }}</p>
                         </div>
                     </div>
                 </div>
@@ -148,7 +147,7 @@
                                                 <i class="fas fa-users text-primary"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Total</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_total|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_total|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -157,7 +156,7 @@
                                                 <i class="fas fa-tractor text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Rural</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_rural|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_rural|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -166,7 +165,7 @@
                                                 <i class="fas fa-city text-info"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Urbana</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_urbana|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_hombres_urbana|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -186,7 +185,7 @@
                                                 <i class="fas fa-users text-pink"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Total</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_total|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_total|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -195,7 +194,7 @@
                                                 <i class="fas fa-tractor text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Rural</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_rural|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_rural|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -204,7 +203,7 @@
                                                 <i class="fas fa-city text-info"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Urbana</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_urbana|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_mujeres_urbana|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -228,7 +227,7 @@
                                                 <i class="fas fa-users text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Indígena</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_indigena|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_indigena|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4">
@@ -237,7 +236,7 @@
                                                 <i class="fas fa-user-alt text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Raizal</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_raizal|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_raizal|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-4">
@@ -246,7 +245,7 @@
                                                 <i class="fas fa-campground text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Gitano/Rrom</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_gitano_rrom|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_gitano_rrom|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-6 col-md-6">
@@ -255,7 +254,7 @@
                                                 <i class="fas fa-user-friends text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Palenquero(a)</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_palenquero|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_palenquero|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -264,7 +263,7 @@
                                                 <i class="fas fa-users text-success"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Negro/Mulato/Afro</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_negro_mulato_afrocolombiano|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_negro_mulato_afrocolombiano|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -284,7 +283,7 @@
                                                 <i class="fas fa-home-slash text-warning"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Población Desplazada</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_desplazada|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_desplazada|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -293,7 +292,7 @@
                                                 <i class="fas fa-plane text-secondary"></i>
                                             </div>
                                             <h6 class="mt-3 mb-1">Población Migrante</h6>
-                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_migrantes|default:"0" }}</p>
+                                            <p class="fs-5 fw-bold mb-0">{{ caracterizacion.poblacion_migrantes|default:"0"|intcomma }}</p>
                                         </div>
                                     </div>
                                 </div>
