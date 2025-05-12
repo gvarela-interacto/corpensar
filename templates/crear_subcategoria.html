@@ -33,7 +33,7 @@
                             <select class="form-control-modern select-categoria" id="categoria_principal" name="categoria_principal" required>
                                 <option value="">Seleccione una categoría principal</option>
                                 {% for categoria in categorias %}
-                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                <option value="{{ categoria.id }}" {% if categoria_seleccionada and categoria_seleccionada.id == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
                                 {% endfor %}
                             </select>
                             <div class="form-text">Seleccione la categoría principal a la que pertenecerá esta subcategoría.</div>

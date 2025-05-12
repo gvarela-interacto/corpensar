@@ -61,11 +61,20 @@ urlpatterns = [
   path('encuesta/<int:encuesta_id>/agregar-caracterizacion/', views.agregar_caracterizacion, name='agregar_caracterizacion'),
 
   path('categorias/', views.categorias_principales, name='categorias_principales'),
-  path('categorias/crear/', views.crear_categoria_principal, name='crear_categoria_principal'),
-  path('categorias/subcategoria/crear/', views.crear_subcategoria, name='crear_subcategoria'),
+  path('categorias/nueva/', views.crear_categoria_principal, name='crear_categoria_principal'),
   path('categorias/<int:categoria_id>/eliminar/', views.eliminar_categoria_principal, name='eliminar_categoria_principal'),
-  path('categorias/subcategoria/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
-  path('api/subcategorias/', views.get_subcategorias, name='get_subcategorias'),
+  path('subcategorias/nueva/', views.crear_subcategoria, name='crear_subcategoria'),
+  path('categorias/<int:categoria_id>/subcategorias/nueva/', views.crear_subcategoria, name='crear_subcategoria_con_categoria'),
+  path('subcategorias/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
+  
+  # Caracterización Municipal
+  path('caracterizacion/', views.lista_caracterizaciones, name='lista_caracterizaciones'),
+  path('caracterizacion/nueva/', views.crear_caracterizacion, name='crear_caracterizacion'),
+  path('caracterizacion/<int:pk>/', views.detalle_caracterizacion, name='detalle_caracterizacion'),
+  path('caracterizacion/<int:pk>/editar/', views.editar_caracterizacion, name='editar_caracterizacion'),
+  path('caracterizacion/<int:pk>/eliminar/', views.eliminar_caracterizacion, name='eliminar_caracterizacion'),
+  path('caracterizacion/<int:pk>/documentos/agregar/', views.agregar_documento, name='agregar_documento'),
+  path('documentos/<int:pk>/eliminar/', views.eliminar_documento, name='eliminar_documento'),
 
   path('qr-generator/', views.qr_generator, name='qr_generator'),
 

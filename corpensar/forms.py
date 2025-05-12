@@ -305,3 +305,54 @@ class CrearUsuarioForm(forms.Form):
             user.save()
 
         return user
+
+class CaracterizacionMunicipalForm(forms.ModelForm):
+    class Meta:
+        model = CaracterizacionMunicipal
+        exclude = ['creador', 'fecha_creacion', 'fecha_actualizacion']
+        widgets = {
+            'municipio': forms.Select(attrs={'class': 'form-control select2'}),
+            'nombre_alcalde': forms.TextInput(attrs={'class': 'form-control'}),
+            'periodo_gobierno': forms.TextInput(attrs={'class': 'form-control'}),
+            'poblacion_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_urbana': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_rural': forms.NumberInput(attrs={'class': 'form-control'}),
+            'extension_territorial': forms.NumberInput(attrs={'class': 'form-control'}),
+            'altitud': forms.NumberInput(attrs={'class': 'form-control'}),
+            'temperatura_promedio': forms.NumberInput(attrs={'class': 'form-control'}),
+            'principales_actividades_economicas': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'numero_escuelas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'numero_centros_salud': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cobertura_agua_potable': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cobertura_energia_electrica': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cobertura_alcantarillado': forms.NumberInput(attrs={'class': 'form-control'}),
+            'resena_historica': forms.Textarea(attrs={'class': 'form-control rich-editor', 'rows': 4}),
+            'sitios_turisticos': forms.Textarea(attrs={'class': 'form-control rich-editor', 'rows': 4}),
+            'fiestas_tradicionales': forms.Textarea(attrs={'class': 'form-control rich-editor', 'rows': 4}),
+            'direccion_alcaldia': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefono_alcaldia': forms.TextInput(attrs={'class': 'form-control'}),
+            'sitio_web': forms.URLInput(attrs={'class': 'form-control'}),
+            'email_contacto': forms.EmailInput(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['municipio'].empty_label = "Seleccione un municipio"
+        
+        # Hacer algunos campos opcionales
+        for field in self.fields:
+            if field not in ['municipio']:
+                self.fields[field].required = False
+
+
+class DocumentoCaracterizacionForm(forms.ModelForm):
+    class Meta:
+        model = DocumentoCaracterizacion
+        fields = ['titulo', 'descripcion', 'archivo']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'archivo': forms.FileInput(attrs={'class': 'form-control-file'}),
+        }

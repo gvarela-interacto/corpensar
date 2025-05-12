@@ -667,3 +667,111 @@ class ArchivoRespuestaPQRSFD(models.Model):
 
     def __str__(self):
         return f"Archivo respuesta {self.nombre_original} - {self.pqrsfd}"
+
+class CaracterizacionMunicipal(models.Model):
+    """Modelo para almacenar la caracterización de municipios"""
+    municipio = models.ForeignKey(Municipio, on_delete=models.CASCADE, related_name='caracterizaciones', verbose_name=_("Municipio"))
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de creación"))
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name=_("Fecha de actualización"))
+    creador = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creador"))
+    
+    # Información general
+    nombre_alcalde = models.CharField(max_length=200, blank=True, verbose_name=_("Nombre del Alcalde"))
+    periodo_gobierno = models.CharField(max_length=100, blank=True, verbose_name=_("Período de Gobierno"))
+    
+    # Datos demográficos
+    poblacion_total = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Total"))
+    poblacion_urbana = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Urbana"))
+    poblacion_rural = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Población Rural"))
+    
+    # Datos geográficos
+    extension_territorial = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Extensión Territorial (km²)"))
+    altitud = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Altitud (msnm)"))
+    temperatura_promedio = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Temperatura Promedio (°C)"))
+    
+    # Economía
+    principales_actividades_economicas = models.TextField(blank=True, verbose_name=_("Principales Actividades Económicas"))
+    
+    # Infraestructura
+    numero_escuelas = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Número de Escuelas"))
+    numero_centros_salud = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Número de Centros de Salud"))
+    
+    # Servicios básicos (porcentajes)
+    cobertura_agua_potable = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, 
+                                             validators=[MinValueValidator(0), MaxValueValidator(100)],
+                                             verbose_name=_("Cobertura de Agua Potable (%)"))
+    cobertura_energia_electrica = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, 
+                                                 validators=[MinValueValidator(0), MaxValueValidator(100)],
+                                                 verbose_name=_("Cobertura de Energía Eléctrica (%)"))
+    cobertura_alcantarillado = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, 
+                                              validators=[MinValueValidator(0), MaxValueValidator(100)],
+                                              verbose_name=_("Cobertura de Alcantarillado (%)"))
+    
+    # Información adicional
+    resena_historica = models.TextField(blank=True, verbose_name=_("Reseña Histórica"))
+    sitios_turisticos = models.TextField(blank=True, verbose_name=_("Sitios Turísticos"))
+    fiestas_tradicionales = models.TextField(blank=True, verbose_name=_("Fiestas Tradicionales"))
+    
+    # Información de contacto
+    direccion_alcaldia = models.CharField(max_length=200, blank=True, verbose_name=_("Dirección de la Alcaldía"))
+    telefono_alcaldia = models.CharField(max_length=50, blank=True, verbose_name=_("Teléfono de la Alcaldía"))
+    sitio_web = models.URLField(blank=True, verbose_name=_("Sitio Web"))
+    email_contacto = models.EmailField(blank=True, verbose_name=_("Email de Contacto"))
+    
+    # Campo para documentos o imágenes adicionales
+    escudo = models.ImageField(upload_to='caracterizacion/escudos/', null=True, blank=True, verbose_name=_("Escudo"))
+    bandera = models.ImageField(upload_to='caracterizacion/banderas/', null=True, blank=True, verbose_name=_("Bandera"))
+    
+    # Campos para notas adicionales
+    observaciones = models.TextField(blank=True, verbose_name=_("Observaciones"))
+    
+    # Estado de la caracterización
+    ESTADO_CHOICES = [
+        ('borrador', _('Borrador')),
+        ('publicado', _('Publicado')),
+        ('archivado', _('Archivado')),
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='borrador', verbose_name=_("Estado"))
+    
+    class Meta:
+        verbose_name = _("Caracterización Municipal")
+        verbose_name_plural = _("Caracterizaciones Municipales")
+        ordering = ['-fecha_actualizacion']
+        
+    def __str__(self):
+        return f"Caracterización de {self.municipio.nombre}"
+    
+    def get_absolute_url(self):
+        return f"/caracterizacion/{self.id}/"
+    
+    def porcentaje_poblacion_urbana(self):
+        if self.poblacion_total and self.poblacion_urbana:
+            return (self.poblacion_urbana / self.poblacion_total) * 100
+        return None
+    
+    def porcentaje_poblacion_rural(self):
+        if self.poblacion_total and self.poblacion_rural:
+            return (self.poblacion_rural / self.poblacion_total) * 100
+        return None
+
+
+class DocumentoCaracterizacion(models.Model):
+    """Modelo para almacenar documentos adicionales de la caracterización"""
+    caracterizacion = models.ForeignKey(CaracterizacionMunicipal, on_delete=models.CASCADE, 
+                                        related_name='documentos', verbose_name=_("Caracterización"))
+    titulo = models.CharField(max_length=200, verbose_name=_("Título"))
+    descripcion = models.TextField(blank=True, verbose_name=_("Descripción"))
+    archivo = models.FileField(upload_to='caracterizacion/documentos/', verbose_name=_("Archivo"))
+    fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de subida"))
+    
+    class Meta:
+        verbose_name = _("Documento de Caracterización")
+        verbose_name_plural = _("Documentos de Caracterización")
+        ordering = ['-fecha_subida']
+        
+    def __str__(self):
+        return self.titulo
+    
+    def extension(self):
+        nombre, extension = os.path.splitext(self.archivo.name)
+        return extension.lower()

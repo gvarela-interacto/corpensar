@@ -4,15 +4,21 @@ from django import forms
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count
+from django.utils.translation import gettext_lazy as _
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import path
+from django.utils.safestring import mark_safe
+from django.db.models import F
 from .models import (
     Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
     OpcionMultiple, PreguntaCasillasVerificacion, OpcionCasillaVerificacion,
     PreguntaMenuDesplegable, OpcionMenuDesplegable, PreguntaEstrellas,
     PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
-    RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
+    RespuestaEncuesta, RespuestaTexto, RespuestaTextoMultiple, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
-    RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD,
-    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD, GrupoInteres
+    RespuestaMatriz, RespuestaFecha, Region, Municipio, PQRSFD,
+    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD, GrupoInteres,
+    DocumentoCaracterizacion, CaracterizacionMunicipal, Categoria
 )
 
 
@@ -504,3 +510,54 @@ class ArchivoRespuestaPQRSFDAdmin(admin.ModelAdmin):
     list_filter = ['tipo_archivo', 'fecha_subida']
     search_fields = ['nombre_original', 'pqrsfd__asunto']
     readonly_fields = ['fecha_subida']
+
+class DocumentoCaracterizacionInline(admin.TabularInline):
+    model = DocumentoCaracterizacion
+    extra = 1
+
+@admin.register(CaracterizacionMunicipal)
+class CaracterizacionMunicipalAdmin(admin.ModelAdmin):
+    list_display = ('municipio', 'fecha_actualizacion', 'estado', 'creador')
+    list_filter = ('estado', 'municipio__region', 'fecha_creacion')
+    search_fields = ('municipio__nombre', 'nombre_alcalde')
+    date_hierarchy = 'fecha_creacion'
+    inlines = [DocumentoCaracterizacionInline]
+    fieldsets = (
+        ('Información General', {
+            'fields': ('municipio', 'creador', 'nombre_alcalde', 'periodo_gobierno', 'estado')
+        }),
+        ('Datos Demográficos', {
+            'fields': ('poblacion_total', 'poblacion_urbana', 'poblacion_rural')
+        }),
+        ('Datos Geográficos', {
+            'fields': ('extension_territorial', 'altitud', 'temperatura_promedio')
+        }),
+        ('Economía', {
+            'fields': ('principales_actividades_economicas',)
+        }),
+        ('Infraestructura', {
+            'fields': ('numero_escuelas', 'numero_centros_salud')
+        }),
+        ('Servicios Básicos', {
+            'fields': ('cobertura_agua_potable', 'cobertura_energia_electrica', 'cobertura_alcantarillado')
+        }),
+        ('Información Adicional', {
+            'fields': ('resena_historica', 'sitios_turisticos', 'fiestas_tradicionales')
+        }),
+        ('Información de Contacto', {
+            'fields': ('direccion_alcaldia', 'telefono_alcaldia', 'sitio_web', 'email_contacto')
+        }),
+        ('Imágenes', {
+            'fields': ('escudo', 'bandera')
+        }),
+        ('Observaciones', {
+            'fields': ('observaciones',)
+        }),
+    )
+    readonly_fields = ('fecha_creacion', 'fecha_actualizacion')
+
+@admin.register(DocumentoCaracterizacion)
+class DocumentoCaracterizacionAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'caracterizacion', 'fecha_subida')
+    list_filter = ('fecha_subida',)
+    search_fields = ('titulo', 'descripcion', 'caracterizacion__municipio__nombre')

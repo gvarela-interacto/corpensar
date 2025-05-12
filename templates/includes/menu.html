@@ -515,6 +515,27 @@
             </div>
         </div>
         
+        <!-- Caracterización Municipal -->
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span>Caracterización Municipal</span>
+                <i class="mdi mdi-chevron-down"></i>
+            </div>
+            <div class="nav-section-content">
+                <li class="nav-item {% if 'lista_caracterizaciones' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'lista_caracterizaciones' %}">
+                        <i class="menu-icon mdi mdi-city"></i>
+                        <span class="menu-title">Ver Caracterizaciones</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if 'crear_caracterizacion' in request.path and not 'editar' in request.path %}active{% endif %}">
+                    <a class="nav-link" href="{% url 'crear_caracterizacion' %}">
+                        <i class="menu-icon mdi mdi-plus-circle-outline"></i>
+                        <span class="menu-title">Nueva Caracterización</span>
+                    </a>
+                </li>
+            </div>
+        </div>
 
         <!-- PQRSFD -->
         <div class="nav-section">

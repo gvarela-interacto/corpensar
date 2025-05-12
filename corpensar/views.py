@@ -29,7 +29,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
                     PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD,
-                    GrupoInteres)
+                    GrupoInteres, CaracterizacionMunicipal, DocumentoCaracterizacion)
 from .decorators import *
 import locale
 from datetime import timedelta
@@ -37,6 +37,7 @@ from django.template.defaulttags import register
 import os
 from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.paginator import Paginator
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -3130,7 +3131,7 @@ def crear_categoria_principal(request):
     return render(request, 'crear_categoria_principal.html')
 
 @login_required
-def crear_subcategoria(request):
+def crear_subcategoria(request, categoria_id=None):
     """Vista para crear una nueva subcategoría"""
     if request.method == 'POST':
         categoria_id = request.POST.get('categoria_principal')  # Cambiado de 'categoria' a 'categoria_principal'
@@ -3152,7 +3153,14 @@ def crear_subcategoria(request):
         return redirect('categorias_principales')
     
     categorias = Categoria.objects.all()
-    return render(request, 'crear_subcategoria.html', {'categorias': categorias})
+    categoria_seleccionada = None
+    if categoria_id:
+        categoria_seleccionada = get_object_or_404(Categoria, id=categoria_id)
+    
+    return render(request, 'crear_subcategoria.html', {
+        'categorias': categorias,
+        'categoria_seleccionada': categoria_seleccionada
+    })
 
 @login_required
 def eliminar_categoria_principal(request, categoria_id):
@@ -4042,6 +4050,163 @@ def generar_certificado(request):
     
     return render(request, 'generar_certificado.html', {
         'encuestas': encuestas
+    })
+
+# VISTAS DE CARACTERIZACIÓN MUNICIPAL
+@login_required
+def lista_caracterizaciones(request):
+    caracterizaciones = CaracterizacionMunicipal.objects.all()
+    
+    # Filtros
+    region_id = request.GET.get('region')
+    estado = request.GET.get('estado')
+    busqueda = request.GET.get('busqueda')
+    
+    if region_id:
+        caracterizaciones = caracterizaciones.filter(municipio__region_id=region_id)
+    
+    if estado:
+        caracterizaciones = caracterizaciones.filter(estado=estado)
+    
+    if busqueda:
+        caracterizaciones = caracterizaciones.filter(
+            Q(municipio__nombre__icontains=busqueda) |
+            Q(nombre_alcalde__icontains=busqueda)
+        )
+    
+    # Paginación
+    paginator = Paginator(caracterizaciones, 10)
+    page = request.GET.get('page')
+    caracterizaciones_paginadas = paginator.get_page(page)
+    
+    regiones = Region.objects.all()
+    estados = dict(CaracterizacionMunicipal.ESTADO_CHOICES)
+    
+    return render(request, 'caracterizacion/lista_caracterizaciones.html', {
+        'caracterizaciones': caracterizaciones_paginadas,
+        'regiones': regiones,
+        'estados': estados,
+        'filtro_region': region_id,
+        'filtro_estado': estado,
+        'busqueda': busqueda
+    })
+
+@login_required
+def crear_caracterizacion(request):
+    if request.method == 'POST':
+        form = CaracterizacionMunicipalForm(request.POST, request.FILES)
+        if form.is_valid():
+            caracterizacion = form.save(commit=False)
+            caracterizacion.creador = request.user
+            caracterizacion.save()
+            
+            # Procesar documentos adicionales
+            for archivo in request.FILES.getlist('documentos'):
+                documento = DocumentoCaracterizacion(
+                    caracterizacion=caracterizacion,
+                    titulo=archivo.name,
+                    archivo=archivo
+                )
+                documento.save()
+                
+            messages.success(request, 'Caracterización municipal creada con éxito.')
+            return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+    else:
+        form = CaracterizacionMunicipalForm()
+    
+    return render(request, 'caracterizacion/crear_caracterizacion.html', {
+        'form': form,
+        'titulo': 'Nueva Caracterización Municipal'
+    })
+
+@login_required
+def editar_caracterizacion(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    
+    if request.method == 'POST':
+        form = CaracterizacionMunicipalForm(request.POST, request.FILES, instance=caracterizacion)
+        if form.is_valid():
+            form.save()
+            
+            # Procesar documentos adicionales
+            for archivo in request.FILES.getlist('documentos'):
+                documento = DocumentoCaracterizacion(
+                    caracterizacion=caracterizacion,
+                    titulo=archivo.name,
+                    archivo=archivo
+                )
+                documento.save()
+                
+            messages.success(request, 'Caracterización municipal actualizada con éxito.')
+            return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+    else:
+        form = CaracterizacionMunicipalForm(instance=caracterizacion)
+    
+    documentos = caracterizacion.documentos.all()
+    
+    return render(request, 'caracterizacion/editar_caracterizacion.html', {
+        'form': form,
+        'caracterizacion': caracterizacion,
+        'documentos': documentos,
+        'titulo': f'Editar Caracterización de {caracterizacion.municipio.nombre}'
+    })
+
+@login_required
+def detalle_caracterizacion(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    documentos = caracterizacion.documentos.all()
+    
+    return render(request, 'caracterizacion/detalle_caracterizacion.html', {
+        'caracterizacion': caracterizacion,
+        'documentos': documentos
+    })
+
+@login_required
+def eliminar_caracterizacion(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    
+    if request.method == 'POST':
+        municipio_nombre = caracterizacion.municipio.nombre
+        caracterizacion.delete()
+        messages.success(request, f'Caracterización de {municipio_nombre} eliminada con éxito.')
+        return redirect('lista_caracterizaciones')
+    
+    return render(request, 'caracterizacion/confirmar_eliminar.html', {
+        'caracterizacion': caracterizacion
+    })
+
+@login_required
+def agregar_documento(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    
+    if request.method == 'POST':
+        form = DocumentoCaracterizacionForm(request.POST, request.FILES)
+        if form.is_valid():
+            documento = form.save(commit=False)
+            documento.caracterizacion = caracterizacion
+            documento.save()
+            messages.success(request, 'Documento agregado con éxito.')
+            return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+    else:
+        form = DocumentoCaracterizacionForm()
+    
+    return render(request, 'caracterizacion/agregar_documento.html', {
+        'form': form,
+        'caracterizacion': caracterizacion
+    })
+
+@login_required
+def eliminar_documento(request, pk):
+    documento = get_object_or_404(DocumentoCaracterizacion, pk=pk)
+    caracterizacion_pk = documento.caracterizacion.pk
+    
+    if request.method == 'POST':
+        documento.delete()
+        messages.success(request, 'Documento eliminado con éxito.')
+        return redirect('detalle_caracterizacion', pk=caracterizacion_pk)
+    
+    return render(request, 'caracterizacion/confirmar_eliminar_documento.html', {
+        'documento': documento
     })
 
 

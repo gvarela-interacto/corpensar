@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Caracterización Municipal{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-2 pb-2">
+            <div class="col-sm-9">
+                <h4 class="page-title">Caracterización Municipal</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Caracterización Municipal</li>
+                </ol>
+            </div>
+            <div class="col-sm-3">
+                <div class="btn-group float-sm-right">
+                    <a href="{% url 'crear_caracterizacion' %}" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> Nueva Caracterización
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa fa-table"></i> Caracterizaciones Municipales
+                        <div class="card-actions">
+                            <button class="btn btn-light btn-sm" type="button" data-toggle="collapse" data-target="#filtrosCollapse" aria-expanded="false" aria-controls="filtrosCollapse">
+                                <i class="fa fa-filter"></i> Filtros
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collapse" id="filtrosCollapse">
+                        <div class="card-body">
+                            <form method="get" class="row">
+                                <div class="col-md-3 form-group">
+                                    <label for="region">Región</label>
+                                    <select name="region" id="region" class="form-control">
+                                        <option value="">Todas las regiones</option>
+                                        {% for region in regiones %}
+                                            <option value="{{ region.id }}" {% if filtro_region == region.id|stringformat:"i" %}selected{% endif %}>{{ region.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3 form-group">
+                                    <label for="estado">Estado</label>
+                                    <select name="estado" id="estado" class="form-control">
+                                        <option value="">Todos los estados</option>
+                                        {% for estado_key, estado_value in estados.items %}
+                                            <option value="{{ estado_key }}" {% if filtro_estado == estado_key %}selected{% endif %}>{{ estado_value }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4 form-group">
+                                    <label for="busqueda">Búsqueda</label>
+                                    <input type="text" name="busqueda" id="busqueda" class="form-control" placeholder="Nombre del municipio o alcalde" value="{{ busqueda|default:'' }}">
+                                </div>
+                                <div class="col-md-2 form-group d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary btn-block">Filtrar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if caracterizaciones %}
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Municipio</th>
+                                            <th>Región</th>
+                                            <th>Alcalde</th>
+                                            <th>Fecha de actualización</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for caracterizacion in caracterizaciones %}
+                                            <tr>
+                                                <td>{{ caracterizacion.municipio.nombre }}</td>
+                                                <td>{{ caracterizacion.municipio.region.nombre }}</td>
+                                                <td>{{ caracterizacion.nombre_alcalde|default:"No especificado" }}</td>
+                                                <td>{{ caracterizacion.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                                                <td>
+                                                    {% if caracterizacion.estado == 'borrador' %}
+                                                        <span class="badge badge-warning">Borrador</span>
+                                                    {% elif caracterizacion.estado == 'publicado' %}
+                                                        <span class="badge badge-success">Publicado</span>
+                                                    {% elif caracterizacion.estado == 'archivado' %}
+                                                        <span class="badge badge-secondary">Archivado</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <a href="{% url 'detalle_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-info btn-sm" title="Ver detalle">
+                                                            <i class="fa fa-eye"></i>
+                                                        </a>
+                                                        <a href="{% url 'editar_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-warning btn-sm" title="Editar">
+                                                            <i class="fa fa-edit"></i>
+                                                        </a>
+                                                        <a href="{% url 'eliminar_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-danger btn-sm" title="Eliminar">
+                                                            <i class="fa fa-trash"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            {% if caracterizaciones.has_other_pages %}
+                                <nav aria-label="Paginación">
+                                    <ul class="pagination justify-content-center">
+                                        {% if caracterizaciones.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=1{% if filtro_region %}&region={{ filtro_region }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}" aria-label="Primera">
+                                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ caracterizaciones.previous_page_number }}{% if filtro_region %}&region={{ filtro_region }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}" aria-label="Anterior">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Primera">
+                                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Anterior">
+                                                    <span aria-hidden="true">&laquo;</span>
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        {% for i in caracterizaciones.paginator.page_range %}
+                                            {% if caracterizaciones.number == i %}
+                                                <li class="page-item active">
+                                                    <span class="page-link">{{ i }} <span class="sr-only">(actual)</span></span>
+                                                </li>
+                                            {% elif i > caracterizaciones.number|add:'-3' and i < caracterizaciones.number|add:'3' %}
+                                                <li class="page-item">
+                                                    <a class="page-link" href="?page={{ i }}{% if filtro_region %}&region={{ filtro_region }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}">{{ i }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if caracterizaciones.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ caracterizaciones.next_page_number }}{% if filtro_region %}&region={{ filtro_region }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}" aria-label="Siguiente">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ caracterizaciones.paginator.num_pages }}{% if filtro_region %}&region={{ filtro_region }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if busqueda %}&busqueda={{ busqueda }}{% endif %}" aria-label="Última">
+                                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Siguiente">
+                                                    <span aria-hidden="true">&raquo;</span>
+                                                </a>
+                                            </li>
+                                            <li class="page-item disabled">
+                                                <a class="page-link" href="#" aria-label="Última">
+                                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                <p class="mb-0">No se encontraron caracterizaciones municipales.</p>
+                                <p class="mb-0">Para crear una nueva caracterización, haga clic en el botón "Nueva Caracterización".</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    $(document).ready(function() {
+        // Inicializar tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %} 

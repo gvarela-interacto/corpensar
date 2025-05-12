@@ -1,0 +1,18 @@
+{% extends 'caracterizacion/crear_caracterizacion.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+{{ block.super }}
+{% endblock %}
+
+{% block page_scripts %}
+{{ block.super }}
+
+<script>
+    $(document).ready(function() {
+        // Si existen documentos, mostrarlos en una tabla
+        // La sección ya se maneja en la vista
+    });
+</script>
+{% endblock %}

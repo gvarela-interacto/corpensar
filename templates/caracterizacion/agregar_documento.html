@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agregar Documento - Caracterización de {{ caracterizacion.municipio.nombre }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-3 pb-4">
+            <div class="col-sm-9">
+                <h4 class="page-title text-primary fw-bold">Agregar Documento</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}" class="text-decoration-none">Caracterización Municipal</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'detalle_caracterizacion' pk=caracterizacion.pk %}" class="text-decoration-none">{{ caracterizacion.municipio.nombre }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Agregar Documento</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary bg-gradient text-white">
+                        <i class="fa fa-file-upload me-2"></i> Agregar Documento a {{ caracterizacion.municipio.nombre }}
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <div class="form-group mb-4">
+                                <label for="{{ form.titulo.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fa fa-heading me-2"></i>Título del Documento
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.titulo }}
+                                {% if form.titulo.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.titulo.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group mb-4">
+                                <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fa fa-align-left me-2"></i>Descripción
+                                </label>
+                                {{ form.descripcion }}
+                                {% if form.descripcion.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.descripcion.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group mb-4">
+                                <label for="{{ form.archivo.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fa fa-file me-2"></i>Archivo
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    {{ form.archivo }}
+                                </div>
+                                {% if form.archivo.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.archivo.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted mt-2">
+                                    <i class="fa fa-info-circle me-1"></i>
+                                    Formatos recomendados: PDF, DOC, DOCX, XLS, XLSX
+                                </small>
+                            </div>
+                            
+                            <div class="form-group mt-4 d-flex justify-content-end gap-2">
+                                <a href="{% url 'detalle_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-light btn-lg px-4">
+                                    <i class="fa fa-times me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg px-4">
+                                    <i class="fa fa-save me-2"></i>Guardar Documento
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .form-control, .form-select {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+    }
+    .btn {
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+    .breadcrumb-item a {
+        color: #0d6efd;
+    }
+    .breadcrumb-item.active {
+        color: #6c757d;
+    }
+</style>
+{% endblock %} 
