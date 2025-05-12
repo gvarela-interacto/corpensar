@@ -1087,23 +1087,23 @@
                 `;
             }
             
-            // Añadir celdas de categorías dinámicamente
-            todasCategorias.forEach(cat => {
-                const td = document.createElement('td');
-                td.className = 'text-center';
+            // // Añadir celdas de categorías dinámicamente
+            // todasCategorias.forEach(cat => {
+            //     const td = document.createElement('td');
+            //     td.className = 'text-center';
                 
-                const conteo = item.categorias_count && item.categorias_count[cat.id] 
-                    ? item.categorias_count[cat.id] 
-                    : 0;
+            //     const conteo = item.categorias_count && item.categorias_count[cat.id] 
+            //         ? item.categorias_count[cat.id] 
+            //         : 0;
                 
-                if (conteo > 0) {
-                    td.innerHTML = `<span class="badge bg-primary rounded-pill">${conteo}</span>`;
-                } else {
-                    td.innerHTML = `<span class="text-muted">-</span>`;
-                }
+            //     if (conteo > 0) {
+            //         td.innerHTML = `<span class="badge bg-primary rounded-pill">${conteo}</span>`;
+            //     } else {
+            //         td.innerHTML = `<span class="text-muted">-</span>`;
+            //     }
                 
-                tr.appendChild(td);
-            });
+            //     tr.appendChild(td);
+            // });
             
             // Añadir columna de acciones
             const tdAcciones = document.createElement('td');

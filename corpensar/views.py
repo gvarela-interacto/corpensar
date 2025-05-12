@@ -2653,6 +2653,7 @@ def estadisticas_municipios(request):
         num_respuestas_region = respuestas_region.count()
         encuestas_respondidas_region_ids = respuestas_region.values_list('encuesta_id', flat=True).distinct()
         num_encuestas_respondidas_region = len(encuestas_respondidas_region_ids)
+        total_encuestas_region = Encuesta.objects.filter(region=region).count()
 
 
         datos_regiones_lista.append({
@@ -2660,6 +2661,7 @@ def estadisticas_municipios(request):
             'nombre': region.nombre,
             'totalRespuestas': num_respuestas_region,
             'encuestasRespondidas': num_encuestas_respondidas_region,
+            'totalEncuestas': total_encuestas_region,
         })
 
     # 3. Datos para Gráficos
