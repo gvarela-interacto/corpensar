@@ -1178,7 +1178,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
         context['grupos_interes'] = GrupoInteres.objects.all()
         return context
     
-class TodasEncuestasView(ListView):
+class TodasEncuestasView(LoginRequiredMixin, ListView):
     model = Encuesta
     template_name = 'Encuesta/todas_encuestas.html'
     context_object_name = 'encuestas'
@@ -1472,7 +1472,6 @@ class BaseEncuestaForm(Form):
         self.requerida = requerida
         super().__init__(*args, **kwargs)
 
-
 class TextoForm(BaseEncuestaForm):
     respuesta = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -1484,7 +1483,6 @@ class TextoForm(BaseEncuestaForm):
         self.fields['respuesta'].required = requerida
         self.fields['respuesta'].widget.attrs['placeholder'] = pregunta.placeholder
         self.fields['respuesta'].widget.attrs['maxlength'] = pregunta.max_longitud
-
 
 class TextoMultipleForm(BaseEncuestaForm):
     respuesta = forms.CharField(
@@ -2586,6 +2584,8 @@ def eliminar_municipio(request, municipio_id):
         messages.error(request, f'Error al eliminar el municipio: {str(e)}')
     return redirect('regiones_y_municipios')
 
+
+
 @login_required
 def estadisticas_municipios(request):
     """Vista para mostrar la página de estadísticas de municipios con datos precargados"""
@@ -2598,7 +2598,6 @@ def estadisticas_municipios(request):
         municipio['region'] = municipio.pop('region_id')
     todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder, ensure_ascii=False)
 
-    print("todos_municipios_json: ", todos_municipios_json)
 
     # --- Filtros --- 
     region_id_str = request.GET.get('region', 'todas') # Asigna por defecto el valor de la consulta en 'todas'
@@ -2612,6 +2611,7 @@ def estadisticas_municipios(request):
     
     # 1. Estadísticas por Municipio (Filtradas)
     municipios_filtrados = Municipio.objects.select_related('region').all()
+
     if region_id:
         municipios_filtrados = municipios_filtrados.filter(region_id=region_id)
     if municipio_id:
@@ -2619,8 +2619,6 @@ def estadisticas_municipios(request):
 
     datos_municipios_lista = []
     total_respuestas_general = 0
-    total_encuestas_completadas_general = 0 # Ojo: Esta lógica puede necesitar revisión
-    total_encuestas_aplicables_general = Encuesta.objects.count() # Simplificación inicial, ajustar si las encuestas dependen de región/municipio
 
     for municipio in municipios_filtrados:
         respuestas_municipio = RespuestaEncuesta.objects.filter(municipio=municipio)
@@ -2639,22 +2637,9 @@ def estadisticas_municipios(request):
             # 'latitud': municipio.latitud, # Descomentar si se necesita para mapas
             # 'longitud': municipio.longitud
         })
+
         
-        total_respuestas_general += num_respuestas
-        total_encuestas_completadas_general += num_encuestas_respondidas
 
-    # Calcular tasa de finalización general (basada en filtros)
-    tasa_finalizacion_general = 0
-    if total_encuestas_aplicables_general > 0: # Usar el total aplicable calculado
-        # Necesitamos el total *único* de encuestas respondidas *dentro del filtro*
-        respuestas_filtradas_general = RespuestaEncuesta.objects.all()
-        if region_id:
-            respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio__region_id=region_id)
-        if municipio_id:
-            respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio_id=municipio_id)
-        total_encuestas_completadas_general = respuestas_filtradas_general.values('encuesta_id').distinct().count()
-
-        tasa_finalizacion_general = (total_encuestas_completadas_general / total_encuestas_aplicables_general) * 100
 
     # 2. Estadísticas por Región (Agregadas)
     datos_regiones_lista = []
@@ -2667,21 +2652,13 @@ def estadisticas_municipios(request):
         num_respuestas_region = respuestas_region.count()
         encuestas_respondidas_region_ids = respuestas_region.values_list('encuesta_id', flat=True).distinct()
         num_encuestas_respondidas_region = len(encuestas_respondidas_region_ids)
-        
-        # Total encuestas aplicables a la región (Simplificación)
-        total_encuestas_aplicables_region = Encuesta.objects.filter(region=region).count() if Encuesta._meta.get_field('region') else total_encuestas_aplicables_general
 
-        tasa_finalizacion_region = 0
-        if total_encuestas_aplicables_region > 0:
-            tasa_finalizacion_region = (num_encuestas_respondidas_region / total_encuestas_aplicables_region) * 100
 
         datos_regiones_lista.append({
             'id': region.id,
             'nombre': region.nombre,
-            'totalEncuestas': total_encuestas_aplicables_region, # Revisar lógica
             'totalRespuestas': num_respuestas_region,
             'encuestasRespondidas': num_encuestas_respondidas_region,
-            'tasaFinalizacion': round(tasa_finalizacion_region, 1)
         })
 
     # 3. Datos para Gráficos
@@ -2789,16 +2766,87 @@ def estadisticas_municipios(request):
         'municipio_seleccionado': municipio_id_str,
 
         # Datos para tarjetas de resumen
-        'total_encuestas': total_encuestas_aplicables_general, # Revisar lógica
         'total_respuestas': total_respuestas_general,
-        'total_encuestas_completadas': total_encuestas_completadas_general, # Revisar lógica
-        'tasa_finalizacion': round(tasa_finalizacion_general, 1),
 
         # --- JSONs para JavaScript --- 
         'datos_graficos_json': json.dumps(datos_graficos_dict, cls=DjangoJSONEncoder),
         'datos_regiones_tabla_json': json.dumps(datos_regiones_lista, cls=DjangoJSONEncoder),
         'datos_municipios_json': json.dumps(datos_municipios_lista, cls=DjangoJSONEncoder),
     }
+    
+    # Generar datos detallados para cada municipio/región
+    datos_formularios_detalle = {}
+    
+    # 1. Datos de formularios por municipio
+    for municipio in Municipio.objects.all():
+        clave = f"municipio_{municipio.id}"
+        formularios_municipio = []
+        
+        # Obtener las respuestas agrupadas por encuesta para este municipio
+        respuestas_por_encuesta = RespuestaEncuesta.objects.filter(
+            municipio=municipio
+        ).values('encuesta_id').annotate(
+            total_respuestas=Count('id'),
+            completadas=Count('id', filter=Q(completada=True))
+        )
+        
+        for respuesta_grupo in respuestas_por_encuesta:
+            encuesta_id = respuesta_grupo['encuesta_id']
+            try:
+                encuesta = Encuesta.objects.select_related('categoria').get(id=encuesta_id)
+                categoria_nombre = encuesta.categoria.nombre if encuesta.categoria else "Sin categoría"
+                
+                formularios_municipio.append({
+                    'id': encuesta.id,
+                    'titulo': encuesta.titulo,
+                    'categoria': categoria_nombre,
+                    'total_respuestas': respuesta_grupo['total_respuestas'],
+                    'completadas': respuesta_grupo['completadas']
+                })
+            except Encuesta.DoesNotExist:
+                continue  # Ignorar encuestas que ya no existen
+                
+        # Agregar al diccionario principal
+        datos_formularios_detalle[clave] = formularios_municipio
+    
+    # 2. Datos de formularios por región
+    for region in Region.objects.all():
+        clave = f"region_{region.id}"
+        formularios_region = []
+        
+        # Obtener las respuestas agrupadas por encuesta para esta región
+        respuestas_por_encuesta = RespuestaEncuesta.objects.filter(
+            municipio__region=region
+        ).values('encuesta_id').annotate(
+            total_respuestas=Count('id'),
+            completadas=Count('id', filter=Q(completada=True))
+        )
+        
+        for respuesta_grupo in respuestas_por_encuesta:
+            encuesta_id = respuesta_grupo['encuesta_id']
+            try:
+                encuesta = Encuesta.objects.select_related('categoria').get(id=encuesta_id)
+                categoria_nombre = encuesta.categoria.nombre if encuesta.categoria else "Sin categoría"
+                
+                formularios_region.append({
+                    'id': encuesta.id,
+                    'titulo': encuesta.titulo,
+                    'categoria': categoria_nombre,
+                    'total_respuestas': respuesta_grupo['total_respuestas'],
+                    'completadas': respuesta_grupo['completadas']
+                })
+            except Encuesta.DoesNotExist:
+                continue  # Ignorar encuestas que ya no existen
+                
+        # Agregar al diccionario principal
+        datos_formularios_detalle[clave] = formularios_region
+    
+    # Agregar todas las categorías
+    todas_categorias = list(Categoria.objects.values('id', 'nombre'))
+    
+    # Añadir al contexto
+    context['datos_formularios_detalle_json'] = json.dumps(datos_formularios_detalle, cls=DjangoJSONEncoder)
+    context['todas_categorias_json'] = json.dumps(todas_categorias, cls=DjangoJSONEncoder)
     
     return render(request, 'estadisticas/municipios.html', context)
 
