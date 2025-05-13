@@ -1,0 +1,171 @@
+<!-- Datos Demográficos -->
+<div class="section-header mb-4">
+    <h5 class="text-primary">
+        <i class="fa fa-users me-2"></i>Datos Demográficos
+    </h5>
+    <hr class="text-primary">
+</div>
+
+<!-- Habitantes -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Habitantes</h6>
+    </div>
+    <div class="col-md-12">
+        <label for="{{ form.poblacion_total.id_for_label }}" class="form-label fw-bold">No. Habitantes</label>
+        {{ form.poblacion_total }}
+        {% if form.poblacion_total.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_total.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Género -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Distribución por Género</h6>
+    </div>
+    <!-- Hombres -->
+    <div class="col-md-6">
+        <h6 class="text-muted">Hombres</h6>
+    </div>
+    <div class="col-md-6">
+        <h6 class="text-muted">Mujeres</h6>
+    </div>
+    <div class="col-md-2">
+        <label for="{{ form.poblacion_hombres_total.id_for_label }}" class="form-label fw-bold">Total</label>
+        {{ form.poblacion_hombres_total }}
+        {% if form.poblacion_hombres_total.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_hombres_total.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <label for="{{ form.poblacion_hombres_rural.id_for_label }}" class="form-label fw-bold">Rural</label>
+        {{ form.poblacion_hombres_rural }}
+        {% if form.poblacion_hombres_rural.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_hombres_rural.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <label for="{{ form.poblacion_hombres_urbana.id_for_label }}" class="form-label fw-bold">Urbana</label>
+        {{ form.poblacion_hombres_urbana }}
+        {% if form.poblacion_hombres_urbana.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_hombres_urbana.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <label for="{{ form.poblacion_mujeres_total.id_for_label }}" class="form-label fw-bold">Total</label>
+        {{ form.poblacion_mujeres_total }}
+        {% if form.poblacion_mujeres_total.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_mujeres_total.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <label for="{{ form.poblacion_mujeres_rural.id_for_label }}" class="form-label fw-bold">Rural</label>
+        {{ form.poblacion_mujeres_rural }}
+        {% if form.poblacion_mujeres_rural.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_mujeres_rural.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-2">
+        <label for="{{ form.poblacion_mujeres_urbana.id_for_label }}" class="form-label fw-bold">Urbana</label>
+        {{ form.poblacion_mujeres_urbana }}
+        {% if form.poblacion_mujeres_urbana.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_mujeres_urbana.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Origen Étnico -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Población por Origen Étnico</h6>
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.poblacion_indigena.id_for_label }}" class="form-label fw-bold">Indígena</label>
+        {{ form.poblacion_indigena }}
+        {% if form.poblacion_indigena.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_indigena.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.poblacion_raizal.id_for_label }}" class="form-label fw-bold">Raizal</label>
+        {{ form.poblacion_raizal }}
+        {% if form.poblacion_raizal.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_raizal.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.poblacion_gitano_rrom.id_for_label }}" class="form-label fw-bold">Gitano(a)/Rrom</label>
+        {{ form.poblacion_gitano_rrom }}
+        {% if form.poblacion_gitano_rrom.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_gitano_rrom.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label for="{{ form.poblacion_palenquero.id_for_label }}" class="form-label fw-bold">Palenquero(a) de San Basilio</label>
+        {{ form.poblacion_palenquero }}
+        {% if form.poblacion_palenquero.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_palenquero.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.poblacion_negro_mulato_afrocolombiano.id_for_label }}" class="form-label fw-bold">Negro/Mulato/Afro</label>
+        {{ form.poblacion_negro_mulato_afrocolombiano }}
+        {% if form.poblacion_negro_mulato_afrocolombiano.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_negro_mulato_afrocolombiano.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Población Desplazada y Migrante -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Población Desplazada y Migrante</h6>
+    </div>
+    <div class="col-md-6">
+        <label for="{{ form.poblacion_desplazada.id_for_label }}" class="form-label fw-bold">Población Desplazada</label>
+        {{ form.poblacion_desplazada }}
+        {% if form.poblacion_desplazada.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_desplazada.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <label for="{{ form.poblacion_migrantes.id_for_label }}" class="form-label fw-bold">Población Migrante</label>
+        {{ form.poblacion_migrantes }}
+        {% if form.poblacion_migrantes.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.poblacion_migrantes.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div> 

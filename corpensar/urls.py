@@ -4,7 +4,6 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-from .views import estadisticas_municipios, categorias_principales, crear_categoria_principal, crear_subcategoria, eliminar_categoria_principal, eliminar_subcategoria, get_subcategorias, grupos_interes, crear_grupo_interes, eliminar_grupo_interes
 from .redirect_views import login_redirect_view
 
 urlpatterns = [
@@ -62,11 +61,23 @@ urlpatterns = [
   path('encuesta/<int:encuesta_id>/agregar-caracterizacion/', views.agregar_caracterizacion, name='agregar_caracterizacion'),
 
   path('categorias/', views.categorias_principales, name='categorias_principales'),
-  path('categorias/crear/', views.crear_categoria_principal, name='crear_categoria_principal'),
-  path('categorias/subcategoria/crear/', views.crear_subcategoria, name='crear_subcategoria'),
+  path('categorias/nueva/', views.crear_categoria_principal, name='crear_categoria_principal'),
   path('categorias/<int:categoria_id>/eliminar/', views.eliminar_categoria_principal, name='eliminar_categoria_principal'),
-  path('categorias/subcategoria/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
-  path('api/subcategorias/', views.get_subcategorias, name='get_subcategorias'),
+  path('subcategorias/nueva/', views.crear_subcategoria, name='crear_subcategoria'),
+  path('categorias/<int:categoria_id>/subcategorias/nueva/', views.crear_subcategoria, name='crear_subcategoria_con_categoria'),
+  path('subcategorias/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
+  
+  # Caracterización Municipal
+  path('caracterizaciones/', views.lista_caracterizaciones, name='lista_caracterizaciones'),
+  path('caracterizaciones/seleccionar-metodo/', views.seleccionar_metodo_caracterizacion, name='seleccionar_metodo_caracterizacion'),
+  path('caracterizaciones/crear/', views.crear_caracterizacion, name='crear_caracterizacion'),
+  path('caracterizaciones/subir-pdf/', views.subir_pdf_caracterizacion, name='subir_pdf_caracterizacion'),
+  path('caracterizaciones/diagnostico-pdf/', views.diagnostico_pdf_caracterizacion, name='diagnostico_pdf'),
+  path('caracterizaciones/editar/<int:pk>/', views.editar_caracterizacion, name='editar_caracterizacion'),
+  path('caracterizaciones/detalle/<int:pk>/', views.detalle_caracterizacion, name='detalle_caracterizacion'),
+  path('caracterizaciones/eliminar/<int:pk>/', views.eliminar_caracterizacion, name='eliminar_caracterizacion'),
+  path('caracterizaciones/documento/<int:pk>/agregar/', views.agregar_documento, name='agregar_documento'),
+  path('caracterizaciones/documento/<int:pk>/eliminar/', views.eliminar_documento, name='eliminar_documento'),
 
   path('qr-generator/', views.qr_generator, name='qr_generator'),
 

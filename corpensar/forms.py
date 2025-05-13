@@ -305,3 +305,104 @@ class CrearUsuarioForm(forms.Form):
             user.save()
 
         return user
+
+class CaracterizacionMunicipalForm(forms.ModelForm):
+    class Meta:
+        model = CaracterizacionMunicipal
+        exclude = ['creador', 'fecha_creacion', 'fecha_actualizacion', 'municipio']
+        widgets = {
+            # Territorio
+            'area_km2': forms.NumberInput(attrs={'class': 'form-control'}),
+            'concejos_comunitarios_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'resguardos_indigenas_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'zonas_reserva_campesina_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'zonas_reserva_sinap_ha': forms.NumberInput(attrs={'class': 'form-control'}),
+            'es_municipio_pdei': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            
+            # Demografía - General
+            'poblacion_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Hombres
+            'poblacion_hombres_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_hombres_rural': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_hombres_urbana': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Mujeres
+            'poblacion_mujeres_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_mujeres_rural': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_mujeres_urbana': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Origen étnico
+            'poblacion_indigena': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_raizal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_gitano_rrom': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_palenquero': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_negro_mulato_afrocolombiano': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Demografía - Desplazados y migrantes
+            'poblacion_desplazada': forms.NumberInput(attrs={'class': 'form-control'}),
+            'poblacion_migrantes': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Indicadores Socioeconómicos
+            'necesidades_basicas_insatisfechas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'proporcion_personas_miseria': forms.NumberInput(attrs={'class': 'form-control'}),
+            'indice_pobreza_multidimensional': forms.NumberInput(attrs={'class': 'form-control'}),
+            'analfabetismo': forms.NumberInput(attrs={'class': 'form-control'}),
+            'bajo_logro_educativo': forms.NumberInput(attrs={'class': 'form-control'}),
+            'inasistencia_escolar': forms.NumberInput(attrs={'class': 'form-control'}),
+            'trabajo_informal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'desempleo_larga_duracion': forms.NumberInput(attrs={'class': 'form-control'}),
+            'trabajo_infantil': forms.NumberInput(attrs={'class': 'form-control'}),
+            'hacinamiento_critico': forms.NumberInput(attrs={'class': 'form-control'}),
+            'barreras_servicios_cuidado_primera_infancia': forms.NumberInput(attrs={'class': 'form-control'}),
+            'barreras_acceso_servicios_salud': forms.NumberInput(attrs={'class': 'form-control'}),
+            'inadecuada_eliminacion_excretas': forms.NumberInput(attrs={'class': 'form-control'}),
+            'sin_acceso_fuente_agua_mejorada': forms.NumberInput(attrs={'class': 'form-control'}),
+            'sin_aseguramiento_salud': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            # Imágenes
+            'escudo': forms.FileInput(attrs={'class': 'form-control-file'}),
+            'bandera': forms.FileInput(attrs={'class': 'form-control-file'}),
+            
+            # Observaciones
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Hacer todos los campos opcionales
+        for field in self.fields:
+            self.fields[field].required = False
+
+
+class DocumentoCaracterizacionForm(forms.ModelForm):
+    class Meta:
+        model = DocumentoCaracterizacion
+        fields = ['titulo', 'descripcion', 'archivo']
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'archivo': forms.FileInput(attrs={'class': 'form-control-file'}),
+        }
+
+class PDFCaracterizacionForm(forms.Form):
+    """Formulario para cargar un PDF para caracterización municipal"""
+    pdf_file = forms.FileField(
+        label="Archivo PDF",
+        help_text="Seleccione un archivo PDF con datos de caracterización municipal.",
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf'}),
+    )
+    
+    def clean_pdf_file(self):
+        """Validar que el archivo sea un PDF"""
+        pdf_file = self.cleaned_data.get('pdf_file')
+        if pdf_file:
+            # Verificar que sea un PDF por extensión
+            if not pdf_file.name.lower().endswith('.pdf'):
+                raise forms.ValidationError("El archivo debe ser un PDF.")
+            # Verificar el tamaño del archivo (máximo 10 MB)
+            if pdf_file.size > 10 * 1024 * 1024:
+                raise forms.ValidationError("El archivo no debe exceder 10 MB.")
+        return pdf_file

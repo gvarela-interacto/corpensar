@@ -4,15 +4,21 @@ from django import forms
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Count
+from django.utils.translation import gettext_lazy as _
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import path
+from django.utils.safestring import mark_safe
+from django.db.models import F
 from .models import (
     Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
     OpcionMultiple, PreguntaCasillasVerificacion, OpcionCasillaVerificacion,
     PreguntaMenuDesplegable, OpcionMenuDesplegable, PreguntaEstrellas,
     PreguntaEscala, PreguntaMatriz, ItemMatrizPregunta, PreguntaFecha,
-    RespuestaEncuesta, RespuestaTexto, RespuestaOpcionMultiple,
+    RespuestaEncuesta, RespuestaTexto, RespuestaTextoMultiple, RespuestaOpcionMultiple,
     RespuestaCasillasVerificacion, RespuestaEstrellas, RespuestaEscala,
-    RespuestaMatriz, RespuestaFecha,Region, Municipio, PQRSFD,
-    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD, GrupoInteres
+    RespuestaMatriz, RespuestaFecha, Region, Municipio, PQRSFD,
+    Subcategoria, ArchivoRespuestaPQRSFD, ArchivoAdjuntoPQRSFD, GrupoInteres,
+    DocumentoCaracterizacion, CaracterizacionMunicipal, Categoria
 )
 
 
@@ -325,7 +331,8 @@ class GrupoInteresAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'descripcion', 'fecha_creacion']
     search_fields = ['nombre', 'descripcion']
     list_per_page = 20
-    date_hierarchy = 'fecha_creacion'
+    # Comentamos el date_hierarchy para evitar problemas con zonas horarias
+    # date_hierarchy = 'fecha_creacion'
 
 admin.site.register(GrupoInteres, GrupoInteresAdmin)
 
@@ -338,7 +345,8 @@ class EncuestaAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('titulo',)}
     filter_horizontal = []
     readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
-    date_hierarchy = 'fecha_creacion'
+    # Comentamos el date_hierarchy para evitar problemas con zonas horarias
+    # date_hierarchy = 'fecha_creacion'
     list_editable = ['activa', 'es_publica']
     
     fieldsets = (
@@ -504,3 +512,69 @@ class ArchivoRespuestaPQRSFDAdmin(admin.ModelAdmin):
     list_filter = ['tipo_archivo', 'fecha_subida']
     search_fields = ['nombre_original', 'pqrsfd__asunto']
     readonly_fields = ['fecha_subida']
+
+class DocumentoCaracterizacionInline(admin.TabularInline):
+    model = DocumentoCaracterizacion
+    extra = 1
+
+@admin.register(CaracterizacionMunicipal)
+class CaracterizacionMunicipalAdmin(admin.ModelAdmin):
+    list_display = ('municipio', 'fecha_actualizacion', 'estado', 'creador')
+    list_filter = ('estado', 'municipio__region', 'fecha_creacion')
+    search_fields = ('municipio__nombre',)
+    # Comentamos el date_hierarchy que está causando el error de zona horaria
+    # date_hierarchy = 'fecha_creacion'
+    inlines = [DocumentoCaracterizacionInline]
+    fieldsets = (
+        ('Información General', {
+            'fields': ('municipio', 'creador', 'estado')
+        }),
+        ('Territorio', {
+            'fields': ('area_km2', 'concejos_comunitarios_ha', 'resguardos_indigenas_ha', 
+                      'zonas_reserva_campesina_ha', 'zonas_reserva_sinap_ha', 'es_municipio_pdei')
+        }),
+        ('Datos Demográficos - General', {
+            'fields': ('poblacion_total',)
+        }),
+        ('Datos Demográficos - Hombres', {
+            'fields': ('poblacion_hombres_total', 'poblacion_hombres_rural', 'poblacion_hombres_urbana')
+        }),
+        ('Datos Demográficos - Mujeres', {
+            'fields': ('poblacion_mujeres_total', 'poblacion_mujeres_rural', 'poblacion_mujeres_urbana')
+        }),
+        ('Datos Demográficos - Origen Étnico', {
+            'fields': ('poblacion_indigena', 'poblacion_raizal', 'poblacion_gitano_rrom', 'poblacion_palenquero', 
+                      'poblacion_negro_mulato_afrocolombiano')
+        }),
+        ('Datos Demográficos - Desplazados y Migrantes', {
+            'fields': ('poblacion_desplazada', 'poblacion_migrantes')
+        }),
+        ('Indicadores Socioeconómicos - Pobreza', {
+            'fields': ('necesidades_basicas_insatisfechas', 'proporcion_personas_miseria', 
+                      'indice_pobreza_multidimensional')
+        }),
+        ('Indicadores Socioeconómicos - Educación', {
+            'fields': ('analfabetismo', 'bajo_logro_educativo', 'inasistencia_escolar')
+        }),
+        ('Indicadores Socioeconómicos - Trabajo', {
+            'fields': ('trabajo_informal', 'desempleo_larga_duracion', 'trabajo_infantil')
+        }),
+        ('Indicadores Socioeconómicos - Vivienda y Servicios', {
+            'fields': ('hacinamiento_critico', 'barreras_servicios_cuidado_primera_infancia', 
+                      'barreras_acceso_servicios_salud', 'inadecuada_eliminacion_excretas', 
+                      'sin_acceso_fuente_agua_mejorada', 'sin_aseguramiento_salud')
+        }),
+        ('Imágenes', {
+            'fields': ('escudo', 'bandera')
+        }),
+        ('Observaciones', {
+            'fields': ('observaciones',)
+        }),
+    )
+    readonly_fields = ('fecha_creacion', 'fecha_actualizacion')
+
+@admin.register(DocumentoCaracterizacion)
+class DocumentoCaracterizacionAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'caracterizacion', 'fecha_subida')
+    list_filter = ('fecha_subida',)
+    search_fields = ('titulo', 'descripcion', 'caracterizacion__municipio__nombre')

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Caracterización - {{ caracterizacion.municipio.nombre }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-2 pb-2">
+            <div class="col-sm-9">
+                <h4 class="page-title">Eliminar Caracterización</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}">Caracterización Municipal</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'detalle_caracterizacion' pk=caracterizacion.pk %}">{{ caracterizacion.municipio.nombre }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Eliminar</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <i class="fa fa-exclamation-triangle"></i> Eliminar Caracterización Municipal
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h5><i class="fa fa-exclamation-circle"></i> ¡Atención!</h5>
+                            <p>Está a punto de eliminar la caracterización del municipio <strong>{{ caracterizacion.municipio.nombre }}</strong>.</p>
+                            <p>Esta acción no se puede deshacer y eliminará todos los datos y documentos asociados.</p>
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
+                                <a href="{% url 'detalle_caracterizacion' pk=caracterizacion.pk %}" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

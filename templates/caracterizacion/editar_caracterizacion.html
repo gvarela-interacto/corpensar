@@ -1,0 +1,150 @@
+{% extends 'caracterizacion/crear_caracterizacion.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-3 pb-4">
+            <div class="col-sm-9">
+                <h4 class="page-title text-primary fw-bold">{{ titulo }}</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}" class="text-decoration-none">Caracterización Municipal</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary bg-gradient text-white py-3">
+                        <i class="fa fa-edit me-2"></i> Formulario de Caracterización Municipal
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- Información General -->
+                            <div class="section-header mb-4">
+                                <h5 class="text-primary">
+                                    <i class="fa fa-info-circle me-2"></i>Información General
+                                </h5>
+                                <hr class="text-primary">
+                            </div>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">
+                                        Municipio <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" value="{{ caracterizacion.municipio.region.nombre }} - {{ caracterizacion.municipio.nombre }}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.estado.id_for_label }}" class="form-label fw-bold">Estado</label>
+                                    {{ form.estado }}
+                                    {% if form.estado.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.estado.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Continuar con el resto del formulario-->
+                            {% include 'caracterizacion/forms/territorio.html' %}
+                            {% include 'caracterizacion/forms/demografia.html' %}
+                            {% include 'caracterizacion/forms/indicadores.html' %}
+                            {% include 'caracterizacion/forms/documentos.html' %}
+                            
+                            <div class="row g-3 mt-4">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-2"></i>Guardar Caracterización
+                                    </button>
+                                    <a href="{% url 'lista_caracterizaciones' %}" class="btn btn-secondary">
+                                        <i class="fa fa-times me-2"></i>Cancelar
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Documentos -->
+        {% if documentos %}
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary bg-gradient text-white py-3">
+                        <i class="fa fa-file me-2"></i> Documentos Adjuntos
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Descripción</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in documentos %}
+                                    <tr>
+                                        <td>{{ doc.titulo }}</td>
+                                        <td>{{ doc.descripcion|default:"-" }}</td>
+                                        <td>{{ doc.fecha_subida|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <a href="{{ doc.archivo.url }}" class="btn btn-sm btn-info" target="_blank">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'eliminar_documento' pk=doc.pk %}" class="btn btn-sm btn-danger">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    $(document).ready(function() {
+        // Inicializar select2
+        $('.select2').select2();
+        
+        // Validación del formulario
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    });
+</script>
+{% endblock %}

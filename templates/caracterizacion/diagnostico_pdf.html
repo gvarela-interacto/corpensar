@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Diagnóstico de Procesamiento PDF{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-2 pb-2">
+            <div class="col-sm-9">
+                <h4 class="page-title">Diagnóstico de Procesamiento PDF</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}">Caracterizaciones</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Diagnóstico PDF</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Diagnóstico de Procesamiento PDF con IA</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Alerta de información -->
+                        <div class="alert alert-info mb-4">
+                            <p><i class="fas fa-info-circle"></i> Esta herramienta permite diagnosticar el procesamiento de PDF con IA sin crear una caracterización. Útil para probar y resolver problemas con la extracción de datos.</p>
+                        </div>
+                        
+                        <!-- Mensaje de error -->
+                        {% if error_message %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle"></i> {{ error_message }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Formulario -->
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                <label for="{{ form.pdf_file.id_for_label }}">{{ form.pdf_file.label }}</label>
+                                {{ form.pdf_file }}
+                                {% if form.pdf_file.help_text %}
+                                    <small class="form-text text-muted">{{ form.pdf_file.help_text }}</small>
+                                {% endif %}
+                                {% if form.pdf_file.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.pdf_file.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-primary px-5">
+                                    <i class="fa fa-microscope"></i> Analizar PDF
+                                </button>
+                                <a href="{% url 'lista_caracterizaciones' %}" class="btn btn-light px-5 ml-2">
+                                    <i class="fa fa-arrow-left"></i> Volver
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <!-- Resultados del procesamiento -->
+                        {% if resultado %}
+                            <div class="mt-5">
+                                <h5 class="card-title border-bottom pb-2">Resultados del Procesamiento</h5>
+                                
+                                <!-- Municipio detectado -->
+                                {% if resultado.municipio_detectado %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-city"></i> Municipio detectado: <strong>{{ resultado.municipio_detectado }}</strong>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Tipo de datos -->
+                                <div class="mb-3">
+                                    <p><strong>Tipo de resultado:</strong> {{ resultado.tipo_resultado }}</p>
+                                </div>
+                                
+                                <!-- Datos extraídos -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Datos extraídos del PDF</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <pre class="p-3 bg-light" style="max-height: 500px; overflow-y: auto;">{{ resultado.datos_extraidos|pprint }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    $(document).ready(function() {
+        // Nada aquí por ahora
+    });
+</script>
+{% endblock %} 

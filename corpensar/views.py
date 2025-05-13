@@ -29,7 +29,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
                     PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD,
-                    GrupoInteres)
+                    GrupoInteres, CaracterizacionMunicipal, DocumentoCaracterizacion)
 from .decorators import *
 import locale
 from datetime import timedelta
@@ -37,6 +37,9 @@ from django.template.defaulttags import register
 import os
 from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.paginator import Paginator
+import logging
+from django.db import connection
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -1178,7 +1181,7 @@ class ListaEncuestasView(LoginRequiredMixin, ListView):
         context['grupos_interes'] = GrupoInteres.objects.all()
         return context
     
-class TodasEncuestasView(ListView):
+class TodasEncuestasView(LoginRequiredMixin, ListView):
     model = Encuesta
     template_name = 'Encuesta/todas_encuestas.html'
     context_object_name = 'encuestas'
@@ -1472,7 +1475,6 @@ class BaseEncuestaForm(Form):
         self.requerida = requerida
         super().__init__(*args, **kwargs)
 
-
 class TextoForm(BaseEncuestaForm):
     respuesta = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control'}),
@@ -1484,7 +1486,6 @@ class TextoForm(BaseEncuestaForm):
         self.fields['respuesta'].required = requerida
         self.fields['respuesta'].widget.attrs['placeholder'] = pregunta.placeholder
         self.fields['respuesta'].widget.attrs['maxlength'] = pregunta.max_longitud
-
 
 class TextoMultipleForm(BaseEncuestaForm):
     respuesta = forms.CharField(
@@ -1498,7 +1499,6 @@ class TextoMultipleForm(BaseEncuestaForm):
         self.fields['respuesta'].widget.attrs['placeholder'] = pregunta.placeholder
         self.fields['respuesta'].widget.attrs['maxlength'] = pregunta.max_longitud
         self.fields['respuesta'].widget.attrs['rows'] = pregunta.filas
-
 
 class OpcionMultipleForm(BaseEncuestaForm):
     opcion = forms.ModelChoiceField(
@@ -1517,7 +1517,6 @@ class OpcionMultipleForm(BaseEncuestaForm):
         self.fields['opcion'].required = requerida
         self.fields['opcion'].label = ""
         self.opcion_otro = pregunta.opcion_otro
-
 
 class CasillasVerificacionForm(BaseEncuestaForm):
     opciones = forms.ModelMultipleChoiceField(
@@ -1552,7 +1551,6 @@ class CasillasVerificacionForm(BaseEncuestaForm):
         
         return opciones
 
-
 class MenuDesplegableForm(BaseEncuestaForm):
     opcion = forms.ModelChoiceField(
         queryset=None,
@@ -1568,7 +1566,6 @@ class MenuDesplegableForm(BaseEncuestaForm):
         # Añadir opción vacía si está configurada en la pregunta
         if pregunta.opcion_vacia:
             self.fields['opcion'].empty_label = pregunta.texto_vacio
-
 
 class EstrellasForm(BaseEncuestaForm):
     valor = forms.IntegerField(
@@ -1588,7 +1585,6 @@ class EstrellasForm(BaseEncuestaForm):
         self.etiqueta_inicio = pregunta.etiqueta_inicio
         self.etiqueta_fin = pregunta.etiqueta_fin
 
-
 class EscalaForm(BaseEncuestaForm):
     valor = forms.IntegerField(
         widget=forms.NumberInput(attrs={'class': 'form-control', 'type': 'range'}),
@@ -1607,7 +1603,6 @@ class EscalaForm(BaseEncuestaForm):
         self.max_valor = pregunta.max_valor
         self.etiqueta_min = pregunta.etiqueta_min
         self.etiqueta_max = pregunta.etiqueta_max
-
 
 class MatrizForm(BaseEncuestaForm):
     def __init__(self, *args, pregunta=None, requerida=False, **kwargs):
@@ -1632,7 +1627,6 @@ class MatrizForm(BaseEncuestaForm):
                 label=item.texto
             )
 
-
 class FechaForm(BaseEncuestaForm):
     valor = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
@@ -1649,7 +1643,6 @@ class FechaForm(BaseEncuestaForm):
                 widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
                 required=requerida
             )
-
 
 def guardar_respuesta(request, encuesta_id):
     encuesta = get_object_or_404(Encuesta, id=encuesta_id)
@@ -2061,8 +2054,6 @@ def crear_municipio(request):
             messages.error(request, "Todos los campos son obligatorios.")
 
     return render(request, "Encuesta/crear_municipio.html", {"regiones": regiones})
-
-
 
 @login_required
 def crear_categoria(request):
@@ -2596,6 +2587,8 @@ def eliminar_municipio(request, municipio_id):
         messages.error(request, f'Error al eliminar el municipio: {str(e)}')
     return redirect('regiones_y_municipios')
 
+
+
 @login_required
 def estadisticas_municipios(request):
     """Vista para mostrar la página de estadísticas de municipios con datos precargados"""
@@ -2606,10 +2599,11 @@ def estadisticas_municipios(request):
     # Ajustar clave 'region' para JSON de municipios
     for municipio in todos_municipios_lista:
         municipio['region'] = municipio.pop('region_id')
-    todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder)
+    todos_municipios_json = json.dumps(todos_municipios_lista, cls=DjangoJSONEncoder, ensure_ascii=False)
+
 
     # --- Filtros --- 
-    region_id_str = request.GET.get('region', 'todas')
+    region_id_str = request.GET.get('region', 'todas') # Asigna por defecto el valor de la consulta en 'todas'
     municipio_id_str = request.GET.get('municipio', 'todos')
     
     # Convertir IDs a int si no son 'todas' o 'todos'
@@ -2620,6 +2614,7 @@ def estadisticas_municipios(request):
     
     # 1. Estadísticas por Municipio (Filtradas)
     municipios_filtrados = Municipio.objects.select_related('region').all()
+
     if region_id:
         municipios_filtrados = municipios_filtrados.filter(region_id=region_id)
     if municipio_id:
@@ -2627,52 +2622,27 @@ def estadisticas_municipios(request):
 
     datos_municipios_lista = []
     total_respuestas_general = 0
-    total_encuestas_completadas_general = 0 # Ojo: Esta lógica puede necesitar revisión
-    total_encuestas_aplicables_general = Encuesta.objects.count() # Simplificación inicial, ajustar si las encuestas dependen de región/municipio
 
     for municipio in municipios_filtrados:
         respuestas_municipio = RespuestaEncuesta.objects.filter(municipio=municipio)
         num_respuestas = respuestas_municipio.count()
         # Contar encuestas únicas respondidas en este municipio
-        encuestas_respondidas_ids = respuestas_municipio.values_list('encuesta_id', flat=True).distinct()
+        encuestas_respondidas_ids = set(respuestas_municipio.values_list('encuesta_id', flat=True).distinct())
         num_encuestas_respondidas = len(encuestas_respondidas_ids)
-        
-        # Calcular tasa - Necesita el número total de encuestas *aplicables* a este municipio
-        # Esta parte es compleja y depende de tu lógica de negocio.
-        # Asumiremos un total general por ahora, pero idealmente filtrarías Encuesta por región/municipio si aplica.
-        total_encuestas_aplicables_municipio = total_encuestas_aplicables_general # Simplificación
-        tasa_finalizacion = 0
-        if total_encuestas_aplicables_municipio > 0:
-            tasa_finalizacion = (num_encuestas_respondidas / total_encuestas_aplicables_municipio) * 100
         
         datos_municipios_lista.append({
             'id': municipio.id,
             'nombre': municipio.nombre,
             'region': municipio.region.nombre,
             'region_id': municipio.region.id,
-            'totalEncuestas': total_encuestas_aplicables_municipio, # Revisar esta lógica
             'totalRespuestas': num_respuestas,
             'encuestasRespondidas': num_encuestas_respondidas,
-            'tasaFinalizacion': round(tasa_finalizacion, 1),
             # 'latitud': municipio.latitud, # Descomentar si se necesita para mapas
             # 'longitud': municipio.longitud
         })
+
         
-        total_respuestas_general += num_respuestas
-        total_encuestas_completadas_general += num_encuestas_respondidas
 
-    # Calcular tasa de finalización general (basada en filtros)
-    tasa_finalizacion_general = 0
-    if total_encuestas_aplicables_general > 0: # Usar el total aplicable calculado
-        # Necesitamos el total *único* de encuestas respondidas *dentro del filtro*
-        respuestas_filtradas_general = RespuestaEncuesta.objects.all()
-        if region_id:
-            respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio__region_id=region_id)
-        if municipio_id:
-            respuestas_filtradas_general = respuestas_filtradas_general.filter(municipio_id=municipio_id)
-        total_encuestas_completadas_general = respuestas_filtradas_general.values('encuesta_id').distinct().count()
-
-        tasa_finalizacion_general = (total_encuestas_completadas_general / total_encuestas_aplicables_general) * 100
 
     # 2. Estadísticas por Región (Agregadas)
     datos_regiones_lista = []
@@ -2685,21 +2655,15 @@ def estadisticas_municipios(request):
         num_respuestas_region = respuestas_region.count()
         encuestas_respondidas_region_ids = respuestas_region.values_list('encuesta_id', flat=True).distinct()
         num_encuestas_respondidas_region = len(encuestas_respondidas_region_ids)
-        
-        # Total encuestas aplicables a la región (Simplificación)
-        total_encuestas_aplicables_region = Encuesta.objects.filter(region=region).count() if Encuesta._meta.get_field('region') else total_encuestas_aplicables_general
+        total_encuestas_region = Encuesta.objects.filter(region=region).count()
 
-        tasa_finalizacion_region = 0
-        if total_encuestas_aplicables_region > 0:
-            tasa_finalizacion_region = (num_encuestas_respondidas_region / total_encuestas_aplicables_region) * 100
 
         datos_regiones_lista.append({
             'id': region.id,
             'nombre': region.nombre,
-            'totalEncuestas': total_encuestas_aplicables_region, # Revisar lógica
             'totalRespuestas': num_respuestas_region,
             'encuestasRespondidas': num_encuestas_respondidas_region,
-            'tasaFinalizacion': round(tasa_finalizacion_region, 1)
+            'totalEncuestas': total_encuestas_region,
         })
 
     # 3. Datos para Gráficos
@@ -2807,16 +2771,87 @@ def estadisticas_municipios(request):
         'municipio_seleccionado': municipio_id_str,
 
         # Datos para tarjetas de resumen
-        'total_encuestas': total_encuestas_aplicables_general, # Revisar lógica
         'total_respuestas': total_respuestas_general,
-        'total_encuestas_completadas': total_encuestas_completadas_general, # Revisar lógica
-        'tasa_finalizacion': round(tasa_finalizacion_general, 1),
 
         # --- JSONs para JavaScript --- 
         'datos_graficos_json': json.dumps(datos_graficos_dict, cls=DjangoJSONEncoder),
         'datos_regiones_tabla_json': json.dumps(datos_regiones_lista, cls=DjangoJSONEncoder),
         'datos_municipios_json': json.dumps(datos_municipios_lista, cls=DjangoJSONEncoder),
     }
+    
+    # Generar datos detallados para cada municipio/región
+    datos_formularios_detalle = {}
+    
+    # 1. Datos de formularios por municipio
+    for municipio in Municipio.objects.all():
+        clave = f"municipio_{municipio.id}"
+        formularios_municipio = []
+        
+        # Obtener las respuestas agrupadas por encuesta para este municipio
+        respuestas_por_encuesta = RespuestaEncuesta.objects.filter(
+            municipio=municipio
+        ).values('encuesta_id').annotate(
+            total_respuestas=Count('id'),
+            completadas=Count('id', filter=Q(completada=True))
+        )
+        
+        for respuesta_grupo in respuestas_por_encuesta:
+            encuesta_id = respuesta_grupo['encuesta_id']
+            try:
+                encuesta = Encuesta.objects.select_related('categoria').get(id=encuesta_id)
+                categoria_nombre = encuesta.categoria.nombre if encuesta.categoria else "Sin categoría"
+                
+                formularios_municipio.append({
+                    'id': encuesta.id,
+                    'titulo': encuesta.titulo,
+                    'categoria': categoria_nombre,
+                    'total_respuestas': respuesta_grupo['total_respuestas'],
+                    'completadas': respuesta_grupo['completadas']
+                })
+            except Encuesta.DoesNotExist:
+                continue  # Ignorar encuestas que ya no existen
+                
+        # Agregar al diccionario principal
+        datos_formularios_detalle[clave] = formularios_municipio
+    
+    # 2. Datos de formularios por región
+    for region in Region.objects.all():
+        clave = f"region_{region.id}"
+        formularios_region = []
+        
+        # Obtener las respuestas agrupadas por encuesta para esta región
+        respuestas_por_encuesta = RespuestaEncuesta.objects.filter(
+            municipio__region=region
+        ).values('encuesta_id').annotate(
+            total_respuestas=Count('id'),
+            completadas=Count('id', filter=Q(completada=True))
+        )
+        
+        for respuesta_grupo in respuestas_por_encuesta:
+            encuesta_id = respuesta_grupo['encuesta_id']
+            try:
+                encuesta = Encuesta.objects.select_related('categoria').get(id=encuesta_id)
+                categoria_nombre = encuesta.categoria.nombre if encuesta.categoria else "Sin categoría"
+                
+                formularios_region.append({
+                    'id': encuesta.id,
+                    'titulo': encuesta.titulo,
+                    'categoria': categoria_nombre,
+                    'total_respuestas': respuesta_grupo['total_respuestas'],
+                    'completadas': respuesta_grupo['completadas']
+                })
+            except Encuesta.DoesNotExist:
+                continue  # Ignorar encuestas que ya no existen
+                
+        # Agregar al diccionario principal
+        datos_formularios_detalle[clave] = formularios_region
+    
+    # Agregar todas las categorías
+    todas_categorias = list(Categoria.objects.values('id', 'nombre'))
+    
+    # Añadir al contexto
+    context['datos_formularios_detalle_json'] = json.dumps(datos_formularios_detalle, cls=DjangoJSONEncoder)
+    context['todas_categorias_json'] = json.dumps(todas_categorias, cls=DjangoJSONEncoder)
     
     return render(request, 'estadisticas/municipios.html', context)
 
@@ -2999,6 +3034,7 @@ def responder_pqrsfd(request, pqrsfd_id):
     
     return render(request, 'admin/responder_pqrsfd.html', {'pqrsfd': pqrsfd})
 
+@login_required
 def enviar_respuesta_email(pqrsfd, request):
     """Envía un correo electrónico con la respuesta al PQRSFD"""
     from django.core.mail import EmailMultiAlternatives
@@ -3031,6 +3067,7 @@ def enviar_respuesta_email(pqrsfd, request):
     
     email.send()
 
+@login_required
 def enviar_respuesta_sms(pqrsfd):
     """
     Envía un SMS con la notificación de respuesta
@@ -3056,6 +3093,7 @@ def enviar_respuesta_sms(pqrsfd):
     print(f"SMS enviado a {telefono}: {mensaje}")
     return True
 
+@login_required
 def get_siguientes_estados_validos(estado_actual):
     """Obtiene los siguientes estados válidos según el flujo de trabajo"""
     if estado_actual == 'P':  # Pendiente
@@ -3097,7 +3135,7 @@ def crear_categoria_principal(request):
     return render(request, 'crear_categoria_principal.html')
 
 @login_required
-def crear_subcategoria(request):
+def crear_subcategoria(request, categoria_id=None):
     """Vista para crear una nueva subcategoría"""
     if request.method == 'POST':
         categoria_id = request.POST.get('categoria_principal')  # Cambiado de 'categoria' a 'categoria_principal'
@@ -3119,7 +3157,14 @@ def crear_subcategoria(request):
         return redirect('categorias_principales')
     
     categorias = Categoria.objects.all()
-    return render(request, 'crear_subcategoria.html', {'categorias': categorias})
+    categoria_seleccionada = None
+    if categoria_id:
+        categoria_seleccionada = get_object_or_404(Categoria, id=categoria_id)
+    
+    return render(request, 'crear_subcategoria.html', {
+        'categorias': categorias,
+        'categoria_seleccionada': categoria_seleccionada
+    })
 
 @login_required
 def eliminar_categoria_principal(request, categoria_id):
@@ -3174,6 +3219,7 @@ def get_subcategorias(request):
         return JsonResponse(list(subcategorias), safe=False)
     return JsonResponse([], safe=False)
 
+@login_required
 def qr_generator(request):
     """
     Vista para generar códigos QR de formularios
@@ -3542,12 +3588,11 @@ def encuesta_completada(request, slug):
         'encuesta': encuesta
     })
 
+@login_required
 def mi_perfil(request):
     return render(request, 'perfil/mi_perfil.html')
 
-def configuracion(request):
-    return render(request, 'perfil/configuracion.html')
-
+@login_required
 def eliminar_respuesta_encuesta(request, respuesta_id):
     """
     Elimina una respuesta de encuesta completa, incluyendo todas sus subrespuestas.
@@ -3606,6 +3651,7 @@ def crear_usuario(request):
         'form': form
     })
 
+@login_required
 # API Views para el mapa y estadísticas
 def api_estadisticas_municipios(request):
     """
@@ -3672,6 +3718,7 @@ def api_estadisticas_municipios(request):
             'error': str(e)
         }, status=500)
 
+@login_required
 def api_mapa_municipios(request):
     """
     API que devuelve datos de municipios para el mapa
@@ -3712,7 +3759,7 @@ def api_mapa_municipios(request):
             'error': str(e)
         }, status=500)
 
-# --- NUEVA VISTA API ---
+@login_required
 def api_encuestas_por_municipio(request, municipio_id):
     """
     API que devuelve una lista de encuestas activas y públicas
@@ -3976,14 +4023,6 @@ def generar_certificado(request):
         telefono = request.POST.get('telefono')
         municipio = request.POST.get('municipio')
         fecha = request.POST.get('fecha_certificado')
-
-        print(f"municipio: {municipio}")
-        print(f"telefono: {telefono}")
-        print(f"correo: {correo}")
-        print(f"documento: {documento}")
-        print(f"nombre: {nombre}")
-        print(f"form_id: {form_id}")
-        print(f"fecha: {fecha}")
         
         if form_id and nombre and documento:
             encuesta = get_object_or_404(Encuesta, id=form_id)
@@ -4007,6 +4046,678 @@ def generar_certificado(request):
     
     return render(request, 'generar_certificado.html', {
         'encuestas': encuestas
+    })
+
+# VISTAS DE CARACTERIZACIÓN MUNICIPAL
+@login_required
+def lista_caracterizaciones(request):
+    try:
+        caracterizaciones = CaracterizacionMunicipal.objects.select_related('municipio', 'municipio__region').all()
+        
+        # Filtros
+        region_id = request.GET.get('region')
+        estado = request.GET.get('estado')
+        busqueda = request.GET.get('busqueda')
+        
+        if region_id:
+            caracterizaciones = caracterizaciones.filter(municipio__region_id=region_id)
+        
+        if estado:
+            caracterizaciones = caracterizaciones.filter(estado=estado)
+        
+        if busqueda:
+            caracterizaciones = caracterizaciones.filter(
+                Q(municipio__nombre__icontains=busqueda) |
+                Q(observaciones__icontains=busqueda)
+            )
+        
+        # Filtrar caracterizaciones con municipios inválidos
+        caracterizaciones_validas = []
+        for c in caracterizaciones:
+            try:
+                # Verificar que se puede acceder al nombre del municipio
+                municipio_nombre = c.municipio.nombre
+                caracterizaciones_validas.append(c)
+            except:
+                # Si hay error, eliminar la caracterización corrupta
+                try:
+                    c.delete()
+                    messages.warning(request, f"Se eliminó una caracterización corrupta (ID: {c.id}).")
+                except:
+                    pass
+        
+        # Paginación
+        paginator = Paginator(caracterizaciones_validas, 10)
+        page = request.GET.get('page')
+        caracterizaciones_paginadas = paginator.get_page(page)
+        
+        regiones = Region.objects.all()
+        estados = dict(CaracterizacionMunicipal.ESTADO_CHOICES)
+        
+        return render(request, 'caracterizacion/lista_caracterizaciones.html', {
+            'caracterizaciones': caracterizaciones_paginadas,
+            'regiones': regiones,
+            'estados': estados,
+            'filtro_region': region_id,
+            'filtro_estado': estado,
+            'busqueda': busqueda
+        })
+    except Exception as e:
+        messages.error(request, f"Error al cargar las caracterizaciones: {str(e)}")
+        return redirect('index')
+
+@login_required
+def seleccionar_metodo_caracterizacion(request):
+    """Vista para seleccionar el método de creación de caracterización (manual o PDF)"""
+    return render(request, 'caracterizacion/seleccionar_metodo_caracterizacion.html')
+
+@login_required
+def crear_caracterizacion(request):
+    """Vista para crear caracterización de forma manual"""
+    if request.method == 'POST':
+        municipio_id = request.POST.get('municipio_id')
+        
+        try:
+            # Verificar que el municipio existe
+            if not municipio_id:
+                messages.error(request, 'Debe seleccionar un municipio.')
+                return redirect('seleccionar_metodo_caracterizacion')
+                
+            municipio = get_object_or_404(Municipio, id=municipio_id)
+            
+            # Verificar si ya existe una caracterización para este municipio
+            if CaracterizacionMunicipal.objects.filter(municipio=municipio).exists():
+                messages.warning(request, f'Ya existe una caracterización para {municipio.nombre}. Por favor edite la existente.')
+                return redirect('lista_caracterizaciones')
+            
+            form = CaracterizacionMunicipalForm(request.POST, request.FILES)
+            if form.is_valid():
+                caracterizacion = form.save(commit=False)
+                caracterizacion.municipio = municipio
+                caracterizacion.creador = request.user
+                caracterizacion.save()
+                
+                # Procesar documentos adicionales
+                for archivo in request.FILES.getlist('documentos'):
+                    documento = DocumentoCaracterizacion(
+                        caracterizacion=caracterizacion,
+                        titulo=archivo.name,
+                        archivo=archivo
+                    )
+                    documento.save()
+                    
+                messages.success(request, f'Caracterización municipal de {municipio.nombre} creada con éxito.')
+                return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+        except Exception as e:
+            messages.error(request, f'Error al crear la caracterización: {str(e)}')
+            return redirect('seleccionar_metodo_caracterizacion')
+    else:
+        form = CaracterizacionMunicipalForm()
+        # Obtener todos los municipios para el selector
+        municipios = Municipio.objects.all().order_by('region__nombre', 'nombre')
+    
+    return render(request, 'caracterizacion/crear_caracterizacion.html', {
+        'form': form,
+        'titulo': 'Nueva Caracterización Municipal',
+        'municipios': municipios
+    })
+
+@login_required
+def editar_caracterizacion(request, pk):
+    try:
+        caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+        
+        # Si no hay municipio asignado (improbable, pero por si acaso)
+        if not hasattr(caracterizacion, 'municipio') or not caracterizacion.municipio:
+            messages.error(request, 'Esta caracterización no tiene un municipio asignado.')
+            return redirect('lista_caracterizaciones')
+        
+        if request.method == 'POST':
+            form = CaracterizacionMunicipalForm(request.POST, request.FILES, instance=caracterizacion)
+            if form.is_valid():
+                # El municipio se mantiene igual, no se permite cambiarlo
+                caracterizacion = form.save(commit=False)
+                caracterizacion.save()
+                
+                # Procesar documentos adicionales
+                for archivo in request.FILES.getlist('documentos'):
+                    documento = DocumentoCaracterizacion(
+                        caracterizacion=caracterizacion,
+                        titulo=archivo.name,
+                        archivo=archivo
+                    )
+                    documento.save()
+                    
+                messages.success(request, f'Caracterización de {caracterizacion.municipio.nombre} actualizada con éxito.')
+                return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+        else:
+            form = CaracterizacionMunicipalForm(instance=caracterizacion)
+        
+        documentos = caracterizacion.documentos.all()
+        
+        return render(request, 'caracterizacion/editar_caracterizacion.html', {
+            'form': form,
+            'caracterizacion': caracterizacion,
+            'documentos': documentos,
+            'titulo': f'Editar Caracterización de {caracterizacion.municipio.nombre}'
+        })
+    except Municipio.DoesNotExist:
+        messages.error(request, 'El municipio asociado a esta caracterización no existe.')
+        return redirect('lista_caracterizaciones')
+    except Exception as e:
+        messages.error(request, f'Error al editar la caracterización: {str(e)}')
+        return redirect('lista_caracterizaciones')
+
+@login_required
+def detalle_caracterizacion(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    documentos = caracterizacion.documentos.all()
+    
+    return render(request, 'caracterizacion/detalle_caracterizacion.html', {
+        'caracterizacion': caracterizacion,
+        'documentos': documentos
+    })
+
+@login_required
+def eliminar_caracterizacion(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            municipio_nombre = caracterizacion.municipio.nombre
+            
+            # Intentar eliminar los documentos asociados manualmente para evitar errores 
+            # de tablas inexistentes
+            try:
+                # Si la tabla existe, esto funcionará normalmente
+                for documento in caracterizacion.documentos.all():
+                    try:
+                        if documento.archivo:
+                            if os.path.isfile(documento.archivo.path):
+                                os.remove(documento.archivo.path)
+                        documento.delete()
+                    except:
+                        pass
+            except Exception as e:
+                # Si la tabla no existe, simplemente ignoramos los documentos
+                print(f"Error al eliminar documentos: {str(e)}")
+                pass
+                
+            # También podríamos intentar eliminar manualmente los archivos del escudo y bandera
+            try:
+                if caracterizacion.escudo and os.path.isfile(caracterizacion.escudo.path):
+                    os.remove(caracterizacion.escudo.path)
+            except:
+                pass
+                
+            try:
+                if caracterizacion.bandera and os.path.isfile(caracterizacion.bandera.path):
+                    os.remove(caracterizacion.bandera.path)
+            except:
+                pass
+                
+            # Ahora eliminamos la caracterización
+            caracterizacion.delete()
+            messages.success(request, f'Caracterización de {municipio_nombre} eliminada con éxito.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la caracterización: {str(e)}')
+        
+        return redirect('lista_caracterizaciones')
+    
+    return render(request, 'caracterizacion/confirmar_eliminar.html', {
+        'caracterizacion': caracterizacion
+    })
+
+@login_required
+def agregar_documento(request, pk):
+    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+    
+    if request.method == 'POST':
+        form = DocumentoCaracterizacionForm(request.POST, request.FILES)
+        if form.is_valid():
+            documento = form.save(commit=False)
+            documento.caracterizacion = caracterizacion
+            documento.save()
+            messages.success(request, 'Documento agregado con éxito.')
+            return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+    else:
+        form = DocumentoCaracterizacionForm()
+    
+    return render(request, 'caracterizacion/agregar_documento.html', {
+        'form': form,
+        'caracterizacion': caracterizacion
+    })
+
+@login_required
+def eliminar_documento(request, pk):
+    documento = get_object_or_404(DocumentoCaracterizacion, pk=pk)
+    caracterizacion_pk = documento.caracterizacion.pk
+    
+    if request.method == 'POST':
+        documento.delete()
+        messages.success(request, 'Documento eliminado con éxito.')
+        return redirect('detalle_caracterizacion', pk=caracterizacion_pk)
+    
+    return render(request, 'caracterizacion/confirmar_eliminar_documento.html', {
+        'documento': documento
+    })
+
+@login_required
+def subir_pdf_caracterizacion(request):
+    """Vista para cargar y procesar PDF para caracterización"""
+    from .forms import PDFCaracterizacionForm
+    from .models import Region, Municipio, CaracterizacionMunicipal
+    from .utils.pdf_processor import process_pdf_with_gemini
+    import os
+    from django.conf import settings
+    import tempfile
+    import logging
+    from django.db import connection, IntegrityError, transaction
+    import traceback
+    import time
+    from django.utils import timezone
+    
+    logger = logging.getLogger(__name__)
+    
+    # Inicializar formulario y contexto
+    form = PDFCaracterizacionForm()
+    regiones = Region.objects.all().order_by('nombre')
+    error_message = None
+    debug_info = None
+    success_info = None
+    
+    if request.method == 'POST':
+        form = PDFCaracterizacionForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            pdf_file = form.cleaned_data['pdf_file']
+            region_id = request.POST.get('region')
+            municipio_id = request.POST.get('municipio')
+            procesar_todos = request.POST.get('procesar_todos') == 'on'
+            
+            # Guardar temporalmente el archivo PDF
+            fd, temp_pdf_path = tempfile.mkstemp(suffix='.pdf')
+            os.close(fd)
+            
+            try:
+                with open(temp_pdf_path, 'wb') as dest:
+                    for chunk in pdf_file.chunks():
+                        dest.write(chunk)
+                
+                logger.info(f"PDF guardado temporalmente en {temp_pdf_path}")
+                
+                # Modo de procesamiento: un solo municipio o múltiples
+                if municipio_id and not procesar_todos:
+                    # Procesamiento para un municipio específico
+                    try:
+                        municipio = Municipio.objects.get(pk=municipio_id)
+                        municipio_nombre = municipio.nombre
+                        logger.info(f"Municipio seleccionado: {municipio.nombre} (ID: {municipio.id})")
+                        
+                        # Procesar el PDF con Google Gemini para extraer datos del municipio específico
+                        datos_json, error = process_pdf_with_gemini(temp_pdf_path, municipio_nombre)
+                        
+                        if error:
+                            logger.warning(f"Error al procesar PDF: {error}")
+                            debug_info = f"Error en la extracción: {error}\n\nDatos parciales: {datos_json}"
+                        
+                        # Verificar que tenemos datos mínimos
+                        if not datos_json or not isinstance(datos_json, dict) or "municipio_nombre" not in datos_json:
+                            error_message = "No se pudo extraer información del municipio del PDF"
+                            logger.error(error_message)
+                            return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+                                'form': form, 
+                                'regiones': regiones,
+                                'error_message': error_message,
+                                'debug_info': debug_info
+                            })
+                        
+                        # Crear o actualizar la caracterización para este municipio
+                        caracterizacion = crear_o_actualizar_caracterizacion(request, municipio, datos_json)
+                        
+                        # Mensaje de éxito y redirección
+                        messages.success(
+                            request, 
+                            f"Se ha creado/actualizado la caracterización para el municipio '{municipio.nombre}'."
+                        )
+                        return redirect('editar_caracterizacion', pk=caracterizacion.pk)
+                        
+                    except Municipio.DoesNotExist:
+                        error_message = f"El municipio con ID {municipio_id} no existe"
+                        logger.error(error_message)
+                        return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+                            'form': form, 
+                            'regiones': regiones,
+                            'error_message': error_message
+                        })
+                else:
+                    # Procesamiento para múltiples municipios
+                    logger.info("Procesando múltiples municipios del PDF")
+                    
+                    # Obtener región predeterminada
+                    region_predeterminada = None
+                    if region_id:
+                        try:
+                            region_predeterminada = Region.objects.get(id=region_id)
+                            logger.info(f"Región predeterminada: {region_predeterminada.nombre}")
+                        except Region.DoesNotExist:
+                            logger.warning(f"La región con ID {region_id} no existe")
+                    
+                    if not region_predeterminada:
+                        # Buscar región "Oleoducto Central" o crear si no existe
+                        region_predeterminada = Region.objects.filter(nombre__icontains='Oleoducto Central').first()
+                        if not region_predeterminada:
+                            region_predeterminada = Region.objects.create(nombre='Oleoducto Central')
+                            logger.info("Creada región predeterminada 'Oleoducto Central'")
+                    
+                    # Procesar el PDF para extraer datos de múltiples municipios
+                    municipios_datos, error = process_pdf_with_gemini(temp_pdf_path)
+                    
+                    if error:
+                        logger.warning(f"Error al procesar PDF para múltiples municipios: {error}")
+                        debug_info = f"Error en la extracción: {error}"
+                    
+                    # Verificar que tenemos datos de municipios
+                    if not municipios_datos or (isinstance(municipios_datos, list) and len(municipios_datos) == 0):
+                        error_message = "No se pudo extraer información de municipios del PDF"
+                        logger.error(error_message)
+                        return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+                            'form': form, 
+                            'regiones': regiones,
+                            'error_message': error_message,
+                            'debug_info': debug_info
+                        })
+                    
+                    # Procesar los datos de los municipios
+                    municipios_procesados = []
+                    municipios_fallidos = []
+                    
+                    # Verificar si es una lista (múltiples municipios) o un diccionario (un solo municipio)
+                    if isinstance(municipios_datos, dict):
+                        municipios_datos = [municipios_datos]  # Convertir a lista para procesar igual
+                    
+                    for datos_municipio in municipios_datos:
+                        if not isinstance(datos_municipio, dict) or "municipio_nombre" not in datos_municipio:
+                            logger.warning(f"Datos de municipio inválidos: {datos_municipio}")
+                            continue
+                        
+                        municipio_nombre = datos_municipio.get("municipio_nombre")
+                        if not municipio_nombre:
+                            logger.warning("Nombre de municipio vacío en los datos")
+                            continue
+                        
+                        try:
+                            # Buscar el municipio por nombre
+                            municipio = Municipio.objects.filter(nombre__iexact=municipio_nombre).first()
+                            
+                            # Si no existe, crear nuevo municipio
+                            if not municipio:
+                                logger.info(f"Municipio '{municipio_nombre}' no existe, se creará")
+                                municipio = Municipio.objects.create(
+                                    nombre=municipio_nombre,
+                                    region=region_predeterminada
+                                )
+                                logger.info(f"Municipio '{municipio_nombre}' creado con ID: {municipio.id}")
+                            
+                            # Crear o actualizar la caracterización para este municipio
+                            caracterizacion = crear_o_actualizar_caracterizacion(request, municipio, datos_municipio)
+                            municipios_procesados.append(municipio_nombre)
+                            
+                        except Exception as e:
+                            logger.error(f"Error al procesar municipio '{municipio_nombre}': {str(e)}")
+                            municipios_fallidos.append(f"{municipio_nombre}: {str(e)}")
+                    
+                    # Mensaje de resumen
+                    if municipios_procesados:
+                        messages.success(
+                            request, 
+                            f"Se procesaron {len(municipios_procesados)} municipios exitosamente: {', '.join(municipios_procesados[:5])}" + 
+                            (f" y {len(municipios_procesados) - 5} más..." if len(municipios_procesados) > 5 else "")
+                        )
+                    
+                    if municipios_fallidos:
+                        messages.warning(
+                            request,
+                            f"Fallaron {len(municipios_fallidos)} municipios: {', '.join(municipios_fallidos[:3])}" +
+                            (f" y {len(municipios_fallidos) - 3} más..." if len(municipios_fallidos) > 3 else "")
+                        )
+                    
+                    # Información de éxito para la plantilla
+                    success_info = f"Procesamiento finalizado: {len(municipios_procesados)} municipios procesados, {len(municipios_fallidos)} fallidos."
+                    
+                    # Redirigir a la lista de caracterizaciones
+                    return redirect('lista_caracterizaciones')
+            
+            except Exception as e:
+                error_message = f"Error general: {str(e)}"
+                logger.exception("Error en el procesamiento del PDF")
+                debug_info = traceback.format_exc()
+            
+            finally:
+                # Asegurarse de eliminar el archivo temporal
+                try:
+                    if temp_pdf_path and os.path.exists(temp_pdf_path):
+                        os.unlink(temp_pdf_path)
+                        logger.info("Archivo temporal eliminado")
+                except Exception as cleanup_error:
+                    logger.warning(f"No se pudo eliminar el archivo temporal: {str(cleanup_error)}")
+    
+    return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+        'form': form, 
+        'regiones': regiones,
+        'error_message': error_message,
+        'debug_info': debug_info,
+        'success_info': success_info
+    })
+
+def crear_o_actualizar_caracterizacion(request, municipio, datos_json):
+    """Crea o actualiza una caracterización municipal con los datos proporcionados"""
+    from .models import CaracterizacionMunicipal
+    from django.db import transaction
+    import logging
+    from django.utils import timezone
+    
+    logger = logging.getLogger(__name__)
+    
+    # Verificar si ya existe una caracterización para este municipio
+    caracterizacion_existente = CaracterizacionMunicipal.objects.filter(municipio=municipio).first()
+    
+    if caracterizacion_existente:
+        caracterizacion = caracterizacion_existente
+        # Actualizar el estado a borrador para indicar que ha sido modificada
+        caracterizacion.estado = 'borrador'
+        logger.info(f"Actualizando caracterización existente para {municipio.nombre} (ID: {caracterizacion.id})")
+    else:
+        # Crear nueva caracterización
+        with transaction.atomic():
+            caracterizacion = CaracterizacionMunicipal(
+                municipio=municipio,
+                creador=request.user,
+                estado='borrador'
+            )
+            logger.info(f"Creando nueva caracterización para {municipio.nombre}")
+    
+    # Lista de todos los campos numéricos del modelo
+    campos_numericos = [
+        'area_km2', 'concejos_comunitarios_ha', 'resguardos_indigenas_ha',
+        'zonas_reserva_campesina_ha', 'zonas_reserva_sinap_ha',
+        'poblacion_total', 'poblacion_hombres_total', 
+        'poblacion_mujeres_total', 'poblacion_hombres_rural',
+        'poblacion_mujeres_rural', 'poblacion_hombres_urbana', 
+        'poblacion_mujeres_urbana', 'poblacion_indigena',
+        'poblacion_raizal', 'poblacion_gitano_rrom', 
+        'poblacion_palenquero', 'poblacion_negro_mulato_afrocolombiano',
+        'poblacion_desplazada', 'poblacion_migrantes', 
+        'necesidades_basicas_insatisfechas', 'proporcion_personas_miseria',
+        'indice_pobreza_multidimensional', 'analfabetismo', 
+        'bajo_logro_educativo', 'inasistencia_escolar',
+        'trabajo_informal', 'desempleo_larga_duracion', 
+        'trabajo_infantil', 'hacinamiento_critico',
+        'barreras_servicios_cuidado_primera_infancia', 
+        'barreras_acceso_servicios_salud',
+        'inadecuada_eliminacion_excretas', 
+        'sin_acceso_fuente_agua_mejorada',
+        'sin_aseguramiento_salud'
+    ]
+    
+    # Asignar valores por defecto a todos los campos numéricos si es una nueva caracterización
+    if not caracterizacion_existente:
+        for campo in campos_numericos:
+            setattr(caracterizacion, campo, 0)
+    
+    # Campos asignados correctamente (para logging)
+    campos_asignados = []
+    
+    # Flag para municipio PDEI
+    if "es_municipio_pdei" in datos_json:
+        if isinstance(datos_json["es_municipio_pdei"], bool):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"]
+        elif isinstance(datos_json["es_municipio_pdei"], str):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"].lower() in ['true', 'yes', 'si', '1']
+    
+    # Sobrescribir con los valores encontrados en el PDF
+    for campo, valor in datos_json.items():
+        # Solo considerar campos que existen en nuestro modelo y que tienen valor
+        if hasattr(caracterizacion, campo) and valor is not None:
+            try:
+                # Convertir a número si es posible y si el campo es numérico
+                if campo in campos_numericos:
+                    try:
+                        # Si ya es un número, usarlo directamente
+                        if isinstance(valor, (int, float)):
+                            pass
+                        # Si es string, intentar convertir
+                        elif isinstance(valor, str):
+                            # Limpiar texto (quitar símbolos como %, etc.)
+                            valor = valor.replace('%', '').replace(',', '.').strip()
+                            valor = float(valor)
+                            # Si es entero, convertir a int
+                            if valor.is_integer():
+                                valor = int(valor)
+                    except (ValueError, TypeError, AttributeError):
+                        # Si falla la conversión, usar 0
+                        valor = 0
+                
+                # Asignar el valor al campo del modelo
+                setattr(caracterizacion, campo, valor)
+                campos_asignados.append(f"{campo}: {valor}")
+                logger.info(f"Campo asignado: {campo} = {valor}")
+            except Exception as e:
+                logger.warning(f"Error al asignar {campo}: {str(e)}")
+    
+    # Agregar observación
+    if not caracterizacion.observaciones:
+        caracterizacion.observaciones = ""
+    caracterizacion.observaciones += (
+        f"\nCaracterización {'actualizada' if caracterizacion_existente else 'creada'} mediante procesamiento de PDF con IA (Gemini). "
+        f"Municipio: {municipio.nombre}. "
+        f"Campos extraídos: {', '.join(campos_asignados)}. "
+        f"Fecha de procesamiento: {timezone.now().strftime('%d/%m/%Y %H:%M')}. "
+    )
+    
+    # Guardar caracterización
+    caracterizacion.save()
+    logger.info(f"Caracterización guardada con ID: {caracterizacion.id}")
+    
+    return caracterizacion
+
+@login_required
+def diagnostico_pdf_caracterizacion(request):
+    """Vista para diagnóstico y pruebas del procesamiento de PDF con Gemini"""
+    from .forms import PDFCaracterizacionForm
+    from .utils.pdf_processor import process_pdf_with_gemini, configure_gemini
+    import os
+    from django.conf import settings
+    import tempfile
+    import logging
+    import json
+    import google.generativeai as genai
+    
+    logger = logging.getLogger(__name__)
+    
+    # Inicializar contexto
+    form = PDFCaracterizacionForm()
+    error_message = None
+    resultado = None
+    modelos_disponibles = []
+    api_configurada = False
+    
+    # Verificar la configuración de la API
+    try:
+        api_key = settings.GEMINI_API_KEY
+        genai.configure(api_key=api_key)
+        api_configurada = True
+        
+        # Obtener lista de modelos disponibles
+        try:
+            for model in genai.list_models():
+                modelos_disponibles.append(model.name)
+        except Exception as e:
+            logger.error(f"Error al listar modelos: {str(e)}")
+            modelos_disponibles = ["Error al obtener modelos disponibles"]
+    except Exception as e:
+        logger.error(f"Error al configurar API: {str(e)}")
+    
+    if request.method == 'POST':
+        form = PDFCaracterizacionForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            # Obtener datos del formulario
+            pdf_file = form.cleaned_data['pdf_file']
+            
+            logger.info(f"Procesando PDF para diagnóstico: {pdf_file.name}, tamaño: {pdf_file.size} bytes")
+            
+            # Guardar temporalmente el archivo PDF
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf', dir=settings.TEMP_PDF_DIR) as temp_pdf:
+                for chunk in pdf_file.chunks():
+                    temp_pdf.write(chunk)
+                temp_pdf_path = temp_pdf.name
+            
+            logger.info(f"PDF guardado temporalmente en: {temp_pdf_path}")
+            
+            try:
+                # Procesar el PDF con Gemini
+                logger.info("Iniciando procesamiento del PDF con Gemini para diagnóstico...")
+                datos_json, error = process_pdf_with_gemini(temp_pdf_path)
+                
+                # Eliminar el archivo temporal
+                os.unlink(temp_pdf_path)
+                logger.info("Archivo temporal eliminado")
+                
+                if error:
+                    error_message = error
+                    logger.error(f"Error durante el procesamiento: {error}")
+                else:
+                    # Formatear el resultado para mostrar
+                    resultado = {
+                        "datos_extraidos": datos_json,
+                        "tipo_resultado": type(datos_json).__name__,
+                    }
+                    
+                    # Si se encontró un municipio, mostrar su nombre
+                    if datos_json and 'municipio_nombre' in datos_json:
+                        resultado["municipio_detectado"] = datos_json.get('municipio_nombre')
+                    
+                    logger.info(f"Diagnóstico completado, resultado: {resultado}")
+            
+            except Exception as e:
+                error_message = f"Error al procesar el PDF: {str(e)}"
+                logger.exception("Error en el procesamiento del PDF")
+                
+                # Intentar eliminar el archivo temporal en caso de error
+                try:
+                    if os.path.exists(temp_pdf_path):
+                        os.unlink(temp_pdf_path)
+                except:
+                    pass
+    
+    return render(request, 'caracterizacion/diagnostico_pdf.html', {
+        'form': form,
+        'error_message': error_message,
+        'resultado': resultado,
+        'api_key': settings.GEMINI_API_KEY[:5] + '...' if settings.GEMINI_API_KEY else None,
+        'api_configurada': api_configurada,
+        'modelos_disponibles': modelos_disponibles
     })
 
 

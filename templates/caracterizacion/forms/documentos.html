@@ -1,0 +1,71 @@
+<!-- Documentos y Observaciones -->
+<div class="section-header mb-4">
+    <h5 class="text-primary">
+        <i class="fa fa-file me-2"></i>Documentos y Observaciones
+    </h5>
+    <hr class="text-primary">
+</div>
+
+<!-- Imágenes -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Imágenes</h6>
+    </div>
+    <div class="col-md-6">
+        <label for="{{ form.escudo.id_for_label }}" class="form-label fw-bold">Escudo</label>
+        {{ form.escudo }}
+        {% if form.escudo.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.escudo.errors }}
+            </div>
+        {% endif %}
+        {% if caracterizacion.escudo %}
+            <div class="mt-2">
+                <img src="{{ caracterizacion.escudo.url }}" alt="Escudo" class="img-thumbnail" style="max-height: 100px;">
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <label for="{{ form.bandera.id_for_label }}" class="form-label fw-bold">Bandera</label>
+        {{ form.bandera }}
+        {% if form.bandera.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.bandera.errors }}
+            </div>
+        {% endif %}
+        {% if caracterizacion.bandera %}
+            <div class="mt-2">
+                <img src="{{ caracterizacion.bandera.url }}" alt="Bandera" class="img-thumbnail" style="max-height: 100px;">
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Observaciones -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Observaciones</h6>
+    </div>
+    <div class="col-md-12">
+        <label for="{{ form.observaciones.id_for_label }}" class="form-label fw-bold">Observaciones adicionales</label>
+        {{ form.observaciones }}
+        {% if form.observaciones.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.observaciones.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Documentos adicionales -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Documentos Adicionales</h6>
+        <p class="text-muted">Puede adjuntar documentos adicionales como planes de desarrollo, informes, etc.</p>
+    </div>
+    <div class="col-md-12">
+        <label for="documentos" class="form-label fw-bold">Documentos</label>
+        <input type="file" name="documentos" id="documentos" class="form-control" multiple>
+        <div class="form-text">Puede seleccionar múltiples archivos.</div>
+    </div>
+</div> 

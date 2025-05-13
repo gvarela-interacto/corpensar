@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cargar PDF para Caracterización{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-2 pb-2">
+            <div class="col-sm-9">
+                <h4 class="page-title">Cargar PDF para Caracterización</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}">Caracterizaciones</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'seleccionar_metodo_caracterizacion' %}">Seleccionar Método</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Cargar PDF</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Cargar archivo PDF con datos de caracterización</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Información de éxito -->
+                        {% if success_info %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> {{ success_info }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Mensaje de error -->
+                        {% if error_message %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle"></i> {{ error_message }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Información de depuración si existe -->
+                        {% if debug_info %}
+                            <div class="alert alert-info">
+                                <details>
+                                    <summary><i class="fas fa-info-circle"></i> Información de diagnóstico (clic para expandir)</summary>
+                                    <pre class="mt-2" style="white-space: pre-wrap; max-height: 200px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 12px;">{{ debug_info }}</pre>
+                                </details>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Información sobre el proceso -->
+                        <div class="alert alert-dark mb-4">
+                            <h6><i class="fas fa-info-circle"></i> Sobre el procesamiento de PDF</h6>
+                            <p class="mb-0">El sistema utiliza inteligencia artificial (Google Gemini) para extraer información del PDF y crear automáticamente una caracterización municipal. El proceso:</p>
+                            <ol class="mb-0 mt-2">
+                                <li>Extrae texto del PDF</li>
+                                <li>Procesa el texto con IA para identificar datos relevantes</li>
+                                <li>Crea o encuentra el municipio correspondiente</li>
+                                <li>Genera una caracterización con los datos encontrados</li>
+                            </ol>
+                            <p class="mt-2 mb-0"><strong>Novedad:</strong> Ahora puede procesar múltiples municipios de un solo documento PDF marcando la opción correspondiente.</p>
+                        </div>
+                        
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                <label for="{{ form.pdf_file.id_for_label }}">{{ form.pdf_file.label }}</label>
+                                {{ form.pdf_file }}
+                                {% if form.pdf_file.help_text %}
+                                    <small class="form-text text-muted">{{ form.pdf_file.help_text }}</small>
+                                {% endif %}
+                                {% if form.pdf_file.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.pdf_file.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="region">Región</label>
+                                <select name="region" id="region" class="form-control" required>
+                                    <option value="">Seleccione una región</option>
+                                    {% for region in regiones %}
+                                        <option value="{{ region.id }}">{{ region.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Seleccione la región a la que pertenece el municipio. Si procesa múltiples municipios, esta será la región predeterminada para aquellos que no existan.</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="procesar_todos" name="procesar_todos">
+                                    <label class="custom-control-label" for="procesar_todos">
+                                        <strong>Procesar todos los municipios del documento</strong>
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Al marcar esta opción, el sistema intentará identificar todos los municipios presentes en el PDF y crear caracterizaciones para cada uno.
+                                    Si los municipios no existen, se crearán automáticamente en la región seleccionada.
+                                </small>
+                            </div>
+                            
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-primary px-5">
+                                    <i class="fa fa-upload"></i> Cargar y Procesar
+                                </button>
+                                <a href="{% url 'seleccionar_metodo_caracterizacion' %}" class="btn btn-light px-5 ml-2">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    $(document).ready(function() {
+        // Controlar visibilidad del selector de municipio
+        $('#procesar_todos').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#municipio-container').hide();
+            } else {
+                $('#municipio-container').show();
+            }
+        });
+    
+        // Cuando cambia la región, actualizar municipios
+        $('#region').on('change', function() {
+            var regionId = $(this).val();
+            var municipioSelect = $('#municipio');
+            
+            // Limpiar el select de municipios
+            municipioSelect.empty();
+            
+            if (regionId) {
+                // Mensaje mientras se cargan
+                municipioSelect.append('<option value="">Cargando municipios...</option>');
+                
+                // Solicitar municipios por AJAX
+                $.ajax({
+                    url: '{% url "municipios_por_region" %}',
+                    data: {
+                        'region_id': regionId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        // Actualizar opciones de municipios
+                        municipioSelect.empty();
+                        municipioSelect.append('<option value="">-- Seleccione un municipio (opcional) --</option>');
+                        
+                        $.each(data.municipios, function(i, municipio) {
+                            municipioSelect.append(
+                                $('<option></option>').val(municipio.id).text(municipio.nombre)
+                            );
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al cargar municipios:", error);
+                        municipioSelect.empty();
+                        municipioSelect.append('<option value="">Error al cargar municipios</option>');
+                    }
+                });
+            } else {
+                // Si no hay región seleccionada
+                municipioSelect.append('<option value="">Primero seleccione una región</option>');
+            }
+        });
+    });
+</script>
+{% endblock %} 
