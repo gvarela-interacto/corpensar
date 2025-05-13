@@ -390,3 +390,23 @@ class DocumentoCaracterizacionForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'archivo': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
+
+class PDFCaracterizacionForm(forms.Form):
+    """Formulario para cargar un PDF para caracterización municipal"""
+    pdf_file = forms.FileField(
+        label="Archivo PDF",
+        help_text="Seleccione un archivo PDF con datos de caracterización municipal.",
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'application/pdf'}),
+    )
+    
+    def clean_pdf_file(self):
+        """Validar que el archivo sea un PDF"""
+        pdf_file = self.cleaned_data.get('pdf_file')
+        if pdf_file:
+            # Verificar que sea un PDF por extensión
+            if not pdf_file.name.lower().endswith('.pdf'):
+                raise forms.ValidationError("El archivo debe ser un PDF.")
+            # Verificar el tamaño del archivo (máximo 10 MB)
+            if pdf_file.size > 10 * 1024 * 1024:
+                raise forms.ValidationError("El archivo no debe exceder 10 MB.")
+        return pdf_file

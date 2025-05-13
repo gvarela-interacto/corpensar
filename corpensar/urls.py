@@ -68,13 +68,15 @@ urlpatterns = [
   path('subcategorias/<int:subcategoria_id>/eliminar/', views.eliminar_subcategoria, name='eliminar_subcategoria'),
   
   # Caracterización Municipal
-  path('caracterizacion/', views.lista_caracterizaciones, name='lista_caracterizaciones'),
-  path('caracterizacion/nueva/', views.crear_caracterizacion, name='crear_caracterizacion'),
-  path('caracterizacion/<int:pk>/', views.detalle_caracterizacion, name='detalle_caracterizacion'),
-  path('caracterizacion/<int:pk>/editar/', views.editar_caracterizacion, name='editar_caracterizacion'),
-  path('caracterizacion/<int:pk>/eliminar/', views.eliminar_caracterizacion, name='eliminar_caracterizacion'),
-  path('caracterizacion/<int:pk>/documentos/agregar/', views.agregar_documento, name='agregar_documento'),
-  path('documentos/<int:pk>/eliminar/', views.eliminar_documento, name='eliminar_documento'),
+  path('caracterizaciones/', views.lista_caracterizaciones, name='lista_caracterizaciones'),
+  path('caracterizaciones/seleccionar-metodo/', views.seleccionar_metodo_caracterizacion, name='seleccionar_metodo_caracterizacion'),
+  path('caracterizaciones/crear/', views.crear_caracterizacion, name='crear_caracterizacion'),
+  path('caracterizaciones/subir-pdf/', views.subir_pdf_caracterizacion, name='subir_pdf_caracterizacion'),
+  path('caracterizaciones/editar/<int:pk>/', views.editar_caracterizacion, name='editar_caracterizacion'),
+  path('caracterizaciones/detalle/<int:pk>/', views.detalle_caracterizacion, name='detalle_caracterizacion'),
+  path('caracterizaciones/eliminar/<int:pk>/', views.eliminar_caracterizacion, name='eliminar_caracterizacion'),
+  path('caracterizaciones/documento/<int:pk>/agregar/', views.agregar_documento, name='agregar_documento'),
+  path('caracterizaciones/documento/<int:pk>/eliminar/', views.eliminar_documento, name='eliminar_documento'),
 
   path('qr-generator/', views.qr_generator, name='qr_generator'),
 

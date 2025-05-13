@@ -125,3 +125,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desarro
 # EMAIL_HOST_USER = 'your_email@example.com'
 # EMAIL_HOST_PASSWORD = 'your_password'
 DEFAULT_FROM_EMAIL = 'noreply@corpensar.com'
+
+# Google Gemini API settings
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBiDDmPRJyEsMdOqejOvRQbRf1Lebh3gbA')
+
+# Carpeta de archivos temporales para PDFs
+TEMP_PDF_DIR = os.path.join(BASE_DIR, 'temp_pdf')
+os.makedirs(TEMP_PDF_DIR, exist_ok=True)

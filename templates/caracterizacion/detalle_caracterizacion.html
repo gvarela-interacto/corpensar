@@ -550,41 +550,10 @@
                 </a>
             </div>
             <div class="card-body">
-                {% if documentos %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Título</th>
-                                <th>Descripción</th>
-                                <th>Fecha de Subida</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for documento in documentos %}
-                            <tr>
-                                <td>{{ documento.titulo }}</td>
-                                <td>{{ documento.descripcion|default:"-" }}</td>
-                                <td>{{ documento.fecha_subida|date:"d/m/Y H:i" }}</td>
-                                <td class="text-center">
-                                    <a href="{{ documento.archivo.url }}" class="btn btn-sm btn-info me-1" target="_blank">
-                                        <i class="fas fa-download"></i> Descargar
-                                    </a>
-                                    <a href="{% url 'eliminar_documento' pk=documento.pk %}" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i> Eliminar
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
+                
                 <div class="alert alert-info mb-0">
                     <i class="fas fa-info-circle me-2"></i> No hay documentos adjuntos para esta caracterización.
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>

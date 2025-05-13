@@ -1,0 +1,92 @@
+CAMPOS DE CARACTERIZACIÓN MUNICIPAL
+=================================
+
+INFORMACIÓN GENERAL
+------------------
+municipio
+estado (borrador, publicado, archivado)
+
+TERRITORIO
+----------
+area_km2
+concejos_comunitarios_ha
+resguardos_indigenas_ha
+zonas_reserva_campesina_ha
+zonas_reserva_sinap_ha
+es_municipio_pdei
+
+DATOS DEMOGRÁFICOS - HABITANTES
+------------------------------
+poblacion_total
+
+DATOS DEMOGRÁFICOS - HOMBRES
+---------------------------
+poblacion_hombres_total
+poblacion_hombres_rural
+poblacion_hombres_urbana
+
+DATOS DEMOGRÁFICOS - MUJERES
+---------------------------
+poblacion_mujeres_total
+poblacion_mujeres_rural
+poblacion_mujeres_urbana
+
+DATOS DEMOGRÁFICOS - ORIGEN ÉTNICO
+--------------------------------
+poblacion_indigena
+poblacion_raizal
+poblacion_gitano_rrom
+poblacion_palenquero
+poblacion_negro_mulato_afrocolombiano
+
+DATOS DEMOGRÁFICOS - DESPLAZADOS Y MIGRANTES
+------------------------------------------
+poblacion_desplazada
+poblacion_migrantes
+
+INDICADORES SOCIOECONÓMICOS - POBREZA
+-----------------------------------
+necesidades_basicas_insatisfechas
+proporcion_personas_miseria
+indice_pobreza_multidimensional
+
+INDICADORES SOCIOECONÓMICOS - EDUCACIÓN
+-------------------------------------
+analfabetismo
+bajo_logro_educativo
+inasistencia_escolar
+
+INDICADORES SOCIOECONÓMICOS - TRABAJO
+-----------------------------------
+trabajo_informal
+desempleo_larga_duracion
+trabajo_infantil
+
+INDICADORES SOCIOECONÓMICOS - VIVIENDA Y SERVICIOS
+------------------------------------------------
+hacinamiento_critico
+barreras_servicios_cuidado_primera_infancia
+barreras_acceso_servicios_salud
+inadecuada_eliminacion_excretas
+sin_acceso_fuente_agua_mejorada
+sin_aseguramiento_salud
+
+IMÁGENES
+--------
+escudo
+bandera
+
+OBSERVACIONES
+------------
+observaciones
+
+DOCUMENTOS ADICIONALES
+---------------------
+titulo
+descripcion
+archivo
+
+NOTAS:
+- Todos los campos numéricos son opcionales (null=True, blank=True)
+- Los porcentajes se almacenan como DecimalField con 5 dígitos en total y 2 decimales
+- Los campos obligatorios son: municipio y estado 

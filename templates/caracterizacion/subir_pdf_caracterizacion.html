@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cargar PDF para Caracterización{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-2 pb-2">
+            <div class="col-sm-9">
+                <h4 class="page-title">Cargar PDF para Caracterización</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}">Caracterizaciones</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'seleccionar_metodo_caracterizacion' %}">Seleccionar Método</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Cargar PDF</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Cargar archivo PDF con datos de caracterización</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if error_message %}
+                            <div class="alert alert-danger">
+                                {{ error_message }}
+                            </div>
+                        {% endif %}
+                        
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                <label for="{{ form.pdf_file.id_for_label }}">{{ form.pdf_file.label }}</label>
+                                {{ form.pdf_file }}
+                                {% if form.pdf_file.help_text %}
+                                    <small class="form-text text-muted">{{ form.pdf_file.help_text }}</small>
+                                {% endif %}
+                                {% if form.pdf_file.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.pdf_file.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="region">Región</label>
+                                <select name="region" id="region" class="form-control" required>
+                                    <option value="">Seleccione una región</option>
+                                    {% for region in regiones %}
+                                        <option value="{{ region.id }}">{{ region.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Seleccione la región a la que pertenece el municipio.</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="municipio">Municipio</label>
+                                <select name="municipio" id="municipio" class="form-control" required disabled>
+                                    <option value="">Primero seleccione una región</option>
+                                </select>
+                                <small class="form-text text-muted">Seleccione el municipio para la caracterización.</small>
+                            </div>
+                            
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-primary px-5">
+                                    <i class="fa fa-upload"></i> Cargar y Procesar
+                                </button>
+                                <a href="{% url 'seleccionar_metodo_caracterizacion' %}" class="btn btn-light px-5 ml-2">
+                                    <i class="fa fa-times"></i> Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+    $(document).ready(function() {
+        // Cuando cambia la región, actualizar municipios
+        $('#region').on('change', function() {
+            var regionId = $(this).val();
+            var municipioSelect = $('#municipio');
+            
+            // Deshabilitar y limpiar el select de municipios
+            municipioSelect.prop('disabled', true);
+            municipioSelect.empty();
+            municipioSelect.append('<option value="">Cargando municipios...</option>');
+            
+            if (regionId) {
+                // Solicitar municipios por AJAX
+                $.ajax({
+                    url: '{% url "municipios_por_region" %}',
+                    data: {
+                        'region_id': regionId
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        // Actualizar opciones de municipios
+                        municipioSelect.empty();
+                        municipioSelect.append('<option value="">Seleccione un municipio</option>');
+                        
+                        $.each(data.municipios, function(i, municipio) {
+                            municipioSelect.append(
+                                $('<option></option>').val(municipio.id).text(municipio.nombre)
+                            );
+                        });
+                        
+                        // Habilitar el select de municipios
+                        municipioSelect.prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al cargar municipios:", error);
+                        municipioSelect.empty();
+                        municipioSelect.append('<option value="">Error al cargar municipios</option>');
+                    }
+                });
+            } else {
+                // Si no hay región seleccionada
+                municipioSelect.empty();
+                municipioSelect.append('<option value="">Primero seleccione una región</option>');
+            }
+        });
+    });
+</script>
+{% endblock %} 
