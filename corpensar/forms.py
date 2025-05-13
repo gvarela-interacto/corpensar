@@ -309,10 +309,8 @@ class CrearUsuarioForm(forms.Form):
 class CaracterizacionMunicipalForm(forms.ModelForm):
     class Meta:
         model = CaracterizacionMunicipal
-        exclude = ['creador', 'fecha_creacion', 'fecha_actualizacion']
+        exclude = ['creador', 'fecha_creacion', 'fecha_actualizacion', 'municipio']
         widgets = {
-            'municipio': forms.Select(attrs={'class': 'form-control select2'}),
-            
             # Territorio
             'area_km2': forms.NumberInput(attrs={'class': 'form-control'}),
             'concejos_comunitarios_ha': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -373,12 +371,10 @@ class CaracterizacionMunicipalForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['municipio'].empty_label = "Seleccione un municipio"
         
-        # Hacer algunos campos opcionales
+        # Hacer todos los campos opcionales
         for field in self.fields:
-            if field not in ['municipio']:
-                self.fields[field].required = False
+            self.fields[field].required = False
 
 
 class DocumentoCaracterizacionForm(forms.ModelForm):

@@ -132,3 +132,46 @@ GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBiDDmPRJyEsMdOqejOvRQbR
 # Carpeta de archivos temporales para PDFs
 TEMP_PDF_DIR = os.path.join(BASE_DIR, 'temp_pdf')
 os.makedirs(TEMP_PDF_DIR, exist_ok=True)
+
+# Configuración de logging mejorada
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'sql': {
+            'format': '[SQL] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'sql_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'sql',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'corpensar': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # 'django.db.backends': {
+        #     'handlers': ['sql_console'],
+        #     'level': 'DEBUG',
+        #     'propagate': False,
+        # },
+    },
+}

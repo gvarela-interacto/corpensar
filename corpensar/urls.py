@@ -72,6 +72,7 @@ urlpatterns = [
   path('caracterizaciones/seleccionar-metodo/', views.seleccionar_metodo_caracterizacion, name='seleccionar_metodo_caracterizacion'),
   path('caracterizaciones/crear/', views.crear_caracterizacion, name='crear_caracterizacion'),
   path('caracterizaciones/subir-pdf/', views.subir_pdf_caracterizacion, name='subir_pdf_caracterizacion'),
+  path('caracterizaciones/diagnostico-pdf/', views.diagnostico_pdf_caracterizacion, name='diagnostico_pdf'),
   path('caracterizaciones/editar/<int:pk>/', views.editar_caracterizacion, name='editar_caracterizacion'),
   path('caracterizaciones/detalle/<int:pk>/', views.detalle_caracterizacion, name='detalle_caracterizacion'),
   path('caracterizaciones/eliminar/<int:pk>/', views.eliminar_caracterizacion, name='eliminar_caracterizacion'),

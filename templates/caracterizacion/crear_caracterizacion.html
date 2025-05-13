@@ -39,15 +39,18 @@
                             
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
-                                    <label for="{{ form.municipio.id_for_label }}" class="form-label fw-bold">
+                                    <label for="municipio_id" class="form-label fw-bold">
                                         Municipio <span class="text-danger">*</span>
                                     </label>
-                                    {{ form.municipio }}
-                                    {% if form.municipio.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ form.municipio.errors }}
-                                        </div>
-                                    {% endif %}
+                                    <select name="municipio_id" id="municipio_id" class="form-control select2" required>
+                                        <option value="">Seleccione un municipio</option>
+                                        {% for municipio in municipios %}
+                                            <option value="{{ municipio.id }}">{{ municipio.region.nombre }} - {{ municipio.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor seleccione un municipio.
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="{{ form.estado.id_for_label }}" class="form-label fw-bold">Estado</label>

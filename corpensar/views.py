@@ -38,6 +38,8 @@ import os
 from django.urls import reverse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.paginator import Paginator
+import logging
+from django.db import connection
 
 locale.setlocale(locale.LC_ALL, 'es_CO.UTF-8')
 
@@ -4021,14 +4023,6 @@ def generar_certificado(request):
         telefono = request.POST.get('telefono')
         municipio = request.POST.get('municipio')
         fecha = request.POST.get('fecha_certificado')
-
-        print(f"municipio: {municipio}")
-        print(f"telefono: {telefono}")
-        print(f"correo: {correo}")
-        print(f"documento: {documento}")
-        print(f"nombre: {nombre}")
-        print(f"form_id: {form_id}")
-        print(f"fecha: {fecha}")
         
         if form_id and nombre and documento:
             encuesta = get_object_or_404(Encuesta, id=form_id)
@@ -4057,41 +4051,60 @@ def generar_certificado(request):
 # VISTAS DE CARACTERIZACIÓN MUNICIPAL
 @login_required
 def lista_caracterizaciones(request):
-    caracterizaciones = CaracterizacionMunicipal.objects.all()
-    
-    # Filtros
-    region_id = request.GET.get('region')
-    estado = request.GET.get('estado')
-    busqueda = request.GET.get('busqueda')
-    
-    if region_id:
-        caracterizaciones = caracterizaciones.filter(municipio__region_id=region_id)
-    
-    if estado:
-        caracterizaciones = caracterizaciones.filter(estado=estado)
-    
-    if busqueda:
-        caracterizaciones = caracterizaciones.filter(
-            Q(municipio__nombre__icontains=busqueda) |
-            Q(nombre_alcalde__icontains=busqueda)
-        )
-    
-    # Paginación
-    paginator = Paginator(caracterizaciones, 10)
-    page = request.GET.get('page')
-    caracterizaciones_paginadas = paginator.get_page(page)
-    
-    regiones = Region.objects.all()
-    estados = dict(CaracterizacionMunicipal.ESTADO_CHOICES)
-    
-    return render(request, 'caracterizacion/lista_caracterizaciones.html', {
-        'caracterizaciones': caracterizaciones_paginadas,
-        'regiones': regiones,
-        'estados': estados,
-        'filtro_region': region_id,
-        'filtro_estado': estado,
-        'busqueda': busqueda
-    })
+    try:
+        caracterizaciones = CaracterizacionMunicipal.objects.select_related('municipio', 'municipio__region').all()
+        
+        # Filtros
+        region_id = request.GET.get('region')
+        estado = request.GET.get('estado')
+        busqueda = request.GET.get('busqueda')
+        
+        if region_id:
+            caracterizaciones = caracterizaciones.filter(municipio__region_id=region_id)
+        
+        if estado:
+            caracterizaciones = caracterizaciones.filter(estado=estado)
+        
+        if busqueda:
+            caracterizaciones = caracterizaciones.filter(
+                Q(municipio__nombre__icontains=busqueda) |
+                Q(observaciones__icontains=busqueda)
+            )
+        
+        # Filtrar caracterizaciones con municipios inválidos
+        caracterizaciones_validas = []
+        for c in caracterizaciones:
+            try:
+                # Verificar que se puede acceder al nombre del municipio
+                municipio_nombre = c.municipio.nombre
+                caracterizaciones_validas.append(c)
+            except:
+                # Si hay error, eliminar la caracterización corrupta
+                try:
+                    c.delete()
+                    messages.warning(request, f"Se eliminó una caracterización corrupta (ID: {c.id}).")
+                except:
+                    pass
+        
+        # Paginación
+        paginator = Paginator(caracterizaciones_validas, 10)
+        page = request.GET.get('page')
+        caracterizaciones_paginadas = paginator.get_page(page)
+        
+        regiones = Region.objects.all()
+        estados = dict(CaracterizacionMunicipal.ESTADO_CHOICES)
+        
+        return render(request, 'caracterizacion/lista_caracterizaciones.html', {
+            'caracterizaciones': caracterizaciones_paginadas,
+            'regiones': regiones,
+            'estados': estados,
+            'filtro_region': region_id,
+            'filtro_estado': estado,
+            'busqueda': busqueda
+        })
+    except Exception as e:
+        messages.error(request, f"Error al cargar las caracterizaciones: {str(e)}")
+        return redirect('index')
 
 @login_required
 def seleccionar_metodo_caracterizacion(request):
@@ -4102,62 +4115,98 @@ def seleccionar_metodo_caracterizacion(request):
 def crear_caracterizacion(request):
     """Vista para crear caracterización de forma manual"""
     if request.method == 'POST':
-        form = CaracterizacionMunicipalForm(request.POST, request.FILES)
-        if form.is_valid():
-            caracterizacion = form.save(commit=False)
-            caracterizacion.creador = request.user
-            caracterizacion.save()
-            
-            # Procesar documentos adicionales
-            for archivo in request.FILES.getlist('documentos'):
-                documento = DocumentoCaracterizacion(
-                    caracterizacion=caracterizacion,
-                    titulo=archivo.name,
-                    archivo=archivo
-                )
-                documento.save()
+        municipio_id = request.POST.get('municipio_id')
+        
+        try:
+            # Verificar que el municipio existe
+            if not municipio_id:
+                messages.error(request, 'Debe seleccionar un municipio.')
+                return redirect('seleccionar_metodo_caracterizacion')
                 
-            messages.success(request, 'Caracterización municipal creada con éxito.')
-            return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+            municipio = get_object_or_404(Municipio, id=municipio_id)
+            
+            # Verificar si ya existe una caracterización para este municipio
+            if CaracterizacionMunicipal.objects.filter(municipio=municipio).exists():
+                messages.warning(request, f'Ya existe una caracterización para {municipio.nombre}. Por favor edite la existente.')
+                return redirect('lista_caracterizaciones')
+            
+            form = CaracterizacionMunicipalForm(request.POST, request.FILES)
+            if form.is_valid():
+                caracterizacion = form.save(commit=False)
+                caracterizacion.municipio = municipio
+                caracterizacion.creador = request.user
+                caracterizacion.save()
+                
+                # Procesar documentos adicionales
+                for archivo in request.FILES.getlist('documentos'):
+                    documento = DocumentoCaracterizacion(
+                        caracterizacion=caracterizacion,
+                        titulo=archivo.name,
+                        archivo=archivo
+                    )
+                    documento.save()
+                    
+                messages.success(request, f'Caracterización municipal de {municipio.nombre} creada con éxito.')
+                return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+        except Exception as e:
+            messages.error(request, f'Error al crear la caracterización: {str(e)}')
+            return redirect('seleccionar_metodo_caracterizacion')
     else:
         form = CaracterizacionMunicipalForm()
+        # Obtener todos los municipios para el selector
+        municipios = Municipio.objects.all().order_by('region__nombre', 'nombre')
     
     return render(request, 'caracterizacion/crear_caracterizacion.html', {
         'form': form,
-        'titulo': 'Nueva Caracterización Municipal'
+        'titulo': 'Nueva Caracterización Municipal',
+        'municipios': municipios
     })
 
 @login_required
 def editar_caracterizacion(request, pk):
-    caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
-    
-    if request.method == 'POST':
-        form = CaracterizacionMunicipalForm(request.POST, request.FILES, instance=caracterizacion)
-        if form.is_valid():
-            form.save()
-            
-            # Procesar documentos adicionales
-            for archivo in request.FILES.getlist('documentos'):
-                documento = DocumentoCaracterizacion(
-                    caracterizacion=caracterizacion,
-                    titulo=archivo.name,
-                    archivo=archivo
-                )
-                documento.save()
+    try:
+        caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
+        
+        # Si no hay municipio asignado (improbable, pero por si acaso)
+        if not hasattr(caracterizacion, 'municipio') or not caracterizacion.municipio:
+            messages.error(request, 'Esta caracterización no tiene un municipio asignado.')
+            return redirect('lista_caracterizaciones')
+        
+        if request.method == 'POST':
+            form = CaracterizacionMunicipalForm(request.POST, request.FILES, instance=caracterizacion)
+            if form.is_valid():
+                # El municipio se mantiene igual, no se permite cambiarlo
+                caracterizacion = form.save(commit=False)
+                caracterizacion.save()
                 
-            messages.success(request, 'Caracterización municipal actualizada con éxito.')
-            return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
-    else:
-        form = CaracterizacionMunicipalForm(instance=caracterizacion)
-    
-    documentos = caracterizacion.documentos.all()
-    
-    return render(request, 'caracterizacion/editar_caracterizacion.html', {
-        'form': form,
-        'caracterizacion': caracterizacion,
-        'documentos': documentos,
-        'titulo': f'Editar Caracterización de {caracterizacion.municipio.nombre}'
-    })
+                # Procesar documentos adicionales
+                for archivo in request.FILES.getlist('documentos'):
+                    documento = DocumentoCaracterizacion(
+                        caracterizacion=caracterizacion,
+                        titulo=archivo.name,
+                        archivo=archivo
+                    )
+                    documento.save()
+                    
+                messages.success(request, f'Caracterización de {caracterizacion.municipio.nombre} actualizada con éxito.')
+                return redirect('detalle_caracterizacion', pk=caracterizacion.pk)
+        else:
+            form = CaracterizacionMunicipalForm(instance=caracterizacion)
+        
+        documentos = caracterizacion.documentos.all()
+        
+        return render(request, 'caracterizacion/editar_caracterizacion.html', {
+            'form': form,
+            'caracterizacion': caracterizacion,
+            'documentos': documentos,
+            'titulo': f'Editar Caracterización de {caracterizacion.municipio.nombre}'
+        })
+    except Municipio.DoesNotExist:
+        messages.error(request, 'El municipio asociado a esta caracterización no existe.')
+        return redirect('lista_caracterizaciones')
+    except Exception as e:
+        messages.error(request, f'Error al editar la caracterización: {str(e)}')
+        return redirect('lista_caracterizaciones')
 
 @login_required
 def detalle_caracterizacion(request, pk):
@@ -4174,9 +4223,45 @@ def eliminar_caracterizacion(request, pk):
     caracterizacion = get_object_or_404(CaracterizacionMunicipal, pk=pk)
     
     if request.method == 'POST':
-        municipio_nombre = caracterizacion.municipio.nombre
-        caracterizacion.delete()
-        messages.success(request, f'Caracterización de {municipio_nombre} eliminada con éxito.')
+        try:
+            municipio_nombre = caracterizacion.municipio.nombre
+            
+            # Intentar eliminar los documentos asociados manualmente para evitar errores 
+            # de tablas inexistentes
+            try:
+                # Si la tabla existe, esto funcionará normalmente
+                for documento in caracterizacion.documentos.all():
+                    try:
+                        if documento.archivo:
+                            if os.path.isfile(documento.archivo.path):
+                                os.remove(documento.archivo.path)
+                        documento.delete()
+                    except:
+                        pass
+            except Exception as e:
+                # Si la tabla no existe, simplemente ignoramos los documentos
+                print(f"Error al eliminar documentos: {str(e)}")
+                pass
+                
+            # También podríamos intentar eliminar manualmente los archivos del escudo y bandera
+            try:
+                if caracterizacion.escudo and os.path.isfile(caracterizacion.escudo.path):
+                    os.remove(caracterizacion.escudo.path)
+            except:
+                pass
+                
+            try:
+                if caracterizacion.bandera and os.path.isfile(caracterizacion.bandera.path):
+                    os.remove(caracterizacion.bandera.path)
+            except:
+                pass
+                
+            # Ahora eliminamos la caracterización
+            caracterizacion.delete()
+            messages.success(request, f'Caracterización de {municipio_nombre} eliminada con éxito.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la caracterización: {str(e)}')
+        
         return redirect('lista_caracterizaciones')
     
     return render(request, 'caracterizacion/confirmar_eliminar.html', {
@@ -4226,11 +4311,352 @@ def subir_pdf_caracterizacion(request):
     import os
     from django.conf import settings
     import tempfile
+    import logging
+    from django.db import connection, IntegrityError, transaction
+    import traceback
+    import time
+    from django.utils import timezone
+    
+    logger = logging.getLogger(__name__)
     
     # Inicializar formulario y contexto
     form = PDFCaracterizacionForm()
     regiones = Region.objects.all().order_by('nombre')
     error_message = None
+    debug_info = None
+    success_info = None
+    
+    if request.method == 'POST':
+        form = PDFCaracterizacionForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            pdf_file = form.cleaned_data['pdf_file']
+            region_id = request.POST.get('region')
+            municipio_id = request.POST.get('municipio')
+            procesar_todos = request.POST.get('procesar_todos') == 'on'
+            
+            # Guardar temporalmente el archivo PDF
+            fd, temp_pdf_path = tempfile.mkstemp(suffix='.pdf')
+            os.close(fd)
+            
+            try:
+                with open(temp_pdf_path, 'wb') as dest:
+                    for chunk in pdf_file.chunks():
+                        dest.write(chunk)
+                
+                logger.info(f"PDF guardado temporalmente en {temp_pdf_path}")
+                
+                # Modo de procesamiento: un solo municipio o múltiples
+                if municipio_id and not procesar_todos:
+                    # Procesamiento para un municipio específico
+                    try:
+                        municipio = Municipio.objects.get(pk=municipio_id)
+                        municipio_nombre = municipio.nombre
+                        logger.info(f"Municipio seleccionado: {municipio.nombre} (ID: {municipio.id})")
+                        
+                        # Procesar el PDF con Google Gemini para extraer datos del municipio específico
+                        datos_json, error = process_pdf_with_gemini(temp_pdf_path, municipio_nombre)
+                        
+                        if error:
+                            logger.warning(f"Error al procesar PDF: {error}")
+                            debug_info = f"Error en la extracción: {error}\n\nDatos parciales: {datos_json}"
+                        
+                        # Verificar que tenemos datos mínimos
+                        if not datos_json or not isinstance(datos_json, dict) or "municipio_nombre" not in datos_json:
+                            error_message = "No se pudo extraer información del municipio del PDF"
+                            logger.error(error_message)
+                            return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+                                'form': form, 
+                                'regiones': regiones,
+                                'error_message': error_message,
+                                'debug_info': debug_info
+                            })
+                        
+                        # Crear o actualizar la caracterización para este municipio
+                        caracterizacion = crear_o_actualizar_caracterizacion(request, municipio, datos_json)
+                        
+                        # Mensaje de éxito y redirección
+                        messages.success(
+                            request, 
+                            f"Se ha creado/actualizado la caracterización para el municipio '{municipio.nombre}'."
+                        )
+                        return redirect('editar_caracterizacion', pk=caracterizacion.pk)
+                        
+                    except Municipio.DoesNotExist:
+                        error_message = f"El municipio con ID {municipio_id} no existe"
+                        logger.error(error_message)
+                        return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+                            'form': form, 
+                            'regiones': regiones,
+                            'error_message': error_message
+                        })
+                else:
+                    # Procesamiento para múltiples municipios
+                    logger.info("Procesando múltiples municipios del PDF")
+                    
+                    # Obtener región predeterminada
+                    region_predeterminada = None
+                    if region_id:
+                        try:
+                            region_predeterminada = Region.objects.get(id=region_id)
+                            logger.info(f"Región predeterminada: {region_predeterminada.nombre}")
+                        except Region.DoesNotExist:
+                            logger.warning(f"La región con ID {region_id} no existe")
+                    
+                    if not region_predeterminada:
+                        # Buscar región "Oleoducto Central" o crear si no existe
+                        region_predeterminada = Region.objects.filter(nombre__icontains='Oleoducto Central').first()
+                        if not region_predeterminada:
+                            region_predeterminada = Region.objects.create(nombre='Oleoducto Central')
+                            logger.info("Creada región predeterminada 'Oleoducto Central'")
+                    
+                    # Procesar el PDF para extraer datos de múltiples municipios
+                    municipios_datos, error = process_pdf_with_gemini(temp_pdf_path)
+                    
+                    if error:
+                        logger.warning(f"Error al procesar PDF para múltiples municipios: {error}")
+                        debug_info = f"Error en la extracción: {error}"
+                    
+                    # Verificar que tenemos datos de municipios
+                    if not municipios_datos or (isinstance(municipios_datos, list) and len(municipios_datos) == 0):
+                        error_message = "No se pudo extraer información de municipios del PDF"
+                        logger.error(error_message)
+                        return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+                            'form': form, 
+                            'regiones': regiones,
+                            'error_message': error_message,
+                            'debug_info': debug_info
+                        })
+                    
+                    # Procesar los datos de los municipios
+                    municipios_procesados = []
+                    municipios_fallidos = []
+                    
+                    # Verificar si es una lista (múltiples municipios) o un diccionario (un solo municipio)
+                    if isinstance(municipios_datos, dict):
+                        municipios_datos = [municipios_datos]  # Convertir a lista para procesar igual
+                    
+                    for datos_municipio in municipios_datos:
+                        if not isinstance(datos_municipio, dict) or "municipio_nombre" not in datos_municipio:
+                            logger.warning(f"Datos de municipio inválidos: {datos_municipio}")
+                            continue
+                        
+                        municipio_nombre = datos_municipio.get("municipio_nombre")
+                        if not municipio_nombre:
+                            logger.warning("Nombre de municipio vacío en los datos")
+                            continue
+                        
+                        try:
+                            # Buscar el municipio por nombre
+                            municipio = Municipio.objects.filter(nombre__iexact=municipio_nombre).first()
+                            
+                            # Si no existe, crear nuevo municipio
+                            if not municipio:
+                                logger.info(f"Municipio '{municipio_nombre}' no existe, se creará")
+                                municipio = Municipio.objects.create(
+                                    nombre=municipio_nombre,
+                                    region=region_predeterminada
+                                )
+                                logger.info(f"Municipio '{municipio_nombre}' creado con ID: {municipio.id}")
+                            
+                            # Crear o actualizar la caracterización para este municipio
+                            caracterizacion = crear_o_actualizar_caracterizacion(request, municipio, datos_municipio)
+                            municipios_procesados.append(municipio_nombre)
+                            
+                        except Exception as e:
+                            logger.error(f"Error al procesar municipio '{municipio_nombre}': {str(e)}")
+                            municipios_fallidos.append(f"{municipio_nombre}: {str(e)}")
+                    
+                    # Mensaje de resumen
+                    if municipios_procesados:
+                        messages.success(
+                            request, 
+                            f"Se procesaron {len(municipios_procesados)} municipios exitosamente: {', '.join(municipios_procesados[:5])}" + 
+                            (f" y {len(municipios_procesados) - 5} más..." if len(municipios_procesados) > 5 else "")
+                        )
+                    
+                    if municipios_fallidos:
+                        messages.warning(
+                            request,
+                            f"Fallaron {len(municipios_fallidos)} municipios: {', '.join(municipios_fallidos[:3])}" +
+                            (f" y {len(municipios_fallidos) - 3} más..." if len(municipios_fallidos) > 3 else "")
+                        )
+                    
+                    # Información de éxito para la plantilla
+                    success_info = f"Procesamiento finalizado: {len(municipios_procesados)} municipios procesados, {len(municipios_fallidos)} fallidos."
+                    
+                    # Redirigir a la lista de caracterizaciones
+                    return redirect('lista_caracterizaciones')
+            
+            except Exception as e:
+                error_message = f"Error general: {str(e)}"
+                logger.exception("Error en el procesamiento del PDF")
+                debug_info = traceback.format_exc()
+            
+            finally:
+                # Asegurarse de eliminar el archivo temporal
+                try:
+                    if temp_pdf_path and os.path.exists(temp_pdf_path):
+                        os.unlink(temp_pdf_path)
+                        logger.info("Archivo temporal eliminado")
+                except Exception as cleanup_error:
+                    logger.warning(f"No se pudo eliminar el archivo temporal: {str(cleanup_error)}")
+    
+    return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
+        'form': form, 
+        'regiones': regiones,
+        'error_message': error_message,
+        'debug_info': debug_info,
+        'success_info': success_info
+    })
+
+def crear_o_actualizar_caracterizacion(request, municipio, datos_json):
+    """Crea o actualiza una caracterización municipal con los datos proporcionados"""
+    from .models import CaracterizacionMunicipal
+    from django.db import transaction
+    import logging
+    from django.utils import timezone
+    
+    logger = logging.getLogger(__name__)
+    
+    # Verificar si ya existe una caracterización para este municipio
+    caracterizacion_existente = CaracterizacionMunicipal.objects.filter(municipio=municipio).first()
+    
+    if caracterizacion_existente:
+        caracterizacion = caracterizacion_existente
+        # Actualizar el estado a borrador para indicar que ha sido modificada
+        caracterizacion.estado = 'borrador'
+        logger.info(f"Actualizando caracterización existente para {municipio.nombre} (ID: {caracterizacion.id})")
+    else:
+        # Crear nueva caracterización
+        with transaction.atomic():
+            caracterizacion = CaracterizacionMunicipal(
+                municipio=municipio,
+                creador=request.user,
+                estado='borrador'
+            )
+            logger.info(f"Creando nueva caracterización para {municipio.nombre}")
+    
+    # Lista de todos los campos numéricos del modelo
+    campos_numericos = [
+        'area_km2', 'concejos_comunitarios_ha', 'resguardos_indigenas_ha',
+        'zonas_reserva_campesina_ha', 'zonas_reserva_sinap_ha',
+        'poblacion_total', 'poblacion_hombres_total', 
+        'poblacion_mujeres_total', 'poblacion_hombres_rural',
+        'poblacion_mujeres_rural', 'poblacion_hombres_urbana', 
+        'poblacion_mujeres_urbana', 'poblacion_indigena',
+        'poblacion_raizal', 'poblacion_gitano_rrom', 
+        'poblacion_palenquero', 'poblacion_negro_mulato_afrocolombiano',
+        'poblacion_desplazada', 'poblacion_migrantes', 
+        'necesidades_basicas_insatisfechas', 'proporcion_personas_miseria',
+        'indice_pobreza_multidimensional', 'analfabetismo', 
+        'bajo_logro_educativo', 'inasistencia_escolar',
+        'trabajo_informal', 'desempleo_larga_duracion', 
+        'trabajo_infantil', 'hacinamiento_critico',
+        'barreras_servicios_cuidado_primera_infancia', 
+        'barreras_acceso_servicios_salud',
+        'inadecuada_eliminacion_excretas', 
+        'sin_acceso_fuente_agua_mejorada',
+        'sin_aseguramiento_salud'
+    ]
+    
+    # Asignar valores por defecto a todos los campos numéricos si es una nueva caracterización
+    if not caracterizacion_existente:
+        for campo in campos_numericos:
+            setattr(caracterizacion, campo, 0)
+    
+    # Campos asignados correctamente (para logging)
+    campos_asignados = []
+    
+    # Flag para municipio PDEI
+    if "es_municipio_pdei" in datos_json:
+        if isinstance(datos_json["es_municipio_pdei"], bool):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"]
+        elif isinstance(datos_json["es_municipio_pdei"], str):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"].lower() in ['true', 'yes', 'si', '1']
+    
+    # Sobrescribir con los valores encontrados en el PDF
+    for campo, valor in datos_json.items():
+        # Solo considerar campos que existen en nuestro modelo y que tienen valor
+        if hasattr(caracterizacion, campo) and valor is not None:
+            try:
+                # Convertir a número si es posible y si el campo es numérico
+                if campo in campos_numericos:
+                    try:
+                        # Si ya es un número, usarlo directamente
+                        if isinstance(valor, (int, float)):
+                            pass
+                        # Si es string, intentar convertir
+                        elif isinstance(valor, str):
+                            # Limpiar texto (quitar símbolos como %, etc.)
+                            valor = valor.replace('%', '').replace(',', '.').strip()
+                            valor = float(valor)
+                            # Si es entero, convertir a int
+                            if valor.is_integer():
+                                valor = int(valor)
+                    except (ValueError, TypeError, AttributeError):
+                        # Si falla la conversión, usar 0
+                        valor = 0
+                
+                # Asignar el valor al campo del modelo
+                setattr(caracterizacion, campo, valor)
+                campos_asignados.append(f"{campo}: {valor}")
+                logger.info(f"Campo asignado: {campo} = {valor}")
+            except Exception as e:
+                logger.warning(f"Error al asignar {campo}: {str(e)}")
+    
+    # Agregar observación
+    if not caracterizacion.observaciones:
+        caracterizacion.observaciones = ""
+    caracterizacion.observaciones += (
+        f"\nCaracterización {'actualizada' if caracterizacion_existente else 'creada'} mediante procesamiento de PDF con IA (Gemini). "
+        f"Municipio: {municipio.nombre}. "
+        f"Campos extraídos: {', '.join(campos_asignados)}. "
+        f"Fecha de procesamiento: {timezone.now().strftime('%d/%m/%Y %H:%M')}. "
+    )
+    
+    # Guardar caracterización
+    caracterizacion.save()
+    logger.info(f"Caracterización guardada con ID: {caracterizacion.id}")
+    
+    return caracterizacion
+
+@login_required
+def diagnostico_pdf_caracterizacion(request):
+    """Vista para diagnóstico y pruebas del procesamiento de PDF con Gemini"""
+    from .forms import PDFCaracterizacionForm
+    from .utils.pdf_processor import process_pdf_with_gemini, configure_gemini
+    import os
+    from django.conf import settings
+    import tempfile
+    import logging
+    import json
+    import google.generativeai as genai
+    
+    logger = logging.getLogger(__name__)
+    
+    # Inicializar contexto
+    form = PDFCaracterizacionForm()
+    error_message = None
+    resultado = None
+    modelos_disponibles = []
+    api_configurada = False
+    
+    # Verificar la configuración de la API
+    try:
+        api_key = settings.GEMINI_API_KEY
+        genai.configure(api_key=api_key)
+        api_configurada = True
+        
+        # Obtener lista de modelos disponibles
+        try:
+            for model in genai.list_models():
+                modelos_disponibles.append(model.name)
+        except Exception as e:
+            logger.error(f"Error al listar modelos: {str(e)}")
+            modelos_disponibles = ["Error al obtener modelos disponibles"]
+    except Exception as e:
+        logger.error(f"Error al configurar API: {str(e)}")
     
     if request.method == 'POST':
         form = PDFCaracterizacionForm(request.POST, request.FILES)
@@ -4238,19 +4664,8 @@ def subir_pdf_caracterizacion(request):
         if form.is_valid():
             # Obtener datos del formulario
             pdf_file = form.cleaned_data['pdf_file']
-            region_id = request.POST.get('region')
-            municipio_id = request.POST.get('municipio')
             
-            # Validar municipio y región
-            try:
-                municipio = Municipio.objects.get(id=municipio_id, region_id=region_id)
-            except Municipio.DoesNotExist:
-                error_message = "El municipio seleccionado no es válido o no pertenece a la región indicada."
-                return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
-                    'form': form, 
-                    'regiones': regiones,
-                    'error_message': error_message
-                })
+            logger.info(f"Procesando PDF para diagnóstico: {pdf_file.name}, tamaño: {pdf_file.size} bytes")
             
             # Guardar temporalmente el archivo PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf', dir=settings.TEMP_PDF_DIR) as temp_pdf:
@@ -4258,83 +4673,36 @@ def subir_pdf_caracterizacion(request):
                     temp_pdf.write(chunk)
                 temp_pdf_path = temp_pdf.name
             
+            logger.info(f"PDF guardado temporalmente en: {temp_pdf_path}")
+            
             try:
                 # Procesar el PDF con Gemini
+                logger.info("Iniciando procesamiento del PDF con Gemini para diagnóstico...")
                 datos_json, error = process_pdf_with_gemini(temp_pdf_path)
                 
                 # Eliminar el archivo temporal
                 os.unlink(temp_pdf_path)
+                logger.info("Archivo temporal eliminado")
                 
                 if error:
                     error_message = error
-                    return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
-                        'form': form, 
-                        'regiones': regiones,
-                        'error_message': error_message
-                    })
-                
-                if not datos_json:
-                    error_message = "No se pudieron extraer datos del PDF."
-                    return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
-                        'form': form, 
-                        'regiones': regiones,
-                        'error_message': error_message
-                    })
-                
-                # Verificar que el municipio extraído coincide con el seleccionado
-                if 'municipio_nombre' in datos_json and datos_json['municipio_nombre'] and \
-                   municipio.nombre.lower() not in datos_json['municipio_nombre'].lower():
-                    error_message = f"El municipio detectado en el PDF ({datos_json['municipio_nombre']}) no coincide con el seleccionado ({municipio.nombre})."
-                    return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
-                        'form': form, 
-                        'regiones': regiones,
-                        'error_message': error_message
-                    })
-                
-                # Crear una nueva caracterización con los datos extraídos
-                caracterizacion = CaracterizacionMunicipal(
-                    municipio=municipio,
-                    creador=request.user,
-                    estado='borrador'
-                )
-                
-                # Asignar valores de los campos extraídos del PDF
-                campos_a_mapear = {
-                    'area_km2': 'area_km2',
-                    'poblacion_total': 'poblacion_total',
-                    'poblacion_hombres_total': 'poblacion_hombres_total',
-                    'poblacion_mujeres_total': 'poblacion_mujeres_total',
-                    'poblacion_hombres_rural': 'poblacion_hombres_rural',
-                    'poblacion_mujeres_rural': 'poblacion_mujeres_rural',
-                    'poblacion_hombres_urbana': 'poblacion_hombres_urbana',
-                    'poblacion_mujeres_urbana': 'poblacion_mujeres_urbana',
-                    'poblacion_indigena': 'poblacion_indigena',
-                    'poblacion_raizal': 'poblacion_raizal',
-                    'poblacion_gitano_rrom': 'poblacion_gitano_rrom',
-                    'poblacion_palenquero': 'poblacion_palenquero',
-                    'poblacion_negro_mulato_afrocolombiano': 'poblacion_negro_mulato_afrocolombiano',
-                    'poblacion_desplazada': 'poblacion_desplazada',
-                    'poblacion_migrantes': 'poblacion_migrantes',
-                    'necesidades_basicas_insatisfechas': 'necesidades_basicas_insatisfechas',
-                    'indice_pobreza_multidimensional': 'indice_pobreza_multidimensional'
-                }
-                
-                for campo_pdf, campo_modelo in campos_a_mapear.items():
-                    if campo_pdf in datos_json and datos_json[campo_pdf] is not None:
-                        setattr(caracterizacion, campo_modelo, datos_json[campo_pdf])
-                
-                # Agregar observación de que fue creado por IA
-                caracterizacion.observaciones = "Caracterización creada automáticamente mediante procesamiento de PDF con IA (Gemini Flash)."
-                
-                # Guardar la caracterización
-                caracterizacion.save()
-                
-                # Redirigir a la página de edición para completar/revisar datos
-                messages.success(request, "Se ha creado una caracterización a partir del PDF. Por favor revise y complete los datos si es necesario.")
-                return redirect('editar_caracterizacion', pk=caracterizacion.pk)
-                
+                    logger.error(f"Error durante el procesamiento: {error}")
+                else:
+                    # Formatear el resultado para mostrar
+                    resultado = {
+                        "datos_extraidos": datos_json,
+                        "tipo_resultado": type(datos_json).__name__,
+                    }
+                    
+                    # Si se encontró un municipio, mostrar su nombre
+                    if datos_json and 'municipio_nombre' in datos_json:
+                        resultado["municipio_detectado"] = datos_json.get('municipio_nombre')
+                    
+                    logger.info(f"Diagnóstico completado, resultado: {resultado}")
+            
             except Exception as e:
                 error_message = f"Error al procesar el PDF: {str(e)}"
+                logger.exception("Error en el procesamiento del PDF")
                 
                 # Intentar eliminar el archivo temporal en caso de error
                 try:
@@ -4343,10 +4711,13 @@ def subir_pdf_caracterizacion(request):
                 except:
                     pass
     
-    return render(request, 'caracterizacion/subir_pdf_caracterizacion.html', {
-        'form': form, 
-        'regiones': regiones,
-        'error_message': error_message
+    return render(request, 'caracterizacion/diagnostico_pdf.html', {
+        'form': form,
+        'error_message': error_message,
+        'resultado': resultado,
+        'api_key': settings.GEMINI_API_KEY[:5] + '...' if settings.GEMINI_API_KEY else None,
+        'api_configurada': api_configurada,
+        'modelos_disponibles': modelos_disponibles
     })
 
 

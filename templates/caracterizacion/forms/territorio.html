@@ -1,0 +1,71 @@
+<!-- Territorio -->
+<div class="section-header mb-4">
+    <h5 class="text-primary">
+        <i class="fa fa-map me-2"></i>Territorio
+    </h5>
+    <hr class="text-primary">
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label for="{{ form.area_km2.id_for_label }}" class="form-label fw-bold">Área (km²)</label>
+        {{ form.area_km2 }}
+        {% if form.area_km2.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.area_km2.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.concejos_comunitarios_ha.id_for_label }}" class="form-label fw-bold">Consejos Comunitarios (OSPR) (ha)</label>
+        {{ form.concejos_comunitarios_ha }}
+        {% if form.concejos_comunitarios_ha.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.concejos_comunitarios_ha.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.resguardos_indigenas_ha.id_for_label }}" class="form-label fw-bold">Resguardos Indígenas (OSPR) (ha)</label>
+        {{ form.resguardos_indigenas_ha }}
+        {% if form.resguardos_indigenas_ha.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.resguardos_indigenas_ha.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label for="{{ form.zonas_reserva_campesina_ha.id_for_label }}" class="form-label fw-bold">Zonas de Reserva Campesina (OSPR) (ha)</label>
+        {{ form.zonas_reserva_campesina_ha }}
+        {% if form.zonas_reserva_campesina_ha.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.zonas_reserva_campesina_ha.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.zonas_reserva_sinap_ha.id_for_label }}" class="form-label fw-bold">Zonas de Reserva (SINAP) (ha)</label>
+        {{ form.zonas_reserva_sinap_ha }}
+        {% if form.zonas_reserva_sinap_ha.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.zonas_reserva_sinap_ha.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <div class="form-check mt-4">
+            {{ form.es_municipio_pdei }}
+            <label class="form-check-label fw-bold" for="{{ form.es_municipio_pdei.id_for_label }}">
+                Municipio PDEI
+            </label>
+            {% if form.es_municipio_pdei.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.es_municipio_pdei.errors }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div> 

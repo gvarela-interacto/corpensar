@@ -1,0 +1,177 @@
+<!-- Indicadores Socioeconómicos -->
+<div class="section-header mb-4">
+    <h5 class="text-primary">
+        <i class="fa fa-chart-bar me-2"></i>Indicadores Socioeconómicos
+    </h5>
+    <hr class="text-primary">
+</div>
+
+<!-- Pobreza y Necesidades -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Pobreza y Necesidades Básicas</h6>
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.necesidades_basicas_insatisfechas.id_for_label }}" class="form-label fw-bold">Necesidades Básicas Insatisfechas (%)</label>
+        {{ form.necesidades_basicas_insatisfechas }}
+        {% if form.necesidades_basicas_insatisfechas.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.necesidades_basicas_insatisfechas.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.proporcion_personas_miseria.id_for_label }}" class="form-label fw-bold">Proporción de personas en miseria (%)</label>
+        {{ form.proporcion_personas_miseria }}
+        {% if form.proporcion_personas_miseria.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.proporcion_personas_miseria.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.indice_pobreza_multidimensional.id_for_label }}" class="form-label fw-bold">Índice de pobreza multidimensional (%)</label>
+        {{ form.indice_pobreza_multidimensional }}
+        {% if form.indice_pobreza_multidimensional.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.indice_pobreza_multidimensional.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Educación -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Educación</h6>
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.analfabetismo.id_for_label }}" class="form-label fw-bold">Analfabetismo (%)</label>
+        {{ form.analfabetismo }}
+        {% if form.analfabetismo.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.analfabetismo.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.bajo_logro_educativo.id_for_label }}" class="form-label fw-bold">Bajo logro educativo (%)</label>
+        {{ form.bajo_logro_educativo }}
+        {% if form.bajo_logro_educativo.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.bajo_logro_educativo.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.inasistencia_escolar.id_for_label }}" class="form-label fw-bold">Inasistencia escolar (%)</label>
+        {{ form.inasistencia_escolar }}
+        {% if form.inasistencia_escolar.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.inasistencia_escolar.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Empleo -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Empleo</h6>
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.trabajo_informal.id_for_label }}" class="form-label fw-bold">Trabajo informal (%)</label>
+        {{ form.trabajo_informal }}
+        {% if form.trabajo_informal.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.trabajo_informal.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.desempleo_larga_duracion.id_for_label }}" class="form-label fw-bold">Desempleo de larga duración (%)</label>
+        {{ form.desempleo_larga_duracion }}
+        {% if form.desempleo_larga_duracion.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.desempleo_larga_duracion.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.trabajo_infantil.id_for_label }}" class="form-label fw-bold">Trabajo infantil (%)</label>
+        {{ form.trabajo_infantil }}
+        {% if form.trabajo_infantil.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.trabajo_infantil.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Vivienda y Servicios -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Vivienda y Servicios</h6>
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.hacinamiento_critico.id_for_label }}" class="form-label fw-bold">Hacinamiento crítico (%)</label>
+        {{ form.hacinamiento_critico }}
+        {% if form.hacinamiento_critico.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.hacinamiento_critico.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.inadecuada_eliminacion_excretas.id_for_label }}" class="form-label fw-bold">Inadecuada eliminación de excretas (%)</label>
+        {{ form.inadecuada_eliminacion_excretas }}
+        {% if form.inadecuada_eliminacion_excretas.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.inadecuada_eliminacion_excretas.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.sin_acceso_fuente_agua_mejorada.id_for_label }}" class="form-label fw-bold">Sin acceso a fuente de agua mejorada (%)</label>
+        {{ form.sin_acceso_fuente_agua_mejorada }}
+        {% if form.sin_acceso_fuente_agua_mejorada.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.sin_acceso_fuente_agua_mejorada.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Salud -->
+<div class="row g-3 mb-4">
+    <div class="col-md-12">
+        <h6 class="text-secondary">Salud</h6>
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.barreras_servicios_cuidado_primera_infancia.id_for_label }}" class="form-label fw-bold">Barreras a servicios cuidado primera infancia (%)</label>
+        {{ form.barreras_servicios_cuidado_primera_infancia }}
+        {% if form.barreras_servicios_cuidado_primera_infancia.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.barreras_servicios_cuidado_primera_infancia.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.barreras_acceso_servicios_salud.id_for_label }}" class="form-label fw-bold">Barreras acceso servicios salud (%)</label>
+        {{ form.barreras_acceso_servicios_salud }}
+        {% if form.barreras_acceso_servicios_salud.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.barreras_acceso_servicios_salud.errors }}
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <label for="{{ form.sin_aseguramiento_salud.id_for_label }}" class="form-label fw-bold">Sin aseguramiento en salud (%)</label>
+        {{ form.sin_aseguramiento_salud }}
+        {% if form.sin_aseguramiento_salud.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.sin_aseguramiento_salud.errors }}
+            </div>
+        {% endif %}
+    </div>
+</div> 
