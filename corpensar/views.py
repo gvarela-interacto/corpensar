@@ -4742,25 +4742,45 @@ def procesar_audio(request):
     form = ProcesarAudioForm()
     
     if request.method == 'POST':
+        # Obtener IDs y archivo primero
+        encuesta_id = request.POST.get('encuesta')
+        audio_file = request.FILES.get('audio_file')
+        municipio_id = request.POST.get('municipio')
+
         form = ProcesarAudioForm(request.POST, request.FILES)
-        
-        
-        if form.is_valid():
-            
-            encuesta_id = request.POST.get('encuesta')
-            audio_file = request.FILES.get('audio_file')
-            municipio_id = request.POST.get('municipio')
         
         if not encuesta_id or not audio_file:
             messages.error(request, "Debe seleccionar una encuesta y un archivo de audio.")
             return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+
+        if form.is_valid():
+            # El resto de los campos del formulario ya están validados por form.is_valid()
+            # y los IDs/archivo ya los tenemos.
+            pass # La lógica principal ya no necesita obtenerlos de nuevo aquí
+        else:
+            # Si el formulario no es válido pero los IDs básicos están, igual renderizamos con errores del form.
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
         
         try:
             encuesta = Encuesta.objects.get(id=encuesta_id)
-            municipio = Municipio.objects.get(id=municipio_id)
+            # Asegurarse de que municipio_id también se maneje si es None o vacío
+            if municipio_id:
+                municipio = Municipio.objects.get(id=municipio_id)
+            else:
+                # Manejar el caso donde municipio_id no se proporciona o es inválido
+                # Podrías asignar un municipio por defecto, o mostrar un error específico.
+                # Por ahora, si no hay municipio_id, lo dejamos como None, y la lógica posterior
+                # que crea RespuestaEncuesta podría necesitar manejar municipio=None o fallar si es requerido.
+                # Si municipio es estrictamente necesario, este error debe ser más específico.
+                messages.error(request, "Debe seleccionar un municipio.")
+                return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+                
         except Encuesta.DoesNotExist:
             messages.error(request, f"La encuesta seleccionada no existe.")
             return redirect('todas_encuestas')
+        except Municipio.DoesNotExist:
+            messages.error(request, f"El municipio seleccionado no existe.")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
             
         logger.info(f"Procesando audio para encuesta: {encuesta.titulo}, archivo: {audio_file.name}")
         

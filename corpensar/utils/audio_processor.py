@@ -229,7 +229,7 @@ EJEMPLO DE FORMATO JSON DE SALIDA ESPERADO:
             "temperature": 0.1,
             "top_p": 0.95,
             "top_k": 0,
-            "max_output_tokens": 4096,
+            "max_output_tokens": 15000,
             "response_mime_type": "application/json",
         }
         
