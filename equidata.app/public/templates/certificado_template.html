@@ -1,0 +1,598 @@
+<!-- certificado_template.html -->
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% trans "Certificado de Participación" %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<style>
+    body {
+        font-family: 'Montserrat', 'Arial', sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
+    .certificate-container {
+        width: 890px; /* Ancho fijo exacto de la imagen de fondo */
+        height: 680px; /* Altura fija basada en la imagen que mostró el usuario */
+        position: relative;
+        background-image: url('{% static "images/Fondo_certificado.webp" %}');
+        background-size: contain; /* Mantiene la proporción de la imagen */
+        background-repeat: no-repeat;
+        background-position: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        margin-bottom: 30px;
+        box-sizing: border-box;
+        overflow: hidden; /* Evita que el contenido sobresalga */
+    }
+    .certificate-inner-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Estilos específicos para cada elemento del certificado */
+    .participant-name {
+        position: absolute;
+        top: 160px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: #000;
+        margin: 0 auto;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+    .participant-label {
+        position: absolute;
+        top: 195px; /* Posición aproximada basada en la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        color: #555;
+        margin: 0 auto;
+        width: 500px;
+        border-top: 1px solid #000;
+    }
+    .participation-details {
+        position: absolute;
+        top: 240px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 16px;
+        color: #333;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .event-title {
+        position: absolute;
+        top: 310px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        color: #000;
+        padding: 0 50px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        hyphens: auto;
+        max-height: 80px; /* Limita la altura máxima */
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Muestra hasta 3 líneas */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .event-meta {
+        position: absolute;
+        top: 405px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 14px;
+        color: #333;
+        padding: 0 20px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .final-statement {
+        position: absolute;
+        top: 445px; /* Ajustar según la imagen */
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 12px;
+        color: #444;
+        line-height: 1.6;
+        padding: 0 100px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .actions-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        width: 100%;
+        max-width: 915px; /* Consistente con el certificado */
+        flex-wrap: wrap;
+    }
+    .action-button {
+        padding: 12px 25px;
+        border-radius: 6px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        flex-grow: 1;
+        min-width: 200px;
+    }
+    .download-btn {
+        background-color: #4361ee;
+        color: white;
+    }
+    .download-btn:hover {
+        background-color: #3a0ca3;
+        color: white;
+    }
+    .whatsapp-btn {
+        background-color: #25D366;
+        color: white;
+    }
+    .whatsapp-btn:hover {
+        background-color: #128C7E;
+        color: white;
+    }
+    .return-btn {
+        background-color: #f72585;
+        color: white;
+    }
+    .return-btn:hover {
+        background-color: #b5179e;
+        color: white;
+    }
+    .phone-input-container {
+        margin: 20px 0;
+        max-width: 450px;
+        width: 100%;
+    }
+    
+
+    /* Media query para dispositivos móviles y tabletas */
+    @media (max-width: 915px) {
+        .certificate-container {
+            width: 100%;
+            height: 0;
+            padding-bottom: 76.4%; /* 680/890 = 0.764 o 76.4% - mantiene la proporción */
+            transform-origin: top center;
+            transform: scale(1);
+        }
+        
+        /* Mantener posicionamiento absoluto original para preservar el diseño */
+        .participant-name, .participant-label, .participation-details,
+        .event-title, .event-meta, .final-statement {
+            position: absolute;
+            transform-origin: top center;
+            transform: scale(1);
+        }
+        
+        /* Ajustes específicos para el título del evento cuando es largo */
+        .event-title {
+            font-size: clamp(18px, 5vw, 24px); /* Ajusta el tamaño según el ancho de pantalla */
+        }
+        
+        /* Ajustes para los botones en móviles */
+        .actions-container {
+            flex-direction: column;
+            gap: 10px;
+            max-width: 100%;
+        }
+        .action-button {
+            width: 100%;
+            min-width: unset;
+            flex-grow: 0;
+        }
+        .phone-input-container {
+            max-width: 100%;
+        }
+    }
+
+    /* Para pantallas muy pequeñas */
+    @media (max-width: 500px) {
+        body {
+            padding: 10px;
+        }
+        .certificate-container {
+            margin-bottom: 15px;
+        }
+        .participant-label {
+            width: 80%;
+        }
+        .final-statement {
+            padding: 0 40px;
+        }
+    }
+
+    /* Estilos para formulario de edición */
+    .certificate-edit-form {
+        max-width: 890px;
+        width: 100%;
+        margin: 10px auto 20px;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        gap: 15px;
+    }
+    
+    .form-group {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    
+    .edit-btn {
+        background-color: #4361ee;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    .edit-btn:hover {
+        background-color: #3a0ca3;
+    }
+    
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .form-group {
+            min-width: 100%;
+        }
+    }
+</style>
+
+<div id="certificado" class="certificate-container">
+    <div class="certificate-inner-content" >
+        <div class="participant-name" id="nombre_participante">
+            {{ nombre_completo | default:"Andres Felipe Giraldo" }}
+        </div>
+        <div class="participant-label">
+            Nombre del participante
+        </div>
+        {% if numero_identificacion %}
+        <div class="participation-details">
+            Con identificación <span style="font-weight: bold;" id="documento_participante">{{ numero_identificacion }}</span> ha participado de manera satisfactoria en la capacitación:
+        </div>
+        {% endif %}
+
+        <div class="event-title">
+            "{{ encuesta.titulo | default:"Capacitacion en Formacion Integral" }}"
+        </div>
+
+        <div class="event-meta">
+            Realizado el <span style="font-weight: bold;" id="fecha_certificado">{{ fecha_actual | date:"d/m/Y" | default:"DD/MM/AAAA" }}</span> en el municipio de
+            <span style="font-weight: bold;" id="municipio_certificado">{{ encuesta.municipio.nombre | default:"________" }}</span> bajo la modalidad <strong style="font-weight: bold;">presencial</strong>.
+        </div>
+
+        <div class="final-statement">
+            Este certificado se expide como reconocimiento a su compromiso con la formación integral y la construcción de una cultura de respeto y garantía de los derechos humanos.
+        </div>
+    </div>
+</div>
+
+<div class="actions-container">
+    <a href="#" id="download-btn" class="action-button download-btn">
+        <i class="fas fa-download"></i> {% trans "Descargar Certificado" %}
+    </a>
+    <a href="#" id="whatsapp-btn" class="action-button whatsapp-btn">
+        <i class="fab fa-whatsapp"></i> {% trans "Enviar por WhatsApp" %}
+    </a>
+    <a href="{% url 'generar_certificado' %}" class="action-button return-btn" id="btn-volver">
+        <i class="fas fa-arrow-left"></i> {% trans "Volver" %}
+    </a>
+</div>
+
+<!-- Formulario para ingresar número de WhatsApp -->
+<div class="phone-input-container" id="whatsapp-form" style="display: none;">
+    <div class="form-group mb-3">
+        <label for="phone" class="form-label">{% trans "Ingrese el número de WhatsApp" %}</label>
+        <div class="input-group">
+            <span class="input-group-text">+57</span>
+            <input type="tel" class="form-control" id="phone" placeholder="3001234567" pattern="[0-9]{10}" maxlength="10">
+            <button class="btn btn-primary" id="send-whatsapp">{% trans "Enviar" %}</button>
+            <button class="btn btn-secondary" id="cancel-whatsapp">{% trans "Cancelar" %}</button>
+        </div>
+        <small class="form-text text-muted">{% trans "Ingrese el número sin el prefijo de país" %}</small>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<!-- HTML2Canvas -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Recuperar valores desde localStorage
+    try {
+        const nombre = localStorage.getItem('certificado_nombre');
+        const documento = localStorage.getItem('certificado_documento');
+        const municipio = localStorage.getItem('certificado_municipio');
+        const fecha = localStorage.getItem('certificado_fecha');
+        
+        // Mostrar en el certificado si existen
+        if (nombre && document.getElementById('nombre_participante')) {
+            document.getElementById('nombre_participante').textContent = nombre;
+        }
+        
+        if (documento && document.getElementById('documento_participante')) {
+            document.getElementById('documento_participante').textContent = documento;
+        }
+        
+        if (municipio && document.getElementById('municipio_certificado')) {
+            document.getElementById('municipio_certificado').textContent = municipio;
+        }
+        
+        if (fecha && document.getElementById('fecha_certificado')) {
+            // Formatear la fecha si es necesario
+            const fechaObj = new Date(fecha);
+            const dia = fechaObj.getDate().toString().padStart(2, '0');
+            const mes = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
+            const anio = fechaObj.getFullYear();
+            const fechaFormateada = `${dia}/${mes}/${anio}`;
+            document.getElementById('fecha_certificado').textContent = fechaFormateada;
+        }
+    } catch (e) {
+        console.error("Error al recuperar datos desde localStorage:", e);
+    }
+    
+    // Evento para limpiar localStorage al volver
+    const botonVolver = document.getElementById('btn-volver');
+    if (botonVolver) {
+        botonVolver.addEventListener('click', function() {
+            try {
+                localStorage.removeItem('certificado_nombre');
+                localStorage.removeItem('certificado_documento');
+                localStorage.removeItem('certificado_correo');
+                localStorage.removeItem('certificado_telefono');
+                localStorage.removeItem('certificado_fecha');
+                localStorage.removeItem('certificado_municipio');
+                localStorage.removeItem('certificado_encuesta_id');
+                localStorage.removeItem('certificado_timestamp');
+            } catch (e) {
+                console.error("Error al limpiar localStorage:", e);
+            }
+        });
+    }
+    
+    // Datos para localStorage
+    var certificadoData = {
+        encuesta_id: '{{ encuesta.id|escapejs|default:"" }}',
+        nombre: '{{ nombre_completo|escapejs|default:"" }}',
+        documento: '{{ numero_identificacion|escapejs|default:"" }}',
+        correo: '{{ correo|escapejs|default:"" }}',
+        telefono: '{{ telefono|escapejs|default:"" }}',
+        municipio: '{{ encuesta.municipio.nombre|escapejs|default:"" }}',
+        timestamp: '{{ fecha_actual|date:"Y-m-d" }}'
+    };
+
+    {% if guardar_datos %}
+    try {
+        // Guardar solo los valores que existen
+        Object.keys(certificadoData).forEach(function(key) {
+            if (certificadoData[key]) {
+                localStorage.setItem('certificado_' + key, certificadoData[key]);
+            }
+        });
+    } catch (e) {
+        console.error("Error al guardar en localStorage:", e);
+    }
+    {% endif %}
+    
+    // Función para descargar certificado
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            generarImagenCertificado(false);
+        });
+    }
+    
+    // Función para WhatsApp
+    const whatsappBtn = document.getElementById('whatsapp-btn');
+    const whatsappForm = document.getElementById('whatsapp-form');
+    const sendWhatsappBtn = document.getElementById('send-whatsapp');
+    const cancelWhatsappBtn = document.getElementById('cancel-whatsapp');
+    const phoneInput = document.getElementById('phone');
+
+    if (whatsappBtn) {
+        whatsappBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            whatsappForm.style.display = 'block';
+            const telefonoGuardado = localStorage.getItem('certificado_telefono');
+            if (telefonoGuardado && phoneInput) {
+                phoneInput.value = telefonoGuardado.replace('+57', '').replace(/\D/g, '');
+            }
+        });
+    }
+
+    if (cancelWhatsappBtn) {
+        cancelWhatsappBtn.addEventListener('click', function() {
+            whatsappForm.style.display = 'none';
+        });
+    }
+
+    if (sendWhatsappBtn) {
+        sendWhatsappBtn.addEventListener('click', function() {
+            const phoneNumber = phoneInput.value.trim();
+            
+            if (!phoneNumber) {
+                alert("{% trans 'Por favor ingrese un número de teléfono para enviar el certificado' %}");
+                return;
+            }
+            
+            if (!/^\d{10}$/.test(phoneNumber)) {
+                alert("{% trans 'Por favor ingrese un número válido de 10 dígitos' %}");
+                return;
+            }
+            
+            const numeroCompleto = '+57' + phoneNumber;
+            whatsappForm.style.display = 'none';
+            
+            // Primero generar la imagen y luego abrir WhatsApp
+            generarImagenCertificado(true, numeroCompleto);
+        });
+    }
+    
+    // Función unificada para generar imagen del certificado
+    function generarImagenCertificado(paraWhatsApp, numeroWhatsApp) {
+        const certificadoDiv = document.getElementById('certificado');
+        if (!certificadoDiv) return;
+        
+        // Crear un clon oculto con dimensiones fijas para asegurar que se capture correctamente
+        const certificadoClon = certificadoDiv.cloneNode(true);
+        certificadoClon.style.position = 'absolute';
+        certificadoClon.style.left = '-9999px';
+        certificadoClon.style.top = '-9999px';
+        certificadoClon.style.width = '890px';
+        certificadoClon.style.height = '680px';
+        certificadoClon.style.transform = 'none';
+        certificadoClon.style.padding = '0';
+        certificadoClon.style.margin = '0';
+        
+        // Asegurarse que todos los elementos estén visibles y correctamente posicionados
+        const elements = certificadoClon.querySelectorAll('.certificate-inner-content > *');
+        elements.forEach(function(el) {
+            el.style.position = 'absolute';
+            el.style.visibility = 'visible';
+            el.style.display = 'block';
+            el.style.overflow = 'visible';
+            el.style.transform = 'none';
+        });
+        
+        document.body.appendChild(certificadoClon);
+        
+        // Opciones optimizadas para html2canvas
+        html2canvas(certificadoClon, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: null,
+            logging: false,
+            onclone: function(clonedDoc) {
+                const clonedCertificate = clonedDoc.getElementById('certificado');
+                if (clonedCertificate) {
+                    // Asegurar que todos los elementos estén visibles
+                    const innerElements = clonedCertificate.querySelectorAll('*');
+                    innerElements.forEach(function(el) {
+                        el.style.visibility = 'visible';
+                    });
+                }
+            }
+        }).then(function(canvas) {
+            // Eliminar el clon
+            document.body.removeChild(certificadoClon);
+            
+            try {
+                // Convertir a imagen
+                const imageData = canvas.toDataURL('image/png');
+                
+                // Nombre del archivo
+                const nombreParticipante = document.getElementById('nombre_participante').textContent;
+                const nombreArchivo = 'certificado_' + 
+                    (nombreParticipante ? nombreParticipante.replace(/\s+/g, '_').toLowerCase() : 'participante') + 
+                    '.png';
+                
+                // Descargar imagen
+                const downloadLink = document.createElement('a');
+                downloadLink.href = imageData;
+                downloadLink.download = nombreArchivo;
+                downloadLink.click();
+                
+                // Si es para WhatsApp
+                if (paraWhatsApp && numeroWhatsApp) {
+                    setTimeout(function() {
+                        var mensajeTxt = "{% trans 'Hola, te comparto tu certificado de participación de Corpensar.' %}";
+                        if (nombreParticipante) {
+                            mensajeTxt += " {% trans 'Certificado para:' %} " + nombreParticipante;
+                        }
+                        
+                        var whatsappURL = 'https://wa.me/' + numeroWhatsApp + '?text=' + encodeURIComponent(mensajeTxt);
+                        window.open(whatsappURL, '_blank');
+                        
+                        alert("{% trans 'Se ha descargado el certificado. Ahora se abrirá WhatsApp. Por favor adjunte la imagen manualmente a la conversación.' %}");
+                    }, 500);
+                }
+            } catch (err) {
+                console.error("Error al procesar la imagen:", err);
+                alert("{% trans 'Ocurrió un error al generar la imagen del certificado.' %}");
+            }
+        }).catch(function(err) {
+            // Eliminar el clon en caso de error
+            if (document.body.contains(certificadoClon)) {
+                document.body.removeChild(certificadoClon);
+            }
+            console.error("Error al generar el canvas:", err);
+            alert("{% trans 'Ocurrió un error al intentar generar el certificado.' %}");
+        });
+    }
+});
+</script>
+</body>
+</html>
