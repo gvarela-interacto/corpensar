@@ -1,54 +1,245 @@
 {
-    "titulo": "Entrevista a Comunidad – Impacto de la operación de Cenit",
-    "descripcion": "Entrevista semiestructurada para recoger percepciones de miembros de la comunidad sobre beneficios, afectaciones y riesgos vinculados a la operación de Cenit.",
-    "slug": "entrevista-comunidad",
+    "titulo": "Entrevista Comunidad 2",
+    "slug": "nueva-entrevista-comunidad-2",
+    "descripcion": "Explorar percepciones, riesgos, experiencias y propuestas de las comunidades frente a la operación de Cenit en su territorio, incluyendo una evaluación estructurada de la probabilidad y gravedad de los impactos en DDHH.",
     "categoria": "Entrevista",
     "preguntas": [
       {
-        "tipo": "MTEXT",
-        "texto": "¿Cómo describiría la presencia de Cenit en su territorio?",
-        "requerida": false
+        "tipo": "TEXT",
+        "texto": "Nombre del Entrevistador",
+        "orden": 1,
+        "seccion": "Caracterización",
+        "requerida": true
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Qué beneficios ha percibido en su comunidad asociados a la operación de Cenit?",
-        "requerida": false
+        "tipo": "TEXT",
+        "texto": "¿Cuál es su nombre completo?",
+        "orden": 2,
+        "seccion": "Caracterización",
+        "requerida": true
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Qué afectaciones o impactos negativos ha identificado en su comunidad asociados a la operación de Cenit?",
-        "requerida": false
+        "tipo": "TEXT",
+        "texto": "Identificación",
+        "orden": 3,
+        "seccion": "Caracterización",
+        "requerida": true
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Han existido espacios de diálogo entre Cenit y la comunidad? ¿Cómo los describiría?",
-        "requerida": false
+        "tipo": "TEXT",
+        "texto": "Correo electrónico",
+        "orden": 4,
+        "seccion": "Caracterización",
+        "requerida": false,
+        "placeholder": "ejemplo@correo.com"
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Conoce mecanismos para reportar quejas, inquietudes o reclamos a Cenit?",
-        "requerida": false
+        "tipo": "TEXT",
+        "texto": "Número de teléfono o celular",
+        "orden": 5,
+        "seccion": "Caracterización",
+        "requerida": false,
+        "placeholder": "Ej: 3001234567"
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Ha utilizado alguno de estos mecanismos? ¿Qué tan efectiva fue la respuesta?",
-        "requerida": false
+        "tipo": "RADIO",
+        "texto": "¿Cuál es su sexo?",
+        "orden": 6,
+        "seccion": "Caracterización",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Masculino", "valor": "a", "orden": 1},
+          {"texto": "Femenino", "valor": "b", "orden": 2},
+          {"texto": "Otro", "valor": "c", "orden": 3},
+          {"texto": "Prefiero no responder", "valor": "d", "orden": 4}
+        ]
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Qué riesgos considera que existen en su territorio relacionados con la operación de empresas como Cenit?",
-        "requerida": false
+        "tipo": "RADIO",
+        "texto": "¿Cuál es su rango de edad?",
+        "orden": 7,
+        "seccion": "Caracterización",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Menos de 18 años", "valor": "a", "orden": 1},
+          {"texto": "18 a 25 años", "valor": "b", "orden": 2},
+          {"texto": "26 a 35 años", "valor": "c", "orden": 3},
+          {"texto": "36 a 45 años", "valor": "d", "orden": 4},
+          {"texto": "46 a 60 años", "valor": "e", "orden": 5},
+          {"texto": "Más de 60 años", "valor": "f", "orden": 6}
+          ]
       },
       {
-        "tipo": "MTEXT",
-        "texto": "¿Considera que se respeta la participación de su comunidad en decisiones que les afectan?",
-        "requerida": false
+        "tipo": "CHECK",
+        "texto": "¿A cuál(es) de los siguientes grupos diferenciales pertenece?",
+        "orden": 8,
+        "seccion": "Caracterización",
+        "requerida": true,
+        "opciones": [
+          {"texto": "Comunidad Indígena", "valor": "a", "orden": 1},
+          {"texto": "Comunidad Afrodescendiente", "valor": "b", "orden": 2},
+          {"texto": "Comunidad Campesina", "valor": "c", "orden": 3},
+          {"texto": "Persona con Discapacidad", "valor": "d", "orden": 4},
+          {"texto": "LGBTIQ+", "valor": "e", "orden": 5},
+          {"texto": "Victima del conflicto armado", "valor": "f", "orden": 6},
+          {"texto": "Otro", "valor": "g", "orden": 7},
+          {"texto": "Ninguno", "valor": "h", "orden": 8}
+        ]
       },
       {
+        "orden": 9,
+        "seccion": "Contexto territorial",
         "tipo": "MTEXT",
-        "texto": "¿Desea compartir alguna situación específica o recomendación para mejorar la relación entre Cenit y la comunidad?",
-        "requerida": false
+        "texto": "¿Qué situaciones han notado ustedes que estén afectando la tranquilidad, el bienestar o los derechos de la gente de esta comunidad?",
+        "requerida": true
+      },
+      {
+        "orden": 10,
+        "seccion": "Conocimiento y percepción sobre Cenit",
+        "tipo": "MTEXT",
+        "texto": "¿Ha escuchado hablar de Cenit? ¿Qué sabe sobre su presencia o trabajo en esta comunidad?",
+        "requerida": true
+      },
+      {
+        "orden": 11,
+        "seccion": "Conocimiento y percepción sobre Cenit",
+        "tipo": "MTEXT",
+        "texto": "¿Qué efectos ha tenido la presencia de Cenit en su territorio? (positivos o negativos)",
+        "requerida": true
+      },
+      {
+        "orden": 12,
+        "seccion": "Percepción de riesgos",
+        "tipo": "MTEXT",
+        "texto": "¿Usted cree que hay actividades de Cenit que podrían afectar la vida, la tranquilidad o el medio ambiente en la comunidad? ¿Cómo?",
+        "requerida": true
+      },
+      {
+        "orden": 13,
+        "seccion": "Fuentes de riesgo",
+        "tipo": "MTEXT",
+        "texto": "¿Cuáles son las causas o situaciones que pueden poner en riesgo a la comunidad?",
+        "requerida": true
+      },
+      {
+        "orden": 14,
+        "seccion": "Fuentes de riesgo",
+        "tipo": "MTEXT",
+        "texto": "¿Tienen que ver con la empresa, con otros actores, el clima, o el contexto del territorio?",
+        "requerida": true
+      },
+      {
+        "orden": 15,
+        "seccion": "Casos y hechos concretos",
+        "tipo": "MTEXT",
+        "texto": "¿Conoce usted casos concretos donde se hayan visto afectados derechos de personas o grupos? ¿Qué pasó?",
+        "requerida": true
+      },
+      {
+        "orden": 16,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿En su comunidad se han presentado situaciones de violencia, amenazas, extorsiones o presencia de grupos armados?",
+        "requerida": true
+      },
+      {
+        "orden": 17,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿Ha tenido conocimiento de que esto afecte a trabajadores de empresas como Cenit?",
+        "requerida": true
+      },
+      {
+        "orden": 18,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿Han ocurrido derrames, contaminación o afectaciones ambientales? ¿A qué lo atribuye?",
+        "requerida": true
+      },
+      {
+        "orden": 19,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿Qué ha percibido en el agua, el suelo, el aire o la salud?",
+        "requerida": true
+      },
+      {
+        "orden": 20,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿Se ha visto afectada la movilidad o el uso del espacio público por actividades o maquinaria de Cenit?",
+        "requerida": true
+      },
+      {
+        "orden": 21,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿Conoce a líderes comunitarios que hayan sido amenazados, agredidos o asesinados?",
+        "requerida": true
+      },
+      {
+        "orden": 22,
+        "seccion": "Riesgos según la matriz de DDHH y DIH",
+        "tipo": "MTEXT",
+        "texto": "¿Han ocurrido protestas por temas relacionados con Cenit? ¿Cómo fue la actuación de la Policía?",
+        "requerida": true
+      },
+      {
+        "orden": 23,
+        "seccion": "Probabilidad del riesgo",
+        "tipo": "MTEXT",
+        "texto": "¿Este tipo de situación ha ocurrido recientemente, por ejemplo, en los últimos seis meses?",
+        "requerida": true
+      },
+      {
+        "orden": 24,
+        "seccion": "Probabilidad del riesgo",
+        "tipo": "MTEXT",
+        "texto": "¿Cree usted que los mecanismos o respuestas de la empresa/autoridad no han servido para evitar que vuelva a pasar?",
+        "requerida": true
+      },
+      {
+        "orden": 25,
+        "seccion": "Probabilidad del riesgo",
+        "tipo": "MTEXT",
+        "texto": "¿Ha ocurrido esta situación en el último año?",
+        "requerida": true
+      },
+      {
+        "orden": 26,
+        "seccion": "Gravedad del impacto",
+        "tipo": "MTEXT",
+        "texto": "¿Qué tan grave considera usted que ha sido esta situación para su vida o la de su familia?",
+        "requerida": true
+      },
+      {
+        "orden": 27,
+        "seccion": "Gravedad del impacto",
+        "tipo": "MTEXT",
+        "texto": "¿Ha generado miedo, afectaciones emocionales, daños a la salud o pérdidas materiales?",
+        "requerida": true
+      },
+      {
+        "orden": 28,
+        "seccion": "Acceso a la información y canales de participación",
+        "tipo": "MTEXT",
+        "texto": "¿La comunidad ha tenido espacios para dialogar con Cenit o conocer información sobre sus proyectos?",
+        "requerida": true
+      },
+      {
+        "orden": 29,
+        "seccion": "Medidas actuales y efectividad",
+        "tipo": "MTEXT",
+        "texto": "¿La empresa o las autoridades han hecho algo para mejorar esta situación o prevenir riesgos? ¿Eso ha servido?",
+        "requerida": true
+      },
+      {
+        "orden": 30,
+        "seccion": "Recomendaciones y riesgos emergentes",
+        "tipo": "MTEXT",
+        "texto": "¿Qué cree usted que debería hacer Cenit o las autoridades para proteger mejor los derechos de la comunidad?",
+        "requerida": true
       }
     ]
-  }
   
+}

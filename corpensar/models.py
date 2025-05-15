@@ -183,6 +183,19 @@ class Encuesta(models.Model):
         # Ordenar las preguntas por el atributo orden y devolverlas como lista
         return sorted(preguntas, key=lambda p: p.orden)
 
+    def obtener_preguntas_procesar_audio(self):
+        """
+        Obtiene las preguntas de la encuesta que se pueden procesar con audio
+        """
+        from itertools import chain
+        preguntas = list(chain(
+            self.preguntatexto_relacionadas.all(),
+            self.preguntatextomultiple_relacionadas.all()
+        ))
+
+        return sorted(preguntas, key=lambda p: p.orden)
+
+
 class PreguntaBase(models.Model):
     """Modelo abstracto base para todas las preguntas"""
     TIPOS_PREGUNTA = (

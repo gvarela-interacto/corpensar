@@ -1,6 +1,6 @@
 {
-    "titulo": "Encuesta Comunidad CENIT",
-    "slug": "encuesta-comunidad-cenit-2",
+    "titulo": "Encuesta Comunidad CENIT 2",
+    "slug": "nueva-encuesta-comunidad-cenit-2",
     "descripcion": "Recolectar percepciones de las comunidades frente a las actividades de Cenit y los riesgos que afectan sus derechos y entorno.",
     "categoria": "Encuesta",
     "preguntas": [
@@ -249,6 +249,67 @@
         "texto": "¿Cuál de estas situaciones considera más grave o urgente en su comunidad actualmente?",
         "requerida": true,
         "seccion": "General"
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Qué tan grave considera usted que han sido las afectaciones a derechos o tranquilidad en su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Nada grave", "valor": "nada_grave"},
+          {"texto": "Poco grave", "valor": "poco_grave"},
+          {"texto": "Grave", "valor": "grave"},
+          {"texto": "Muy grave", "valor": "muy_grave"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Considera que estas afectaciones han impactado profundamente la vida de las personas o comunidades?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Cree que las consecuencias de estas situaciones pueden ser difíciles de reparar o revertir completamente?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "¿Con qué frecuencia han ocurrido situaciones que afectan derechos o tranquilidad en su comunidad?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Nunca", "valor": "nunca"},
+          {"texto": "Hace más de 2 años", "valor": "mas_2_anos"},
+          {"texto": "Hace menos de 2 años", "valor": "menos_2_anos"},
+          {"texto": "En el último año", "valor": "ultimo_ano"},
+          {"texto": "En los últimos 6 meses", "valor": "ultimos_6_meses"},
+          {"texto": "Actualmente están ocurriendo", "valor": "actualmente_ocurriendo"}
+        ]
+      },
+      {
+        "tipo": "RADIO",
+        "texto": "Considera usted que este tipo de situaciones podrían volver a repetirse en el futuro cercano?",
+        "requerida": true,
+        "seccion": "General",
+        "opciones": [
+          {"texto": "Sí", "valor": "si"},
+          {"texto": "No", "valor": "no"},
+          {"texto": "No sabe - No responde", "valor": "ns_nr"}
+        ]
+
       }
     ]
   }

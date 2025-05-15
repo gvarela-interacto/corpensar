@@ -5,7 +5,7 @@ import locale
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -29,7 +29,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
                     PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD,
-                    GrupoInteres, CaracterizacionMunicipal, DocumentoCaracterizacion)
+                    GrupoInteres, CaracterizacionMunicipal, DocumentoCaracterizacion,)
 from .decorators import *
 import locale
 from datetime import timedelta
@@ -1662,7 +1662,7 @@ def guardar_respuesta(request, encuesta_id):
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             completada=True
         )
-
+ 
         # Procesar las respuestas
         procesar_preguntas_texto(request, respuesta)
         procesar_preguntas_opcion_multiple(request, respuesta)
@@ -4356,6 +4356,7 @@ def subir_pdf_caracterizacion(request):
                         
                         # Procesar el PDF con Google Gemini para extraer datos del municipio específico
                         datos_json, error = process_pdf_with_gemini(temp_pdf_path, municipio_nombre)
+                        print("Respuesta de Gemini:", datos_json)
                         
                         if error:
                             logger.warning(f"Error al procesar PDF: {error}")
@@ -4720,4 +4721,227 @@ def diagnostico_pdf_caracterizacion(request):
         'modelos_disponibles': modelos_disponibles
     })
 
+# Proceso de datos mediante IA al preprocesar un audio
+# Proceso de datos mediante IA al preprocesar un audio
+@login_required
+def procesar_audio(request):
+    """Vista para procesar archivos de audio (transcripciones) y extraer respuestas mediante IA."""
+    import logging
+    import os
+    from django.conf import settings
+    from .utils.audio_processor import process_audio_with_gemini
 
+    logger = logging.getLogger(__name__)
+    
+    # Se obtienen los formularios de tipo: Entrevista, Grupo focal
+    Encuestas = Encuesta.objects.filter(
+        categoria__nombre__in=['Entrevista', 'Grupo Focal']
+    )
+
+
+    form = ProcesarAudioForm()
+    
+    if request.method == 'POST':
+        form = ProcesarAudioForm(request.POST, request.FILES)
+        
+        
+        if form.is_valid():
+            
+            encuesta_id = request.POST.get('encuesta')
+            audio_file = request.FILES.get('audio_file')
+            municipio_id = request.POST.get('municipio')
+        
+        if not encuesta_id or not audio_file:
+            messages.error(request, "Debe seleccionar una encuesta y un archivo de audio.")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+        
+        try:
+            encuesta = Encuesta.objects.get(id=encuesta_id)
+            municipio = Municipio.objects.get(id=municipio_id)
+        except Encuesta.DoesNotExist:
+            messages.error(request, f"La encuesta seleccionada no existe.")
+            return redirect('todas_encuestas')
+            
+        logger.info(f"Procesando audio para encuesta: {encuesta.titulo}, archivo: {audio_file.name}")
+        
+        # Llamar a la función de procesamiento de Gemini
+        respuestas_gemini, error_message = process_audio_with_gemini(audio_file, encuesta.id)
+        print(respuestas_gemini)
+        
+        if error_message:
+            logger.error(f"Error de Gemini: {error_message}")
+            messages.error(request, f"Error al procesar el audio con IA: {error_message}")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+        
+        if not respuestas_gemini:
+            logger.warning("Gemini no devolvió respuestas o devolvió un JSON vacío.")
+            messages.warning(request, "La IA no pudo extraer respuestas del archivo de audio/transcripción.")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+        
+        try:
+            # Crear la respuesta principal usando el mismo patrón que en el resto de la aplicación
+            usuario = request.user if request.user.is_authenticated else None
+            
+            # Crear objeto principal de respuesta (siguiendo el patrón existente)
+            respuesta = RespuestaEncuesta.objects.create(
+                encuesta=encuesta,
+                usuario=usuario,
+                municipio=municipio,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                completada=True
+            )
+
+            print("Respuesta creada:", respuesta)
+            
+            logger.info(f"Creada RespuestaEncuesta ID: {respuesta.id} para encuesta '{encuesta.titulo}'")
+            
+            # Procesar las respuestas usando las funciones existentes en la aplicación
+            # Simulamos un request con las respuestas para usar las funciones existentes
+            # Guardamos las IDs de preguntas y respuestas en request.POST
+            
+            # Crear un mock_post con los datos del formulario (mock_post es un diccionario que simula request.POST)
+            mock_post = request.POST.copy()
+            respuestas_guardadas = 0
+            
+            # Agregar las respuestas al mock_post para usar con las funciones existentes
+            for pregunta_id_str, texto_respuesta in respuestas_gemini.items():
+                if texto_respuesta.strip():  # Solo considerar respuestas no vacías
+                    key = int(pregunta_id_str)
+                    mock_post[key] = texto_respuesta.strip()
+                    respuestas_guardadas += 1
+            
+            # Guardar el mock_post temporalmente en request
+            original_post = request.POST
+            request.POST = mock_post
+            
+            # Llamar a las funciones de procesamiento existentes
+            # Estas funciones buscan respuestas para cada tipo de pregunta
+            # en request.POST y crean los objetos de respuesta correspondientes
+            procesar_preguntas_texto(request, respuesta)
+            
+            # Restaurar el POST original
+            request.POST = original_post
+            
+            if respuestas_guardadas > 0:
+                messages.success(request, f"Audio procesado exitosamente. Se extrajeron {respuestas_guardadas} respuestas para la encuesta '{encuesta.titulo}'.")
+                return redirect('todas_encuestas')
+            else:
+                messages.warning(request, "No se pudieron encontrar respuestas para ninguna de las preguntas en el audio.")
+                # Eliminar la respuesta vacía para mantener la base de datos limpia
+                respuesta.delete()
+                logger.info(f"Respuesta ID {respuesta.id} eliminada por no tener detalles.")
+        
+        except Exception as e:
+            logger.error(f"Error al guardar las respuestas: {str(e)}", exc_info=True)
+            messages.error(request, f"Error al guardar las respuestas: {str(e)}")
+    
+    # Para GET y para POST con errores
+    return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+
+
+def crear_respuestas_formulario(request, municipio, datos_json):
+    """Crea una respuesta de formulario con los datos proporcionados"""
+    from .models import CaracterizacionMunicipal
+    from django.db import transaction
+    import logging
+    from django.utils import timezone
+    
+    logger = logging.getLogger(__name__)
+    
+    # Obtener el formulario seleccionado
+    formulario_id = request.POST.get('formulario')
+    formulario = Encuesta.objects.get(id=formulario_id)
+
+    with transaction.atomic():
+            caracterizacion = CaracterizacionMunicipal(
+                municipio=municipio,
+                creador=request.user,
+                estado='borrador'
+            )
+            logger.info(f"Creando nueva caracterización para {municipio.nombre}")
+    
+    
+    
+   
+    
+    # Campos asignados correctamente (para logging)
+    campos_asignados = []
+    
+    # Flag para municipio PDEI
+    if "es_municipio_pdei" in datos_json:
+        if isinstance(datos_json["es_municipio_pdei"], bool):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"]
+        elif isinstance(datos_json["es_municipio_pdei"], str):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"].lower() in ['true', 'yes', 'si', '1']
+    
+    # Sobrescribir con los valores encontrados en el PDF
+    for campo, valor in datos_json.items():
+        # Solo considerar campos que existen en nuestro modelo y que tienen valor
+        if hasattr(caracterizacion, campo) and valor is not None:
+            try:
+                # Convertir a número si es posible y si el campo es numérico
+                if campo in campos_numericos:
+                    try:
+                        # Si ya es un número, usarlo directamente
+                        if isinstance(valor, (int, float)):
+                            pass
+                        # Si es string, intentar convertir
+                        elif isinstance(valor, str):
+                            # Limpiar texto (quitar símbolos como %, etc.)
+                            valor = valor.replace('%', '').replace(',', '.').strip()
+                            valor = float(valor)
+                            # Si es entero, convertir a int
+                            if valor.is_integer():
+                                valor = int(valor)
+                    except (ValueError, TypeError, AttributeError):
+                        # Si falla la conversión, usar 0
+                        valor = 0
+                
+                # Asignar el valor al campo del modelo
+                setattr(caracterizacion, campo, valor)
+                campos_asignados.append(f"{campo}: {valor}")
+                logger.info(f"Campo asignado: {campo} = {valor}")
+            except Exception as e:
+                logger.warning(f"Error al asignar {campo}: {str(e)}")
+    
+    # Agregar observación
+    if not caracterizacion.observaciones:
+        caracterizacion.observaciones = ""
+    caracterizacion.observaciones += (
+        f"\nCaracterización {'actualizada' if caracterizacion_existente else 'creada'} mediante procesamiento de PDF con IA (Gemini). "
+        f"Municipio: {municipio.nombre}. "
+        f"Campos extraídos: {', '.join(campos_asignados)}. "
+        f"Fecha de procesamiento: {timezone.now().strftime('%d/%m/%Y %H:%M')}. "
+    )
+    
+    # Guardar caracterización
+    caracterizacion.save()
+    logger.info(f"Caracterización guardada con ID: {caracterizacion.id}")
+    
+    return caracterizacion
+
+
+def api_municipios_por_encuesta(request, encuesta_id):
+    """API para obtener municipios disponibles para una encuesta específica"""
+    from .models import Municipio, Encuesta
+    from django.http import JsonResponse
+
+    try:
+        # Obtener la encuesta
+        encuesta = Encuesta.objects.get(id=encuesta_id)
+        
+        # Obtener la región asociada a la encuesta
+        region = encuesta.region  # Asegúrate de que la encuesta tenga un campo 'region'
+        
+        # Obtener municipios disponibles para la región
+        municipios = Municipio.objects.filter(region=region)
+        
+        # Devolver JSON con los municipios
+        municipios_data = [{'id': municipio.id, 'nombre': municipio.nombre} for municipio in municipios]
+        return JsonResponse(municipios_data, safe=False)
+    
+    except Encuesta.DoesNotExist:
+        return JsonResponse({'error': 'Encuesta no encontrada'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
