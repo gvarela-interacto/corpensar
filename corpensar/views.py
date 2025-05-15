@@ -4791,52 +4791,190 @@ def procesar_audio(request):
                 user_agent=request.META.get('HTTP_USER_AGENT', ''),
                 completada=True
             )
-
-            print("Respuesta creada:", respuesta)
             
             logger.info(f"Creada RespuestaEncuesta ID: {respuesta.id} para encuesta '{encuesta.titulo}'")
             
-            # Procesar las respuestas usando las funciones existentes en la aplicación
-            # Simulamos un request con las respuestas para usar las funciones existentes
-            # Guardamos las IDs de preguntas y respuestas en request.POST
-            
-            # Crear un mock_post con los datos del formulario (mock_post es un diccionario que simula request.POST)
-            mock_post = request.POST.copy()
-            respuestas_guardadas = 0
-            
-            # Agregar las respuestas al mock_post para usar con las funciones existentes
-            for pregunta_id_str, texto_respuesta in respuestas_gemini.items():
-                if texto_respuesta.strip():  # Solo considerar respuestas no vacías
-                    key = int(pregunta_id_str)
-                    mock_post[key] = texto_respuesta.strip()
-                    respuestas_guardadas += 1
-            
-            # Guardar el mock_post temporalmente en request
-            original_post = request.POST
-            request.POST = mock_post
-            
-            # Llamar a las funciones de procesamiento existentes
-            # Estas funciones buscan respuestas para cada tipo de pregunta
-            # en request.POST y crean los objetos de respuesta correspondientes
-            procesar_preguntas_texto(request, respuesta)
-            
-            # Restaurar el POST original
-            request.POST = original_post
-            
-            if respuestas_guardadas > 0:
-                messages.success(request, f"Audio procesado exitosamente. Se extrajeron {respuestas_guardadas} respuestas para la encuesta '{encuesta.titulo}'.")
-                return redirect('todas_encuestas')
+            respuestas_guardadas_count = 0
+
+            for pregunta_id_str, texto_respuesta_raw in respuestas_gemini.items():
+                if not texto_respuesta_raw or not str(texto_respuesta_raw).strip():
+                    logger.warning(f"Respuesta vacía para pregunta ID {pregunta_id_str}, saltando.")
+                    continue
+
+                texto_respuesta = str(texto_respuesta_raw).strip()
+                pregunta_id = int(pregunta_id_str)
+                pregunta_obj = None
+                
+                # Identificar el tipo de pregunta
+                pregunta_modelos = [
+                    PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
+                    PreguntaCasillasVerificacion, PreguntaMenuDesplegable, PreguntaEstrellas,
+                    PreguntaEscala, PreguntaMatriz, PreguntaFecha
+                ]
+
+                for modelo_clase in pregunta_modelos:
+                    try:
+                        pregunta_obj = modelo_clase.objects.get(id=pregunta_id, encuesta=encuesta)
+                        break 
+                    except modelo_clase.DoesNotExist:
+                        continue
+                
+                if not pregunta_obj:
+                    logger.warning(f"No se encontró la pregunta con ID {pregunta_id} en la encuesta {encuesta.id}. Saltando.")
+                    continue
+
+                try:
+                    if isinstance(pregunta_obj, PreguntaTexto):
+                        RespuestaTexto.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=texto_respuesta)
+                        respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaTextoMultiple):
+                        RespuestaTextoMultiple.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=texto_respuesta)
+                        respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaOpcionMultiple):
+                        opcion_encontrada = None
+                        try:
+                            opcion_encontrada = OpcionMultiple.objects.get(pregunta=pregunta_obj, texto__iexact=texto_respuesta)
+                        except OpcionMultiple.DoesNotExist:
+                            if pregunta_obj.opcion_otro and "otro:" in texto_respuesta.lower():
+                                texto_otro_valor = texto_respuesta.split(":", 1)[1].strip() if ":" in texto_respuesta else ""
+                                opcion_otro_obj = OpcionMultiple.objects.filter(pregunta=pregunta_obj, texto__iexact='Otro').first()
+                                if opcion_otro_obj:
+                                    RespuestaOpcionMultiple.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_otro_obj, texto_otro=texto_otro_valor)
+                                    respuestas_guardadas_count += 1
+                                else:
+                                    logger.warning(f"Pregunta {pregunta_id} tipo OpcionMultiple con 'otro' habilitado pero no se encontró opción 'Otro' para guardar: {texto_respuesta}")
+                            else:
+                                logger.warning(f"Opción '{texto_respuesta}' no encontrada para PreguntaOpcionMultiple ID {pregunta_id}")
+                        if opcion_encontrada:
+                            RespuestaOpcionMultiple.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_encontrada)
+                            respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaCasillasVerificacion):
+                        # Asumimos que la IA devuelve una opción a la vez por ahora, o un string que es una opción
+                        # Para múltiples opciones, la IA debería devolver una lista.
+                        opcion_encontrada = None
+                        try:
+                            # Si texto_respuesta es una lista (ej. la IA devuelve JSON)
+                            if isinstance(texto_respuesta_raw, list):
+                                for opt_text in texto_respuesta_raw:
+                                    opt_text_clean = str(opt_text).strip()
+                                    if not opt_text_clean: continue
+                                    try:
+                                        opcion = OpcionCasillaVerificacion.objects.get(pregunta=pregunta_obj, texto__iexact=opt_text_clean)
+                                        RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion)
+                                        respuestas_guardadas_count += 1
+                                    except OpcionCasillaVerificacion.DoesNotExist:
+                                        logger.warning(f"Opción de casilla '{opt_text_clean}' no encontrada para PreguntaCasillasVerificacion ID {pregunta_id}")
+                            else: # Si es un solo string
+                                opcion_encontrada = OpcionCasillaVerificacion.objects.get(pregunta=pregunta_obj, texto__iexact=texto_respuesta)
+                                RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_encontrada)
+                                respuestas_guardadas_count += 1
+                        except OpcionCasillaVerificacion.DoesNotExist:
+                             logger.warning(f"Opción de casilla '{texto_respuesta}' no encontrada para PreguntaCasillasVerificacion ID {pregunta_id}")
+                    elif isinstance(pregunta_obj, PreguntaMenuDesplegable):
+                        opcion_encontrada = None
+                        try:
+                            opcion_encontrada = OpcionMenuDesplegable.objects.get(pregunta=pregunta_obj, texto__iexact=texto_respuesta)
+                        except OpcionMenuDesplegable.DoesNotExist:
+                            logger.warning(f"Opción '{texto_respuesta}' no encontrada para PreguntaMenuDesplegable ID {pregunta_id}")
+                        if opcion_encontrada:
+                            RespuestaOpcionMenuDesplegable.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_encontrada)
+                            respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaEstrellas):
+                        try:
+                            valor_int = int(texto_respuesta)
+                            RespuestaEstrellas.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=valor_int)
+                            respuestas_guardadas_count += 1
+                        except ValueError:
+                            logger.warning(f"Valor '{texto_respuesta}' no es un entero válido para PreguntaEstrellas ID {pregunta_id}")
+                    elif isinstance(pregunta_obj, PreguntaEscala):
+                        try:
+                            valor_int = int(texto_respuesta)
+                            RespuestaEscala.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=valor_int)
+                            respuestas_guardadas_count += 1
+                        except ValueError:
+                            logger.warning(f"Valor '{texto_respuesta}' no es un entero válido para PreguntaEscala ID {pregunta_id}")
+                    elif isinstance(pregunta_obj, PreguntaFecha):
+                        try:
+                            # Intentar parsear como datetime primero, luego como date
+                            parsed_date = None
+                            formatos_fecha_hora = [
+                                '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M', # ISO
+                                '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+                                '%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M',
+                            ]
+                            formatos_fecha = ['%Y-%m-%d', '%d/%m/%Y']
+
+                            for fmt in formatos_fecha_hora:
+                                try:
+                                    parsed_date = timezone.datetime.strptime(texto_respuesta, fmt)
+                                    break
+                                except ValueError:
+                                    continue
+                            
+                            if not parsed_date:
+                                for fmt in formatos_fecha:
+                                    try:
+                                        parsed_date = timezone.datetime.strptime(texto_respuesta, fmt).date()
+                                        break
+                                    except ValueError:
+                                        continue
+                            
+                            if parsed_date: 
+                                if not pregunta_obj.incluir_hora and isinstance(parsed_date, timezone.datetime):
+                                     RespuestaFecha.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=parsed_date.date())
+                                else:
+                                     RespuestaFecha.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=parsed_date)
+                                respuestas_guardadas_count += 1
+                            else:
+                                raise ValueError("Formato de fecha no reconocido")
+                        except ValueError as e:
+                            logger.warning(f"Valor '{texto_respuesta}' no es una fecha válida para PreguntaFecha ID {pregunta_id}: {e}")
+                    elif isinstance(pregunta_obj, PreguntaMatriz):
+                        if isinstance(texto_respuesta_raw, dict):
+                            items_matriz = pregunta_obj.items.all()
+                            for item_obj in items_matriz:
+                                valor_item_str = None
+                                if str(item_obj.id) in texto_respuesta_raw:
+                                    valor_item_str = str(texto_respuesta_raw[str(item_obj.id)]).strip()
+                                elif item_obj.texto in texto_respuesta_raw:
+                                     valor_item_str = str(texto_respuesta_raw[item_obj.texto]).strip()
+                                
+                                if valor_item_str:
+                                    try:
+                                        valor_int = int(valor_item_str)
+                                        if pregunta_obj.escala.min_valor <= valor_int <= pregunta_obj.escala.max_valor:
+                                            RespuestaMatriz.objects.create(
+                                                respuesta_encuesta=respuesta,
+                                                pregunta=pregunta_obj,
+                                                item=item_obj,
+                                                valor=valor_int
+                                            )
+                                            respuestas_guardadas_count += 1
+                                        else:
+                                            logger.warning(f"Valor {valor_int} fuera de rango para item {item_obj.texto} (ID: {item_obj.id}) de PreguntaMatriz ID {pregunta_id}")
+                                    except ValueError:
+                                        logger.warning(f"Valor '{valor_item_str}' no es un entero válido para item {item_obj.texto} (ID: {item_obj.id}) de PreguntaMatriz ID {pregunta_id}")
+                                else:
+                                    logger.info(f"No se encontró respuesta para item {item_obj.texto} (ID: {item_obj.id}) en PreguntaMatriz ID {pregunta_id}")
+                        else:
+                            logger.warning(f"PreguntaMatriz ID {pregunta_id} recibió una respuesta no estructurada (se esperaba JSON/dict): '{texto_respuesta}'. No se pudo procesar.")
+                    
+                except Exception as e_inner:
+                    logger.error(f"Error al procesar y guardar respuesta para pregunta ID {pregunta_id} (Tipo: {pregunta_obj.__class__.__name__}): {str(e_inner)}", exc_info=True)
+
+            if respuestas_guardadas_count > 0:
+                messages.success(request, f"Audio procesado exitosamente. Se extrajeron y guardaron {respuestas_guardadas_count} respuestas para la encuesta '{encuesta.titulo}'.")
+                return redirect('resultados_encuesta', pk=encuesta.id) 
             else:
-                messages.warning(request, "No se pudieron encontrar respuestas para ninguna de las preguntas en el audio.")
-                # Eliminar la respuesta vacía para mantener la base de datos limpia
+                messages.warning(request, "No se pudieron extraer o guardar respuestas válidas para ninguna de las preguntas en el audio/transcripción.")
                 respuesta.delete()
-                logger.info(f"Respuesta ID {respuesta.id} eliminada por no tener detalles.")
+                logger.info(f"RespuestaEncuesta ID {respuesta.id} eliminada por no tener detalles guardados.")
         
         except Exception as e:
             logger.error(f"Error al guardar las respuestas: {str(e)}", exc_info=True)
-            messages.error(request, f"Error al guardar las respuestas: {str(e)}")
+            messages.error(request, f"Error crítico al guardar las respuestas: {str(e)}")
     
-    # Para GET y para POST con errores
+    # Para GET y para POST con errores de formulario o errores críticos
     return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
 
 
