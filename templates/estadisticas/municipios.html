@@ -1825,7 +1825,7 @@
             try {
                 const traceBar = {
                     x: datosGraficos.municipios.valores,
-                    y: datosGraficos.municipios.nombres,
+                    y: datosGraficos.municipios.nombres.map(nombre => nombre.toUpperCase()),
                     type: 'bar',
                     orientation: 'h', // Barras horizontales
                     name: 'Respuestas',
