@@ -94,6 +94,8 @@
                                         <option value="">{% if form.categoria.value %}Selecciona una subcategoría{% else %}Primero selecciona una categoría{% endif %}</option>
                                     </select>
                                     <div class="form-text">Selecciona la subcategoría específica para la encuesta</div>
+                                    <!-- Campo oculto para guardar el valor de la subcategoría -->
+                                    <input type="hidden" name="subcategoria_valor" value="{{ form.subcategoria.value|default:'' }}">
                                 </div>
                                 
                                 <div class="form-group mb-3">
@@ -850,6 +852,84 @@
                         </div>
                     </div>
 
+                    <!-- Sección para configuración de estrellas -->
+                    <div id="seccion-estrellas" class="card border-0 shadow-sm mb-3" style="display: none;">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Configuración de estrellas</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label for="estrellas_max" class="form-label fw-bold">Número de estrellas</label>
+                                <select class="form-select rounded-3" id="estrellas_max" name="estrellas_max">
+                                    <option value="5" selected>5 estrellas</option>
+                                    <option value="10">10 estrellas</option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="estrellas_etiqueta_min" class="form-label fw-bold">Etiqueta para valor mínimo</label>
+                                        <input type="text" class="form-control rounded-3" id="estrellas_etiqueta_min" 
+                                               name="estrellas_etiqueta_min" placeholder="Ej: Muy malo">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="estrellas_etiqueta_max" class="form-label fw-bold">Etiqueta para valor máximo</label>
+                                        <input type="text" class="form-control rounded-3" id="estrellas_etiqueta_max" 
+                                               name="estrellas_etiqueta_max" placeholder="Ej: Excelente">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección para configuración de fecha -->
+                    <div id="seccion-fecha" class="card border-0 shadow-sm mb-3" style="display: none;">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Configuración de fecha</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch mb-3">
+                                <div>
+                                    <label class="form-check-label fw-bold" for="incluir_hora">
+                                        Incluir hora
+                                    </label>
+                                    <input type="checkbox" class="form-check-input" id="incluir_hora" 
+                                    name="incluir_hora" role="switch">
+                                </div>
+                                <div class="form-text">Si está activado, el usuario podrá seleccionar también la hora.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección para configuración de texto múltiple -->
+                    <div id="seccion-texto-multiple" class="card border-0 shadow-sm mb-3" style="display: none;">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-bold text-primary">Configuración de texto múltiple</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label for="texto_multiple_filas" class="form-label fw-bold">Número de filas</label>
+                                <input type="number" class="form-control rounded-3" id="texto_multiple_filas" 
+                                       name="texto_multiple_filas" value="4" min="2" max="10">
+                                <div class="form-text">Cantidad de filas que mostrará el campo de texto.</div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="texto_multiple_max_longitud" class="form-label fw-bold">Longitud máxima</label>
+                                <input type="number" class="form-control rounded-3" id="texto_multiple_max_longitud" 
+                                       name="texto_multiple_max_longitud" value="1000">
+                                <div class="form-text">Número máximo de caracteres permitidos.</div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="texto_multiple_placeholder" class="form-label fw-bold">Texto de ejemplo (placeholder)</label>
+                                <input type="text" class="form-control rounded-3" id="texto_multiple_placeholder" 
+                                       name="texto_multiple_placeholder" placeholder="Ej: Describe tu experiencia...">
+                                <div class="form-text">Texto de ayuda que aparecerá dentro del campo.</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-outline-secondary rounded-3" data-dismiss="modal">
                             <i class="fas fa-times me-2"></i>Cancelar
@@ -1217,20 +1297,33 @@
         // Agregar opción
         document.querySelectorAll('.agregar-opcion').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                const container = this.closest('.opciones-container');
-                const opcionTemplate = `
-                    <div class="form-group opcion-item">
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="opciones[]" required>
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-danger eliminar-opcion">
+                let container = this.parentElement; // Asumir que el botón está dentro del container (caso editar)
+                if (!container || !container.classList.contains('opciones-container')) {
+                    // Si el padre no es '.opciones-container' (o no se encontró), 
+                    // buscar como en el modal de agregar (botón es hermano del contenedor de opciones, dentro de un card-body)
+                    // o si el botón está dentro del card-body directamente (como en editar, pero el original no era el caso)
+                    container = this.parentElement.querySelector('.opciones-container');
+                }
+
+                if (container) {
+                    const opcionTemplate = `
+                        <div class="form-group opcion-item mb-2">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="fas fa-list-ul text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control rounded-end" name="opciones[]" 
+                                       placeholder="Escribe una opción" required>
+                                <button type="button" class="btn btn-outline-danger ms-2 eliminar-opcion rounded-3">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', opcionTemplate);
+                    `;
+                    container.insertAdjacentHTML('beforeend', opcionTemplate);
+                } else {
+                    console.error("No se pudo encontrar .opciones-container para el botón:", this);
+                }
             });
         });
 
@@ -1403,22 +1496,116 @@
                     nuevaSeccionInput.style.display = 'block';
                     nuevaSeccionInput.focus();
                     nuevaSeccionInput.required = true;
-                    this.name = '_ignorar_seccion';
+                    // Cambiar el nombre del select para que no se envíe si se crea una nueva sección
+                    this.name = '_ignorar_seccion'; 
+                    nuevaSeccionInput.name = 'seccion'; // El input de texto tomará el nombre 'seccion'
                 } else {
                     nuevaSeccionInput.style.display = 'none';
                     nuevaSeccionInput.required = false;
-                    this.name = 'seccion';
+                    this.name = 'seccion'; // El select vuelve a tener el nombre 'seccion'
+                    nuevaSeccionInput.name = ''; // El input de texto no se envía
                 }
             });
             
             nuevaSeccionInput.addEventListener('input', function() {
-                if (this.value.trim() !== '') {
+                // Asegurarse de que el input de nueva sección tenga el nombre correcto si tiene valor
+                if (this.value.trim() !== '' && seccionSelect.value === 'nueva_seccion') {
                     this.name = 'seccion';
-                } else {
-                    this.name = '';
+                } else if (seccionSelect.value === 'nueva_seccion') {
+                    // Si está vacío y es nueva sección, el select no se envía, el input tampoco debería
+                    this.name = ''; 
                 }
             });
         }
+
+        // START: Lógica para mostrar/ocultar secciones dinámicas de tipo de pregunta
+        const tipoNuevaPreguntaSelect = document.getElementById('tipo_nueva');
+        const seccionOpciones = document.getElementById('seccion-opciones');
+        const seccionEscala = document.getElementById('seccion-escala');
+        const seccionEstrellas = document.getElementById('seccion-estrellas');
+        const seccionFecha = document.getElementById('seccion-fecha');
+        const seccionMatriz = document.getElementById('seccion-matriz');
+        const seccionTextoMultiple = document.getElementById('seccion-texto-multiple');
+
+        function toggleInputsInSection(sectionElement, enable) {
+            if (sectionElement) {
+                // Seleccionar inputs, selects, textareas que no sean botones de control (agregar/eliminar opción)
+                const formElements = sectionElement.querySelectorAll('input:not([type="button"]), select, textarea');
+                formElements.forEach(element => {
+                    element.disabled = !enable;
+                    // Si un campo era requerido y se habilita, mantenerlo requerido.
+                    // Si se deshabilita, quitar el 'required' para evitar problemas de validación en campos ocultos.
+                    if (element.hasAttribute('data-original-required')) {
+                        element.required = enable;
+                    }
+                });
+            }
+        }
+        
+        // Almacenar el estado original de 'required'
+        [seccionOpciones, seccionEscala, seccionMatriz, seccionEstrellas, seccionFecha, seccionTextoMultiple].forEach(section => {
+            if (section) {
+                section.querySelectorAll('input, select, textarea').forEach(el => {
+                    if (el.required) {
+                        el.setAttribute('data-original-required', 'true');
+                    }
+                });
+            }
+        });
+
+        if (tipoNuevaPreguntaSelect) {
+            tipoNuevaPreguntaSelect.addEventListener('change', function() {
+                const tipoSeleccionado = this.value;
+
+                // Ocultar todas las secciones condicionales y deshabilitar sus inputs
+                [seccionOpciones, seccionEscala, seccionMatriz, seccionEstrellas, seccionFecha, seccionTextoMultiple].forEach(section => {
+                    if (section) {
+                        section.style.display = 'none';
+                        toggleInputsInSection(section, false);
+                    }
+                });
+
+                // Mostrar la sección relevante y habilitar sus inputs
+                if (tipoSeleccionado === 'RADIO' || tipoSeleccionado === 'CHECK' || tipoSeleccionado === 'SELECT') {
+                    if (seccionOpciones) {
+                        seccionOpciones.style.display = 'block';
+                        toggleInputsInSection(seccionOpciones, true);
+                    }
+                } else if (tipoSeleccionado === 'SCALE') {
+                    if (seccionEscala) {
+                        seccionEscala.style.display = 'block';
+                        toggleInputsInSection(seccionEscala, true);
+                    }
+                } else if (tipoSeleccionado === 'MATRIX') {
+                    if (seccionMatriz) {
+                        seccionMatriz.style.display = 'block';
+                        toggleInputsInSection(seccionMatriz, true);
+                    }
+                    if (seccionEscala) {
+                        seccionEscala.style.display = 'block';
+                        toggleInputsInSection(seccionEscala, true);
+                    }
+                } else if (tipoSeleccionado === 'STARS') {
+                    if (seccionEstrellas) {
+                        seccionEstrellas.style.display = 'block';
+                        toggleInputsInSection(seccionEstrellas, true);
+                    }
+                } else if (tipoSeleccionado === 'DATE') {
+                    if (seccionFecha) {
+                        seccionFecha.style.display = 'block';
+                        toggleInputsInSection(seccionFecha, true);
+                    }
+                } else if (tipoSeleccionado === 'MTEXT') {
+                    if (seccionTextoMultiple) {
+                        seccionTextoMultiple.style.display = 'block';
+                        toggleInputsInSection(seccionTextoMultiple, true);
+                    }
+                }
+            });
+            // Disparar el evento change al cargar la página para establecer el estado inicial
+            tipoNuevaPreguntaSelect.dispatchEvent(new Event('change'));
+        }
+        // END: Lógica para mostrar/ocultar secciones dinámicas
         
         // Manejo del envío del formulario para actualizar el orden automáticamente
         const formAgregarPreguntaEl = document.querySelector('.form-agregar-pregunta');
@@ -1466,7 +1653,12 @@
         
         // Cargar subcategorías al inicio si hay una categoría seleccionada
         if (categoriaSelect && categoriaSelect.value) {
-            cargarSubcategorias(categoriaSelect.value, {% if form.subcategoria.value %}{{ form.subcategoria.value }}{% else %}null{% endif %});
+            let subcategoriaInicial = null;
+            // Usando JavaScript puro para verificar si la subcategoría tiene valor
+            if (document.querySelector('input[name="subcategoria_valor"]')) {
+                subcategoriaInicial = document.querySelector('input[name="subcategoria_valor"]').value;
+            }
+            cargarSubcategorias(categoriaSelect.value, subcategoriaInicial);
         }
         
         // Actualizar subcategorías cuando cambia la categoría
@@ -1498,16 +1690,18 @@
                         option.textContent = subcategoria.nombre;
                         
                         // Seleccionar la subcategoría si coincide con la guardada
-                        if (subcategoriaSeleccionada && subcategoria.id == subcategoriaSeleccionada) {
+                        if (subcategoriaSeleccionada && subcategoria.id == parseInt(subcategoriaSeleccionada)) {
                             option.selected = true;
                         }
                         
                         subcategoriaSelect.appendChild(option);
                     });
+                    subcategoriaSelect.disabled = false; // Habilitar el select de subcategorías
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error al cargar subcategorías:', error);
                     subcategoriaSelect.innerHTML = '<option value="">Error al cargar subcategorías</option>';
+                    subcategoriaSelect.disabled = true; // Deshabilitar si hay error
                 });
         }
     });

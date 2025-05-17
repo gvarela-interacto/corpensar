@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seleccionar Método de Caracterización{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <!-- Breadcrumb-->
+        <div class="row pt-2 pb-2">
+            <div class="col-sm-9">
+                <h4 class="page-title">Seleccionar Método de Caracterización</h4>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'index' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'lista_caracterizaciones' %}">Caracterizaciones</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Seleccionar Método</li>
+                </ol>
+            </div>
+        </div>
+        <!-- End Breadcrumb-->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Seleccione el método para crear una nueva caracterización municipal</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row justify-content-center">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fa fa-edit fa-4x mb-3 text-primary"></i>
+                                        <h5 class="card-title">Formulario Manual</h5>
+                                        <p class="card-text">Complete manualmente el formulario con todos los datos de caracterización municipal.</p>
+                                        <a href="{% url 'crear_caracterizacion' %}" class="btn btn-primary btn-block">
+                                            <i class="fa fa-edit"></i> Llenar Formulario
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fa fa-file-pdf fa-4x mb-3 text-danger"></i>
+                                        <h5 class="card-title">Cargar PDF con IA</h5>
+                                        <p class="card-text">Cargue un documento PDF y deje que la inteligencia artificial extraiga los datos automáticamente.</p>
+                                        <a href="{% url 'subir_pdf_caracterizacion' %}" class="btn btn-danger btn-block">
+                                            <i class="fa fa-upload"></i> Cargar PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fa fa-microscope fa-4x mb-3 text-info"></i>
+                                        <h5 class="card-title">Diagnóstico PDF</h5>
+                                        <p class="card-text">Pruebe el procesamiento de PDF con IA sin crear una caracterización. Útil para probar y resolver problemas.</p>
+                                        <a href="{% url 'diagnostico_pdf' %}" class="btn btn-info btn-block">
+                                            <i class="fa fa-bug"></i> Herramienta de Diagnóstico
+                                        </a>
+                                    </div>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

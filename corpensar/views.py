@@ -5,7 +5,7 @@ import locale
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from django.contrib.auth import logout
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -29,7 +29,7 @@ from .models import (Encuesta, PreguntaTexto, PreguntaTextoMultiple, PreguntaOpc
                     RespuestaOpcionMenuDesplegable, RespuestaEscala, RespuestaMatriz,
                     RespuestaFecha, RespuestaEstrellas, ItemMatrizPregunta, Categoria,
                     PQRSFD, Subcategoria, ArchivoRespuesta, ArchivoAdjuntoPQRSFD,
-                    GrupoInteres, CaracterizacionMunicipal, DocumentoCaracterizacion)
+                    GrupoInteres, CaracterizacionMunicipal, DocumentoCaracterizacion,)
 from .decorators import *
 import locale
 from datetime import timedelta
@@ -1662,7 +1662,7 @@ def guardar_respuesta(request, encuesta_id):
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
             completada=True
         )
-
+ 
         # Procesar las respuestas
         procesar_preguntas_texto(request, respuesta)
         procesar_preguntas_opcion_multiple(request, respuesta)
@@ -2175,6 +2175,8 @@ def editar_pregunta(request, pregunta_id):
             if isinstance(pregunta, (PreguntaTexto, PreguntaTextoMultiple)):
                 pregunta.placeholder = request.POST.get('placeholder', '')
                 pregunta.max_longitud = int(request.POST.get('max_longitud', 250))
+                if isinstance(pregunta, PreguntaTextoMultiple):
+                    pregunta.filas = int(request.POST.get('filas', 4))
             
             elif isinstance(pregunta, (PreguntaOpcionMultiple, PreguntaCasillasVerificacion, PreguntaMenuDesplegable)):
                 # Obtener las opciones actualizadas
@@ -2199,6 +2201,45 @@ def editar_pregunta(request, pregunta_id):
                             texto=texto,
                             orden=i+1
                         )
+            
+            elif isinstance(pregunta, PreguntaEstrellas):
+                # Actualizar campos específicos de estrellas
+                pregunta.max_estrellas = int(request.POST.get('estrellas_max', 5))
+                pregunta.etiqueta_inicio = request.POST.get('estrellas_etiqueta_min', '')
+                pregunta.etiqueta_fin = request.POST.get('estrellas_etiqueta_max', '')
+            
+            elif isinstance(pregunta, PreguntaEscala):
+                # Actualizar campos específicos de escala
+                pregunta.min_valor = int(request.POST.get('escala_min', 1))
+                pregunta.max_valor = int(request.POST.get('escala_max', 5))
+                pregunta.paso = int(request.POST.get('escala_paso', 1))
+                pregunta.etiqueta_min = request.POST.get('escala_etiqueta_min', '')
+                pregunta.etiqueta_max = request.POST.get('escala_etiqueta_max', '')
+            
+            elif isinstance(pregunta, PreguntaMatriz):
+                # Actualizar filas de la matriz
+                filas = request.POST.getlist('filas[]')
+                # Eliminar filas existentes
+                pregunta.items.all().delete()
+                # Crear nuevas filas
+                for i, fila_texto in enumerate(filas):
+                    if fila_texto.strip():  # Solo crear si no está vacío
+                        ItemMatrizPregunta.objects.create(
+                            pregunta=pregunta,
+                            texto=fila_texto,
+                            orden=i+1
+                        )
+                
+                # Actualizar escala asociada
+                if pregunta.escala:
+                    pregunta.escala.min_valor = int(request.POST.get('escala_min', 1))
+                    pregunta.escala.max_valor = int(request.POST.get('escala_max', 5))
+                    pregunta.escala.paso = int(request.POST.get('escala_paso', 1))
+                    pregunta.escala.save()
+            
+            elif isinstance(pregunta, PreguntaFecha):
+                # Actualizar campo incluir_hora
+                pregunta.incluir_hora = 'incluir_hora' in request.POST
             
             pregunta.save()
             messages.success(request, "Pregunta actualizada exitosamente.")
@@ -2386,6 +2427,11 @@ def agregar_pregunta(request, encuesta_id):
                 seccion=seccion
             )
         elif tipo == 'MTEXT':
+            # Obtener valores del formulario para texto múltiple
+            max_longitud = request.POST.get('texto_multiple_max_longitud', 1000)
+            filas = request.POST.get('texto_multiple_filas', 4)
+            placeholder = request.POST.get('texto_multiple_placeholder', '')
+            
             pregunta = PreguntaTextoMultiple.objects.create(
                 encuesta=encuesta,
                 texto=texto,
@@ -2394,7 +2440,10 @@ def agregar_pregunta(request, encuesta_id):
                 requerida=requerida,
                 permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                max_longitud=max_longitud,
+                filas=filas,
+                placeholder=placeholder
             )
         elif tipo in ['RADIO', 'CHECK', 'SELECT']:
             # Crear pregunta de opción múltiple
@@ -2470,63 +2519,90 @@ def agregar_pregunta(request, encuesta_id):
                 permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
                 seccion=seccion,
-                valor_minimo=escala_min,
-                valor_maximo=escala_max,
+                min_valor=escala_min,
+                max_valor=escala_max,
                 paso=escala_paso
             )
             
         elif tipo == 'MATRIX':
             # Crear pregunta de matriz
+            # Primero crear la escala asociada
+            escala_min = request.POST.get('escala_min', 1)
+            escala_max = request.POST.get('escala_max', 5)
+            escala_paso = request.POST.get('escala_paso', 1)
+            
+            # Crear una escala para la matriz
+            escala = PreguntaEscala.objects.create(
+                encuesta=encuesta,
+                texto=f"Escala para matriz: {texto}",
+                tipo='SCALE',
+                orden=0,  # Orden 0 para que no aparezca entre las preguntas normales
+                requerida=False,
+                ayuda='',
+                seccion='',
+                min_valor=escala_min,
+                max_valor=escala_max,
+                paso=escala_paso
+            )
+            
+            # Crear la matriz asociada a la escala
             pregunta = PreguntaMatriz.objects.create(
                 encuesta=encuesta,
                 texto=texto,
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                escala=escala
             )
             
-            # Agregar filas y columnas
+            # Agregar filas (elementos a evaluar)
             filas = request.POST.getlist('filas[]')
-            columnas = request.POST.getlist('columnas[]')
             
             for i, fila_texto in enumerate(filas):
-                if fila_texto.strip():
+                if fila_texto.strip():  # Solo crear si no está vacío
                     ItemMatrizPregunta.objects.create(
                         pregunta=pregunta,
                         texto=fila_texto,
                         orden=i+1
                     )
-            
-            for i, columna_texto in enumerate(columnas):
-                if columna_texto.strip():
-                    ColumnaMatriz.objects.create(
-                        pregunta=pregunta,
-                        texto=columna_texto,
-                        orden=i+1
-                    )
                     
         elif tipo == 'DATE':
+            # Usar el campo incluir_hora del formulario
+            incluir_hora = 'incluir_hora' in request.POST
+            
             pregunta = PreguntaFecha.objects.create(
                 encuesta=encuesta,
                 texto=texto,
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                incluir_hora=incluir_hora
             )
             
         elif tipo == 'STARS':
+            # Usar los nuevos campos del formulario para estrellas
+            max_estrellas = request.POST.get('estrellas_max', 5)
+            etiqueta_inicio = request.POST.get('estrellas_etiqueta_min', '')
+            etiqueta_fin = request.POST.get('estrellas_etiqueta_max', '')
+            
             pregunta = PreguntaEstrellas.objects.create(
                 encuesta=encuesta,
                 texto=texto,
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                max_estrellas=max_estrellas,
+                etiqueta_inicio=etiqueta_inicio,
+                etiqueta_fin=etiqueta_fin
             )
             
         # Reordenar las preguntas si es necesario
@@ -4356,6 +4432,7 @@ def subir_pdf_caracterizacion(request):
                         
                         # Procesar el PDF con Google Gemini para extraer datos del municipio específico
                         datos_json, error = process_pdf_with_gemini(temp_pdf_path, municipio_nombre)
+                        print("Respuesta de Gemini:", datos_json)
                         
                         if error:
                             logger.warning(f"Error al procesar PDF: {error}")
@@ -4720,4 +4797,385 @@ def diagnostico_pdf_caracterizacion(request):
         'modelos_disponibles': modelos_disponibles
     })
 
+# Proceso de datos mediante IA al preprocesar un audio
+# Proceso de datos mediante IA al preprocesar un audio
+@login_required
+def procesar_audio(request):
+    """Vista para procesar archivos de audio (transcripciones) y extraer respuestas mediante IA."""
+    import logging
+    import os
+    from django.conf import settings
+    from .utils.audio_processor import process_audio_with_gemini
 
+    logger = logging.getLogger(__name__)
+    
+    # Se obtienen los formularios de tipo: Entrevista, Grupo focal
+    Encuestas = Encuesta.objects.filter(
+        categoria__nombre__in=['Entrevista', 'Grupo Focal']
+    )
+
+
+    form = ProcesarAudioForm()
+    
+    if request.method == 'POST':
+        # Obtener IDs y archivo primero
+        encuesta_id = request.POST.get('encuesta')
+        audio_file = request.FILES.get('audio_file')
+        municipio_id = request.POST.get('municipio')
+
+        form = ProcesarAudioForm(request.POST, request.FILES)
+        
+        if not encuesta_id or not audio_file:
+            messages.error(request, "Debe seleccionar una encuesta y un archivo de audio.")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+
+        if form.is_valid():
+            # El resto de los campos del formulario ya están validados por form.is_valid()
+            # y los IDs/archivo ya los tenemos.
+            pass # La lógica principal ya no necesita obtenerlos de nuevo aquí
+        else:
+            # Si el formulario no es válido pero los IDs básicos están, igual renderizamos con errores del form.
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+        
+        try:
+            encuesta = Encuesta.objects.get(id=encuesta_id)
+            # Asegurarse de que municipio_id también se maneje si es None o vacío
+            if municipio_id:
+                municipio = Municipio.objects.get(id=municipio_id)
+            else:
+                # Manejar el caso donde municipio_id no se proporciona o es inválido
+                # Podrías asignar un municipio por defecto, o mostrar un error específico.
+                # Por ahora, si no hay municipio_id, lo dejamos como None, y la lógica posterior
+                # que crea RespuestaEncuesta podría necesitar manejar municipio=None o fallar si es requerido.
+                # Si municipio es estrictamente necesario, este error debe ser más específico.
+                messages.error(request, "Debe seleccionar un municipio.")
+                return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+                
+        except Encuesta.DoesNotExist:
+            messages.error(request, f"La encuesta seleccionada no existe.")
+            return redirect('todas_encuestas')
+        except Municipio.DoesNotExist:
+            messages.error(request, f"El municipio seleccionado no existe.")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+            
+        logger.info(f"Procesando audio para encuesta: {encuesta.titulo}, archivo: {audio_file.name}")
+        
+        # Llamar a la función de procesamiento de Gemini
+        respuestas_gemini, error_message = process_audio_with_gemini(audio_file, encuesta.id)
+        print(respuestas_gemini)
+        
+        if error_message:
+            logger.error(f"Error de Gemini: {error_message}")
+            messages.error(request, f"Error al procesar el audio con IA: {error_message}")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+        
+        if not respuestas_gemini:
+            logger.warning("Gemini no devolvió respuestas o devolvió un JSON vacío.")
+            messages.warning(request, "La IA no pudo extraer respuestas del archivo de audio/transcripción.")
+            return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+        
+        try:
+            # Crear la respuesta principal usando el mismo patrón que en el resto de la aplicación
+            usuario = request.user if request.user.is_authenticated else None
+            
+            # Crear objeto principal de respuesta (siguiendo el patrón existente)
+            respuesta = RespuestaEncuesta.objects.create(
+                encuesta=encuesta,
+                usuario=usuario,
+                municipio=municipio,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                completada=True
+            )
+            
+            logger.info(f"Creada RespuestaEncuesta ID: {respuesta.id} para encuesta '{encuesta.titulo}'")
+            
+            respuestas_guardadas_count = 0
+
+            for pregunta_id_str, texto_respuesta_raw in respuestas_gemini.items():
+                if not texto_respuesta_raw or not str(texto_respuesta_raw).strip():
+                    logger.warning(f"Respuesta vacía para pregunta ID {pregunta_id_str}, saltando.")
+                    continue
+
+                texto_respuesta = str(texto_respuesta_raw).strip()
+                pregunta_id = int(pregunta_id_str)
+                pregunta_obj = None
+                
+                # Identificar el tipo de pregunta
+                pregunta_modelos = [
+                    PreguntaTexto, PreguntaTextoMultiple, PreguntaOpcionMultiple,
+                    PreguntaCasillasVerificacion, PreguntaMenuDesplegable, PreguntaEstrellas,
+                    PreguntaEscala, PreguntaMatriz, PreguntaFecha
+                ]
+
+                for modelo_clase in pregunta_modelos:
+                    try:
+                        pregunta_obj = modelo_clase.objects.get(id=pregunta_id, encuesta=encuesta)
+                        break 
+                    except modelo_clase.DoesNotExist:
+                        continue
+                
+                if not pregunta_obj:
+                    logger.warning(f"No se encontró la pregunta con ID {pregunta_id} en la encuesta {encuesta.id}. Saltando.")
+                    continue
+
+                try:
+                    if isinstance(pregunta_obj, PreguntaTexto):
+                        RespuestaTexto.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=texto_respuesta)
+                        respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaTextoMultiple):
+                        RespuestaTextoMultiple.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=texto_respuesta)
+                        respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaOpcionMultiple):
+                        opcion_encontrada = None
+                        try:
+                            opcion_encontrada = OpcionMultiple.objects.get(pregunta=pregunta_obj, texto__iexact=texto_respuesta)
+                        except OpcionMultiple.DoesNotExist:
+                            if pregunta_obj.opcion_otro and "otro:" in texto_respuesta.lower():
+                                texto_otro_valor = texto_respuesta.split(":", 1)[1].strip() if ":" in texto_respuesta else ""
+                                opcion_otro_obj = OpcionMultiple.objects.filter(pregunta=pregunta_obj, texto__iexact='Otro').first()
+                                if opcion_otro_obj:
+                                    RespuestaOpcionMultiple.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_otro_obj, texto_otro=texto_otro_valor)
+                                    respuestas_guardadas_count += 1
+                                else:
+                                    logger.warning(f"Pregunta {pregunta_id} tipo OpcionMultiple con 'otro' habilitado pero no se encontró opción 'Otro' para guardar: {texto_respuesta}")
+                            else:
+                                logger.warning(f"Opción '{texto_respuesta}' no encontrada para PreguntaOpcionMultiple ID {pregunta_id}")
+                        if opcion_encontrada:
+                            RespuestaOpcionMultiple.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_encontrada)
+                            respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaCasillasVerificacion):
+                        # Asumimos que la IA devuelve una opción a la vez por ahora, o un string que es una opción
+                        # Para múltiples opciones, la IA debería devolver una lista.
+                        opcion_encontrada = None
+                        try:
+                            # Si texto_respuesta es una lista (ej. la IA devuelve JSON)
+                            if isinstance(texto_respuesta_raw, list):
+                                for opt_text in texto_respuesta_raw:
+                                    opt_text_clean = str(opt_text).strip()
+                                    if not opt_text_clean: continue
+                                    try:
+                                        opcion = OpcionCasillaVerificacion.objects.get(pregunta=pregunta_obj, texto__iexact=opt_text_clean)
+                                        RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion)
+                                        respuestas_guardadas_count += 1
+                                    except OpcionCasillaVerificacion.DoesNotExist:
+                                        logger.warning(f"Opción de casilla '{opt_text_clean}' no encontrada para PreguntaCasillasVerificacion ID {pregunta_id}")
+                            else: # Si es un solo string
+                                opcion_encontrada = OpcionCasillaVerificacion.objects.get(pregunta=pregunta_obj, texto__iexact=texto_respuesta)
+                                RespuestaCasillasVerificacion.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_encontrada)
+                                respuestas_guardadas_count += 1
+                        except OpcionCasillaVerificacion.DoesNotExist:
+                             logger.warning(f"Opción de casilla '{texto_respuesta}' no encontrada para PreguntaCasillasVerificacion ID {pregunta_id}")
+                    elif isinstance(pregunta_obj, PreguntaMenuDesplegable):
+                        opcion_encontrada = None
+                        try:
+                            opcion_encontrada = OpcionMenuDesplegable.objects.get(pregunta=pregunta_obj, texto__iexact=texto_respuesta)
+                        except OpcionMenuDesplegable.DoesNotExist:
+                            logger.warning(f"Opción '{texto_respuesta}' no encontrada para PreguntaMenuDesplegable ID {pregunta_id}")
+                        if opcion_encontrada:
+                            RespuestaOpcionMenuDesplegable.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, opcion=opcion_encontrada)
+                            respuestas_guardadas_count += 1
+                    elif isinstance(pregunta_obj, PreguntaEstrellas):
+                        try:
+                            valor_int = int(texto_respuesta)
+                            RespuestaEstrellas.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=valor_int)
+                            respuestas_guardadas_count += 1
+                        except ValueError:
+                            logger.warning(f"Valor '{texto_respuesta}' no es un entero válido para PreguntaEstrellas ID {pregunta_id}")
+                    elif isinstance(pregunta_obj, PreguntaEscala):
+                        try:
+                            valor_int = int(texto_respuesta)
+                            RespuestaEscala.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=valor_int)
+                            respuestas_guardadas_count += 1
+                        except ValueError:
+                            logger.warning(f"Valor '{texto_respuesta}' no es un entero válido para PreguntaEscala ID {pregunta_id}")
+                    elif isinstance(pregunta_obj, PreguntaFecha):
+                        try:
+                            # Intentar parsear como datetime primero, luego como date
+                            parsed_date = None
+                            formatos_fecha_hora = [
+                                '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M', # ISO
+                                '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+                                '%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M',
+                            ]
+                            formatos_fecha = ['%Y-%m-%d', '%d/%m/%Y']
+
+                            for fmt in formatos_fecha_hora:
+                                try:
+                                    parsed_date = timezone.datetime.strptime(texto_respuesta, fmt)
+                                    break
+                                except ValueError:
+                                    continue
+                            
+                            if not parsed_date:
+                                for fmt in formatos_fecha:
+                                    try:
+                                        parsed_date = timezone.datetime.strptime(texto_respuesta, fmt).date()
+                                        break
+                                    except ValueError:
+                                        continue
+                            
+                            if parsed_date: 
+                                if not pregunta_obj.incluir_hora and isinstance(parsed_date, timezone.datetime):
+                                     RespuestaFecha.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=parsed_date.date())
+                                else:
+                                     RespuestaFecha.objects.create(respuesta_encuesta=respuesta, pregunta=pregunta_obj, valor=parsed_date)
+                                respuestas_guardadas_count += 1
+                            else:
+                                raise ValueError("Formato de fecha no reconocido")
+                        except ValueError as e:
+                            logger.warning(f"Valor '{texto_respuesta}' no es una fecha válida para PreguntaFecha ID {pregunta_id}: {e}")
+                    elif isinstance(pregunta_obj, PreguntaMatriz):
+                        if isinstance(texto_respuesta_raw, dict):
+                            items_matriz = pregunta_obj.items.all()
+                            for item_obj in items_matriz:
+                                valor_item_str = None
+                                if str(item_obj.id) in texto_respuesta_raw:
+                                    valor_item_str = str(texto_respuesta_raw[str(item_obj.id)]).strip()
+                                elif item_obj.texto in texto_respuesta_raw:
+                                     valor_item_str = str(texto_respuesta_raw[item_obj.texto]).strip()
+                                
+                                if valor_item_str:
+                                    try:
+                                        valor_int = int(valor_item_str)
+                                        if pregunta_obj.escala.min_valor <= valor_int <= pregunta_obj.escala.max_valor:
+                                            RespuestaMatriz.objects.create(
+                                                respuesta_encuesta=respuesta,
+                                                pregunta=pregunta_obj,
+                                                item=item_obj,
+                                                valor=valor_int
+                                            )
+                                            respuestas_guardadas_count += 1
+                                        else:
+                                            logger.warning(f"Valor {valor_int} fuera de rango para item {item_obj.texto} (ID: {item_obj.id}) de PreguntaMatriz ID {pregunta_id}")
+                                    except ValueError:
+                                        logger.warning(f"Valor '{valor_item_str}' no es un entero válido para item {item_obj.texto} (ID: {item_obj.id}) de PreguntaMatriz ID {pregunta_id}")
+                                else:
+                                    logger.info(f"No se encontró respuesta para item {item_obj.texto} (ID: {item_obj.id}) en PreguntaMatriz ID {pregunta_id}")
+                        else:
+                            logger.warning(f"PreguntaMatriz ID {pregunta_id} recibió una respuesta no estructurada (se esperaba JSON/dict): '{texto_respuesta}'. No se pudo procesar.")
+                    
+                except Exception as e_inner:
+                    logger.error(f"Error al procesar y guardar respuesta para pregunta ID {pregunta_id} (Tipo: {pregunta_obj.__class__.__name__}): {str(e_inner)}", exc_info=True)
+
+            if respuestas_guardadas_count > 0:
+                messages.success(request, f"Audio procesado exitosamente. Se extrajeron y guardaron {respuestas_guardadas_count} respuestas para la encuesta '{encuesta.titulo}'.")
+                return redirect('resultados_encuesta', pk=encuesta.id) 
+            else:
+                messages.warning(request, "No se pudieron extraer o guardar respuestas válidas para ninguna de las preguntas en el audio/transcripción.")
+                respuesta.delete()
+                logger.info(f"RespuestaEncuesta ID {respuesta.id} eliminada por no tener detalles guardados.")
+        
+        except Exception as e:
+            logger.error(f"Error al guardar las respuestas: {str(e)}", exc_info=True)
+            messages.error(request, f"Error crítico al guardar las respuestas: {str(e)}")
+    
+    # Para GET y para POST con errores de formulario o errores críticos
+    return render(request, 'Encuesta/respuesta_procesar_audio.html', {'Encuestas': Encuestas, 'form': form})
+
+
+def crear_respuestas_formulario(request, municipio, datos_json):
+    """Crea una respuesta de formulario con los datos proporcionados"""
+    from .models import CaracterizacionMunicipal
+    from django.db import transaction
+    import logging
+    from django.utils import timezone
+    
+    logger = logging.getLogger(__name__)
+    
+    # Obtener el formulario seleccionado
+    formulario_id = request.POST.get('formulario')
+    formulario = Encuesta.objects.get(id=formulario_id)
+
+    with transaction.atomic():
+            caracterizacion = CaracterizacionMunicipal(
+                municipio=municipio,
+                creador=request.user,
+                estado='borrador'
+            )
+            logger.info(f"Creando nueva caracterización para {municipio.nombre}")
+    
+    
+    
+   
+    
+    # Campos asignados correctamente (para logging)
+    campos_asignados = []
+    
+    # Flag para municipio PDEI
+    if "es_municipio_pdei" in datos_json:
+        if isinstance(datos_json["es_municipio_pdei"], bool):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"]
+        elif isinstance(datos_json["es_municipio_pdei"], str):
+            caracterizacion.es_municipio_pdei = datos_json["es_municipio_pdei"].lower() in ['true', 'yes', 'si', '1']
+    
+    # Sobrescribir con los valores encontrados en el PDF
+    for campo, valor in datos_json.items():
+        # Solo considerar campos que existen en nuestro modelo y que tienen valor
+        if hasattr(caracterizacion, campo) and valor is not None:
+            try:
+                # Convertir a número si es posible y si el campo es numérico
+                if campo in campos_numericos:
+                    try:
+                        # Si ya es un número, usarlo directamente
+                        if isinstance(valor, (int, float)):
+                            pass
+                        # Si es string, intentar convertir
+                        elif isinstance(valor, str):
+                            # Limpiar texto (quitar símbolos como %, etc.)
+                            valor = valor.replace('%', '').replace(',', '.').strip()
+                            valor = float(valor)
+                            # Si es entero, convertir a int
+                            if valor.is_integer():
+                                valor = int(valor)
+                    except (ValueError, TypeError, AttributeError):
+                        # Si falla la conversión, usar 0
+                        valor = 0
+                
+                # Asignar el valor al campo del modelo
+                setattr(caracterizacion, campo, valor)
+                campos_asignados.append(f"{campo}: {valor}")
+                logger.info(f"Campo asignado: {campo} = {valor}")
+            except Exception as e:
+                logger.warning(f"Error al asignar {campo}: {str(e)}")
+    
+    # Agregar observación
+    if not caracterizacion.observaciones:
+        caracterizacion.observaciones = ""
+    caracterizacion.observaciones += (
+        f"\nCaracterización {'actualizada' if caracterizacion_existente else 'creada'} mediante procesamiento de PDF con IA (Gemini). "
+        f"Municipio: {municipio.nombre}. "
+        f"Campos extraídos: {', '.join(campos_asignados)}. "
+        f"Fecha de procesamiento: {timezone.now().strftime('%d/%m/%Y %H:%M')}. "
+    )
+    
+    # Guardar caracterización
+    caracterizacion.save()
+    logger.info(f"Caracterización guardada con ID: {caracterizacion.id}")
+    
+    return caracterizacion
+
+
+def api_municipios_por_encuesta(request, encuesta_id):
+    """API para obtener municipios disponibles para una encuesta específica"""
+    from .models import Municipio, Encuesta
+    from django.http import JsonResponse
+
+    try:
+        # Obtener la encuesta
+        encuesta = Encuesta.objects.get(id=encuesta_id)
+        
+        # Obtener la región asociada a la encuesta
+        region = encuesta.region  # Asegúrate de que la encuesta tenga un campo 'region'
+        
+        # Obtener municipios disponibles para la región
+        municipios = Municipio.objects.filter(region=region)
+        
+        # Devolver JSON con los municipios
+        municipios_data = [{'id': municipio.id, 'nombre': municipio.nombre} for municipio in municipios]
+        return JsonResponse(municipios_data, safe=False)
+    
+    except Encuesta.DoesNotExist:
+        return JsonResponse({'error': 'Encuesta no encontrada'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

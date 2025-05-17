@@ -1,0 +1,182 @@
+"""
+Django settings for corpensar project.
+"""
+
+from pathlib import Path
+import os
+
+# Build paths
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Security
+SECRET_KEY = 'django-insecure-#z14eo4a-0%ewfa@01=5*p3z5&r_$6--jr4swpri$_jnb79(um'
+DEBUG = True
+ALLOWED_HOSTS = ['*']  # Cambiar en producción
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://equidata.app',
+    'http://equidata.app',
+]
+
+# Apps
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'corpensar',
+]
+
+# Middleware
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corpensar.middleware.PQRSFDContextMiddleware',
+]
+
+# URLs y Templates
+ROOT_URLCONF = 'corpensar.urls'
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'corpensar',       
+        'USER': 'zremote',
+        'PASSWORD': 'M@j0309!zremote',
+        'HOST': '45.33.15.67',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        },
+    }
+}
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+"""
+# Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# Internationalization
+LANGUAGE_CODE = 'es-co'
+TIME_ZONE = 'America/Bogota'
+USE_I18N = True
+USE_L10N = True
+USE_TZ = False
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/equidata.app/static'  # Cambiar en producción
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
+# Login URLs
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'login_redirect'  # Ahora usa una vista personalizada para la redirección
+LOGOUT_REDIRECT_URL = 'public_home'  # Redirige a la página principal después del logout
+
+# settings.py
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache' 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desarrollo, imprime en consola
+# En producción, usar SMTP real:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.example.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your_email@example.com'
+# EMAIL_HOST_PASSWORD = 'your_password'
+DEFAULT_FROM_EMAIL = 'noreply@corpensar.com'
+
+# Google Gemini API settings
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyBiDDmPRJyEsMdOqejOvRQbRf1Lebh3gbA')
+
+# Carpeta de archivos temporales para PDFs
+TEMP_PDF_DIR = os.path.join(BASE_DIR, 'temp_pdf')
+os.makedirs(TEMP_PDF_DIR, exist_ok=True)
+
+# Configuración de logging mejorada
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'sql': {
+            'format': '[SQL] {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'sql_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'sql',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'corpensar': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # 'django.db.backends': {
+        #     'handlers': ['sql_console'],
+        #     'level': 'DEBUG',
+        #     'propagate': False,
+        # },
+    },
+}

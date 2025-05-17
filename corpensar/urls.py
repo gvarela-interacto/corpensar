@@ -45,6 +45,8 @@ urlpatterns = [
   path('encuestas/<int:encuesta_id>/diseno/', views.actualizar_diseno, name='actualizar_diseno'),
   path('encuestas/<int:encuesta_id>/preview-diseno/', views.preview_diseno, name='preview_diseno'),
 
+  path('procesar-audio/', views.procesar_audio, name='procesar_audio'), # Procesar audio para respuestas de formularios
+
   #Inicio Sesion y Registro
   path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
   path('accounts/logout/', views.custom_logout, name='logout'),
@@ -92,6 +94,7 @@ urlpatterns = [
   # Agregar estas rutas para las APIs del mapa y estadísticas
   path('api/estadisticas-municipios/', views.api_estadisticas_municipios, name='api_estadisticas_municipios'),
   path('api/mapa-municipios/', views.api_mapa_municipios, name='api_mapa_municipios'),
+  path('api/municipios-por-encuesta/<int:encuesta_id>/', views.api_municipios_por_encuesta, name='api_municipios_por_encuesta'),
 
   path('eliminar-respuesta/<int:respuesta_id>/', views.eliminar_respuesta_encuesta, name='eliminar_respuesta'),
 

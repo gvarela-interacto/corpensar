@@ -406,3 +406,33 @@ class PDFCaracterizacionForm(forms.Form):
             if pdf_file.size > 10 * 1024 * 1024:
                 raise forms.ValidationError("El archivo no debe exceder 10 MB.")
         return pdf_file
+    
+
+class ProcesarAudioForm(forms.Form):
+    """ 
+    Formulario para cargar un audio y que se procese para extraer respuestas
+    de un encuestas/entrevista/grupo focal previamente seleccionado y que las
+    asigne
+    """
+
+    audio_file = forms.FileField(
+        label="Archivo de audio",
+        help_text="Seleccione un archivo de audio para procesar y extraer respuestas.",
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'audio/*'}),
+    )
+
+    def clean_audio_file(self):
+        """ Validar que el archivo sea un audio """
+
+        audio_file = self.cleaned_data.get('audio_file')
+
+        if audio_file:
+
+            # Verificar que sea un audio por extensión
+            if not audio_file.name.lower().endswith(('.mp3', '.wav', '.ogg', '.m4a', '.aac')):
+                raise forms.ValidationError("El archivo debe ser un audio.")
+            
+            # Verificar el tamaño del archivo (máximo 20 MB)
+            if audio_file.size > 20 * 1024 * 1024:
+                raise forms.ValidationError("El archivo no debe exceder 20 MB.")
+        return audio_file
