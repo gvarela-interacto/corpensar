@@ -2175,6 +2175,8 @@ def editar_pregunta(request, pregunta_id):
             if isinstance(pregunta, (PreguntaTexto, PreguntaTextoMultiple)):
                 pregunta.placeholder = request.POST.get('placeholder', '')
                 pregunta.max_longitud = int(request.POST.get('max_longitud', 250))
+                if isinstance(pregunta, PreguntaTextoMultiple):
+                    pregunta.filas = int(request.POST.get('filas', 4))
             
             elif isinstance(pregunta, (PreguntaOpcionMultiple, PreguntaCasillasVerificacion, PreguntaMenuDesplegable)):
                 # Obtener las opciones actualizadas
@@ -2199,6 +2201,45 @@ def editar_pregunta(request, pregunta_id):
                             texto=texto,
                             orden=i+1
                         )
+            
+            elif isinstance(pregunta, PreguntaEstrellas):
+                # Actualizar campos específicos de estrellas
+                pregunta.max_estrellas = int(request.POST.get('estrellas_max', 5))
+                pregunta.etiqueta_inicio = request.POST.get('estrellas_etiqueta_min', '')
+                pregunta.etiqueta_fin = request.POST.get('estrellas_etiqueta_max', '')
+            
+            elif isinstance(pregunta, PreguntaEscala):
+                # Actualizar campos específicos de escala
+                pregunta.min_valor = int(request.POST.get('escala_min', 1))
+                pregunta.max_valor = int(request.POST.get('escala_max', 5))
+                pregunta.paso = int(request.POST.get('escala_paso', 1))
+                pregunta.etiqueta_min = request.POST.get('escala_etiqueta_min', '')
+                pregunta.etiqueta_max = request.POST.get('escala_etiqueta_max', '')
+            
+            elif isinstance(pregunta, PreguntaMatriz):
+                # Actualizar filas de la matriz
+                filas = request.POST.getlist('filas[]')
+                # Eliminar filas existentes
+                pregunta.items.all().delete()
+                # Crear nuevas filas
+                for i, fila_texto in enumerate(filas):
+                    if fila_texto.strip():  # Solo crear si no está vacío
+                        ItemMatrizPregunta.objects.create(
+                            pregunta=pregunta,
+                            texto=fila_texto,
+                            orden=i+1
+                        )
+                
+                # Actualizar escala asociada
+                if pregunta.escala:
+                    pregunta.escala.min_valor = int(request.POST.get('escala_min', 1))
+                    pregunta.escala.max_valor = int(request.POST.get('escala_max', 5))
+                    pregunta.escala.paso = int(request.POST.get('escala_paso', 1))
+                    pregunta.escala.save()
+            
+            elif isinstance(pregunta, PreguntaFecha):
+                # Actualizar campo incluir_hora
+                pregunta.incluir_hora = 'incluir_hora' in request.POST
             
             pregunta.save()
             messages.success(request, "Pregunta actualizada exitosamente.")
@@ -2386,6 +2427,11 @@ def agregar_pregunta(request, encuesta_id):
                 seccion=seccion
             )
         elif tipo == 'MTEXT':
+            # Obtener valores del formulario para texto múltiple
+            max_longitud = request.POST.get('texto_multiple_max_longitud', 1000)
+            filas = request.POST.get('texto_multiple_filas', 4)
+            placeholder = request.POST.get('texto_multiple_placeholder', '')
+            
             pregunta = PreguntaTextoMultiple.objects.create(
                 encuesta=encuesta,
                 texto=texto,
@@ -2394,7 +2440,10 @@ def agregar_pregunta(request, encuesta_id):
                 requerida=requerida,
                 permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                max_longitud=max_longitud,
+                filas=filas,
+                placeholder=placeholder
             )
         elif tipo in ['RADIO', 'CHECK', 'SELECT']:
             # Crear pregunta de opción múltiple
@@ -2470,63 +2519,90 @@ def agregar_pregunta(request, encuesta_id):
                 permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
                 seccion=seccion,
-                valor_minimo=escala_min,
-                valor_maximo=escala_max,
+                min_valor=escala_min,
+                max_valor=escala_max,
                 paso=escala_paso
             )
             
         elif tipo == 'MATRIX':
             # Crear pregunta de matriz
+            # Primero crear la escala asociada
+            escala_min = request.POST.get('escala_min', 1)
+            escala_max = request.POST.get('escala_max', 5)
+            escala_paso = request.POST.get('escala_paso', 1)
+            
+            # Crear una escala para la matriz
+            escala = PreguntaEscala.objects.create(
+                encuesta=encuesta,
+                texto=f"Escala para matriz: {texto}",
+                tipo='SCALE',
+                orden=0,  # Orden 0 para que no aparezca entre las preguntas normales
+                requerida=False,
+                ayuda='',
+                seccion='',
+                min_valor=escala_min,
+                max_valor=escala_max,
+                paso=escala_paso
+            )
+            
+            # Crear la matriz asociada a la escala
             pregunta = PreguntaMatriz.objects.create(
                 encuesta=encuesta,
                 texto=texto,
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                escala=escala
             )
             
-            # Agregar filas y columnas
+            # Agregar filas (elementos a evaluar)
             filas = request.POST.getlist('filas[]')
-            columnas = request.POST.getlist('columnas[]')
             
             for i, fila_texto in enumerate(filas):
-                if fila_texto.strip():
+                if fila_texto.strip():  # Solo crear si no está vacío
                     ItemMatrizPregunta.objects.create(
                         pregunta=pregunta,
                         texto=fila_texto,
                         orden=i+1
                     )
-            
-            for i, columna_texto in enumerate(columnas):
-                if columna_texto.strip():
-                    ColumnaMatriz.objects.create(
-                        pregunta=pregunta,
-                        texto=columna_texto,
-                        orden=i+1
-                    )
                     
         elif tipo == 'DATE':
+            # Usar el campo incluir_hora del formulario
+            incluir_hora = 'incluir_hora' in request.POST
+            
             pregunta = PreguntaFecha.objects.create(
                 encuesta=encuesta,
                 texto=texto,
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                incluir_hora=incluir_hora
             )
             
         elif tipo == 'STARS':
+            # Usar los nuevos campos del formulario para estrellas
+            max_estrellas = request.POST.get('estrellas_max', 5)
+            etiqueta_inicio = request.POST.get('estrellas_etiqueta_min', '')
+            etiqueta_fin = request.POST.get('estrellas_etiqueta_max', '')
+            
             pregunta = PreguntaEstrellas.objects.create(
                 encuesta=encuesta,
                 texto=texto,
                 tipo=tipo,
                 orden=orden,
                 requerida=requerida,
+                permitir_archivos=permitir_archivos,
                 ayuda=ayuda,
-                seccion=seccion
+                seccion=seccion,
+                max_estrellas=max_estrellas,
+                etiqueta_inicio=etiqueta_inicio,
+                etiqueta_fin=etiqueta_fin
             )
             
         # Reordenar las preguntas si es necesario
